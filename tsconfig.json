@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "module": "commonjs",
+    "target": "esnext",
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "declaration": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "importHelpers": true
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
