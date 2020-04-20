@@ -7,70 +7,57 @@ import {
   PaginateRequest,
 } from "@dedis/cothority/byzcoin/proto/stream";
 import { Subject } from "rxjs";
-import { DataBody } from "@dedis/cothority/byzcoin/proto";
-import { Observable } from "rxjs";
 import * as d3 from "d3";
-import { xml } from "d3";
 
 export class BrowseBlocks {
+  // SVG properties
   svgWidth: number;
   svgHeight: number;
+  svgBlocks: any;
 
-  blockPadding: number;
+  // Blocks UI properties
+  blockPadding: number; // size of the space between blocks
   blockWidth: number;
   blockHeight: number;
 
+  // Colors
   textColor: string;
   blockColor: string;
   validColor: string;
   invalidColor: string;
 
-  nbBlocksLoaded: number;
-
-  windowWidth: number;
-
-  indexFirstBlockToDisplay: number;
-
+  // Blockchain properties
   roster: Roster;
   ws: WebSocketAdapter;
-
-  pageSizeNB: number;
-  numPagesNB: number;
-
   subjectBrowse: Subject<[number, SkipBlock[]]>;
-
-  listBlocks: SkipBlock[];
-
-  svgBlocks: any;
+  pageSizeNb: number; // number of blocks in a page
+  numPagesNb: number; // number of pages
+  nbBlocksLoaded: number;
 
   constructor(roster: Roster) {
-    this.roster = roster;
-
+    // SVG properties
     this.svgWidth = window.innerWidth;
     this.svgHeight = 400;
+    let self = this;
 
+    // Blocks UI properties
     this.blockPadding = 10;
     this.blockWidth = 300;
     this.blockHeight = 300;
 
+    // Colors
     this.textColor = "black";
     this.blockColor = "#236ddb";
     this.validColor = "#0cf01b";
     this.invalidColor = "#ed0e19";
 
+    // Blockchain properties
+    this.roster = roster;
+    this.subjectBrowse = new Subject<[number, SkipBlock[]]>();
+    this.pageSizeNb = 15;
+    this.numPagesNb = 1;
     this.nbBlocksLoaded = 0;
 
-    this.windowWidth = window.screen.width;
-
-    this.indexFirstBlockToDisplay = 0;
-
-    this.pageSizeNB = 15;
-    this.numPagesNB = 1;
-
-    this.subjectBrowse = new Subject<[number, SkipBlock[]]>();
-    let lastBlockID: string;
-
-    let self = this;
     this.svgBlocks = d3
       .select(".blocks")
       .attr("width", this.svgWidth)
@@ -78,26 +65,22 @@ export class BrowseBlocks {
       .call(
         d3.zoom().on("zoom", function () {
           self.svgBlocks.attr("transform", d3.event.transform);
-          console.log(
-            "d3 x " + d3.event.transform.x + " d3 zoom " + d3.event.transform.k
-          );
-          let x = d3.event.transform.x;
-          let zoom_level = d3.event.transform.k;
+          let x = d3.event.transform.x; // horizontal position
+          let zoomLevel = d3.event.transform.k;
 
           let xMax =
             self.nbBlocksLoaded * (self.blockWidth + self.blockPadding);
-          xMax -= self.windowWidth + self.blockWidth;
-          xMax *= -zoom_level;
-          console.log("X " + x + " XMAX " + xMax + " zoom level " + zoom_level);
+          xMax -= self.svgWidth + self.blockWidth;
+          xMax *= -zoomLevel;
+
           if (x < xMax) {
-            console.log("onzoom getnextblocks");
-            //lock zoom
+            // TODO lock zoom
             //self.svgBlocks.attr("transform", undefined) // TODO
 
             self.getNextBlocks(
               lastBlockID,
-              self.pageSizeNB,
-              self.numPagesNB,
+              self.pageSizeNb,
+              self.numPagesNb,
               self.subjectBrowse
             );
           }
@@ -105,57 +88,51 @@ export class BrowseBlocks {
       )
       .append("g");
 
+    let lastBlockID: string;
     this.subjectBrowse.subscribe({
+      // i: page number
       next: ([i, skipBlocks]) => {
         console.log("i: " + i);
-        // i : num page
-
-        if (i == this.numPagesNB - 1) {
+        if (i == this.numPagesNb - 1) {
           lastBlockID = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
-          console.log("lastBlockID " + lastBlockID);
 
-          // k is the zoom level
           this.displayBlocks(skipBlocks, this.svgBlocks, this.getRandomColor());
 
-          //this.svgBlocks.attr("transform", d3.event.transform); // TODO
+          // TODO unlock zoom
+          //this.svgBlocks.attr("transform", d3.event.transform);
         }
       },
       complete: () => {
-        console.log("Fin de la Blockchain");
+        console.log("End of blockchain");
         console.log("closed");
       },
       error: (err: any) => {
         console.log("error: ", err);
         if (err === 1) {
           console.log("Browse recall: " + 1);
-          this.ws = undefined; //To reset the websocket, create a new handler for the next function (of getnextblock)
+          this.ws = undefined; // To reset the websocket, create a new handler for the next function (of getnextblock)
         }
       },
     });
   }
 
   main() {
-    console.log("test main browseBlocks");
-    let temp = 0;
-    const self = this;
-
     let firstBlockID =
       "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
 
     this.getNextBlocks(
       firstBlockID,
-      this.pageSizeNB,
-      this.numPagesNB,
+      this.pageSizeNb,
+      this.numPagesNb,
       this.subjectBrowse
     );
   }
 
-  placeText(pos: number): number {
+  placeTextInBlock(pos: number): number {
     return 25 + pos * 30;
   }
 
   loaderAnimation(svgBlocks: any) {
-    console.log("loader after block " + this.pageSizeNB); // TODO remove
     svgBlocks
       .append("rect")
       .attr("width", this.blockWidth)
@@ -171,21 +148,38 @@ export class BrowseBlocks {
       .attr("fill", this.getRandomColor());
   }
 
+  appendTextInBlock(
+    svgBlocks: any,
+    xTranslate: number,
+    block: SkipBlock,
+    textID: number,
+    text: string,
+    textColor: string
+  ) {
+    svgBlocks
+      .append("text")
+      .attr("x", xTranslate + 5)
+      .attr("y", this.placeTextInBlock(textID))
+      .text(text)
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "18px")
+      .attr("fill", textColor);
+  }
+
   /**
    *
-   * @param {*} todo list of blocks with their attributes
+   * @param {*} listBlocks list of blocks
    * @param {*} svgBlocks svg class that will contain the blocks
    * @param {*} blockColor color of the blocks
-   * @param {*} start index of the first block to display
-   * @param {*} end index of the last block to display
    */
-
   displayBlocks(listBlocks: SkipBlock[], svgBlocks: any, blockColor: string) {
     for (let i = 0; i < listBlocks.length; ++i, ++this.nbBlocksLoaded) {
-      const x_translate =
-        (this.blockWidth + this.blockPadding) * (this.nbBlocksLoaded + 1);
+      // x position where to start to display blocks
+      const xTranslate =
+        (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded;
+      console.log("xtranslate " + xTranslate);
+
       const block = listBlocks[i];
-      console.log("display block number " + block.index); // TODO remove
 
       svgBlocks
         .append("rect") // for each block, append it inside the svg container
@@ -193,24 +187,26 @@ export class BrowseBlocks {
         .attr("height", this.blockHeight)
         .attr("y", 25)
         .attr("transform", function (d: any) {
-          let translate = [x_translate, 0];
+          let translate = [xTranslate, 0];
           return "translate(" + translate + ")";
         })
         .attr("fill", blockColor);
 
-      svgBlocks
-        .append("text")
-        .attr("x", x_translate + 5)
-        .attr("y", this.placeText(1))
-        .text("block id: " + block.index)
-        .attr("font-family", "sans-serif")
-        .attr("font-size", "18px")
-        .attr("fill", this.textColor);
+      // Index
+      this.appendTextInBlock(
+        svgBlocks,
+        xTranslate,
+        block,
+        1,
+        "index: " + block.index,
+        this.textColor
+      );
 
+      // Validity
       svgBlocks
         .append("text")
-        .attr("x", x_translate + 5)
-        .attr("y", this.placeText(2))
+        .attr("x", xTranslate + 5)
+        .attr("y", this.placeTextInBlock(2))
         .text(function (d: any) {
           let str = "";
           if (true) {
@@ -230,21 +226,23 @@ export class BrowseBlocks {
           } else return this.invalidColor;
         });
 
+      // Date
       svgBlocks
         .append("text")
-        .attr("x", x_translate + 5)
-        .attr("y", this.placeText(3))
+        .attr("x", xTranslate + 5)
+        .attr("y", this.placeTextInBlock(3))
         .text(function (d: any) {
-          return "date: 3"; // + block.date;
+          return "date: 3"; // + block.date
         })
         .attr("font-family", "sans-serif")
         .attr("font-size", "18px")
         .attr("fill", this.textColor);
 
+      // Hash
       svgBlocks
         .append("text")
-        .attr("x", x_translate + 5)
-        .attr("y", this.placeText(4))
+        .attr("x", xTranslate + 5)
+        .attr("y", this.placeTextInBlock(4))
         .text(function (d: any) {
           let hash = block.hash.toString("hex");
           return "hash: " + hash.slice(0, 6) + "...";
@@ -253,13 +251,6 @@ export class BrowseBlocks {
         .attr("font-size", "18px")
         .attr("fill", this.textColor);
     }
-  }
-
-  // Source: https://stackoverflow.com/a/1152508
-  getRandomColor() {
-    return (
-      "#" + (0x1000000 + Math.random() * 0xffffff).toString(16).substr(1, 6)
-    );
   }
 
   hex2Bytes(hex: string) {
@@ -271,17 +262,17 @@ export class BrowseBlocks {
   }
 
   getNextBlocks(
-    nextID: string,
-    pageSizeNB: number,
-    numPagesNB: number,
+    nextBlockID: string,
+    pageSizeNb: number,
+    numPagesNb: number,
     subjectBrowse: Subject<[number, SkipBlock[]]>
   ) {
-    console.log("next id " + nextID);
+    console.log("next id " + nextBlockID);
     var bid: Buffer;
-    let nextIDB = nextID;
+    let nextIDB = nextBlockID;
 
     try {
-      bid = this.hex2Bytes(nextID);
+      bid = this.hex2Bytes(nextBlockID);
     } catch (error) {
       console.log("failed to parse the block ID: ", error);
       return;
@@ -300,20 +291,20 @@ export class BrowseBlocks {
     if (this.ws !== undefined) {
       const message = new PaginateRequest({
         startid: bid,
-        pagesize: pageSizeNB,
-        numpages: numPagesNB,
+        pagesize: pageSizeNb,
+        numpages: numPagesNb,
         backward: false,
       });
 
       const messageByte = Buffer.from(message.$type.encode(message).finish());
-      this.ws.send(messageByte); //fetch next block
+      this.ws.send(messageByte); // fetch next block
     } else {
       conn
-        .sendStream<PaginateResponse>( //fetch next block
+        .sendStream<PaginateResponse>( // fetch next block
           new PaginateRequest({
             startid: bid,
-            pagesize: pageSizeNB,
-            numpages: numPagesNB,
+            pagesize: pageSizeNb,
+            numpages: numPagesNb,
             backward: false,
           }),
           PaginateResponse
@@ -350,5 +341,13 @@ export class BrowseBlocks {
     }
     subjectBrowse.next([data.pagenumber, data.blocks]);
     return 0;
+  }
+
+  /***** Utils *****/
+  // Source: https://stackoverflow.com/a/1152508
+  getRandomColor() {
+    return (
+      "#" + (0x1000000 + Math.random() * 0xffffff).toString(16).substr(1, 6)
+    );
   }
 }
