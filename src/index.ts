@@ -6,8 +6,8 @@ import { PaginateResponse, PaginateRequest } from '@dedis/cothority/byzcoin/prot
 import { Subject } from 'rxjs';
 import { DataBody } from '@dedis/cothority/byzcoin/proto';
 import * as d3 from 'd3';
-import { BrowseBlocks } from './browseBlocks';
-import { getRosterStr } from './roster';
+import { BrowseBlocks } from './browseBlocks'; // TODO keep
+import { getRosterStr } from './roster'; // TODO keep
 
 var roster: Roster;
 var ws: WebSocketAdapter;
@@ -38,9 +38,9 @@ export function sayHi() {
   
   container = d3.select("body").append("div").attr("id", "container")
 
-  // Blocks UI
-  let browseBlocks = new BrowseBlocks(roster)
-  browseBlocks.main()
+  // Blocks UI // TODO keep
+  let browseBlocks = new BrowseBlocks(roster) // TODO keep
+  browseBlocks.main() // TODO keep
 }
 
 function createText(texts: string[], args?: Argument[]){/*
@@ -406,4 +406,4 @@ function hex2Bytes(hex: string) {
   return Buffer.from(hex, "hex");
 }
 
-const rosterStr = getRosterStr()
+const rosterStr = getRosterStr() // TODO keep
