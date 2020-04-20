@@ -1,5 +1,5 @@
 # student_20_columbus_react
-Implementation of an intuitive and insightful blockchain explorer - by Iozzia Anthony Lucien
+Implementation of an intuitive and insightful blockchain explorer - by Julien von Felten and Iozzia Anthony Lucien
 
 ## Setup
 ### Ubuntu
@@ -12,7 +12,13 @@ Start server: `./conode.Linux.x86_64 server`
 Stop it (ctrl+C)  
 Replace database in `~/.local/share/conode` (must be same name)  
 Copy content of `~/.config/conode/public.toml`  
-Replace rosterStr in index.ts with previously copied content  
+Create a file `src/roster.ts' containing:
+```
+export function getRosterStr() {
+    return `<content>`;
+}
+```
+Replace `<content>` with previously copied content  
 In root of this project: `npm install`  
 
 ## Run

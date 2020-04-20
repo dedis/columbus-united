@@ -7,6 +7,7 @@ import { Subject } from 'rxjs';
 import { DataBody } from '@dedis/cothority/byzcoin/proto';
 import * as d3 from 'd3';
 import { BrowseBlocks } from './browseBlocks';
+import { getRosterStr } from './roster';
 
 var roster: Roster;
 var ws: WebSocketAdapter;
@@ -405,15 +406,4 @@ function hex2Bytes(hex: string) {
   return Buffer.from(hex, "hex");
 }
 
-const rosterStr = `[[servers]]
-Address = "tls://127.0.0.1:7770"
-Suite = "Ed25519"
-Public = "a10dc0d4c45c5b1d64997e2a29dc136ebff4ee9b439aab21835c3df0fd10537d"
-Description = "New cothority"
-[servers.Services]
-  [servers.Services.ByzCoin]
-    Public = "37c079d0c083a7a166e8b0e89e36c52f31ed6bbbda6f2dd4dcf712924a177a2c8767668af6f6551bfb3044bd5665f85588e6781e15aca9cda74a847c91d57fbd345cb1b7280b37f423b838cbb54c6ca2ca61e140e7d480b45e01e24a555895f87e2407135edd324ba3549c0d67d8658a7e58df5b250536f4c4f6db0a6d6d2652"
-    Suite = "bn256.adapter"
-  [servers.Services.Skipchain]
-    Public = "2920ae1d3a2b20fef455b436073210406627dc492b40e854d071802d1e25d79277d61fc161ad6c6ada2b69c6ac1bb130c513de4685c09ab60ad8c10a168592ba44eb6a7210eb8892e16f536e5d348666da9d8c9dfbe73358b52b970e9ecfeb592af7d720f64ced15b548c7eb6d7e268935e2d55ce77c2e9d6290ded819eef556"
-    Suite = "bn256.adapter"`;
+const rosterStr = getRosterStr()
