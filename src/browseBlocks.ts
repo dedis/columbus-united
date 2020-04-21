@@ -33,6 +33,10 @@ export class BrowseBlocks {
   pageSizeNb: number; // number of blocks in a page
   numPagesNb: number; // number of pages
   nbBlocksLoaded: number;
+  lastBlockLoadedIndex: number;
+
+  // TODO
+  temp: number
 
   constructor(roster: Roster) {
     // SVG properties
@@ -57,6 +61,7 @@ export class BrowseBlocks {
     this.pageSizeNb = 15;
     this.numPagesNb = 1;
     this.nbBlocksLoaded = 0;
+    this.lastBlockLoadedIndex = -1;
 
     this.svgBlocks = d3
       .select(".blocks")
@@ -96,7 +101,7 @@ export class BrowseBlocks {
         if (i == this.numPagesNb - 1) {
           lastBlockID = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
 
-          this.displayBlocks(skipBlocks, this.svgBlocks, this.getRandomColor());
+          this.displayBlocks(skipBlocks, this.svgBlocks, this.blockColor);
 
           // TODO unlock zoom
           //this.svgBlocks.attr("transform", d3.event.transform);
@@ -114,6 +119,8 @@ export class BrowseBlocks {
         }
       },
     });
+
+    this.temp = 1;
   }
 
   main() {
@@ -177,9 +184,19 @@ export class BrowseBlocks {
       // x position where to start to display blocks
       const xTranslate =
         (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded;
-      console.log("xtranslate " + xTranslate);
+      
+      let block = listBlocks[i];
 
-      const block = listBlocks[i];
+      if(this.temp == 0) {
+        this.temp = 1;
+        --this.nbBlocksLoaded
+        
+      } else {
+
+      this.lastBlockLoadedIndex = block.index
+      
+
+      console.log("display block number " + block.index);
 
       svgBlocks
         .append("rect") // for each block, append it inside the svg container
@@ -250,7 +267,9 @@ export class BrowseBlocks {
         .attr("font-family", "sans-serif")
         .attr("font-size", "18px")
         .attr("fill", this.textColor);
+      }
     }
+    this.temp = 0;
   }
 
   hex2Bytes(hex: string) {
