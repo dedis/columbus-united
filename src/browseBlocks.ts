@@ -32,11 +32,9 @@ export class BrowseBlocks {
   subjectBrowse: Subject<[number, SkipBlock[]]>;
   pageSizeNb: number; // number of blocks in a page
   numPagesNb: number; // number of pages
+  firstBlockHash: string;
   nbBlocksLoaded: number;
   lastBlockLoadedIndex: number;
-
-  // TODO
-  temp: number
 
   constructor(roster: Roster) {
     // SVG properties
@@ -51,15 +49,17 @@ export class BrowseBlocks {
 
     // Colors
     this.textColor = "black";
-    this.blockColor = "#236ddb";
-    this.validColor = "#0cf01b";
-    this.invalidColor = "#ed0e19";
+    this.blockColor = "#4772D8";
+    this.validColor = "#8FD250";
+    this.invalidColor = "#FF503F";
 
     // Blockchain properties
     this.roster = roster;
     this.subjectBrowse = new Subject<[number, SkipBlock[]]>();
     this.pageSizeNb = 15;
     this.numPagesNb = 1;
+    this.firstBlockHash =
+      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
     this.nbBlocksLoaded = 0;
     this.lastBlockLoadedIndex = -1;
 
@@ -101,7 +101,7 @@ export class BrowseBlocks {
         if (i == this.numPagesNb - 1) {
           lastBlockID = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
 
-          this.displayBlocks(skipBlocks, this.svgBlocks, this.blockColor);
+          this.displayBlocks(skipBlocks, this.getRandomColor());
 
           // TODO unlock zoom
           //this.svgBlocks.attr("transform", d3.event.transform);
@@ -119,28 +119,120 @@ export class BrowseBlocks {
         }
       },
     });
-
-    this.temp = 1;
   }
 
   main() {
-    let firstBlockID =
-      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
-
     this.getNextBlocks(
-      firstBlockID,
+      this.firstBlockHash,
       this.pageSizeNb,
       this.numPagesNb,
       this.subjectBrowse
     );
   }
 
-  placeTextInBlock(pos: number): number {
-    return 25 + pos * 30;
+  /**
+   * Append the blocks in the svg
+   * @param {*} listBlocks list of blocks to display
+   * @param {*} blockColor color of the blocks
+   */
+  displayBlocks(listBlocks: SkipBlock[], blockColor: string) {
+    for (let i = 0; i < listBlocks.length; ++i, ++this.nbBlocksLoaded) {
+      // x position where to start to display blocks
+      const xTranslateBlock =
+        (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded;
+      const xTranslateText = xTranslateBlock + 5;
+
+      let block = listBlocks[i];
+
+      if (this.lastBlockLoadedIndex == block.index) {
+        // block is already loaded
+        --this.nbBlocksLoaded;
+      } else {
+        // block is not already loaded, load the block
+        this.lastBlockLoadedIndex = block.index;
+
+        // Append the block inside the svg container
+        this.appendBlock(xTranslateBlock, blockColor);
+
+        // Box the text index in an object to pass it by reference
+        const textIndex = { index: 0 };
+
+        // Index
+        this.appendTextInBlock(
+          xTranslateText,
+          textIndex,
+          "index: " + block.index,
+          this.textColor
+        );
+
+        // Hash
+        const hash = block.hash.toString("hex");
+        this.appendTextInBlock(
+          xTranslateText,
+          textIndex,
+          "hash: " + hash.slice(0, 22) + "...",
+          this.textColor
+        );
+
+        // Validity
+        let validityStr;
+        let validityColor;
+        // TODO get validity of block (for now, the validity is random)
+        if (Math.random() >= 0.25) {
+          validityStr = "valid";
+          validityColor = this.validColor;
+        } else {
+          validityStr = "invalid";
+          validityColor = this.invalidColor;
+        }
+        this.appendTextInBlock(
+          xTranslateText,
+          textIndex,
+          validityStr,
+          validityColor
+        );
+
+        // TODO date
+      }
+    }
   }
 
-  loaderAnimation(svgBlocks: any) {
-    svgBlocks
+  // helper for displayBlocks
+  appendBlock(xTranslate: number, blockColor: string) {
+    this.svgBlocks
+      .append("rect")
+      .attr("width", this.blockWidth)
+      .attr("height", this.blockHeight)
+      .attr("y", 25)
+      .attr("transform", function (d: any) {
+        let translate = [xTranslate, 0];
+        return "translate(" + translate + ")";
+      })
+      .attr("fill", blockColor);
+  }
+
+  // helper for displayBlocks
+  appendTextInBlock(
+    xTranslate: number,
+    textIndex: { index: number },
+    text: string,
+    textColor: string
+  ) {
+    this.svgBlocks
+      .append("text")
+      .attr("x", xTranslate)
+      .attr("y", 25 + (textIndex.index + 1) * 30)
+      .text(text)
+      .attr("font-family", "sans-serif")
+      .attr("font-size", "18px")
+      .attr("fill", textColor);
+    ++textIndex.index;
+  }
+
+  // TODO this function is not used yet
+  /*
+  loaderAnimation() {
+    this.svgBlocks
       .append("rect")
       .attr("width", this.blockWidth)
       .attr("height", this.blockHeight)
@@ -154,132 +246,9 @@ export class BrowseBlocks {
       })
       .attr("fill", this.getRandomColor());
   }
+  */
 
-  appendTextInBlock(
-    svgBlocks: any,
-    xTranslate: number,
-    block: SkipBlock,
-    textID: number,
-    text: string,
-    textColor: string
-  ) {
-    svgBlocks
-      .append("text")
-      .attr("x", xTranslate + 5)
-      .attr("y", this.placeTextInBlock(textID))
-      .text(text)
-      .attr("font-family", "sans-serif")
-      .attr("font-size", "18px")
-      .attr("fill", textColor);
-  }
-
-  /**
-   *
-   * @param {*} listBlocks list of blocks
-   * @param {*} svgBlocks svg class that will contain the blocks
-   * @param {*} blockColor color of the blocks
-   */
-  displayBlocks(listBlocks: SkipBlock[], svgBlocks: any, blockColor: string) {
-    for (let i = 0; i < listBlocks.length; ++i, ++this.nbBlocksLoaded) {
-      // x position where to start to display blocks
-      const xTranslate =
-        (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded;
-      
-      let block = listBlocks[i];
-
-      if(this.temp == 0) {
-        this.temp = 1;
-        --this.nbBlocksLoaded
-        
-      } else {
-
-      this.lastBlockLoadedIndex = block.index
-      
-
-      console.log("display block number " + block.index);
-
-      svgBlocks
-        .append("rect") // for each block, append it inside the svg container
-        .attr("width", this.blockWidth)
-        .attr("height", this.blockHeight)
-        .attr("y", 25)
-        .attr("transform", function (d: any) {
-          let translate = [xTranslate, 0];
-          return "translate(" + translate + ")";
-        })
-        .attr("fill", blockColor);
-
-      // Index
-      this.appendTextInBlock(
-        svgBlocks,
-        xTranslate,
-        block,
-        1,
-        "index: " + block.index,
-        this.textColor
-      );
-
-      // Validity
-      svgBlocks
-        .append("text")
-        .attr("x", xTranslate + 5)
-        .attr("y", this.placeTextInBlock(2))
-        .text(function (d: any) {
-          let str = "";
-          if (true) {
-            //block.valid == 1) {
-            str = "true";
-          } else {
-            str = "false";
-          }
-          return "valid: " + str;
-        })
-        .attr("font-family", "sans-serif")
-        .attr("font-size", "18px")
-        .attr("fill", function (d: any) {
-          if (true) {
-            //block.valid == 1) {
-            return this.validColor;
-          } else return this.invalidColor;
-        });
-
-      // Date
-      svgBlocks
-        .append("text")
-        .attr("x", xTranslate + 5)
-        .attr("y", this.placeTextInBlock(3))
-        .text(function (d: any) {
-          return "date: 3"; // + block.date
-        })
-        .attr("font-family", "sans-serif")
-        .attr("font-size", "18px")
-        .attr("fill", this.textColor);
-
-      // Hash
-      svgBlocks
-        .append("text")
-        .attr("x", xTranslate + 5)
-        .attr("y", this.placeTextInBlock(4))
-        .text(function (d: any) {
-          let hash = block.hash.toString("hex");
-          return "hash: " + hash.slice(0, 6) + "...";
-        })
-        .attr("font-family", "sans-serif")
-        .attr("font-size", "18px")
-        .attr("fill", this.textColor);
-      }
-    }
-    this.temp = 0;
-  }
-
-  hex2Bytes(hex: string) {
-    if (!hex) {
-      return Buffer.allocUnsafe(0);
-    }
-
-    return Buffer.from(hex, "hex");
-  }
-
+  /***** Julien's functions *****/
   getNextBlocks(
     nextBlockID: string,
     pageSizeNb: number,
@@ -360,6 +329,14 @@ export class BrowseBlocks {
     }
     subjectBrowse.next([data.pagenumber, data.blocks]);
     return 0;
+  }
+
+  hex2Bytes(hex: string) {
+    if (!hex) {
+      return Buffer.allocUnsafe(0);
+    }
+
+    return Buffer.from(hex, "hex");
   }
 
   /***** Utils *****/
