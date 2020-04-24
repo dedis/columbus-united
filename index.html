@@ -8,11 +8,10 @@
 
 <body>
   <h1>Columbus</h1>
-
+  
   <div id="buttons">
-    <button id="browse">Search ID</button><br>
+    <button id="browse">Browse with ID</button><br>
     <input type="text" id="contractID" value="cab579cd7b9241526c85d075411ee3123d3a36560ef88a367a340cc587e6ebb4" /><br>
-    <button id="show">Number of blocks seen already</button><br>
   </div>
 
   <div class='blocksContainer'>
@@ -24,24 +23,45 @@
   jsapp.sayHi();
 </script>
 <style>
-  /*860df9524de58df307554e65f0bd05cbcaffeb6925e41c2eb58fd1b4fb9a3853*/
-    div#container {
+  div#container {
     height: 500;
     width: 1500;
     border: 5px solid #000;
     overflow: scroll;
   }
 
+  #myProgress {
+    width: 1500;
+    background-color: #ddd;
+
+  }
+
+  #myBar {
+    width: 1%;
+    height: 30px;
+    background-color: #4CAF50;
+
+  }
+
+  #barText {
+    width: 1500;
+    height: 30px;
+    text-align: center;
+    color: black;
+
+  }
+
   .blocksContainer {
-    height: 350px;  /* TODO adjust automatically (function of page size) */
-    border:0px solid #000;
+    height: 350px;
+    /* TODO adjust automatically (function of page size) */
+    border: 0px solid #000;
     /*overflow-y: hidden;
     overflow-x: scroll;*/
   }
 
   .blocks {
-      display: block;
-      width: 100%;
+    display: block;
+    width: 100%;
   }
 </style>
 
