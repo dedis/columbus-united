@@ -34,7 +34,6 @@ export class BrowseBlocks {
   numPagesNb: number; // number of pages
   firstBlockHash: string;
   nbBlocksLoaded: number;
-  lastBlockLoadedIndex: number;
 
   constructor(roster: Roster) {
     // SVG properties
@@ -61,7 +60,6 @@ export class BrowseBlocks {
     this.firstBlockHash =
       "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
     this.nbBlocksLoaded = 0;
-    this.lastBlockLoadedIndex = -1;
 
     let lastBlockID: string;
 
@@ -137,7 +135,7 @@ export class BrowseBlocks {
    * @param {*} blockColor color of the blocks
    */
   displayBlocks(listBlocks: SkipBlock[], blockColor: string) {
-    for (let i = 0; i < listBlocks.length; ++i, ++this.nbBlocksLoaded) {
+    for (let i = 0; i < listBlocks.length - 1; ++i, ++this.nbBlocksLoaded) {
       // x position where to start to display blocks
       const xTranslateBlock =
         (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded;
@@ -145,56 +143,48 @@ export class BrowseBlocks {
 
       let block = listBlocks[i];
 
-      if (this.lastBlockLoadedIndex == block.index) {
-        // block is already loaded
-        --this.nbBlocksLoaded;
+      // Append the block inside the svg container
+      this.appendBlock(xTranslateBlock, blockColor);
+
+      // Box the text index in an object to pass it by reference
+      const textIndex = { index: 0 };
+
+      // Index
+      this.appendTextInBlock(
+        xTranslateText,
+        textIndex,
+        "index: " + block.index,
+        this.textColor
+      );
+
+      // Hash
+      const hash = block.hash.toString("hex");
+      this.appendTextInBlock(
+        xTranslateText,
+        textIndex,
+        "hash: " + hash.slice(0, 22) + "...",
+        this.textColor
+      );
+
+      // Validity
+      let validityStr;
+      let validityColor;
+      // TODO get validity of block (for now, the validity is random)
+      if (Math.random() >= 0.25) {
+        validityStr = "valid";
+        validityColor = this.validColor;
       } else {
-        // block is not already loaded, load the block
-        this.lastBlockLoadedIndex = block.index;
-
-        // Append the block inside the svg container
-        this.appendBlock(xTranslateBlock, blockColor);
-
-        // Box the text index in an object to pass it by reference
-        const textIndex = { index: 0 };
-
-        // Index
-        this.appendTextInBlock(
-          xTranslateText,
-          textIndex,
-          "index: " + block.index,
-          this.textColor
-        );
-
-        // Hash
-        const hash = block.hash.toString("hex");
-        this.appendTextInBlock(
-          xTranslateText,
-          textIndex,
-          "hash: " + hash.slice(0, 22) + "...",
-          this.textColor
-        );
-
-        // Validity
-        let validityStr;
-        let validityColor;
-        // TODO get validity of block (for now, the validity is random)
-        if (Math.random() >= 0.25) {
-          validityStr = "valid";
-          validityColor = this.validColor;
-        } else {
-          validityStr = "invalid";
-          validityColor = this.invalidColor;
-        }
-        this.appendTextInBlock(
-          xTranslateText,
-          textIndex,
-          validityStr,
-          validityColor
-        );
-
-        // TODO date
+        validityStr = "invalid";
+        validityColor = this.invalidColor;
       }
+      this.appendTextInBlock(
+        xTranslateText,
+        textIndex,
+        validityStr,
+        validityColor
+      );
+
+      // TODO date
     }
   }
 
