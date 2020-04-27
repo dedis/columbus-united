@@ -1,7 +1,7 @@
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { WebSocketConnection } from "@dedis/cothority/network/connection";
-import { ByzCoinRPC, Instruction, Argument } from "@dedis/cothority/byzcoin";
+import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
 import {
   PaginateResponse,
   PaginateRequest,
@@ -9,7 +9,7 @@ import {
 import { Subject } from "rxjs";
 import * as d3 from "d3";
 
-export class BrowseBlocks {
+export class BlocksDiagram {
   // SVG properties
   svgWidth: number;
   svgHeight: number;
@@ -62,7 +62,7 @@ export class BrowseBlocks {
     this.nbBlocksLoaded = 0;
 
     let lastBlockId: string;
-    let lastBlockIdBeforeUpdate = "a";
+    let lastBlockIdBeforeUpdate = "";
 
     this.svgBlocks = d3
       .select(".blocks")
