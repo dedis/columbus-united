@@ -1,7 +1,7 @@
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { WebSocketConnection } from "@dedis/cothority/network/connection";
-import { ByzCoinRPC, Instruction, Argument } from "@dedis/cothority/byzcoin";
+import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
 import {
   PaginateResponse,
   PaginateRequest,
@@ -9,7 +9,7 @@ import {
 import { Subject } from "rxjs";
 import * as d3 from "d3";
 
-export class BrowseBlocks {
+export class BlocksDiagram {
   // SVG properties
   svgWidth: number;
   svgHeight: number;
@@ -34,7 +34,6 @@ export class BrowseBlocks {
   numPagesNb: number; // number of pages
   firstBlockHash: string;
   nbBlocksLoaded: number;
-  lastBlockLoadedIndex: number;
 
   constructor(roster: Roster) {
     // SVG properties
@@ -61,7 +60,9 @@ export class BrowseBlocks {
     this.firstBlockHash =
       "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
     this.nbBlocksLoaded = 0;
-    this.lastBlockLoadedIndex = -1;
+
+    let lastBlockId: string;
+    let lastBlockIdBeforeUpdate = "";
 
     this.svgBlocks = d3
       .select(".blocks")
@@ -75,36 +76,31 @@ export class BrowseBlocks {
 
           let xMax =
             self.nbBlocksLoaded * (self.blockWidth + self.blockPadding);
-          xMax -= self.svgWidth + self.blockWidth;
+          xMax -= (3 * self.svgWidth * 2) / zoomLevel;
           xMax *= -zoomLevel;
 
           if (x < xMax) {
-            // TODO lock zoom
-            //self.svgBlocks.attr("transform", undefined) // TODO
-
-            self.getNextBlocks(
-              lastBlockID,
-              self.pageSizeNb,
-              self.numPagesNb,
-              self.subjectBrowse
-            );
+            if (!(lastBlockId === lastBlockIdBeforeUpdate)) {
+              lastBlockIdBeforeUpdate = lastBlockId;
+              self.getNextBlocks(
+                lastBlockId,
+                self.pageSizeNb,
+                self.numPagesNb,
+                self.subjectBrowse
+              );
+            }
           }
         })
       )
       .append("g");
 
-    let lastBlockID: string;
     this.subjectBrowse.subscribe({
       // i: page number
       next: ([i, skipBlocks]) => {
-        console.log("i: " + i);
         if (i == this.numPagesNb - 1) {
-          lastBlockID = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
+          lastBlockId = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
 
           this.displayBlocks(skipBlocks, this.getRandomColor());
-
-          // TODO unlock zoom
-          //this.svgBlocks.attr("transform", d3.event.transform);
         }
       },
       complete: () => {
@@ -136,64 +132,53 @@ export class BrowseBlocks {
    * @param {*} blockColor color of the blocks
    */
   displayBlocks(listBlocks: SkipBlock[], blockColor: string) {
-    for (let i = 0; i < listBlocks.length; ++i, ++this.nbBlocksLoaded) {
+    for (let i = 0; i < listBlocks.length - 1; ++i, ++this.nbBlocksLoaded) {
       // x position where to start to display blocks
       const xTranslateBlock =
-        (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded;
+        (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded + 10;
       const xTranslateText = xTranslateBlock + 5;
 
       let block = listBlocks[i];
 
-      if (this.lastBlockLoadedIndex == block.index) {
-        // block is already loaded
-        --this.nbBlocksLoaded;
+      // Append the block inside the svg container
+      this.appendBlock(xTranslateBlock, blockColor);
+
+      // Box the text index in an object to pass it by reference
+      const textIndex = { index: 0 };
+
+      // Index
+      this.appendTextInBlock(
+        xTranslateText,
+        textIndex,
+        "index: " + block.index,
+        this.textColor
+      );
+
+      // Hash
+      const hash = block.hash.toString("hex");
+      this.appendTextInBlock(
+        xTranslateText,
+        textIndex,
+        "hash: " + hash.slice(0, 22) + "...",
+        this.textColor
+      );
+
+      // Validity
+      let validityStr;
+      let validityColor;
+      if (Math.random() >= 0.25) {
+        validityStr = "valid";
+        validityColor = this.validColor;
       } else {
-        // block is not already loaded, load the block
-        this.lastBlockLoadedIndex = block.index;
-
-        // Append the block inside the svg container
-        this.appendBlock(xTranslateBlock, blockColor);
-
-        // Box the text index in an object to pass it by reference
-        const textIndex = { index: 0 };
-
-        // Index
-        this.appendTextInBlock(
-          xTranslateText,
-          textIndex,
-          "index: " + block.index,
-          this.textColor
-        );
-
-        // Hash
-        const hash = block.hash.toString("hex");
-        this.appendTextInBlock(
-          xTranslateText,
-          textIndex,
-          "hash: " + hash.slice(0, 22) + "...",
-          this.textColor
-        );
-
-        // Validity
-        let validityStr;
-        let validityColor;
-        // TODO get validity of block (for now, the validity is random)
-        if (Math.random() >= 0.25) {
-          validityStr = "valid";
-          validityColor = this.validColor;
-        } else {
-          validityStr = "invalid";
-          validityColor = this.invalidColor;
-        }
-        this.appendTextInBlock(
-          xTranslateText,
-          textIndex,
-          validityStr,
-          validityColor
-        );
-
-        // TODO date
+        validityStr = "invalid";
+        validityColor = this.invalidColor;
       }
+      this.appendTextInBlock(
+        xTranslateText,
+        textIndex,
+        validityStr,
+        validityColor
+      );
     }
   }
 
@@ -229,33 +214,13 @@ export class BrowseBlocks {
     ++textIndex.index;
   }
 
-  // TODO this function is not used yet
-  /*
-  loaderAnimation() {
-    this.svgBlocks
-      .append("rect")
-      .attr("width", this.blockWidth)
-      .attr("height", this.blockHeight)
-      .attr("y", 25)
-      .attr("transform", function (d: string) {
-        let translate = [
-          (this.lastBlockIndex + 1) * (this.blockWidth + this.blockPadding),
-          0,
-        ];
-        return "translate(" + translate + ")";
-      })
-      .attr("fill", this.getRandomColor());
-  }
-  */
-
-  /***** Julien's functions *****/
+  /***** Backend *****/
   getNextBlocks(
     nextBlockID: string,
     pageSizeNb: number,
     numPagesNb: number,
     subjectBrowse: Subject<[number, SkipBlock[]]>
   ) {
-    console.log("next id " + nextBlockID);
     var bid: Buffer;
     let nextIDB = nextBlockID;
 

@@ -12,7 +12,7 @@ Start server: `./conode.Linux.x86_64 server`
 Stop it (ctrl+C)  
 Replace database in `~/.local/share/conode` (must be same name)  
 Copy content of `~/.config/conode/public.toml`  
-Create a file `src/roster.ts' containing:
+Create a file `src/roster.ts` containing:
 ```
 export function getRosterStr() {
     return `<content>`;
