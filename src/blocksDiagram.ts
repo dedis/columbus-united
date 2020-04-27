@@ -59,9 +59,6 @@ export class BlocksDiagram {
     this.numPagesNb = 1;
     this.firstBlockHash =
       "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
-    // TODO test (hash block 28)
-    //this.firstBlockHash =
-    //  "27a040364aaef4e152e99362f44771aa98124c52057027a4f55101170a7a1896";
     this.nbBlocksLoaded = 0;
 
     let lastBlockId: string;
@@ -79,13 +76,10 @@ export class BlocksDiagram {
 
           let xMax =
             self.nbBlocksLoaded * (self.blockWidth + self.blockPadding);
-          xMax -= 3*self.svgWidth*2/zoomLevel// + self.blockWidth;
+          xMax -= (3 * self.svgWidth * 2) / zoomLevel;
           xMax *= -zoomLevel;
 
           if (x < xMax) {
-            // TODO lock zoom
-            //self.svgBlocks.attr("transform", undefined) // TODO
-
             if (!(lastBlockId === lastBlockIdBeforeUpdate)) {
               lastBlockIdBeforeUpdate = lastBlockId;
               self.getNextBlocks(
@@ -107,9 +101,6 @@ export class BlocksDiagram {
           lastBlockId = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
 
           this.displayBlocks(skipBlocks, this.getRandomColor());
-
-          // TODO unlock zoom
-          //this.svgBlocks.attr("transform", d3.event.transform);
         }
       },
       complete: () => {
@@ -141,8 +132,6 @@ export class BlocksDiagram {
    * @param {*} blockColor color of the blocks
    */
   displayBlocks(listBlocks: SkipBlock[], blockColor: string) {
-    console.log("Update: first block is of index " + listBlocks[0].index); // TODO debug
-    //console.log("Hash: " + listBlocks[0].hash.toString("hex")) // TODO debug
     for (let i = 0; i < listBlocks.length - 1; ++i, ++this.nbBlocksLoaded) {
       // x position where to start to display blocks
       const xTranslateBlock =
@@ -177,7 +166,6 @@ export class BlocksDiagram {
       // Validity
       let validityStr;
       let validityColor;
-      // TODO get validity of block (for now, the validity is random)
       if (Math.random() >= 0.25) {
         validityStr = "valid";
         validityColor = this.validColor;
@@ -191,8 +179,6 @@ export class BlocksDiagram {
         validityStr,
         validityColor
       );
-
-      // TODO date
     }
   }
 
@@ -227,25 +213,6 @@ export class BlocksDiagram {
       .attr("fill", textColor);
     ++textIndex.index;
   }
-
-  // TODO this function is not used yet
-  /*
-  loaderAnimation() {
-    this.svgBlocks
-      .append("rect")
-      .attr("width", this.blockWidth)
-      .attr("height", this.blockHeight)
-      .attr("y", 25)
-      .attr("transform", function (d: string) {
-        let translate = [
-          (this.lastBlockIndex + 1) * (this.blockWidth + this.blockPadding),
-          0,
-        ];
-        return "translate(" + translate + ")";
-      })
-      .attr("fill", this.getRandomColor());
-  }
-  */
 
   /***** Backend *****/
   getNextBlocks(
