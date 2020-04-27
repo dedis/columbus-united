@@ -298,7 +298,17 @@ export class BlocksDiagram {
         .subscribe({
           // ws callback "onMessage":
           next: ([data, ws]) => {
-            this.handlePageResponse(data, ws, subjectBrowse);
+            if (data.errorcode != 0) {
+              console.log(
+                `got an error with code ${data.errorcode} : ${data.errortext}`
+              );
+              return 1;
+            }
+            if (ws !== undefined) {
+              this.ws = ws;
+            }
+            subjectBrowse.next([data.pagenumber, data.blocks]);
+            return 0;
           },
           complete: () => {
             console.log("closed");
@@ -309,24 +319,6 @@ export class BlocksDiagram {
           },
         });
     }
-  }
-
-  handlePageResponse(
-    data: PaginateResponse,
-    localws: WebSocketAdapter,
-    subjectBrowse: Subject<[number, SkipBlock[]]>
-  ) {
-    if (data.errorcode != 0) {
-      console.log(
-        `got an error with code ${data.errorcode} : ${data.errortext}`
-      );
-      return 1;
-    }
-    if (localws !== undefined) {
-      this.ws = localws;
-    }
-    subjectBrowse.next([data.pagenumber, data.blocks]);
-    return 0;
   }
 
   hex2Bytes(hex: string) {
