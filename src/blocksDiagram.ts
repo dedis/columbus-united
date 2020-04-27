@@ -142,7 +142,7 @@ export class BlocksDiagram {
     for (let i = 0; i < listBlocks.length - 1; ++i, ++this.nbBlocksLoaded) {
       // x position where to start to display blocks
       const xTranslateBlock =
-        (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded;
+        (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded + 10;
       const xTranslateText = xTranslateBlock + 5;
 
       let block = listBlocks[i];
