@@ -59,6 +59,9 @@ export class BlocksDiagram {
     this.numPagesNb = 1;
     this.firstBlockHash =
       "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
+    // TODO test (hash block 28)
+    //this.firstBlockHash =
+    //  "27a040364aaef4e152e99362f44771aa98124c52057027a4f55101170a7a1896";
     this.nbBlocksLoaded = 0;
 
     let lastBlockId: string;
@@ -76,7 +79,7 @@ export class BlocksDiagram {
 
           let xMax =
             self.nbBlocksLoaded * (self.blockWidth + self.blockPadding);
-          xMax -= self.svgWidth + self.blockWidth;
+          xMax -= 3*self.svgWidth*2/zoomLevel// + self.blockWidth;
           xMax *= -zoomLevel;
 
           if (x < xMax) {
@@ -139,6 +142,7 @@ export class BlocksDiagram {
    */
   displayBlocks(listBlocks: SkipBlock[], blockColor: string) {
     console.log("Update: first block is of index " + listBlocks[0].index); // TODO debug
+    //console.log("Hash: " + listBlocks[0].hash.toString("hex")) // TODO debug
     for (let i = 0; i < listBlocks.length - 1; ++i, ++this.nbBlocksLoaded) {
       // x position where to start to display blocks
       const xTranslateBlock =
