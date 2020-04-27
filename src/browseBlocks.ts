@@ -63,6 +63,8 @@ export class BrowseBlocks {
     this.nbBlocksLoaded = 0;
     this.lastBlockLoadedIndex = -1;
 
+    let lastBlockID: string;
+
     this.svgBlocks = d3
       .select(".blocks")
       .attr("width", this.svgWidth)
@@ -93,7 +95,6 @@ export class BrowseBlocks {
       )
       .append("g");
 
-    let lastBlockID: string;
     this.subjectBrowse.subscribe({
       // i: page number
       next: ([i, skipBlocks]) => {
@@ -248,7 +249,7 @@ export class BrowseBlocks {
   }
   */
 
-  /***** Julien's functions *****/
+  /***** Backend *****/
   getNextBlocks(
     nextBlockID: string,
     pageSizeNb: number,
