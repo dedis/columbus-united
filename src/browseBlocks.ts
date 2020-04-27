@@ -61,7 +61,8 @@ export class BrowseBlocks {
       "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
     this.nbBlocksLoaded = 0;
 
-    let lastBlockID: string;
+    let lastBlockId: string;
+    let lastBlockIdBeforeUpdate = "a";
 
     this.svgBlocks = d3
       .select(".blocks")
@@ -82,12 +83,15 @@ export class BrowseBlocks {
             // TODO lock zoom
             //self.svgBlocks.attr("transform", undefined) // TODO
 
-            self.getNextBlocks(
-              lastBlockID,
-              self.pageSizeNb,
-              self.numPagesNb,
-              self.subjectBrowse
-            );
+            if (!(lastBlockId === lastBlockIdBeforeUpdate)) {
+              lastBlockIdBeforeUpdate = lastBlockId;
+              self.getNextBlocks(
+                lastBlockId,
+                self.pageSizeNb,
+                self.numPagesNb,
+                self.subjectBrowse
+              );
+            }
           }
         })
       )
@@ -96,9 +100,8 @@ export class BrowseBlocks {
     this.subjectBrowse.subscribe({
       // i: page number
       next: ([i, skipBlocks]) => {
-        console.log("i: " + i);
         if (i == this.numPagesNb - 1) {
-          lastBlockID = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
+          lastBlockId = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
 
           this.displayBlocks(skipBlocks, this.getRandomColor());
 
@@ -135,6 +138,7 @@ export class BrowseBlocks {
    * @param {*} blockColor color of the blocks
    */
   displayBlocks(listBlocks: SkipBlock[], blockColor: string) {
+    console.log("Update: first block is of index " + listBlocks[0].index); // TODO debug
     for (let i = 0; i < listBlocks.length - 1; ++i, ++this.nbBlocksLoaded) {
       // x position where to start to display blocks
       const xTranslateBlock =
@@ -246,7 +250,6 @@ export class BrowseBlocks {
     numPagesNb: number,
     subjectBrowse: Subject<[number, SkipBlock[]]>
   ) {
-    console.log("next id " + nextBlockID);
     var bid: Buffer;
     let nextIDB = nextBlockID;
 
