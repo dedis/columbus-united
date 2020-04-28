@@ -6,7 +6,7 @@ import {
   PaginateResponse,
   PaginateRequest,
 } from "@dedis/cothority/byzcoin/proto/stream";
-import { Subject } from "rxjs";
+import { Subject, Observer, Observable, Subscriber } from "rxjs";
 import * as d3 from "d3";
 
 export class BlocksDiagram {
@@ -35,6 +35,10 @@ export class BlocksDiagram {
   firstBlockHash: string;
   nbBlocksLoaded: number;
 
+  subscriberList: Subscriber<SkipBlock>[];
+
+
+
   constructor(roster: Roster) {
     // SVG properties
     this.svgWidth = window.innerWidth;
@@ -61,6 +65,8 @@ export class BlocksDiagram {
       "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
     this.nbBlocksLoaded = 0;
 
+    this.subscriberList = [];
+
     let lastBlockId: string;
     let lastBlockIdBeforeUpdate = "";
 
@@ -82,12 +88,14 @@ export class BlocksDiagram {
           if (x < xMax) {
             if (!(lastBlockId === lastBlockIdBeforeUpdate)) {
               lastBlockIdBeforeUpdate = lastBlockId;
+              //self.loaderAnimation();
               self.getNextBlocks(
                 lastBlockId,
                 self.pageSizeNb,
                 self.numPagesNb,
                 self.subjectBrowse
               );
+              // destroy loader
             }
           }
         })
@@ -99,8 +107,15 @@ export class BlocksDiagram {
       next: ([i, skipBlocks]) => {
         if (i == this.numPagesNb - 1) {
           lastBlockId = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
-
-          this.displayBlocks(skipBlocks, this.getRandomColor());
+/* TODO wait
+          setTimeout(() => {
+            this.displayBlocks(skipBlocks, this.getRandomColor())
+          }, 3000);
+          
+*/
+          this.displayBlocks(skipBlocks, this.getRandomColor())
+          // TODO unlock zoom
+          //this.svgBlocks.attr("transform", d3.event.transform);
         }
       },
       complete: () => {
@@ -117,7 +132,7 @@ export class BlocksDiagram {
     });
   }
 
-  main() {
+  public loadFirstBlocks() {
     this.getNextBlocks(
       this.firstBlockHash,
       this.pageSizeNb,
@@ -132,6 +147,8 @@ export class BlocksDiagram {
    * @param {*} blockColor color of the blocks
    */
   displayBlocks(listBlocks: SkipBlock[], blockColor: string) {
+    console.log("Update: first block is of index " + listBlocks[0].index); // TODO debug
+    //console.log("Hash: " + listBlocks[0].hash.toString("hex")) // TODO debug
     for (let i = 0; i < listBlocks.length - 1; ++i, ++this.nbBlocksLoaded) {
       // x position where to start to display blocks
       const xTranslateBlock =
@@ -141,7 +158,7 @@ export class BlocksDiagram {
       let block = listBlocks[i];
 
       // Append the block inside the svg container
-      this.appendBlock(xTranslateBlock, blockColor);
+      this.appendBlock(xTranslateBlock, blockColor, block);
 
       // Box the text index in an object to pass it by reference
       const textIndex = { index: 0 };
@@ -183,7 +200,8 @@ export class BlocksDiagram {
   }
 
   // helper for displayBlocks
-  appendBlock(xTranslate: number, blockColor: string) {
+  private appendBlock(xTranslate: number, blockColor: string, block: SkipBlock) {
+    let self = this
     this.svgBlocks
       .append("rect")
       .attr("width", this.blockWidth)
@@ -193,11 +211,30 @@ export class BlocksDiagram {
         let translate = [xTranslate, 0];
         return "translate(" + translate + ")";
       })
-      .attr("fill", blockColor);
+      .attr("fill", blockColor)
+      .on("click", function () {
+        console.log("Clicked block " + block.index) // TODO debug msg
+        self.subscriberList.forEach(sub => {
+          sub.next(block)
+        });
+      });
+  }
+
+  /**
+   blocksDiagram.getBlockObserver().subscribe({
+    next: (skipBlock) => {
+      console.log("blabla")
+    }
+  });
+   */
+  public getBlockObserver(): Observable<SkipBlock> {
+    return new Observable((sub) => {
+      this.subscriberList.push(sub);
+    })
   }
 
   // helper for displayBlocks
-  appendTextInBlock(
+  private appendTextInBlock(
     xTranslate: number,
     textIndex: { index: number },
     text: string,
@@ -214,8 +251,27 @@ export class BlocksDiagram {
     ++textIndex.index;
   }
 
+  // TODO this function is not used yet
+  /*
+  loaderAnimation() {
+    this.svgBlocks
+      .append("rect")
+      .attr("width", this.blockWidth)
+      .attr("height", this.blockHeight)
+      .attr("y", 25)
+      .attr("transform", function (d: string) {
+        let translate = [
+          (this.lastBlockIndex + 1) * (this.blockWidth + this.blockPadding),
+          0,
+        ];
+        return "translate(" + translate + ")";
+      })
+      .attr("fill", this.getRandomColor());
+  }
+  */
+
   /***** Backend *****/
-  getNextBlocks(
+  private getNextBlocks(
     nextBlockID: string,
     pageSizeNb: number,
     numPagesNb: number,
@@ -265,7 +321,17 @@ export class BlocksDiagram {
         .subscribe({
           // ws callback "onMessage":
           next: ([data, ws]) => {
-            this.handlePageResponse(data, ws, subjectBrowse);
+            if (data.errorcode != 0) {
+              console.log(
+                `got an error with code ${data.errorcode} : ${data.errortext}`
+              );
+              return 1;
+            }
+            if (ws !== undefined) {
+              this.ws = ws;
+            }
+            subjectBrowse.next([data.pagenumber, data.blocks]);
+            return 0;
           },
           complete: () => {
             console.log("closed");
@@ -278,25 +344,7 @@ export class BlocksDiagram {
     }
   }
 
-  handlePageResponse(
-    data: PaginateResponse,
-    localws: WebSocketAdapter,
-    subjectBrowse: Subject<[number, SkipBlock[]]>
-  ) {
-    if (data.errorcode != 0) {
-      console.log(
-        `got an error with code ${data.errorcode} : ${data.errortext}`
-      );
-      return 1;
-    }
-    if (localws !== undefined) {
-      this.ws = localws;
-    }
-    subjectBrowse.next([data.pagenumber, data.blocks]);
-    return 0;
-  }
-
-  hex2Bytes(hex: string) {
+  private hex2Bytes(hex: string) {
     if (!hex) {
       return Buffer.allocUnsafe(0);
     }
@@ -306,7 +354,7 @@ export class BlocksDiagram {
 
   /***** Utils *****/
   // Source: https://stackoverflow.com/a/1152508
-  getRandomColor() {
+  private getRandomColor() {
     return (
       "#" + (0x1000000 + Math.random() * 0xffffff).toString(16).substr(1, 6)
     );
