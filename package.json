@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "bundle": "webpack",
-    "watch": "webpack --watch"
+    "watch": "webpack --watch",
+    "lint": "tslint 'src/{,**/}*.ts' 'spec/{,**/}*.ts' && prettier --check *.html"
   },
   "author": "",
   "license": "ISC",
