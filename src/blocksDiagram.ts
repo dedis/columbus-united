@@ -147,7 +147,7 @@ export class BlocksDiagram {
    * @param {*} blockColor color of the blocks
    */
   displayBlocks(listBlocks: SkipBlock[], blockColor: string) {
-    console.log("Update: first block is of index " + listBlocks[0].index); // TODO debug
+    //console.log("Update: first block is of index " + listBlocks[0].index); // TODO debug
     //console.log("Hash: " + listBlocks[0].hash.toString("hex")) // TODO debug
     for (let i = 0; i < listBlocks.length - 1; ++i, ++this.nbBlocksLoaded) {
       // x position where to start to display blocks
