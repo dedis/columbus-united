@@ -11,7 +11,8 @@ Finish setup with your preferences
 Start server: `./conode.Linux.x86_64 server`  
 Stop it (ctrl+C)  
 Replace database in `~/.local/share/conode` (must be same name)  
-Copy content of `~/.config/conode/public.toml`  
+View content of `public.toml`: `cat ~/.config/conode/public.toml`  
+Copy it  
 Create a file `src/roster.ts` containing:
 ```
 export function getRosterStr() {
@@ -23,5 +24,6 @@ In root of this project: `npm install`
 
 ## Run
 ### Ubuntu
-Start server in conode folder: `./conode.Linux.x86_64 server` (`./conode.Linux.x86_64 -d 2 server` for debug messages)  
-In root of this project: `npm run bundle` (`npm run watch` for automatic compilation upon changes)  
+Start server in conode folder: `./conode.Linux.x86_64 server` (to view debug messages: `./conode.Linux.x86_64 -d 2 server`)  
+
+Compile in root of this project: `npm run bundle` (for automatic compilation upon changes: `npm run watch`)  
