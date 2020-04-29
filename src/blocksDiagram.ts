@@ -8,6 +8,7 @@ import {
 } from "@dedis/cothority/byzcoin/proto/stream";
 import { Subject, Observer, Observable, Subscriber } from "rxjs";
 import * as d3 from "d3";
+import { DataBody } from '@dedis/cothority/byzcoin/proto';
 
 export class BlocksDiagram {
   // SVG properties
@@ -107,12 +108,12 @@ export class BlocksDiagram {
       next: ([i, skipBlocks]) => {
         if (i == this.numPagesNb - 1) {
           lastBlockId = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
-/* TODO wait
-          setTimeout(() => {
-            this.displayBlocks(skipBlocks, this.getRandomColor())
-          }, 3000);
-          
-*/
+          /* TODO wait
+                    setTimeout(() => {
+                      this.displayBlocks(skipBlocks, this.getRandomColor())
+                    }, 3000);
+                    
+          */
           this.displayBlocks(skipBlocks, this.getRandomColor())
           // TODO unlock zoom
           //this.svgBlocks.attr("transform", d3.event.transform);
@@ -217,7 +218,12 @@ export class BlocksDiagram {
         self.subscriberList.forEach(sub => {
           sub.next(block)
         });
+
       });
+  }
+
+  listTransaction() {
+    console.log("salut?")
   }
 
   /**

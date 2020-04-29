@@ -25,6 +25,7 @@ export class Browsing {
     myProgress: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
     myBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
     barText: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+    observer:any
 
     constructor(roster: Roster) {
         this.roster = roster;
@@ -48,7 +49,9 @@ export class Browsing {
         this.myProgress = undefined
         this.myBar = undefined
         this.barText = undefined
+
     }
+    
 
 
     sayHi1() {
@@ -57,6 +60,9 @@ export class Browsing {
             console.log("Roster is undefined")
             return;
         }
+        /*d3.select("body").append("div").attr("class", "blocksDetail").on("click", function(){
+            console.log("Tu as cliqué sur mon nouveau block")
+        })*/
         this.container = d3.select("body").append("div").attr("id", "container")
         document.getElementById("browse").addEventListener("click", this.browseClick.bind(this))
         console.log("1")
@@ -64,7 +70,7 @@ export class Browsing {
 
     browseClick(this: Browsing) {
         console.log("2")
-
+        //cree observer et le donner a browse opbserver de type list instructon
         console.log(this)
         this.container.selectAll("details").remove()
         this.ws = undefined
@@ -76,6 +82,7 @@ export class Browsing {
         var inst = null
         this.createProgressBar()
         this.browse(this.pageSize, this.numPages, this.firstBlockIDStart, inst)
+        //return observer
     }
 
     createProgressBar() {
@@ -123,6 +130,7 @@ export class Browsing {
             complete: () => {
                 console.log("Fin de la Blockchain")
                 console.log("closed")
+                //observaer.push(listinstructiontoprint)
             },
             error: (err: any) => {
                 console.log("error: ", err);
