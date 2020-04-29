@@ -24,6 +24,7 @@ In root of this project: `npm install`
 
 ## Run
 ### Ubuntu
-Start server in conode folder: `./conode.Linux.x86_64 server` (to view debug messages: `./conode.Linux.x86_64 -d 2 server`)  
-
-Compile in root of this project: `npm run bundle` (for automatic compilation upon changes: `npm run watch`)  
+Start server in conode folder: `./conode.Linux.x86_64 server`  
+To view debug messages: `./conode.Linux.x86_64 -d 2 server`  
+Compile in root of this project: `npm run bundle`  
+For automatic compilation upon changes: `npm run watch`  
