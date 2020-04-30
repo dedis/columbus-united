@@ -8,9 +8,11 @@ import { Browsing } from './browsing';
 export class DetailBlock {
   myObservable: Observable<SkipBlock>
   mycontainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-  instructionObserver : Browsing
+  instructionObserver: Browsing
+  container: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   constructor(observerSkip: Observable<SkipBlock>, observerInstru: Browsing) {
     this.mycontainer = d3.select("body").append("div").attr("class", "blocksDetailcontainer")
+    this.container = d3.select("body").append("div").attr("id", "container")
     this.myObservable = observerSkip
     this.myObservable.subscribe({
       next:
@@ -18,17 +20,73 @@ export class DetailBlock {
 
     })
     this.instructionObserver = observerInstru
-
-
-
-
-    //get observer depuis browse, puis next print la liste. 
   }
 
 
-private printmyData(tuple:[string[], Instruction[]]){
-  console.log(tuple)
-}
+  private printmyData(tuple: [string[], Instruction[]]) {
+    for (let i = 0; i < tuple[0].length; i++) {
+      var detailsHTML = this.container.append("details")
+      detailsHTML.attr("class", "detailsParent")
+      let instruction = tuple[1][i]
+
+      if (instruction.spawn !== null) {
+        detailsHTML.append("summary").text("Spawn with instanceID: " + instruction.instanceID.toString("hex") + ", and Hash is: " + instruction.hash().toString("hex"))
+        detailsHTML.append("p").text("ContractID: " + instruction.spawn.contractID)
+        var argsDetails = detailsHTML.append("details").attr("class", "detailsChild1")
+        argsDetails.append("summary").text("args are:")
+        var my_list = argsDetails.append("ul")
+        instruction.spawn.args.forEach((arg, _) => {
+          my_list.append("li").text("Arg name : " + arg.name)
+          my_list.append("li").text("Arg value : " + arg.value)
+        });
+      }
+      else if (instruction.invoke !== null) {
+        detailsHTML.append("summary").text("Invoke with instanceID: " + instruction.instanceID.toString("hex") + ", and Hash is: " + instruction.hash().toString("hex"))
+        detailsHTML.append("p").text("ContractID: " + instruction.invoke.contractID)
+        var argsDetails = detailsHTML.append("details").attr("class", "detailsChild1")
+        argsDetails.append("summary").text("args are:")
+        var my_list = argsDetails.append("ul")
+        instruction.invoke.args.forEach((arg, _) => {
+          my_list.append("li").text("Arg name : " + arg.name)
+          my_list.append("li").text("Arg value : " + arg.value)
+        });
+      }
+      else if (instruction.delete !== null) {
+        detailsHTML.append("summary").text("Delete with instanceID: " + instruction.instanceID.toString("hex") + ", and Hash is: " + instruction.hash().toString("hex"))
+        detailsHTML.append("p").text("ContractID: " + instruction.delete.contractID)
+      }
+    }
+    // Fetch all the details element.
+    const detailsParent = document.querySelectorAll(".detailsParent");
+
+    // Add the onclick listeners.
+    detailsParent.forEach((targetDetail) => {
+      targetDetail.addEventListener("click", () => {
+        // Close all the details that are not targetDetail.
+        detailsParent.forEach((detail) => {
+          if (detail !== targetDetail) {
+            detail.removeAttribute("open");
+          }
+        });
+      });
+    });
+
+    // Fetch all the details element.
+    const detailsChild1 = document.querySelectorAll(".detailsChild1");
+
+    // Add the onclick listeners.
+    detailsChild1.forEach((targetDetail) => {
+      targetDetail.addEventListener("click", () => {
+        // Close all the details that are not targetDetail.
+        detailsChild1.forEach((detail) => {
+
+          if (detail !== targetDetail) {
+            detail.removeAttribute("open");
+          }
+        });
+      });
+    });
+  }
 
 
   //Check with block 63!
@@ -48,9 +106,9 @@ private printmyData(tuple:[string[], Instruction[]]){
         let textI = textContainer.append("div").attr("class", "detailInstruction")
         textI.append("p").text("Hash: " + instruction.hash().toString("hex"))
         textI.append("p").text("Instance ID: " + instruction.instanceID.toString("hex"))
-        textI.append("button").text("Search for all instance of this ID in the blockchain").on("click", function(){
+        textI.append("button").attr("class", "searchInstance").text("Search for all instance of this ID in the blockchain").on("click", function () {
           self.instructionObserver.getInstructionObserver(instruction).subscribe({
-            next: self.printmyData.bind(this)
+            next: self.printmyData.bind(self)
           })
         })
 

@@ -117,7 +117,7 @@ export class Browsing {
         this.instanceSearch = instance
         var subjectBrowse = new Subject<[number, SkipBlock]>();
         var pageDone = 0;
-        this.contractID = (document.getElementById("contractID") as HTMLInputElement).value
+        this.contractID = instance.instanceID.toString("hex")
         subjectBrowse.subscribe({
             next: ([i, skipBlock]) => {
                 const body = DataBody.decode(skipBlock.payload)
@@ -133,7 +133,7 @@ export class Browsing {
                 if (i == pageSizeB) {
                     pageDone++;
                     if (pageDone == numPagesB) {
-                        if (skipBlock.forwardLinks.length != 0) {
+                        if (skipBlock.forwardLinks.length != 0 && this.seenBlocks < 1000) {
                             this.nextIDB = skipBlock.forwardLinks[0].to.toString("hex");
                             pageDone = 0;
                             this.getNextBlocks(this.nextIDB, pageSizeB, numPagesB, subjectBrowse);
@@ -253,7 +253,7 @@ export class Browsing {
                             this.blocks.push(block)
                         }
                         this.printdataConsole(block, data.pagenumber)
-                        this.printdataBox(block, data.pagenumber)
+                        //this.printdataBox(block, data.pagenumber)
                     }
                 })
             })
