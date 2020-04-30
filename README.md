@@ -3,6 +3,11 @@ Implementation of an intuitive and insightful blockchain explorer - by Julien vo
 
 ## Setup
 ### Ubuntu
+Install nodejs and npm:
+```
+sudo apt-get install nodejs
+sudo apt-get install npm
+```
 Download `conode-v<x.y.z>.tar.gz` from https://github.com/dedis/cothority/releases  
 Extract it  
 Execute `./conode.Linux.x86_64 setup` in this folder  
