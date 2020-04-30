@@ -15,9 +15,9 @@ export function sayHi() {
   blocksDiagram.loadFirstBlocks();
 
   let myobserver = blocksDiagram.getBlockObserver()
-
-  let mydetailBlock = new DetailBlock(myobserver)
   let mybrowse = new Browsing(roster);
+
+  let mydetailBlock = new DetailBlock(myobserver, mybrowse)
 
 
   mybrowse.sayHi1();

@@ -3,7 +3,7 @@ import { SkipBlock } from '@dedis/cothority/skipchain';
 import { WebSocketConnection } from '@dedis/cothority/network/connection';
 import { ByzCoinRPC, Instruction, Argument } from '@dedis/cothority/byzcoin';
 import { PaginateResponse, PaginateRequest } from '@dedis/cothority/byzcoin/proto/stream';
-import { Subject } from 'rxjs';
+import { Subject, Observable, Subscriber } from 'rxjs';
 import { DataBody } from '@dedis/cothority/byzcoin/proto';
 import * as d3 from 'd3';
 
@@ -80,9 +80,15 @@ export class Browsing {
         this.contractID = ""
         this.blocks = []
         var inst = null
-        this.createProgressBar()
-        this.browse(this.pageSize, this.numPages, this.firstBlockIDStart, inst)
+        //this.createProgressBar()
+        //this.browse(this.pageSize, this.numPages, this.firstBlockIDStart, inst, this.observer)
         //return observer
+    }
+
+    public getInstructionObserver(instance: Instruction): Observable<[string[], Instruction[]]>{
+        return new Observable((sub) => {
+            this.browse(this.pageSize, this.numPages, this.firstBlockIDStart, instance, sub,[],[])
+          })
     }
 
     createProgressBar() {
@@ -105,15 +111,25 @@ export class Browsing {
 
     //Recursive to end the blockchain with any pagesize - numpages numbers : remove condition seenBlocks < 4000 to browse the whole blockchain
     browse(pageSizeB: number,
-        numPagesB: number, firstBlockID: string, instance: Instruction) {
+        numPagesB: number, firstBlockID: string, instance: Instruction, subscriberInstruction: Subscriber<[string[], Instruction[]]>, hashB:string[], instructionB: Instruction[]) {
             console.log("4")
-
+        
         this.instanceSearch = instance
         var subjectBrowse = new Subject<[number, SkipBlock]>();
         var pageDone = 0;
         this.contractID = (document.getElementById("contractID") as HTMLInputElement).value
         subjectBrowse.subscribe({
             next: ([i, skipBlock]) => {
+                const body = DataBody.decode(skipBlock.payload)
+                body.txResults.forEach((transaction, i) => {
+                    transaction.clientTransaction.instructions.forEach((instruction, j) => {
+                        if(instruction.instanceID.toString("hex") === this.contractID){
+                            hashB.push(skipBlock.hash.toString("hex"))
+                            instructionB.push(instruction)
+                        }
+                    });
+                  });
+
                 if (i == pageSizeB) {
                     pageDone++;
                     if (pageDone == numPagesB) {
@@ -121,6 +137,7 @@ export class Browsing {
                             this.nextIDB = skipBlock.forwardLinks[0].to.toString("hex");
                             pageDone = 0;
                             this.getNextBlocks(this.nextIDB, pageSizeB, numPagesB, subjectBrowse);
+                            
                         } else {
                             subjectBrowse.complete()
                         }
@@ -130,14 +147,14 @@ export class Browsing {
             complete: () => {
                 console.log("Fin de la Blockchain")
                 console.log("closed")
-                //observaer.push(listinstructiontoprint)
+                subscriberInstruction.next([hashB, instructionB])
             },
             error: (err: any) => {
                 console.log("error: ", err);
                 if (err === 1) {
                     console.log("Browse recall: " + 1)
                     this.ws = undefined //To reset the websocket, create a new handler for the next function (of getnextblock)
-                    this.browse(1, 1, this.nextIDB, this.instanceSearch)
+                    this.browse(1, 1, this.nextIDB, this.instanceSearch, subscriberInstruction, hashB, instructionB)
                 }
             }
         });
@@ -221,7 +238,7 @@ export class Browsing {
         var runCount = 0;
         for (var i = 0; i < data.blocks.length; i++) {
             this.seenBlocks++
-            this.updateProgressBar(this.seenBlocks)
+            //this.updateProgressBar(this.seenBlocks)
             runCount++;
             var block = data.blocks[i]
             subjectBrowse.next([runCount, block]);
