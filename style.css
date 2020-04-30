@@ -1,0 +1,160 @@
+  .container {
+      max-height: 100;
+      width: 1500;
+      overflow-y: scroll;
+      border: 1px solid #ccc;
+      background: #ccc;
+      margin-top: 30;
+  }
+  
+  #myProgress {
+      width: 1500;
+      background-color: #ddd;
+  }
+  
+  #myBar {
+      width: 1%;
+      height: 30px;
+      background-color: #4CAF50;
+  }
+  
+  #barText {
+      width: 1500;
+      height: 30px;
+      text-align: center;
+      color: black;
+  }
+  
+  .blocksContainer {
+      height: 350px;
+      /* TODO adjust automatically (function of page size) */
+      border: 0px solid #000;
+      /*overflow-y: hidden;
+    overflow-x: scroll;*/
+  }
+  
+  .blocks {
+      display: block;
+      width: 100%;
+  }
+  
+  .blocksDetailcontainer {
+      max-height: 1000;
+      width: 1500;
+      overflow-y: scroll;
+      border: 1px solid #ccc;
+      background: #ccc;
+  }
+  
+  .oneDetailT {
+      background-color: #eee;
+      color: #444;
+      cursor: pointer;
+      padding: 18px;
+      width: 100%;
+      border: none;
+      text-align: left;
+      outline: none;
+      font-size: 15px;
+      transition: 0.4s;
+  }
+  
+  .active,
+  .oneDetailT:hover {
+      background-color: #ccc;
+  }
+  
+  .oneDetailI {
+      background-color: #eee;
+      color: #444;
+      cursor: pointer;
+      padding: 18px;
+      width: 100%;
+      border: none;
+      text-align: left;
+      outline: none;
+      font-size: 15px;
+      transition: 0.4s;
+  }
+  
+  .active,
+  .oneDetailI:hover {
+      background-color: #ccc;
+  }
+  
+  .detailTransaction {
+      padding: 0 18px;
+      display: none;
+      background-color: white;
+      overflow: hidden;
+  }
+  
+  .detailInstruction {
+      padding: 0 18px;
+      display: none;
+      background-color: white;
+      overflow: hidden;
+  }
+  
+  .detailInstructionB {
+      padding: 0 18px;
+      display: none;
+      background-color: white;
+      overflow: hidden;
+  }
+  
+  .detailInstructionB1 {
+      padding: 0 18px;
+      display: none;
+      background-color: white;
+      overflow: hidden;
+  }
+  
+  .searchInstance {
+      background-color: #eee;
+      color: #444;
+      cursor: pointer;
+      padding: 18px;
+      width: 100%;
+      border: none;
+      text-align: left;
+      outline: none;
+      font-size: 15px;
+      transition: 0.4s;
+  }
+  
+  .oneDetailI2 {
+      background-color: #eee;
+      color: #444;
+      cursor: pointer;
+      padding: 18px;
+      width: 100%;
+      border: none;
+      text-align: left;
+      outline: none;
+      font-size: 15px;
+      transition: 0.4s;
+  }
+  
+  .active,
+  .oneDetailI2:hover {
+      background-color: #ccc;
+  }
+  
+  .oneDetailI3 {
+      background-color: #eee;
+      color: #444;
+      cursor: pointer;
+      padding: 18px;
+      width: 100%;
+      border: none;
+      text-align: left;
+      outline: none;
+      font-size: 15px;
+      transition: 0.4s;
+  }
+  
+  .active,
+  .oneDetailI3:hover {
+      background-color: #ccc;
+  }
