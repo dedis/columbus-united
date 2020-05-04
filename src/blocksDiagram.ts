@@ -64,61 +64,82 @@ export class BlocksDiagram {
 
     this.subscriberList = [];
 
-    let indexLastBlock: number;
-    let hashLastBlock: string;
-    let hashLastBlockBeforeUpdate = "";
-    let indexThreshold = 1;
+    let indexLastBlockLeft = this.initialBlockIndex;
+    let hashLastBlockLeft = "";
+    let hashLastBlockLeftBeforeUpdate = "";
+
+    let indexLastBlockRight = this.initialBlockIndex;
+    let hashLastBlockRight = "";
+    let hashLastBlockRightBeforeUpdate = "";
 
     this.svgBlocks = d3
       .select(".blocks")
       .attr("width", this.svgWidth)
       .attr("height", this.svgHeight)
       .call(
-        d3.zoom().on("zoom", function () {
-          self.svgBlocks.attr("transform", d3.event.transform);
-          let x = -d3.event.transform.x; // horizontal position of the leftmost block
-          let zoomLevel = d3.event.transform.k;
+        d3
+          .zoom()
+          .on("zoom", function () {
+            self.svgBlocks.attr("transform", d3.event.transform);
+            const x = -d3.event.transform.x; // horizontal position of the leftmost block
+            const zoomLevel = d3.event.transform.k;
 
-          let nbBlocksOnScreen =
-            self.svgWidth/((self.blockWidth + self.blockPadding)*zoomLevel);
+            const sizeBlockOnScreen =
+              (self.blockWidth + self.blockPadding) * zoomLevel;
 
-          let indexLeftBlockOnScreen =
-            self.initialBlockIndex +
-            x/((self.blockWidth + self.blockPadding)*zoomLevel);
+            // Load blocks to the left
+            const hashBlockToLoadLeft = hashLastBlockLeft; // TODO how to find hash
 
-          if (indexLeftBlockOnScreen > indexLastBlock - (nbBlocksOnScreen + 1)) {
-            if (!(hashLastBlock === hashLastBlockBeforeUpdate)) {
-              hashLastBlockBeforeUpdate = hashLastBlock;
-              //self.loaderAnimation();
-              self.getNextBlocks(
-                hashLastBlock,
-                self.pageSizeNb,
-                self.numPagesNb,
-                self.subjectBrowse
-              );
-              // destroy loader
+            const indexLeftBlockOnScreen =
+              self.initialBlockIndex + x / sizeBlockOnScreen;
+
+            if (indexLeftBlockOnScreen < indexLastBlockLeft) {
+              if (!(hashLastBlockLeft === hashLastBlockLeftBeforeUpdate)) {
+                hashLastBlockLeftBeforeUpdate = hashLastBlockLeft;
+                // self.loaderAnimation();
+                self.getNextBlocks(
+                  hashBlockToLoadLeft,
+                  self.pageSizeNb,
+                  self.numPagesNb,
+                  self.subjectBrowse
+                );
+                // destroy loader
+              }
             }
-          }
 
-          console.log(
-            //" | x = " +
-            //Math.round(x * 100) / 100 +
-            " | zoom = " +
-            Math.round(zoomLevel * 100) / 100 +
-            //" | xThreshold = " +
-            //Math.round(xThreshold * 100) / 100 +
-            " | indexLastBlock = " +
-              indexLastBlock +
-              " | nbBlocksOnScreen = " +
-              Math.round(nbBlocksOnScreen * 100) / 100 +
-              " | indexLeftBlockOnScreen = " +
-              Math.round(indexLeftBlockOnScreen * 100) / 100 +
-              " | indexThreshold = " +
-              Math.round(indexThreshold * 100) / 100
-          ); // TODO debug msg
+            // Load blocks to the right
+            const indexRightBlockOnScreen =
+              self.initialBlockIndex + (x + self.svgWidth) / sizeBlockOnScreen;
 
-
-        }).scaleExtent([0.25, 3]) // Block zoom
+            if (indexRightBlockOnScreen > indexLastBlockRight) {
+              if (!(hashLastBlockRight === hashLastBlockRightBeforeUpdate)) {
+                hashLastBlockRightBeforeUpdate = hashLastBlockRight;
+                // self.loaderAnimation();
+                self.getNextBlocks(
+                  hashLastBlockRight,
+                  self.pageSizeNb,
+                  self.numPagesNb,
+                  self.subjectBrowse
+                );
+                // destroy loader
+              }
+            }
+            /*
+            console.log(
+              //" | x = " +
+              //Math.round(x * 100) / 100 +
+              " | zoom = " +
+                Math.round(zoomLevel * 100) / 100 +
+                " | indexLastBlockLeft = " +
+                indexLastBlockLeft +
+                //" | nbBlocksOnScreen = " +
+                //Math.round(nbBlocksOnScreen * 100) / 100 +
+                " | indexLeftBlockOnScreen = " +
+                Math.round(indexLeftBlockOnScreen * 100) / 100
+            ); // TODO debug msg
+*/
+          })
+          .scaleExtent([0.25, 3]) // Block zoom
       )
       .append("g");
 
@@ -129,10 +150,17 @@ export class BlocksDiagram {
       // i: page number
       next: ([i, skipBlocks]) => {
         if (i == this.numPagesNb - 1) {
-          indexLastBlock = skipBlocks[skipBlocks.length - 1].index - 1;
-          hashLastBlock = skipBlocks[skipBlocks.length - 1].hash.toString(
-            "hex"
-          );
+          let index = skipBlocks[skipBlocks.length - 1].index - 1;
+          let hash = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
+
+          if (index >= this.initialBlockIndex) {
+            indexLastBlockRight = index;
+            hashLastBlockRight = hash;
+          } else {
+            indexLastBlockLeft = index;
+            hashLastBlockLeft = hash;
+          }
+
           /* TODO loader
           setTimeout(() => {
             this.displayBlocks(skipBlocks, this.getRandomColor())
