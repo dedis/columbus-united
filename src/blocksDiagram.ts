@@ -8,6 +8,7 @@ import {
 } from "@dedis/cothority/byzcoin/proto/stream";
 import { Observable, Subject, Subscriber } from "rxjs";
 import * as d3 from "d3";
+import { zoom } from "d3";
 
 export class BlocksDiagram {
   // SVG properties
@@ -32,9 +33,8 @@ export class BlocksDiagram {
   subjectBrowse: Subject<[number, SkipBlock[]]>;
   pageSizeNb: number; // number of blocks in a page
   numPagesNb: number; // number of pages
-  hashBlock0: string;
-  hashBlock126: string;
   nbBlocksLoaded: number;
+  initialBlockIndex: number;
 
   subscriberList: Subscriber<SkipBlock>[];
 
@@ -42,7 +42,7 @@ export class BlocksDiagram {
     // SVG properties
     this.svgWidth = window.innerWidth;
     this.svgHeight = 400;
-    let self = this;
+    const self = this;
 
     // Blocks UI properties
     this.blockPadding = 10;
@@ -60,16 +60,14 @@ export class BlocksDiagram {
     this.subjectBrowse = new Subject<[number, SkipBlock[]]>();
     this.pageSizeNb = 15;
     this.numPagesNb = 1;
-    this.hashBlock0 =
-      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
-    this.hashBlock126 =
-      "940406333443363ce0635218d1286bfbe7e22bb56910c26b92117dc7497ff086";
     this.nbBlocksLoaded = 0;
 
     this.subscriberList = [];
 
-    let lastBlockId: string;
-    let lastBlockIdBeforeUpdate = "";
+    let indexLastBlock: number;
+    let hashLastBlock: string;
+    let hashLastBlockBeforeUpdate = "";
+    let indexThreshold = 1;
 
     this.svgBlocks = d3
       .select(".blocks")
@@ -78,22 +76,22 @@ export class BlocksDiagram {
       .call(
         d3.zoom().on("zoom", function () {
           self.svgBlocks.attr("transform", d3.event.transform);
-          let x = d3.event.transform.x; // horizontal position of the leftmost block
+          let x = -d3.event.transform.x; // horizontal position of the leftmost block
           let zoomLevel = d3.event.transform.k;
 
-          console.log("x = " + x + ", zoom = " + zoomLevel);
+          let nbBlocksOnScreen =
+            self.svgWidth/((self.blockWidth + self.blockPadding)*zoomLevel);
 
-          let xMax =
-            self.nbBlocksLoaded * (self.blockWidth + self.blockPadding);
-          xMax -= (3 * self.svgWidth * 2) / zoomLevel;
-          xMax *= -zoomLevel;
+          let indexLeftBlockOnScreen =
+            self.initialBlockIndex +
+            x/((self.blockWidth + self.blockPadding)*zoomLevel);
 
-          if (x < xMax) {
-            if (!(lastBlockId === lastBlockIdBeforeUpdate)) {
-              lastBlockIdBeforeUpdate = lastBlockId;
+          if (indexLeftBlockOnScreen > indexLastBlock - (nbBlocksOnScreen + 1)) {
+            if (!(hashLastBlock === hashLastBlockBeforeUpdate)) {
+              hashLastBlockBeforeUpdate = hashLastBlock;
               //self.loaderAnimation();
               self.getNextBlocks(
-                lastBlockId,
+                hashLastBlock,
                 self.pageSizeNb,
                 self.numPagesNb,
                 self.subjectBrowse
@@ -101,7 +99,26 @@ export class BlocksDiagram {
               // destroy loader
             }
           }
-        })
+
+          console.log(
+            //" | x = " +
+            //Math.round(x * 100) / 100 +
+            " | zoom = " +
+            Math.round(zoomLevel * 100) / 100 +
+            //" | xThreshold = " +
+            //Math.round(xThreshold * 100) / 100 +
+            " | indexLastBlock = " +
+              indexLastBlock +
+              " | nbBlocksOnScreen = " +
+              Math.round(nbBlocksOnScreen * 100) / 100 +
+              " | indexLeftBlockOnScreen = " +
+              Math.round(indexLeftBlockOnScreen * 100) / 100 +
+              " | indexThreshold = " +
+              Math.round(indexThreshold * 100) / 100
+          ); // TODO debug msg
+
+
+        }).scaleExtent([0.25, 3]) // Block zoom
       )
       .append("g");
 
@@ -112,8 +129,11 @@ export class BlocksDiagram {
       // i: page number
       next: ([i, skipBlocks]) => {
         if (i == this.numPagesNb - 1) {
-          lastBlockId = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
-          /* TODO wait
+          indexLastBlock = skipBlocks[skipBlocks.length - 1].index - 1;
+          hashLastBlock = skipBlocks[skipBlocks.length - 1].hash.toString(
+            "hex"
+          );
+          /* TODO loader
           setTimeout(() => {
             this.displayBlocks(skipBlocks, this.getRandomColor())
           }, 3000);
@@ -138,11 +158,17 @@ export class BlocksDiagram {
     });
   }
 
-  public loadFirstBlocks() {
+  public loadInitialBlocks() {
+    let hashBlock0 =
+      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
+    let hashBlock126 =
+      "940406333443363ce0635218d1286bfbe7e22bb56910c26b92117dc7497ff086";
+
+    this.initialBlockIndex = 126;
+    let initialBlockHash = hashBlock126;
+
     this.getNextBlocks(
-      // TODO debug
-      this.hashBlock0,
-      //this.hashBlock126,
+      initialBlockHash,
       this.pageSizeNb,
       this.numPagesNb,
       this.subjectBrowse

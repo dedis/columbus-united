@@ -10,7 +10,7 @@ export function sayHi() {
     return;
   }
   let blocksDiagram = new BlocksDiagram(roster);
-  blocksDiagram.loadFirstBlocks();
+  blocksDiagram.loadInitialBlocks();
 
   let mybrowse = new Browsing(roster);
   mybrowse.sayHi1();
