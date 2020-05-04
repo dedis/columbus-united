@@ -32,12 +32,11 @@ export class BlocksDiagram {
   subjectBrowse: Subject<[number, SkipBlock[]]>;
   pageSizeNb: number; // number of blocks in a page
   numPagesNb: number; // number of pages
-  firstBlockHash: string;
+  hashBlock0: string;
+  hashBlock126: string;
   nbBlocksLoaded: number;
 
   subscriberList: Subscriber<SkipBlock>[];
-
-
 
   constructor(roster: Roster) {
     // SVG properties
@@ -61,8 +60,10 @@ export class BlocksDiagram {
     this.subjectBrowse = new Subject<[number, SkipBlock[]]>();
     this.pageSizeNb = 15;
     this.numPagesNb = 1;
-    this.firstBlockHash =
+    this.hashBlock0 =
       "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
+    this.hashBlock126 =
+      "940406333443363ce0635218d1286bfbe7e22bb56910c26b92117dc7497ff086";
     this.nbBlocksLoaded = 0;
 
     this.subscriberList = [];
@@ -134,7 +135,9 @@ export class BlocksDiagram {
 
   public loadFirstBlocks() {
     this.getNextBlocks(
-      this.firstBlockHash,
+      // TODO debug
+      this.hashBlock0,
+      //this.hashBlock126,
       this.pageSizeNb,
       this.numPagesNb,
       this.subjectBrowse
@@ -147,8 +150,8 @@ export class BlocksDiagram {
    * @param {*} blockColor color of the blocks
    */
   displayBlocks(listBlocks: SkipBlock[], blockColor: string) {
-    //console.log("Update: first block is of index " + listBlocks[0].index); // TODO debug
-    //console.log("Hash: " + listBlocks[0].hash.toString("hex")) // TODO debug
+    console.log("Loading blocks " + listBlocks[0].index + " to " + (listBlocks[0].index + 13)); // TODO debug msg
+    //console.log("Hash: " + listBlocks[0].hash.toString("hex")) // TODO debug msg
     for (let i = 0; i < listBlocks.length - 1; ++i, ++this.nbBlocksLoaded) {
       // x position where to start to display blocks
       const xTranslateBlock =
