@@ -33,7 +33,7 @@ export class DetailBlock {
     );
     const body = DataBody.decode(block.payload);
     body.txResults.forEach((transaction, i) => {
-      let accepted:string = transaction.accepted ? "Accepted" : "Not accepted"
+      let accepted: string = transaction.accepted ? "Accepted" : "Not accepted";
       this.mycontainer
         .append("button")
         .attr("class", "oneDetailButton")
@@ -87,15 +87,9 @@ export class DetailBlock {
           textI
             .append("button")
             .attr("class", "oneDetailButton")
-            .text(i + ") Arg name: ");
+            .text(i + ") " + arg.name);
           let argsDetailsN = textI.append("div").attr("class", "oneDetailText");
-          argsDetailsN.append("p").text(arg.name);
-          textI
-            .append("button")
-            .attr("class", "oneDetailButton")
-            .text(i + ") Arg value: ");
-          let argsDetailsV = textI.append("div").attr("class", "oneDetailText");
-          argsDetailsV.append("p").text("" + arg.value);
+          argsDetailsN.append("p").text("" + arg.value);
           i++;
         });
 
@@ -113,40 +107,49 @@ export class DetailBlock {
           });
       });
     });
-    var acc1 = document.getElementsByClassName("oneDetailButton");
-    this.addClickListener(acc1);
 
-    var verifiersHTML = this.mycontainer
-      .append("details")
-      .attr("class", "detailsChild1");
-    verifiersHTML
-      .append("summary")
+    this.mycontainer
+      .append("button")
+      .attr("class", "oneDetailButton")
+      .text("Block details");
+    let details = this.mycontainer.append("div").attr("class", "oneDetailText");
+
+    details
+      .append("button")
+      .attr("class", "oneDetailButton")
       .text("Verifiers: " + block.verifiers.length);
+    let verifiersContainer = details
+      .append("div")
+      .attr("class", "oneDetailText");
+
     block.verifiers.forEach((uid, j) => {
-      verifiersHTML
+      verifiersContainer
         .append("p")
         .text("Verifier: " + j + " ID: " + uid.toString("hex"));
     });
 
-    var backlinkHTML = this.mycontainer
-      .append("details")
-      .attr("class", "detailsChild1");
-    backlinkHTML.append("summary").text("Backlinks: " + block.backlinks.length);
+    details
+      .append("button")
+      .attr("class", "oneDetailButton")
+      .text("Backlinks: " + block.backlinks.length);
+    let backLinksContainer = details
+      .append("div")
+      .attr("class", "oneDetailText");
     block.backlinks.forEach((value, j) => {
-      backlinkHTML
+      backLinksContainer
         .append("p")
         .text("Backlink: " + j + " Value: " + value.toString("hex"));
     });
 
-    var forwardlinkHTML = this.mycontainer
-      .append("details")
-      .attr("class", "detailsChild1");
-    forwardlinkHTML
-      .append("summary")
+    details
+      .append("button")
+      .attr("class", "oneDetailButton")
       .text("ForwardLinks: " + block.forwardLinks.length);
+    let forwardsContainer = details
+      .append("div")
+      .attr("class", "oneDetailText");
     block.forwardLinks.forEach((fl, j) => {
-      forwardlinkHTML.append("p").text("ForwardLink: " + j);
-      forwardlinkHTML
+      forwardsContainer
         .append("p")
         .text(
           "From: " +
@@ -154,10 +157,13 @@ export class DetailBlock {
             " Hash: " +
             fl.hash().toString("hex")
         );
-      forwardlinkHTML
+      forwardsContainer
         .append("p")
         .text("signature: + " + fl.signature.sig.toString("hex"));
     });
+
+    var acc1 = document.getElementsByClassName("oneDetailButton");
+    this.addClickListener(acc1);
   }
   private addClickListener(acc: HTMLCollectionOf<Element>) {
     for (let i = 0; i < acc.length; i++) {
@@ -180,6 +186,13 @@ export class DetailBlock {
     for (let i = 0; i < tuple[0].length; i++) {
       let instruction = tuple[1][i];
       let button = null;
+      let args = null;
+      let args_list: d3.Selection<
+        HTMLParagraphElement,
+        unknown,
+        HTMLElement,
+        any
+      > = null;
       if (instruction.spawn !== null) {
         button = this.container
           .append("button")
@@ -203,11 +216,8 @@ export class DetailBlock {
         let argsDetails = textContainer
           .append("div")
           .attr("class", "oneDetailText");
-        let args_list = argsDetails.append("ul");
-        instruction.spawn.args.forEach((arg, _) => {
-          args_list.append("li").text("Arg name : " + arg.name);
-          args_list.append("li").text("Arg value : " + arg.value);
-        });
+        args_list = argsDetails.append("p");
+        args = instruction.spawn.args;
       } else if (instruction.invoke !== null) {
         button = this.container
           .append("button")
@@ -231,11 +241,8 @@ export class DetailBlock {
         let argsDetails = textContainer
           .append("div")
           .attr("class", "oneDetailText");
-        let args_list = argsDetails.append("ul");
-        instruction.invoke.args.forEach((arg, _) => {
-          args_list.append("li").text("Arg name : " + arg.name);
-          args_list.append("li").text("Arg value : " + arg.value);
-        });
+        args_list = argsDetails.append("p");
+        args = instruction.invoke.args;
       } else if (instruction.delete !== null) {
         button = this.container
           .append("button")
@@ -253,6 +260,18 @@ export class DetailBlock {
           .append("p")
           .text("ContractID: " + instruction.delete.contractID);
       }
+      let arg_num: number = 0;
+      args.forEach((arg, _) => {
+        args_list
+          .append("button")
+          .attr("class", "oneDetailButton")
+          .text(arg_num + ") " + arg.name);
+        let argsDetailsN = args_list
+          .append("div")
+          .attr("class", "oneDetailText");
+        argsDetailsN.append("p").text("" + arg.value);
+        arg_num++;
+      });
       if (tuple[0][i] == this.clickedBlock.hash.toString("hex")) {
         button.attr("class", "oneDetailButton");
       }
@@ -260,8 +279,5 @@ export class DetailBlock {
     let acc1 = document.getElementsByClassName("oneDetailButton");
 
     this.addClickListener(acc1);
-  }
-  createButtonAndText(){
-    
   }
 }
