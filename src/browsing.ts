@@ -24,6 +24,7 @@ export class Browsing {
   myProgress: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   myBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   barText: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+  firstBlockIDStart: string;
 
   constructor(roster: Roster) {
     this.roster = roster;
@@ -41,6 +42,8 @@ export class Browsing {
     this.myProgress = undefined;
     this.myBar = undefined;
     this.barText = undefined;
+    this.firstBlockIDStart =
+      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
   }
 
   public getInstructionObserver(
@@ -53,9 +56,15 @@ export class Browsing {
       this.seenBlocks = 0;
       this.instanceSearch = instance;
       this.contractID = this.instanceSearch.instanceID.toString("hex");
-      let firstBlockIDStart =
-        "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
-      this.browse(this.pageSize, this.numPages, firstBlockIDStart, sub, [], []);
+
+      this.browse(
+        this.pageSize,
+        this.numPages,
+        this.firstBlockIDStart,
+        sub,
+        [],
+        []
+      );
     });
   }
 
@@ -75,7 +84,7 @@ export class Browsing {
         body.txResults.forEach((transaction, i) => {
           transaction.clientTransaction.instructions.forEach(
             (instruction, j) => {
-              if (instruction.spawn !== null) {
+              if (instruction.type === Instruction.typeSpawn) {
                 if (
                   instruction.deriveId("").toString("hex") === this.contractID
                 ) {
