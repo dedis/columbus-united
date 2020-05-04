@@ -3,10 +3,10 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import { WebSocketConnection } from "@dedis/cothority/network/connection";
 import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
 import {
-  PaginateResponse,
   PaginateRequest,
+  PaginateResponse,
 } from "@dedis/cothority/byzcoin/proto/stream";
-import { Subject, Observer, Observable, Subscriber } from "rxjs";
+import { Observable, Subject, Subscriber } from "rxjs";
 import * as d3 from "d3";
 
 export class BlocksDiagram {
@@ -78,8 +78,10 @@ export class BlocksDiagram {
       .call(
         d3.zoom().on("zoom", function () {
           self.svgBlocks.attr("transform", d3.event.transform);
-          let x = d3.event.transform.x; // horizontal position
+          let x = d3.event.transform.x; // horizontal position of the leftmost block
           let zoomLevel = d3.event.transform.k;
+
+          console.log("x = " + x + ", zoom = " + zoomLevel);
 
           let xMax =
             self.nbBlocksLoaded * (self.blockWidth + self.blockPadding);
@@ -103,18 +105,21 @@ export class BlocksDiagram {
       )
       .append("g");
 
+    // TODO debug
+    //let temp = d3.select(".blocksContainer").attr("viewBox", "0,0,150,420")
+
     this.subjectBrowse.subscribe({
       // i: page number
       next: ([i, skipBlocks]) => {
         if (i == this.numPagesNb - 1) {
           lastBlockId = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
-/* TODO wait
+          /* TODO wait
           setTimeout(() => {
             this.displayBlocks(skipBlocks, this.getRandomColor())
           }, 3000);
           
 */
-          this.displayBlocks(skipBlocks, this.getRandomColor())
+          this.displayBlocks(skipBlocks, this.getRandomColor());
           // TODO unlock zoom
           //this.svgBlocks.attr("transform", d3.event.transform);
         }
@@ -150,7 +155,12 @@ export class BlocksDiagram {
    * @param {*} blockColor color of the blocks
    */
   displayBlocks(listBlocks: SkipBlock[], blockColor: string) {
-    console.log("Loading blocks " + listBlocks[0].index + " to " + (listBlocks[0].index + 13)); // TODO debug msg
+    console.log(
+      "Loading blocks " +
+        listBlocks[0].index +
+        " to " +
+        (listBlocks[0].index + 13)
+    ); // TODO debug msg
     //console.log("Hash: " + listBlocks[0].hash.toString("hex")) // TODO debug msg
     for (let i = 0; i < listBlocks.length - 1; ++i, ++this.nbBlocksLoaded) {
       // x position where to start to display blocks
@@ -184,6 +194,7 @@ export class BlocksDiagram {
       );
 
       // Validity
+      // TODO how to find validity of block? for now, random
       let validityStr;
       let validityColor;
       if (Math.random() >= 0.25) {
@@ -203,8 +214,12 @@ export class BlocksDiagram {
   }
 
   // helper for displayBlocks
-  private appendBlock(xTranslate: number, blockColor: string, block: SkipBlock) {
-    let self = this
+  private appendBlock(
+    xTranslate: number,
+    blockColor: string,
+    block: SkipBlock
+  ) {
+    let self = this;
     this.svgBlocks
       .append("rect")
       .attr("width", this.blockWidth)
@@ -216,9 +231,9 @@ export class BlocksDiagram {
       })
       .attr("fill", blockColor)
       .on("click", function () {
-        console.log("Clicked block " + block.index) // TODO debug msg
-        self.subscriberList.forEach(sub => {
-          sub.next(block)
+        console.log("Clicked block " + block.index); // TODO debug msg
+        self.subscriberList.forEach((sub) => {
+          sub.next(block);
         });
       });
   }
@@ -233,7 +248,7 @@ export class BlocksDiagram {
   public getBlockObserver(): Observable<SkipBlock> {
     return new Observable((sub) => {
       this.subscriberList.push(sub);
-    })
+    });
   }
 
   // helper for displayBlocks
