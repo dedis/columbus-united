@@ -38,7 +38,7 @@ export class BlocksDiagram {
   initialBlockIndex: number;
 
   // Blocks observation
-  subscriberList: Subscriber<SkipBlock>[];
+  subscriberList: Array<Subscriber<SkipBlock>>;
 
   constructor(roster: Roster) {
     // SVG properties
@@ -67,9 +67,6 @@ export class BlocksDiagram {
     this.subscriberList = [];
 
     // Blocks navigation properties
-    let indexLastBlockLeft = this.initialBlockIndex;
-    let hashLastBlockLeft = "";
-    let hashLastBlockLeftBeforeUpdate = "";
     let indexLastBlockRight = this.initialBlockIndex;
     let hashLastBlockRight = "";
     let hashLastBlockRightBeforeUpdate = "";
@@ -82,7 +79,7 @@ export class BlocksDiagram {
       .call(
         d3
           .zoom()
-          .on("zoom", function () {
+          .on("zoom", () => {
             self.svgBlocks.attr("transform", d3.event.transform);
             const x = -d3.event.transform.x; // horizontal position of the leftmost block
             const zoomLevel = d3.event.transform.k;
@@ -114,24 +111,6 @@ export class BlocksDiagram {
     // Subscriber to the blockchain server
     this.subjectBrowse.subscribe({
       // i is the page number
-      next: ([i, skipBlocks]) => {
-        if (i == this.numPagesNb - 1) {
-          let index = skipBlocks[skipBlocks.length - 1].index - 1;
-          let hash = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
-
-          if (index >= this.initialBlockIndex) {
-            // Loading blocks to the right
-            indexLastBlockRight = index;
-            hashLastBlockRight = hash;
-          } else {
-            // Loading blocks to the left
-            indexLastBlockLeft = index;
-            hashLastBlockLeft = hash;
-          }
-
-          this.displayBlocks(skipBlocks);
-        }
-      },
       complete: () => {
         console.log("End of blockchain");
         console.log("closed");
@@ -143,20 +122,36 @@ export class BlocksDiagram {
           this.ws = undefined; // To reset the websocket, create a new handler for the next function (of getnextblock)
         }
       },
+      next: ([i, skipBlocks]) => {
+        if (i == this.numPagesNb - 1) {
+          const index = skipBlocks[skipBlocks.length - 1].index - 1;
+          const hash = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
+
+          if (index >= this.initialBlockIndex) {
+            // Loading blocks to the right
+            indexLastBlockRight = index;
+            hashLastBlockRight = hash;
+          } else {
+            // Loading blocks to the left
+          }
+
+          this.displayBlocks(skipBlocks);
+        }
+      },
     });
   }
 
   /**
    * Load the initial blocks.
    */
-  public loadInitialBlocks() {
-    let hashBlock0 =
+  loadInitialBlocks() {
+    const hashBlock0 =
       "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
-    let hashBlock126 =
+    const hashBlock126 =
       "940406333443363ce0635218d1286bfbe7e22bb56910c26b92117dc7497ff086";
 
     this.initialBlockIndex = 0;
-    let initialBlockHash = hashBlock0;
+    const initialBlockHash = hashBlock0;
 
     this.getNextBlocks(
       initialBlockHash,
@@ -164,6 +159,22 @@ export class BlocksDiagram {
       this.numPagesNb,
       this.subjectBrowse
     );
+  }
+
+  /**
+   * Returns an observable to observe the blocks.
+   * Example use:
+   * const blocksDiagram = new BlocksDiagram(roster);
+   * blocksDiagram.getBlockObserver().subscribe({
+   *   next: (skipBlock) => {
+   *     // do things
+   *   }
+   * })
+   */
+  getBlockObserver(): Observable<SkipBlock> {
+    return new Observable((sub) => {
+      this.subscriberList.push(sub);
+    });
   }
 
   /**
@@ -186,7 +197,7 @@ export class BlocksDiagram {
         (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded + 10;
       const xTranslateText = xTranslateBlock + 5;
 
-      let block = listBlocks[i];
+      const block = listBlocks[i];
 
       // Append the block inside the svg container
       this.appendBlock(xTranslateBlock, blockColor, block);
@@ -240,32 +251,16 @@ export class BlocksDiagram {
       .attr("width", this.blockWidth)
       .attr("height", this.blockHeight)
       .attr("y", 25)
-      .attr("transform", function (d: any) {
-        let translate = [xTranslate, 0];
+      .attr("transform", (d: any) => {
+        const translate = [xTranslate, 0];
         return "translate(" + translate + ")";
       })
       .attr("fill", blockColor)
-      .on("click", function () {
+      .on("click", () => {
         self.subscriberList.forEach((sub) => {
           sub.next(block);
         });
       });
-  }
-
-  /**
-   * Returns an observable to observe the blocks.
-   * Example of utilization:
-    const blocksDiagram = new BlocksDiagram(roster);
-    blocksDiagram.getBlockObserver().subscribe({
-      next: (skipBlock) => {
-        // do things
-      }
-    })
-   */
-  public getBlockObserver(): Observable<SkipBlock> {
-    return new Observable((sub) => {
-      this.subscriberList.push(sub);
-    });
   }
 
   /**
@@ -305,7 +300,7 @@ export class BlocksDiagram {
     numPagesNb: number,
     subjectBrowse: Subject<[number, SkipBlock[]]>
   ) {
-    var bid: Buffer;
+    let bid: Buffer;
 
     try {
       bid = this.hex2Bytes(nextBlockID);
@@ -347,6 +342,13 @@ export class BlocksDiagram {
         )
         .subscribe({
           // ws callback "onMessage":
+          complete: () => {
+            console.log("closed");
+          },
+          error: (err: Error) => {
+            console.log("error: ", err);
+            this.ws = undefined;
+          },
           next: ([data, ws]) => {
             if (data.errorcode != 0) {
               console.log(
@@ -359,13 +361,6 @@ export class BlocksDiagram {
             }
             subjectBrowse.next([data.pagenumber, data.blocks]);
             return 0;
-          },
-          complete: () => {
-            console.log("closed");
-          },
-          error: (err: Error) => {
-            console.log("error: ", err);
-            this.ws = undefined;
           },
         });
     }
