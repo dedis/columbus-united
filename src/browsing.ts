@@ -59,7 +59,7 @@ export class Browsing {
         }
         this.container = d3.select("body").append("div").attr("id", "container")
         document.getElementById("browse").addEventListener("click", this.browseClick.bind(this))
-        //console.log("1")
+        console.log("1")
     }
 
     browseClick(this: Browsing) {
