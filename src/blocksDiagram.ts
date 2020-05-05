@@ -34,8 +34,10 @@ export class BlocksDiagram {
   subjectBrowse: Subject<[number, SkipBlock[]]>;
   pageSizeNb: number; // number of blocks in a page
   numPagesNb: number; // number of pages
-  nbBlocksLoaded: number;
+  nbBlocksLoadedLeft: number;
+  nbBlocksLoadedRight: number;
   initialBlockIndex: number;
+  initialBlockHash: string;
 
   // Blocks observation
   subscriberList: Array<Subscriber<SkipBlock>>;
@@ -61,14 +63,26 @@ export class BlocksDiagram {
     this.subjectBrowse = new Subject<[number, SkipBlock[]]>();
     this.pageSizeNb = 15;
     this.numPagesNb = 1;
-    this.nbBlocksLoaded = 0;
+    this.nbBlocksLoadedLeft = 0;
+    this.nbBlocksLoadedRight = 0;
+
+    const hashBlock0 =
+      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
+    const hashBlock126 =
+      "940406333443363ce0635218d1286bfbe7e22bb56910c26b92117dc7497ff086";
+
+    this.initialBlockIndex = 126;
+    this.initialBlockHash = hashBlock126;
 
     // Blocks observation
     this.subscriberList = [];
 
     // Blocks navigation properties
+    let indexLastBlockLeft = this.initialBlockIndex;
+    let hashLastBlockLeft = this.initialBlockHash;
+    let hashLastBlockLeftBeforeUpdate = "";
     let indexLastBlockRight = this.initialBlockIndex;
-    let hashLastBlockRight = "";
+    let hashLastBlockRight = this.initialBlockHash;
     let hashLastBlockRightBeforeUpdate = "";
 
     // SVG containing the blockchain
@@ -88,6 +102,24 @@ export class BlocksDiagram {
             const sizeBlockOnScreen =
               (self.blockWidth + self.blockPadding) * zoomLevel;
 
+            // Load blocks to the left
+            const indexLeftBlockOnScreen =
+              self.initialBlockIndex + x / sizeBlockOnScreen;
+
+            if (indexLeftBlockOnScreen < indexLastBlockLeft + 10) {
+              if (!(hashLastBlockLeft === hashLastBlockLeftBeforeUpdate)) {
+                hashLastBlockLeftBeforeUpdate = hashLastBlockLeft;
+
+                self.getNextBlocks(
+                  hashLastBlockLeft,
+                  self.pageSizeNb,
+                  self.numPagesNb,
+                  self.subjectBrowse,
+                  true
+                );
+              }
+            }
+
             // Load blocks to the right
             const indexRightBlockOnScreen =
               self.initialBlockIndex + (x + self.svgWidth) / sizeBlockOnScreen;
@@ -100,7 +132,8 @@ export class BlocksDiagram {
                   hashLastBlockRight,
                   self.pageSizeNb,
                   self.numPagesNb,
-                  self.subjectBrowse
+                  self.subjectBrowse,
+                  false
                 );
               }
             }
@@ -131,13 +164,16 @@ export class BlocksDiagram {
           const index = skipBlocks[skipBlocks.length - 1].index - 1;
           const hash = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
 
-          if (index >= this.initialBlockIndex) {
-            // Loading blocks to the right
+          if (index < this.initialBlockIndex) {
+            // Load blocks to the left
+            indexLastBlockLeft = index;
+            hashLastBlockLeft = hash;
+            this.displayBlocks(skipBlocks, true);
+          } else {
+            // Load blocks to the right
             indexLastBlockRight = index;
             hashLastBlockRight = hash;
-            this.displayBlocks(skipBlocks);
-          } else {
-            // Loading blocks to the left
+            this.displayBlocks(skipBlocks, false);
           }
         }
       },
@@ -148,20 +184,21 @@ export class BlocksDiagram {
    * Load the initial blocks.
    */
   loadInitialBlocks() {
-    const hashBlock0 =
-      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
-    const hashBlock126 =
-      "940406333443363ce0635218d1286bfbe7e22bb56910c26b92117dc7497ff086";
-
-    this.initialBlockIndex = 0;
-    const initialBlockHash = hashBlock0;
-
     this.getNextBlocks(
-      initialBlockHash,
+      this.initialBlockHash,
       this.pageSizeNb,
       this.numPagesNb,
-      this.subjectBrowse
+      this.subjectBrowse,
+      false
     );
+    /*
+    this.getNextBlocks(
+      this.initialBlockHash,
+      this.pageSizeNb,
+      this.numPagesNb,
+      this.subjectBrowse,
+      true
+    ); TODO */
   }
 
   /**
@@ -183,8 +220,10 @@ export class BlocksDiagram {
   /**
    * Append the given blocks to the blockchain.
    * @param listBlocks list of blocks to append
+   * @param backward false for loading blocks to the right, true for loading
+   * blocks to the left
    */
-  private displayBlocks(listBlocks: SkipBlock[]) {
+  private displayBlocks(listBlocks: SkipBlock[], backward: boolean) {
     // Determine the color of the blocks
     let blockColor: string;
     if (this.randomBlocksColor) {
@@ -193,47 +232,115 @@ export class BlocksDiagram {
       blockColor = this.blockColor;
     }
 
-    // Iterate over the blocks to append them
-    for (let i = 0; i < listBlocks.length - 1; ++i, ++this.nbBlocksLoaded) {
-      // x position where to start to display blocks
-      const xTranslateBlock =
-        (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded + 10;
-      const xTranslateText = xTranslateBlock + 5;
-
-      const block = listBlocks[i];
-
-      // Append the block inside the svg container
-      this.appendBlock(xTranslateBlock, blockColor, block);
-
-      // Box the text index in an object to pass it by reference
-      const textIndex = { index: 0 };
-
-      // Index
-      this.appendTextInBlock(
-        xTranslateText,
-        textIndex,
-        "index: " + block.index,
-        this.textColor
+    if (backward) {
+      console.log(
+        "Load left blocks " +
+          listBlocks[0].index +
+          " to " +
+          (listBlocks[0].index + 13)
       );
+      // Load blocks to the left
+      // Iterate over the blocks to append them
+      for (
+        let i = 0;
+        i < listBlocks.length - 1;
+        ++i, ++this.nbBlocksLoadedLeft
+      ) {
+        // x position where to start to display blocks
+        const xTranslateBlock =
+          -1 * (this.blockWidth + this.blockPadding) * this.nbBlocksLoadedLeft +
+          10;
+        const xTranslateText = xTranslateBlock + 5;
 
-      // Hash
-      const hash = block.hash.toString("hex");
-      this.appendTextInBlock(
-        xTranslateText,
-        textIndex,
-        "hash: " + hash.slice(0, 22) + "...",
-        this.textColor
-      );
+        const block = listBlocks[i];
 
-      // Number of transactions
-      const body = DataBody.decode(block.payload);
-      const nbTransactions = body.txResults.length;
-      this.appendTextInBlock(
-        xTranslateText,
-        textIndex,
-        "#transactions: " + nbTransactions,
-        this.textColor
+        // Append the block inside the svg container
+        this.appendBlock(xTranslateBlock, blockColor, block);
+
+        // Box the text index in an object to pass it by reference
+        const textIndex = { index: 0 };
+
+        // Index
+        this.appendTextInBlock(
+          xTranslateText,
+          textIndex,
+          "index: " + block.index,
+          this.textColor
+        );
+
+        // Hash
+        const hash = block.hash.toString("hex");
+        this.appendTextInBlock(
+          xTranslateText,
+          textIndex,
+          "hash: " + hash.slice(0, 22) + "...",
+          this.textColor
+        );
+
+        // Number of transactions
+        const body = DataBody.decode(block.payload);
+        const nbTransactions = body.txResults.length;
+        this.appendTextInBlock(
+          xTranslateText,
+          textIndex,
+          "#transactions: " + nbTransactions,
+          this.textColor
+        );
+      }
+    } else {
+      console.log(
+        "Load right blocks " +
+          listBlocks[0].index +
+          " to " +
+          (listBlocks[0].index + 13)
       );
+      // Load blocks to the right
+      // Iterate over the blocks to append them
+      for (
+        let i = 0;
+        i < listBlocks.length - 1;
+        ++i, ++this.nbBlocksLoadedRight
+      ) {
+        // x position where to start to display blocks
+        const xTranslateBlock =
+          (this.blockWidth + this.blockPadding) * this.nbBlocksLoadedRight + 10;
+        const xTranslateText = xTranslateBlock + 5;
+
+        const block = listBlocks[i];
+
+        // Append the block inside the svg container
+        this.appendBlock(xTranslateBlock, blockColor, block);
+
+        // Box the text index in an object to pass it by reference
+        const textIndex = { index: 0 };
+
+        // Index
+        this.appendTextInBlock(
+          xTranslateText,
+          textIndex,
+          "index: " + block.index,
+          this.textColor
+        );
+
+        // Hash
+        const hash = block.hash.toString("hex");
+        this.appendTextInBlock(
+          xTranslateText,
+          textIndex,
+          "hash: " + hash.slice(0, 22) + "...",
+          this.textColor
+        );
+
+        // Number of transactions
+        const body = DataBody.decode(block.payload);
+        const nbTransactions = body.txResults.length;
+        this.appendTextInBlock(
+          xTranslateText,
+          textIndex,
+          "#transactions: " + nbTransactions,
+          this.textColor
+        );
+      }
     }
   }
 
@@ -297,12 +404,15 @@ export class BlocksDiagram {
    * @param pageSizeNb number of blocks in a page
    * @param numPagesNb number of pages to request
    * @param subjectBrowse observable to get the blocks from the blockchain
+   * @param backward false for loading blocks to the right, true for loading
+   * blocks to the left
    */
   private getNextBlocks(
     nextBlockID: string,
     pageSizeNb: number,
     numPagesNb: number,
-    subjectBrowse: Subject<[number, SkipBlock[]]>
+    subjectBrowse: Subject<[number, SkipBlock[]]>,
+    backward: boolean
   ) {
     let bid: Buffer;
 
@@ -326,7 +436,7 @@ export class BlocksDiagram {
 
     if (this.ws !== undefined) {
       const message = new PaginateRequest({
-        backward: false,
+        backward: backward,
         numpages: numPagesNb,
         pagesize: pageSizeNb,
         startid: bid,
@@ -338,7 +448,7 @@ export class BlocksDiagram {
       conn
         .sendStream<PaginateResponse>( // fetch next block
           new PaginateRequest({
-            backward: false,
+            backward: backward,
             numpages: numPagesNb,
             pagesize: pageSizeNb,
             startid: bid,
