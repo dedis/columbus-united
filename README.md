@@ -46,7 +46,7 @@ Check TypeScript code formatting: `npm run lint`
 
 ### Settings
 
-Add a vertical line at column 80: `editor.rulers` -> `Edit in settings.json` -> `"editor.rulers": [80]`  
+Add vertical lines at columns 80 and 100: `editor.rulers` -> `Edit in settings.json` -> `"editor.rulers": [80,100]`  
 
 ### Extensions
 
