@@ -1,18 +1,20 @@
 import { Roster } from "@dedis/cothority/network";
+
 import { BlocksDiagram } from "./blocksDiagram";
 import { Browsing } from "./browsing";
 import { getRosterStr } from "./roster";
 
 export function sayHi() {
-  var roster = Roster.fromTOML(rosterStr);
+  const roster = Roster.fromTOML(rosterStr);
   if (!roster) {
-    console.log("Roster is undefined");
+    console.error("Roster is undefined");
     return;
   }
-  let blocksDiagram = new BlocksDiagram(roster);
-  blocksDiagram.loadFirstBlocks();
+  const blocksDiagram = new BlocksDiagram(roster);
+  blocksDiagram.loadInitialBlocks();
 
-  let mybrowse = new Browsing(roster);
+  const mybrowse = new Browsing(roster);
   mybrowse.sayHi1();
 }
+
 const rosterStr = getRosterStr();

@@ -27,7 +27,9 @@
             "check-type-operator",
             "check-preblock",
             "check-rest-spread"
-        ]
+        ],
+        "no-console": [true, "log"],
+        "trailing-comma": [false]
     },
     "rulesDirectory": []
 }

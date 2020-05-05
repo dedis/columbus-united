@@ -33,3 +33,27 @@ Start server in conode folder: `./conode.Linux.x86_64 server`
 To view debug messages: `./conode.Linux.x86_64 -d 2 server`  
 Compile in root of this project: `npm run bundle`  
 For automatic compilation upon changes: `npm run watch`  
+Check TypeScript code formatting: `npm run lint`  
+
+## Recommended extensions for Visual Studio Code
+### Live Server
+Purpose: Automatically refresh the html upon compile  
+Install: `ritwickdey.liveserver`  
+Use:
+* Right click on `index.html`
+* `Open with Live Server`
+
+### Prettier - Code formatter
+Purpose: Automatically format the code  
+Install: `esbenp.prettier-vscode`  
+Setup: setting `editor.defaultFormatter` -> select `esbenp.prettier-vscode`  
+Use:
+* Open Command Palette (`Ctrl+Shift+P`)
+* `Format Document`
+
+### TypeScript Hero
+Purpose: Automatically organize TypeScript imports  
+Install: `rbbit.typescript-hero`  
+Use:
+* Open Command Palette (`Ctrl+Shift+P`)
+* `TS Hero: Organize imports`
