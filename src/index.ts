@@ -7,7 +7,7 @@ import { getRosterStr } from "./roster";
 export function sayHi() {
   const roster = Roster.fromTOML(rosterStr);
   if (!roster) {
-    console.log("Roster is undefined");
+    console.error("Roster is undefined");
     return;
   }
   const blocksDiagram = new BlocksDiagram(roster);

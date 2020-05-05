@@ -81,7 +81,8 @@ export class BlocksDiagram {
           .zoom()
           .on("zoom", () => {
             self.svgBlocks.attr("transform", d3.event.transform);
-            const x = -d3.event.transform.x; // horizontal position of the leftmost block
+            // Horizontal position of the leftmost block
+            const x = -d3.event.transform.x;
             const zoomLevel = d3.event.transform.k;
 
             const sizeBlockOnScreen =
@@ -104,7 +105,7 @@ export class BlocksDiagram {
               }
             }
           })
-          .scaleExtent([0.25, 3]) // Constraint the zoom
+          .scaleExtent([0.03, 3]) // Constraint the zoom
       )
       .append("g");
 
@@ -112,17 +113,20 @@ export class BlocksDiagram {
     this.subjectBrowse.subscribe({
       // i is the page number
       complete: () => {
-        console.log("End of blockchain");
-        console.log("closed");
+        console.error("End of blockchain");
+        console.error("closed");
       },
       error: (err: any) => {
-        console.log("error: ", err);
+        console.error("error: ", err);
         if (err === 1) {
-          console.log("Browse recall: " + 1);
-          this.ws = undefined; // To reset the websocket, create a new handler for the next function (of getnextblock)
+          console.error("Browse recall: " + 1);
+          // To reset the websocket, create a new handler for the next function
+          // (of getnextblock)
+          this.ws = undefined;
         }
       },
       next: ([i, skipBlocks]) => {
+        // tslint:disable-next-line
         if (i == this.numPagesNb - 1) {
           const index = skipBlocks[skipBlocks.length - 1].index - 1;
           const hash = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
@@ -131,11 +135,10 @@ export class BlocksDiagram {
             // Loading blocks to the right
             indexLastBlockRight = index;
             hashLastBlockRight = hash;
+            this.displayBlocks(skipBlocks);
           } else {
             // Loading blocks to the left
           }
-
-          this.displayBlocks(skipBlocks);
         }
       },
     });
@@ -235,7 +238,8 @@ export class BlocksDiagram {
   }
 
   /**
-   * Helper for displayBlocks: appends a block to the blockchain and adds it to the subscriber list.
+   * Helper for displayBlocks: appends a block to the blockchain and adds it to
+   * the subscriber list.
    * @param xTranslate horizontal position where the block should be appended
    * @param blockColor color of the blocks
    * @param block the block to append
@@ -305,26 +309,27 @@ export class BlocksDiagram {
     try {
       bid = this.hex2Bytes(nextBlockID);
     } catch (error) {
-      console.log("failed to parse the block ID: ", error);
+      console.error("failed to parse the block ID: ", error);
       return;
     }
 
+    let conn: WebSocketConnection;
     try {
-      var conn = new WebSocketConnection(
+      conn = new WebSocketConnection(
         this.roster.list[0].getWebSocketAddress(),
         ByzCoinRPC.serviceName
       );
     } catch (error) {
-      console.log("error creating conn: ", error);
+      console.error("error creating conn: ", error);
       return;
     }
 
     if (this.ws !== undefined) {
       const message = new PaginateRequest({
-        startid: bid,
-        pagesize: pageSizeNb,
-        numpages: numPagesNb,
         backward: false,
+        numpages: numPagesNb,
+        pagesize: pageSizeNb,
+        startid: bid,
       });
 
       const messageByte = Buffer.from(message.$type.encode(message).finish());
@@ -333,25 +338,26 @@ export class BlocksDiagram {
       conn
         .sendStream<PaginateResponse>( // fetch next block
           new PaginateRequest({
-            startid: bid,
-            pagesize: pageSizeNb,
-            numpages: numPagesNb,
             backward: false,
+            numpages: numPagesNb,
+            pagesize: pageSizeNb,
+            startid: bid,
           }),
           PaginateResponse
         )
         .subscribe({
           // ws callback "onMessage":
           complete: () => {
-            console.log("closed");
+            console.error("closed");
           },
           error: (err: Error) => {
-            console.log("error: ", err);
+            console.error("error: ", err);
             this.ws = undefined;
           },
           next: ([data, ws]) => {
+            // tslint:disable-next-line
             if (data.errorcode != 0) {
-              console.log(
+              console.error(
                 `got an error with code ${data.errorcode} : ${data.errortext}`
               );
               return 1;
