@@ -7,18 +7,18 @@
       margin-top: 30;
   }
   
-  #myProgress {
+  #progressBarContainer {
       width: 1500;
       background-color: #ddd;
   }
   
-  #myBar {
+  #progressBar {
       width: 1%;
       height: 30px;
       background-color: #4CAF50;
   }
   
-  #barText {
+  #textBar {
       width: 1500;
       height: 30px;
       text-align: center;

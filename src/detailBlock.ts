@@ -9,15 +9,15 @@ import { Browsing } from './browsing';
 export class DetailBlock {
   skipbObservable: Observable<SkipBlock>;
   transactionContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-  instructionObserver: Browsing;
+  browsing: Browsing;
   browseContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   clickedBlock: SkipBlock;
   
-  myProgress: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-  myBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-  barText: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+  progressBarContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+  progressBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+  textBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
 
-  constructor(observerSkip: Observable<SkipBlock>, observerInstru: Browsing) {
+  constructor(observerSkip: Observable<SkipBlock>, subjectInstru: Browsing) {
     this.transactionContainer = d3
       .select("body")
       .append("div")
@@ -30,12 +30,12 @@ export class DetailBlock {
     this.skipbObservable.subscribe({
       next: this.listTransaction.bind(this),
     });
-    this.instructionObserver = observerInstru;
+    this.browsing = subjectInstru;
     this.clickedBlock = null;
 
-    this.myProgress = undefined;
-    this.myBar = undefined;
-    this.barText = undefined;
+    this.progressBarContainer = undefined;
+    this.progressBar = undefined;
+    this.textBar = undefined;
   }
 
   private listTransaction(block: SkipBlock) {
@@ -50,6 +50,7 @@ export class DetailBlock {
       this.transactionContainer
         .append("button")
         .attr("class", "oneDetailButton")
+        .attr("id", "buttonTransaction")
         .text(`Transaction ${i} ${accepted}`);
       let textContainer = this.transactionContainer
         .append("div")
@@ -61,6 +62,7 @@ export class DetailBlock {
           textContainer
             .append("button")
             .attr("class", "oneDetailButton")
+            .attr("id", "buttonInstruction")
             .text(
               `Spawn instruction ${j}, name of contract: ${instruction.spawn.contractID}`
             );
@@ -69,6 +71,7 @@ export class DetailBlock {
           textContainer
             .append("button")
             .attr("class", "oneDetailButton")
+            .attr("id", "buttonInstruction")
             .text(
               `Invoke instruction ${j}, name of contract: ${instruction.invoke.contractID}`
             );
@@ -77,6 +80,7 @@ export class DetailBlock {
           textContainer
             .append("button")
             .attr("class", "oneDetailButton")
+            .attr("id", "buttonInstruction")
             .text(
               `Delete instruction ${j}, name of contract:${instruction.delete.contractID}`
             );
@@ -95,6 +99,7 @@ export class DetailBlock {
           textInstruction
             .append("button")
             .attr("class", "oneDetailButton")
+            .attr("id", "buttonArgs")
             .text(`${i}) ${arg.name}`);
           let argsValue = textInstruction
             .append("div")
@@ -106,22 +111,21 @@ export class DetailBlock {
         textInstruction
           .append("button")
           .attr("class", "oneDetailButton")
+          .attr("id", "buttonBrowse")
           .text(`Search for all instance of this ID in the blockchain`)
           .on("click", function () {
-            self.createProgressBar()
-            self.instructionObserver
-              .getInstructionObserver(instruction)[0]
-              .subscribe({
-                next: self.printDataBrowsing.bind(self)
-              });
-              self.instructionObserver
-              .getInstructionObserver(instruction)[1]
-              .subscribe({
-                next: (i) => {
-                  self.updateProgressBar(i)
-                }
-                
-              })
+            self.createProgressBar();
+            let subjects = self.browsing.getInstructionSubject(
+              instruction
+            );
+            subjects[0].subscribe({
+              next: self.printDataBrowsing.bind(self),
+            });
+            subjects[1].subscribe({
+              next: (i) => {
+                self.updateProgressBar(i);
+              },
+            });
           });
       });
     });
@@ -129,6 +133,7 @@ export class DetailBlock {
     this.transactionContainer
       .append("button")
       .attr("class", "oneDetailButton")
+      .attr("id", "buttonDetailBlock")
       .text(`Block details`);
     let detailsBlock = this.transactionContainer
       .append("div")
@@ -136,6 +141,7 @@ export class DetailBlock {
     detailsBlock
       .append("button")
       .attr("class", "oneDetailButton")
+      .attr("id", "buttonVerifiers")
       .text(`Verifiers: ${block.verifiers.length}`);
     let verifiersContainer = detailsBlock
       .append("div")
@@ -150,6 +156,7 @@ export class DetailBlock {
     detailsBlock
       .append("button")
       .attr("class", "oneDetailButton")
+      .attr("id", "buttonBacklinks")
       .text(`Backlinks: ${block.backlinks.length}`);
     let backLinksContainer = detailsBlock
       .append("div")
@@ -163,6 +170,7 @@ export class DetailBlock {
     detailsBlock
       .append("button")
       .attr("class", "oneDetailButton")
+      .attr("id", "buttonForwardLinks")
       .text(`ForwardLinks:${block.forwardLinks.length}`);
     let forwardsContainer = detailsBlock
       .append("div")
@@ -178,14 +186,21 @@ export class DetailBlock {
         .text(`signature: ${fl.signature.sig.toString("hex")}`);
     });
 
-    var acc1 = document.getElementsByClassName("oneDetailButton");
+    let acc1 = document.querySelectorAll(
+      "[id=buttonTransaction], [id=buttonInstruction], [id=buttonArgs]"
+    );
+    let acc2 = document.querySelectorAll(
+      "[id=buttonDetailBlock], [id=buttonVerifiers], [id=buttonBacklinks], [id=buttonForwardLinks]"
+    );
     this.addClickListener(acc1);
+    this.addClickListener(acc2);
+
   }
-  private addClickListener(acc: HTMLCollectionOf<Element>) {
+  private addClickListener(acc: NodeListOf<Element>) {
     for (let i = 0; i < acc.length; i++) {
       acc[i].addEventListener("click", function () {
         this.classList.toggle("active");
-        var panel = this.nextElementSibling;
+        let panel = this.nextElementSibling;
         if (panel.style.display === "block") {
           panel.style.display = "none";
         } else {
@@ -214,6 +229,7 @@ export class DetailBlock {
         button = this.browseContainer
           .append("button")
           .attr("class", "oneDetailButton")
+          .attr("id", "buttonInstance")
           .text(
             `Spawn with instanceID: ${instruction.instanceID.toString(
               "hex"
@@ -231,6 +247,7 @@ export class DetailBlock {
         button = this.browseContainer
           .append("button")
           .attr("class", "oneDetailButton")
+          .attr("id", "buttonInstance")
           .text(
             `Invoke with instanceID: ${instruction.instanceID.toString(
               "hex"
@@ -248,6 +265,7 @@ export class DetailBlock {
         button = this.browseContainer
           .append("button")
           .attr("class", "oneDetailButton")
+          .attr("id", "buttonInstance")
           .text(
             `Delete with instanceID: ${instruction.instanceID.toString(
               "hex"
@@ -263,6 +281,7 @@ export class DetailBlock {
       textContainer
         .append("button")
         .attr("class", "oneDetailButton")
+        .attr("id", "buttonInstanceArgs")
         .text(`args are:`);
       let argsDetails = textContainer
         .append("div")
@@ -273,38 +292,40 @@ export class DetailBlock {
         args_list
           .append("button")
           .attr("class", "oneDetailButton")
+          .attr("id", "buttonInstanceArg")
           .text(`${arg_num}) ${arg.name}`);
         let argsValue = args_list.append("div").attr("class", "oneDetailText");
         argsValue.append("p").text(`${arg.value}`);
         arg_num++;
       });
       if (tuple[0][i] == this.clickedBlock.hash.toString("hex")) {
-        button.attr("class", "oneDetailButton");
+        button.style("background-color", "red")
       }
     }
-    let acc1 = document.getElementsByClassName("oneDetailButton");
-
+    let acc1 = document.querySelectorAll(
+      "[id=buttonInstance], [id=buttonInstanceArgs], [id=buttonInstanceArg]"
+    );
     this.addClickListener(acc1);
   }
 
   private createProgressBar() {
-    if (this.myProgress == undefined && this.myBar == undefined) {
-      this.myProgress = d3
+    if (this.progressBarContainer == undefined && this.progressBar == undefined) {
+      this.progressBarContainer = d3
         .select("body")
         .append("div")
-        .attr("id", "myProgress");
-      this.myBar = this.myProgress.append("div").attr("id", "myBar");
-      this.barText = this.myBar.append("div").attr("id", "barText").text("0%");
+        .attr("id", "progressBarContainer");
+      this.progressBar = this.progressBarContainer.append("div").attr("id", "progressBar");
+      this.textBar = this.progressBar.append("div").attr("id", "textBar").text("0%");
     } else {
-      var myBarElement = document.getElementById("myBar");
-      myBarElement.style.width = 0 + "%";
+      this.textBar.text("0%");
+      let progressBarElement = document.getElementById("progressBar");
+      progressBarElement.style.width = 0 + "%";
     }
   }
 
   private updateProgressBar(i: number) {
-    console.log("UPDATED TO : "+i)
-    this.barText.text(`${i}%`);
-    document.getElementById("myBar").style.width =
+    this.textBar.text(`${i}%`);
+    document.getElementById("progressBar").style.width =
       i + "%";
   }
 
