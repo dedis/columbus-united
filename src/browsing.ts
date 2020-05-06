@@ -1,14 +1,11 @@
-import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
-import { SkipBlock } from "@dedis/cothority/skipchain";
-import { WebSocketConnection } from "@dedis/cothority/network/connection";
-import { ByzCoinRPC, Instruction, Argument } from "@dedis/cothority/byzcoin";
-import {
-  PaginateResponse,
-  PaginateRequest,
-} from "@dedis/cothority/byzcoin/proto/stream";
-import { Subject, Observable, Subscriber } from "rxjs";
-import { DataBody } from "@dedis/cothority/byzcoin/proto";
-import * as d3 from "d3";
+import { ByzCoinRPC, Instruction } from '@dedis/cothority/byzcoin';
+import { DataBody } from '@dedis/cothority/byzcoin/proto';
+import { PaginateRequest, PaginateResponse } from '@dedis/cothority/byzcoin/proto/stream';
+import { Roster, WebSocketAdapter } from '@dedis/cothority/network';
+import { WebSocketConnection } from '@dedis/cothority/network/connection';
+import { SkipBlock } from '@dedis/cothority/skipchain';
+import * as d3 from 'd3';
+import { Subject } from 'rxjs';
 
 export class Browsing {
   roster: Roster;
@@ -48,31 +45,26 @@ export class Browsing {
 
   public getInstructionObserver(
     instance: Instruction
-  ): Observable<[string[], Instruction[]]> {
-    return new Observable((sub) => {
-      this.createProgressBar();
-      this.ws = undefined;
-      this.nextIDB = "";
-      this.seenBlocks = 0;
-      this.instanceSearch = instance;
-      this.contractID = this.instanceSearch.instanceID.toString("hex");
-
-      this.browse(
-        this.pageSize,
-        this.numPages,
-        this.firstBlockIDStart,
-        sub,
-        [],
-        []
-      );
-    });
+  ): [Subject<[string[], Instruction[]]>, Subject<number>] {
+    const subjectInstruction = new Subject<[string[], Instruction[]]>();
+    const subjectProgress = new Subject<number>();
+    this.ws = undefined;
+    this.nextIDB = "";
+    this.seenBlocks = 0;
+    this.instanceSearch = instance;
+    this.contractID = this.instanceSearch.instanceID.toString("hex");
+    let firstBlockIDStart =
+      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
+    this.browse(this.pageSize, this.numPages, firstBlockIDStart, subjectInstruction, subjectProgress, [], []);
+    return [subjectInstruction, subjectProgress]
   }
 
   private browse(
     pageSizeB: number,
     numPagesB: number,
     firstBlockID: string,
-    subscriberInstruction: Subscriber<[string[], Instruction[]]>,
+    subjectInstruction: Subject<[string[], Instruction[]]>,
+    subjectProgress: Subject<number>,
     hashB: string[],
     instructionB: Instruction[]
   ) {
@@ -103,14 +95,15 @@ export class Browsing {
         if (i == pageSizeB) {
           pageDone++;
           if (pageDone == numPagesB) {
-            if (skipBlock.forwardLinks.length != 0 && this.seenBlocks < 1000) {
+            if (skipBlock.forwardLinks.length != 0 ) {
               this.nextIDB = skipBlock.forwardLinks[0].to.toString("hex");
               pageDone = 0;
               this.getNextBlocks(
                 this.nextIDB,
                 pageSizeB,
                 numPagesB,
-                subjectBrowse
+                subjectBrowse,
+                subjectProgress
               );
             } else {
               subjectBrowse.complete();
@@ -121,7 +114,7 @@ export class Browsing {
       complete: () => {
         console.log("Fin de la Blockchain");
         console.log("closed");
-        subscriberInstruction.next([hashB, instructionB]);
+        subjectInstruction.next([hashB, instructionB]);
       },
       error: (err: any) => {
         console.log("error: ", err);
@@ -132,14 +125,15 @@ export class Browsing {
             1,
             1,
             this.nextIDB,
-            subscriberInstruction,
+            subjectInstruction,
+            subjectProgress,
             hashB,
             instructionB
           );
         }
       },
     });
-    this.getNextBlocks(firstBlockID, pageSizeB, numPagesB, subjectBrowse);
+    this.getNextBlocks(firstBlockID, pageSizeB, numPagesB, subjectBrowse, subjectProgress);
     return subjectBrowse;
   }
 
@@ -147,7 +141,8 @@ export class Browsing {
     nextID: string,
     pageSizeNB: number,
     numPagesNB: number,
-    subjectBrowse: Subject<[number, SkipBlock]>
+    subjectBrowse: Subject<[number, SkipBlock]>, 
+    subjectProgress: Subject<number>
   ) {
     var bid: Buffer;
     try {
@@ -190,7 +185,7 @@ export class Browsing {
         .subscribe({
           // ws callback "onMessage":
           next: ([data, ws]) => {
-            var ret = this.handlePageResponse(data, ws, subjectBrowse);
+            var ret = this.handlePageResponse(data, ws, subjectBrowse, subjectProgress);
             if (ret == 1) {
               console.log("Error Handling with a return 1");
               subjectBrowse.error(1);
@@ -210,7 +205,8 @@ export class Browsing {
   private handlePageResponse(
     data: PaginateResponse,
     localws: WebSocketAdapter,
-    subjectBrowse: Subject<[number, SkipBlock]>
+    subjectBrowse: Subject<[number, SkipBlock]>,
+    subjectProgress: Subject<number>
   ) {
     if (data.errorcode != 0) {
       console.log(
@@ -224,7 +220,8 @@ export class Browsing {
     var runCount = 0;
     for (var i = 0; i < data.blocks.length; i++) {
       this.seenBlocks++;
-      this.updateProgressBar(this.seenBlocks);
+      console.log("seenblocks: "+this.seenBlocks)
+      //this.updateProgressBar(this.seenBlocks, subjectProgress);
       runCount++;
       var block = data.blocks[i];
       subjectBrowse.next([runCount, block]);
@@ -232,26 +229,15 @@ export class Browsing {
     return 0;
   }
 
-  private createProgressBar() {
-    if (this.myProgress == undefined && this.myBar == undefined) {
-      this.myProgress = d3
-        .select("body")
-        .append("div")
-        .attr("id", "myProgress");
-      this.myBar = this.myProgress.append("div").attr("id", "myBar");
-      this.barText = this.myBar.append("div").attr("id", "barText").text("0%");
-    } else {
-      var myBarElement = document.getElementById("myBar");
-      myBarElement.style.width = 1 + "%";
+  /*private updateProgressBar(i: number, subjectProgress: Subject<number>) {
+
+    if(i % (0.01*this.totalBlocks) == 0){
+      console.log("Tu es dans le if "+ i)
+      let percent : number = ~~((i / this.totalBlocks) * 100)
+      subjectProgress.next(percent)
     }
   }
-
-  private updateProgressBar(i: number) {
-    this.barText.text(((i / this.totalBlocks) * 100).toFixed(0) + "%");
-    document.getElementById("myBar").style.width =
-      (i / this.totalBlocks) * 100 + "%";
-  }
-
+*/
   private hex2Bytes(hex: string) {
     if (!hex) {
       return Buffer.allocUnsafe(0);

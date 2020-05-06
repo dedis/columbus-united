@@ -1,9 +1,10 @@
-import { SkipBlock } from "@dedis/cothority/skipchain";
-import { DataBody } from "@dedis/cothority/byzcoin/proto";
-import { Observable } from "rxjs";
-import * as d3 from "d3";
-import { Instruction } from "@dedis/cothority/byzcoin";
-import { Browsing } from "./browsing";
+import { Instruction } from '@dedis/cothority/byzcoin';
+import { DataBody } from '@dedis/cothority/byzcoin/proto';
+import { SkipBlock } from '@dedis/cothority/skipchain';
+import * as d3 from 'd3';
+import { Observable } from 'rxjs';
+
+import { Browsing } from './browsing';
 
 export class DetailBlock {
   skipbObservable: Observable<SkipBlock>;
@@ -11,6 +12,11 @@ export class DetailBlock {
   instructionObserver: Browsing;
   browseContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   clickedBlock: SkipBlock;
+  
+  myProgress: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+  myBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+  barText: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+
   constructor(observerSkip: Observable<SkipBlock>, observerInstru: Browsing) {
     this.transactionContainer = d3
       .select("body")
@@ -26,6 +32,10 @@ export class DetailBlock {
     });
     this.instructionObserver = observerInstru;
     this.clickedBlock = null;
+
+    this.myProgress = undefined;
+    this.myBar = undefined;
+    this.barText = undefined;
   }
 
   private listTransaction(block: SkipBlock) {
@@ -98,11 +108,20 @@ export class DetailBlock {
           .attr("class", "oneDetailButton")
           .text(`Search for all instance of this ID in the blockchain`)
           .on("click", function () {
+            self.createProgressBar()
             self.instructionObserver
-              .getInstructionObserver(instruction)
+              .getInstructionObserver(instruction)[0]
               .subscribe({
-                next: self.printDataBrowsing.bind(self),
+                next: self.printDataBrowsing.bind(self)
               });
+              self.instructionObserver
+              .getInstructionObserver(instruction)[1]
+              .subscribe({
+                next: (i) => {
+                  self.updateProgressBar(i)
+                }
+                
+              })
           });
       });
     });
@@ -267,4 +286,26 @@ export class DetailBlock {
 
     this.addClickListener(acc1);
   }
+
+  private createProgressBar() {
+    if (this.myProgress == undefined && this.myBar == undefined) {
+      this.myProgress = d3
+        .select("body")
+        .append("div")
+        .attr("id", "myProgress");
+      this.myBar = this.myProgress.append("div").attr("id", "myBar");
+      this.barText = this.myBar.append("div").attr("id", "barText").text("0%");
+    } else {
+      var myBarElement = document.getElementById("myBar");
+      myBarElement.style.width = 0 + "%";
+    }
+  }
+
+  private updateProgressBar(i: number) {
+    console.log("UPDATED TO : "+i)
+    this.barText.text(`${i}%`);
+    document.getElementById("myBar").style.width =
+      i + "%";
+  }
+
 }
