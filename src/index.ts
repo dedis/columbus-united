@@ -1,4 +1,5 @@
 import { Roster } from "@dedis/cothority/network";
+
 import { BlocksDiagram } from "./blocksDiagram";
 import { Browsing } from "./browsing";
 import { DetailBlock } from "./detailBlock";
@@ -6,16 +7,16 @@ import { DetailBlock } from "./detailBlock";
 import { getRosterStr } from "./roster";
 
 export function sayHi() {
-  var roster = Roster.fromTOML(rosterStr);
+  const roster = Roster.fromTOML(rosterStr);
   if (!roster) {
-    console.log("Roster is undefined");
+    console.error("Roster is undefined");
     return;
   }
-  let blocksDiagram = new BlocksDiagram(roster);
-  blocksDiagram.loadFirstBlocks();
+  const blocksDiagram = new BlocksDiagram(roster);
+  blocksDiagram.loadInitialBlocks();
 
   let myobserver = blocksDiagram.getBlockObserver()
   let mydetailBlock = new DetailBlock(myobserver,  new Browsing(roster))
-
 }
+
 const rosterStr = getRosterStr();

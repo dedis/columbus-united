@@ -105,7 +105,7 @@ export class Browsing {
                if (i == pageSizeB) {
                  pageDone++;
                  if (pageDone == numPagesB) {
-                   if (skipBlock.forwardLinks.length != 0 && this.seenBlocks < 1000) {
+                   if (skipBlock.forwardLinks.length != 0) {
                      this.nextIDB = skipBlock.forwardLinks[0].to.toString(
                        "hex"
                      );

@@ -1,14 +1,14 @@
-import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
-import { SkipBlock } from "@dedis/cothority/skipchain";
-import { WebSocketConnection } from "@dedis/cothority/network/connection";
 import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
+import { DataBody } from "@dedis/cothority/byzcoin/proto";
 import {
-  PaginateResponse,
   PaginateRequest,
+  PaginateResponse,
 } from "@dedis/cothority/byzcoin/proto/stream";
-import { Subject, Observer, Observable, Subscriber } from "rxjs";
+import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
+import { WebSocketConnection } from "@dedis/cothority/network/connection";
+import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
-import { DataBody } from '@dedis/cothority/byzcoin/proto';
+import { Observable, Subject, Subscriber } from "rxjs";
 
 export class BlocksDiagram {
   // SVG properties
@@ -22,6 +22,7 @@ export class BlocksDiagram {
   blockHeight: number;
 
   // Colors
+  randomBlocksColor: boolean;
   textColor: string;
   blockColor: string;
   validColor: string;
@@ -33,18 +34,17 @@ export class BlocksDiagram {
   subjectBrowse: Subject<[number, SkipBlock[]]>;
   pageSizeNb: number; // number of blocks in a page
   numPagesNb: number; // number of pages
-  firstBlockHash: string;
   nbBlocksLoaded: number;
+  initialBlockIndex: number;
 
-  subscriberList: Subscriber<SkipBlock>[];
-
-
+  // Blocks observation
+  subscriberList: Array<Subscriber<SkipBlock>>;
 
   constructor(roster: Roster) {
     // SVG properties
     this.svgWidth = window.innerWidth;
     this.svgHeight = 400;
-    let self = this;
+    const self = this;
 
     // Blocks UI properties
     this.blockPadding = 10;
@@ -52,90 +52,112 @@ export class BlocksDiagram {
     this.blockHeight = 300;
 
     // Colors
+    this.randomBlocksColor = true;
     this.textColor = "black";
     this.blockColor = "#4772D8";
-    this.validColor = "#8FD250";
-    this.invalidColor = "#FF503F";
 
     // Blockchain properties
     this.roster = roster;
     this.subjectBrowse = new Subject<[number, SkipBlock[]]>();
     this.pageSizeNb = 15;
     this.numPagesNb = 1;
-    this.firstBlockHash =
-      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
     this.nbBlocksLoaded = 0;
 
+    // Blocks observation
     this.subscriberList = [];
 
-    let lastBlockId: string;
-    let lastBlockIdBeforeUpdate = "";
+    // Blocks navigation properties
+    let indexLastBlockRight = this.initialBlockIndex;
+    let hashLastBlockRight = "";
+    let hashLastBlockRightBeforeUpdate = "";
 
+    // SVG containing the blockchain
     this.svgBlocks = d3
       .select(".blocks")
       .attr("width", this.svgWidth)
       .attr("height", this.svgHeight)
       .call(
-        d3.zoom().on("zoom", function () {
-          self.svgBlocks.attr("transform", d3.event.transform);
-          let x = d3.event.transform.x; // horizontal position
-          let zoomLevel = d3.event.transform.k;
+        d3
+          .zoom()
+          .on("zoom", () => {
+            self.svgBlocks.attr("transform", d3.event.transform);
+            // Horizontal position of the leftmost block
+            const x = -d3.event.transform.x;
+            const zoomLevel = d3.event.transform.k;
 
-          let xMax =
-            self.nbBlocksLoaded * (self.blockWidth + self.blockPadding);
-          xMax -= (3 * self.svgWidth * 2) / zoomLevel;
-          xMax *= -zoomLevel;
+            const sizeBlockOnScreen =
+              (self.blockWidth + self.blockPadding) * zoomLevel;
 
-          if (x < xMax) {
-            if (!(lastBlockId === lastBlockIdBeforeUpdate)) {
-              lastBlockIdBeforeUpdate = lastBlockId;
-              //self.loaderAnimation();
-              self.getNextBlocks(
-                lastBlockId,
-                self.pageSizeNb,
-                self.numPagesNb,
-                self.subjectBrowse
-              );
-              // destroy loader
+            // Load blocks to the right
+            const indexRightBlockOnScreen =
+              self.initialBlockIndex + (x + self.svgWidth) / sizeBlockOnScreen;
+
+            if (indexRightBlockOnScreen > indexLastBlockRight - 10) {
+              if (!(hashLastBlockRight === hashLastBlockRightBeforeUpdate)) {
+                hashLastBlockRightBeforeUpdate = hashLastBlockRight;
+
+                self.getNextBlocks(
+                  hashLastBlockRight,
+                  self.pageSizeNb,
+                  self.numPagesNb,
+                  self.subjectBrowse
+                );
+              }
             }
-          }
-        })
+          })
+          .scaleExtent([0.03, 3]) // Constraint the zoom
       )
       .append("g");
 
+    // Subscriber to the blockchain server
     this.subjectBrowse.subscribe({
-      // i: page number
-      next: ([i, skipBlocks]) => {
-        if (i == this.numPagesNb - 1) {
-          lastBlockId = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
-          /* TODO wait
-                    setTimeout(() => {
-                      this.displayBlocks(skipBlocks, this.getRandomColor())
-                    }, 3000);
-                    
-          */
-          this.displayBlocks(skipBlocks, this.getRandomColor())
-          // TODO unlock zoom
-          //this.svgBlocks.attr("transform", d3.event.transform);
-        }
-      },
+      // i is the page number
       complete: () => {
-        console.log("End of blockchain");
-        console.log("closed");
+        console.error("End of blockchain");
+        console.error("closed");
       },
       error: (err: any) => {
-        console.log("error: ", err);
+        console.error("error: ", err);
         if (err === 1) {
-          console.log("Browse recall: " + 1);
-          this.ws = undefined; // To reset the websocket, create a new handler for the next function (of getnextblock)
+          console.error("Browse recall: " + 1);
+          // To reset the websocket, create a new handler for the next function
+          // (of getnextblock)
+          this.ws = undefined;
+        }
+      },
+      next: ([i, skipBlocks]) => {
+        // tslint:disable-next-line
+        if (i == this.numPagesNb - 1) {
+          const index = skipBlocks[skipBlocks.length - 1].index - 1;
+          const hash = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
+
+          if (index >= this.initialBlockIndex) {
+            // Loading blocks to the right
+            indexLastBlockRight = index;
+            hashLastBlockRight = hash;
+            this.displayBlocks(skipBlocks);
+          } else {
+            // Loading blocks to the left
+          }
         }
       },
     });
   }
 
-  public loadFirstBlocks() {
+  /**
+   * Load the initial blocks.
+   */
+  loadInitialBlocks() {
+    const hashBlock0 =
+      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
+    const hashBlock126 =
+      "940406333443363ce0635218d1286bfbe7e22bb56910c26b92117dc7497ff086";
+
+    this.initialBlockIndex = 0;
+    const initialBlockHash = hashBlock0;
+
     this.getNextBlocks(
-      this.firstBlockHash,
+      initialBlockHash,
       this.pageSizeNb,
       this.numPagesNb,
       this.subjectBrowse
@@ -143,20 +165,42 @@ export class BlocksDiagram {
   }
 
   /**
-   * Append the blocks in the svg
-   * @param {*} listBlocks list of blocks to display
-   * @param {*} blockColor color of the blocks
+   * Returns an observable to observe the blocks.
+   * Example use:
+   * const blocksDiagram = new BlocksDiagram(roster);
+   * blocksDiagram.getBlockObserver().subscribe({
+   *   next: (skipBlock) => {
+   *     // do things
+   *   }
+   * })
    */
-  displayBlocks(listBlocks: SkipBlock[], blockColor: string) {
-    //console.log("Update: first block is of index " + listBlocks[0].index); // TODO debug
-    //console.log("Hash: " + listBlocks[0].hash.toString("hex")) // TODO debug
+  getBlockObserver(): Observable<SkipBlock> {
+    return new Observable((sub) => {
+      this.subscriberList.push(sub);
+    });
+  }
+
+  /**
+   * Append the given blocks to the blockchain.
+   * @param listBlocks list of blocks to append
+   */
+  private displayBlocks(listBlocks: SkipBlock[]) {
+    // Determine the color of the blocks
+    let blockColor: string;
+    if (this.randomBlocksColor) {
+      blockColor = this.getRandomColor();
+    } else {
+      blockColor = this.blockColor;
+    }
+
+    // Iterate over the blocks to append them
     for (let i = 0; i < listBlocks.length - 1; ++i, ++this.nbBlocksLoaded) {
       // x position where to start to display blocks
       const xTranslateBlock =
         (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded + 10;
       const xTranslateText = xTranslateBlock + 5;
 
-      let block = listBlocks[i];
+      const block = listBlocks[i];
 
       // Append the block inside the svg container
       this.appendBlock(xTranslateBlock, blockColor, block);
@@ -181,42 +225,44 @@ export class BlocksDiagram {
         this.textColor
       );
 
-      // Validity
-      let validityStr;
-      let validityColor;
-      if (Math.random() >= 0.25) {
-        validityStr = "valid";
-        validityColor = this.validColor;
-      } else {
-        validityStr = "invalid";
-        validityColor = this.invalidColor;
-      }
+      // Number of transactions
+      const body = DataBody.decode(block.payload);
+      const nbTransactions = body.txResults.length;
       this.appendTextInBlock(
         xTranslateText,
         textIndex,
-        validityStr,
-        validityColor
+        "#transactions: " + nbTransactions,
+        this.textColor
       );
     }
   }
 
-  // helper for displayBlocks
-  private appendBlock(xTranslate: number, blockColor: string, block: SkipBlock) {
-    let self = this
+  /**
+   * Helper for displayBlocks: appends a block to the blockchain and adds it to
+   * the subscriber list.
+   * @param xTranslate horizontal position where the block should be appended
+   * @param blockColor color of the blocks
+   * @param block the block to append
+   */
+  private appendBlock(
+    xTranslate: number,
+    blockColor: string,
+    block: SkipBlock
+  ) {
+    const self = this;
     this.svgBlocks
       .append("rect")
       .attr("width", this.blockWidth)
       .attr("height", this.blockHeight)
       .attr("y", 25)
-      .attr("transform", function (d: any) {
-        let translate = [xTranslate, 0];
+      .attr("transform", (d: any) => {
+        const translate = [xTranslate, 0];
         return "translate(" + translate + ")";
       })
       .attr("fill", blockColor)
-      .on("click", function () {
-        console.log("Clicked block " + block.index) // TODO debug msg
-        self.subscriberList.forEach(sub => {
-          sub.next(block)
+      .on("click", () => {
+        self.subscriberList.forEach((sub) => {
+          sub.next(block);
         });
 
       });
@@ -227,19 +273,12 @@ export class BlocksDiagram {
   }
 
   /**
-   blocksDiagram.getBlockObserver().subscribe({
-    next: (skipBlock) => {
-      console.log("blabla")
-    }
-  });
+   * Helper for displayBlocks: appends a text element in a block
+   * @param xTranslate horizontal position where the text should be displayed
+   * @param textIndex index of the text in the block
+   * @param text text to display
+   * @param textColor color of the text
    */
-  public getBlockObserver(): Observable<SkipBlock> {
-    return new Observable((sub) => {
-      this.subscriberList.push(sub);
-    })
-  }
-
-  // helper for displayBlocks
   private appendTextInBlock(
     xTranslate: number,
     textIndex: { index: number },
@@ -257,58 +296,45 @@ export class BlocksDiagram {
     ++textIndex.index;
   }
 
-  // TODO this function is not used yet
-  /*
-  loaderAnimation() {
-    this.svgBlocks
-      .append("rect")
-      .attr("width", this.blockWidth)
-      .attr("height", this.blockHeight)
-      .attr("y", 25)
-      .attr("transform", function (d: string) {
-        let translate = [
-          (this.lastBlockIndex + 1) * (this.blockWidth + this.blockPadding),
-          0,
-        ];
-        return "translate(" + translate + ")";
-      })
-      .attr("fill", this.getRandomColor());
-  }
-  */
-
-  /***** Backend *****/
+  /**
+   * Requests blocks to the blockchain.
+   * @param nextBlockID hash of the first block of the next blocks to get
+   * @param pageSizeNb number of blocks in a page
+   * @param numPagesNb number of pages to request
+   * @param subjectBrowse observable to get the blocks from the blockchain
+   */
   private getNextBlocks(
     nextBlockID: string,
     pageSizeNb: number,
     numPagesNb: number,
     subjectBrowse: Subject<[number, SkipBlock[]]>
   ) {
-    var bid: Buffer;
-    let nextIDB = nextBlockID;
+    let bid: Buffer;
 
     try {
       bid = this.hex2Bytes(nextBlockID);
     } catch (error) {
-      console.log("failed to parse the block ID: ", error);
+      console.error("failed to parse the block ID: ", error);
       return;
     }
 
+    let conn: WebSocketConnection;
     try {
-      var conn = new WebSocketConnection(
+      conn = new WebSocketConnection(
         this.roster.list[0].getWebSocketAddress(),
         ByzCoinRPC.serviceName
       );
     } catch (error) {
-      console.log("error creating conn: ", error);
+      console.error("error creating conn: ", error);
       return;
     }
 
     if (this.ws !== undefined) {
       const message = new PaginateRequest({
-        startid: bid,
-        pagesize: pageSizeNb,
-        numpages: numPagesNb,
         backward: false,
+        numpages: numPagesNb,
+        pagesize: pageSizeNb,
+        startid: bid,
       });
 
       const messageByte = Buffer.from(message.$type.encode(message).finish());
@@ -317,18 +343,26 @@ export class BlocksDiagram {
       conn
         .sendStream<PaginateResponse>( // fetch next block
           new PaginateRequest({
-            startid: bid,
-            pagesize: pageSizeNb,
-            numpages: numPagesNb,
             backward: false,
+            numpages: numPagesNb,
+            pagesize: pageSizeNb,
+            startid: bid,
           }),
           PaginateResponse
         )
         .subscribe({
           // ws callback "onMessage":
+          complete: () => {
+            console.error("closed");
+          },
+          error: (err: Error) => {
+            console.error("error: ", err);
+            this.ws = undefined;
+          },
           next: ([data, ws]) => {
+            // tslint:disable-next-line
             if (data.errorcode != 0) {
-              console.log(
+              console.error(
                 `got an error with code ${data.errorcode} : ${data.errortext}`
               );
               return 1;
@@ -339,17 +373,14 @@ export class BlocksDiagram {
             subjectBrowse.next([data.pagenumber, data.blocks]);
             return 0;
           },
-          complete: () => {
-            console.log("closed");
-          },
-          error: (err: Error) => {
-            console.log("error: ", err);
-            this.ws = undefined;
-          },
         });
     }
   }
 
+  /**
+   * Converter from hex string to bytes.
+   * @param hex string to convert
+   */
   private hex2Bytes(hex: string) {
     if (!hex) {
       return Buffer.allocUnsafe(0);
@@ -358,8 +389,10 @@ export class BlocksDiagram {
     return Buffer.from(hex, "hex");
   }
 
-  /***** Utils *****/
-  // Source: https://stackoverflow.com/a/1152508
+  /**
+   * Generate a random color in HEX format
+   * Source: https://stackoverflow.com/a/1152508
+   */
   private getRandomColor() {
     return (
       "#" + (0x1000000 + Math.random() * 0xffffff).toString(16).substr(1, 6)
