@@ -264,7 +264,12 @@ export class BlocksDiagram {
         self.subscriberList.forEach((sub) => {
           sub.next(block);
         });
+
       });
+  }
+
+  listTransaction() {
+    console.log("salut?")
   }
 
   /**
