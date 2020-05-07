@@ -124,7 +124,7 @@ export class DetailBlock {
               next: (i) => {
                 self.updateProgressBar(i);
               },
-              complete: self.doneLoading
+              complete: self.doneLoading,
             });
           });
       });
@@ -306,35 +306,37 @@ export class DetailBlock {
   }
 
   private createProgressBar() {
-    this.loadContainer = d3.select("body").append("div").attr("class", "loadContainer").text("CA LOAD")
-    if (
-      this.progressBarContainer === undefined &&
-      this.progressBar === undefined
-    ) {
-      this.progressBarContainer = this.loadContainer
-        .append("div")
-        .attr("id", "progressBarContainer");
-      this.progressBar = this.progressBarContainer
-        .append("div")
-        .attr("id", "progressBar");
-      this.textBar = this.progressBar
-        .append("div")
-        .attr("id", "textBar")
-        .text("0%");
-    } else {
-      this.textBar.text("0%");
-      const progressBarElement = document.getElementById("progressBar");
-      progressBarElement.style.width = 0 + "%";
-    }
-    this.loadContainer.append("div").attr("class", "loader")
-
+    let self = this;
+    this.loadContainer = d3
+      .select("body")
+      .append("div")
+      .attr("class", "loadContainer")
+      .text("CA LOAD");
+    this.progressBarContainer = this.loadContainer
+      .append("div")
+      .attr("id", "progressBarContainer");
+    this.progressBar = this.progressBarContainer
+      .append("div")
+      .attr("id", "progressBar");
+    this.textBar = this.progressBar
+      .append("div")
+      .attr("id", "textBar")
+      .text("0%");
+    this.loadContainer.append("div").attr("class", "loader");
+    this.loadContainer
+      .append("button")
+      .attr("id", "cancelButton")
+      .text("ANNULATIOOOOOOOOOOOOOOOOOOOOOON")
+      .on("click", function () {
+        self.browsing.cancel = true;
+      });
   }
   private updateProgressBar(i: number) {
-      this.textBar.text(`${i}%`);
-      document.getElementById("progressBar").style.width = i + "%";
+    this.textBar.text(`${i}%`);
+    document.getElementById("progressBar").style.width = i + "%";
   }
-  private doneLoading(){
-    console.log("Done with loading")
-    d3.select(".loadContainer").remove()
+  private doneLoading() {
+    console.log("Done with loading");
+    d3.select(".loadContainer").remove();
   }
 }
