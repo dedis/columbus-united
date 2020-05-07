@@ -78,14 +78,11 @@ export class Browsing {
            let pageDone = 0;
            subjectBrowse.subscribe({
              complete: () => {
-               console.log("Fin de la Blockchain");
-               console.log("closed");
                subjectInstruction.next([hashB, instructionB]);
              },
              error: (err: any) => {
-               console.log("error: ", err);
+               console.error("error: ", err);
                if (err === 1) {
-                 console.log("Browse recall: " + 1);
                  this.ws = undefined; // To reset the websocket, create a new handler for the next function (of getnextblock)
                  this.browse(
                    1,
@@ -164,7 +161,7 @@ export class Browsing {
            try {
              bid = this.hex2Bytes(nextID);
            } catch (error) {
-             console.log("failed to parse the block ID: ", error);
+             console.error("failed to parse the block ID: ", error);
              return;
            }
            try {
@@ -173,7 +170,7 @@ export class Browsing {
                ByzCoinRPC.serviceName
              );
            } catch (error) {
-             console.log("error creating conn: ", error);
+             console.error("error creating conn: ", error);
              return;
            }
            if (this.ws !== undefined) {
@@ -201,10 +198,10 @@ export class Browsing {
                )
                .subscribe({
                  complete: () => {
-                   console.log("closed");
+                   console.error("closed");
                  },
                  error: (err: Error) => {
-                   console.log("error: ", err);
+                   console.error("error: ", err);
                    this.ws = undefined;
                  },
                  // ws callback "onMessage":
@@ -216,7 +213,6 @@ export class Browsing {
                      subjectProgress
                    );
                    if (ret === 1) {
-                     console.log("Error Handling with a return 1");
                      subjectBrowse.error(1);
                    }
                  },
@@ -231,7 +227,7 @@ export class Browsing {
            subjectProgress: Subject<number>
          ) {
            if (data.errorcode != 0) {
-             console.log(
+             console.error(
                `got an error with code ${data.errorcode} : ${data.errortext}`
              );
              return 1;

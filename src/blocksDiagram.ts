@@ -117,12 +117,12 @@ export class BlocksDiagram {
         console.error("closed");
       },
       error: (err: any) => {
-        console.error("error: ", err);
         if (err === 1) {
-          console.error("Browse recall: " + 1);
           // To reset the websocket, create a new handler for the next function
           // (of getnextblock)
           this.ws = undefined;
+        }else{
+          window.alert(`Error: ${err}`)
         }
       },
       next: ([i, skipBlocks]) => {
@@ -268,10 +268,6 @@ export class BlocksDiagram {
       });
   }
 
-  listTransaction() {
-    console.log("salut?")
-  }
-
   /**
    * Helper for displayBlocks: appends a text element in a block
    * @param xTranslate horizontal position where the text should be displayed
@@ -354,6 +350,7 @@ export class BlocksDiagram {
           // ws callback "onMessage":
           complete: () => {
             console.error("closed");
+            window.alert("THIS is my first ewrror")
           },
           error: (err: Error) => {
             console.error("error: ", err);
