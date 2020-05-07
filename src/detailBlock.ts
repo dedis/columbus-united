@@ -277,7 +277,7 @@ export class DetailBlock {
       }
       button.on("mouseover", function(){
         let hash = tuple[0][i];
-        d3.select(`[id = "${hash}"]`).attr("stroke", "red");
+        d3.select(`[id = "${hash}"]`).attr("stroke", "red").attr("stroke-width", 5);
       })
       button.on("mouseout", function(){
         let hash = tuple[0][i];
