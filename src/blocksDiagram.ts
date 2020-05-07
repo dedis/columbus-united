@@ -143,10 +143,6 @@ export class BlocksDiagram {
       },
     });
   }
-  highlight(hash:string){
-    //highlight the block
-    console.log(hash)
-  }
 
   /**
    * Load the initial blocks.
@@ -256,6 +252,7 @@ export class BlocksDiagram {
     const self = this;
     this.svgBlocks
       .append("rect")
+      .attr("id", block.hash.toString("hex"))
       .attr("width", this.blockWidth)
       .attr("height", this.blockHeight)
       .attr("y", 25)

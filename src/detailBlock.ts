@@ -5,7 +5,6 @@ import * as d3 from "d3";
 import { Observable } from "rxjs";
 
 import { Browsing } from "./browsing";
-import { BlocksDiagram } from './blocksDiagram';
 
 export class DetailBlock {
   skipbObservable: Observable<SkipBlock>;
@@ -16,9 +15,8 @@ export class DetailBlock {
   progressBarContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   progressBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   textBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-  blocksDiagram:BlocksDiagram
   
-  constructor(observerSkip: Observable<SkipBlock>, subjectInstru: Browsing, blocksDiagram:BlocksDiagram) {
+  constructor(observerSkip: Observable<SkipBlock>, subjectInstru: Browsing) {
     this.transactionContainer = d3
       .select("body")
       .append("div")
@@ -37,7 +35,6 @@ export class DetailBlock {
     this.progressBarContainer = undefined;
     this.progressBar = undefined;
     this.textBar = undefined;
-    this.blocksDiagram = blocksDiagram;
   }
 
   private listTransaction(block: SkipBlock) {
@@ -279,8 +276,14 @@ export class DetailBlock {
           .text(`ContractID: ${instruction.delete.contractID}`);
       }
       button.on("mouseover", function(){
-        self.blocksDiagram.highlight(tuple[0][i])
+        let hash = tuple[0][i];
+        d3.select(`[id = "${hash}"]`).attr("stroke", "red");
       })
+      button.on("mouseout", function(){
+        let hash = tuple[0][i];
+        d3.select(`[id = "${hash}"]`).attr("stroke", "none");
+      })
+
       textContainer
         .append("button")
         .attr("class", "oneDetailButton")
