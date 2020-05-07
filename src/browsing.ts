@@ -124,7 +124,7 @@ export class Browsing {
                if (i === pageSizeB) {
                  pageDone++;
                  if (pageDone === numPagesB) {
-                   if (skipBlock.forwardLinks.length !== 0) {
+                   if (skipBlock.forwardLinks.length !== 0 && this.seenBlocks<4000) {
                      this.nextIDB = skipBlock.forwardLinks[0].to.toString(
                        "hex"
                      );
@@ -138,6 +138,8 @@ export class Browsing {
                      );
                    } else {
                      subjectBrowse.complete();
+                     subjectProgress.complete();
+                     subjectInstruction.complete();
                    }
                  }
                }

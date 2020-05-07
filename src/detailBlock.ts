@@ -15,6 +15,7 @@ export class DetailBlock {
   progressBarContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   progressBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   textBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+  loadContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
 
   constructor(observerSkip: Observable<SkipBlock>, subjectInstru: Browsing) {
     this.transactionContainer = d3
@@ -35,6 +36,7 @@ export class DetailBlock {
     this.progressBarContainer = undefined;
     this.progressBar = undefined;
     this.textBar = undefined;
+    this.loadContainer = undefined;
   }
 
   private listTransaction(block: SkipBlock) {
@@ -122,6 +124,7 @@ export class DetailBlock {
               next: (i) => {
                 self.updateProgressBar(i);
               },
+              complete: self.doneLoading
             });
           });
       });
@@ -303,12 +306,12 @@ export class DetailBlock {
   }
 
   private createProgressBar() {
+    this.loadContainer = d3.select("body").append("div").attr("class", "loadContainer").text("CA LOAD")
     if (
       this.progressBarContainer === undefined &&
       this.progressBar === undefined
     ) {
-      this.progressBarContainer = d3
-        .select("body")
+      this.progressBarContainer = this.loadContainer
         .append("div")
         .attr("id", "progressBarContainer");
       this.progressBar = this.progressBarContainer
@@ -323,10 +326,15 @@ export class DetailBlock {
       const progressBarElement = document.getElementById("progressBar");
       progressBarElement.style.width = 0 + "%";
     }
-  }
+    this.loadContainer.append("div").attr("class", "loader")
 
+  }
   private updateProgressBar(i: number) {
-    this.textBar.text(`${i}%`);
-    document.getElementById("progressBar").style.width = i + "%";
+      this.textBar.text(`${i}%`);
+      document.getElementById("progressBar").style.width = i + "%";
+  }
+  private doneLoading(){
+    console.log("Done with loading")
+    d3.select(".loadContainer").remove()
   }
 }
