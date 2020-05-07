@@ -143,6 +143,10 @@ export class BlocksDiagram {
       },
     });
   }
+  highlight(hash:string){
+    //highlight the block
+    console.log(hash)
+  }
 
   /**
    * Load the initial blocks.
