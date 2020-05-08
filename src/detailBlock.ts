@@ -5,6 +5,8 @@ import * as d3 from "d3";
 import { Observable } from "rxjs";
 
 import { Browsing } from "./browsing";
+import { Warning } from './warning';
+
 
 export class DetailBlock {
   skipbObservable: Observable<SkipBlock>;
@@ -15,8 +17,8 @@ export class DetailBlock {
   progressBarContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   progressBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   textBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-
-  constructor(observerSkip: Observable<SkipBlock>, subjectInstru: Browsing) {
+  warning:Warning;
+  constructor(observerSkip: Observable<SkipBlock>, subjectInstru: Browsing, warning:Warning) {
     this.transactionContainer = d3
       .select("body")
       .append("div")
@@ -35,6 +37,7 @@ export class DetailBlock {
     this.progressBarContainer = undefined;
     this.progressBar = undefined;
     this.textBar = undefined;
+    this.warning = warning;
   }
 
   private listTransaction(block: SkipBlock) {

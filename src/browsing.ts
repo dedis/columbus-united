@@ -6,6 +6,7 @@ import { WebSocketConnection } from "@dedis/cothority/network/connection";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
+import { Warning } from './warning';
 
 export class Browsing {
          roster: Roster;
@@ -23,7 +24,8 @@ export class Browsing {
          barText: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
          firstBlockIDStart: string;
 
-         constructor(roster: Roster) {
+         warning: Warning;
+         constructor(roster: Roster, warning:Warning) {
            this.roster = roster;
 
            this.pageSize = 15;
@@ -39,6 +41,7 @@ export class Browsing {
            this.myProgress = undefined;
            this.myBar = undefined;
            this.barText = undefined;
+           this.warning = warning;
            this.firstBlockIDStart =
              "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
          }
@@ -78,12 +81,14 @@ export class Browsing {
            let pageDone = 0;
            subjectBrowse.subscribe({
              complete: () => {
+               this.warning.displaying(3, `End of the browsing of the instance ID: ${this.contractID}`)
                subjectInstruction.next([hashB, instructionB]);
              },
-             error: (err: any) => {
-               console.error("error: ", err);
-               if (err === 1) {
-                 this.ws = undefined; // To reset the websocket, create a new handler for the next function (of getnextblock)
+             error: (data: PaginateResponse) => {
+               if (data.errorcode == 5) {
+                 this.ws = undefined;
+                 this.warning.displaying(3, `error code ${data.errorcode} : ${data.errortext}`)
+
                  this.browse(
                    1,
                    1,
@@ -93,6 +98,8 @@ export class Browsing {
                    hashB,
                    instructionB
                  );
+               }else{
+                 this.warning.displaying(1, `error code ${data.errorcode} : ${data.errortext}`)
                }
              },
              next: ([i, skipBlock]) => {
@@ -161,7 +168,7 @@ export class Browsing {
            try {
              bid = this.hex2Bytes(nextID);
            } catch (error) {
-             console.error("failed to parse the block ID: ", error);
+             this.warning.displaying(1, `failed to parse the block ID: ${error}`)
              return;
            }
            try {
@@ -170,7 +177,7 @@ export class Browsing {
                ByzCoinRPC.serviceName
              );
            } catch (error) {
-             console.error("error creating conn: ", error);
+            this.warning.displaying(1, `error creating conn: ${error}`)
              return;
            }
            if (this.ws !== undefined) {
@@ -198,11 +205,11 @@ export class Browsing {
                )
                .subscribe({
                  complete: () => {
-                   console.error("closed");
-                 },
+                  this.warning.displaying(3, "closed")
+                },
                  error: (err: Error) => {
-                   console.error("error: ", err);
-                   this.ws = undefined;
+                  this.warning.displaying(1, `error: ${err}`)
+                  this.ws = undefined;
                  },
                  // ws callback "onMessage":
                  next: ([data, ws]) => {
@@ -213,7 +220,7 @@ export class Browsing {
                      subjectProgress
                    );
                    if (ret === 1) {
-                     subjectBrowse.error(1);
+                     subjectBrowse.error(data);
                    }
                  },
                });
@@ -227,9 +234,6 @@ export class Browsing {
            subjectProgress: Subject<number>
          ) {
            if (data.errorcode != 0) {
-             console.error(
-               `got an error with code ${data.errorcode} : ${data.errortext}`
-             );
              return 1;
            }
            if (localws !== undefined) {

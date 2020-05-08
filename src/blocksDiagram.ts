@@ -9,6 +9,7 @@ import { WebSocketConnection } from "@dedis/cothority/network/connection";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable, Subject, Subscriber } from "rxjs";
+import { Warning } from './warning';
 
 export class BlocksDiagram {
   // SVG properties
@@ -39,8 +40,8 @@ export class BlocksDiagram {
 
   // Blocks observation
   subscriberList: Array<Subscriber<SkipBlock>>;
-
-  constructor(roster: Roster) {
+  warning: Warning;
+  constructor(roster: Roster, warning: Warning) {
     // SVG properties
     this.svgWidth = window.innerWidth;
     this.svgHeight = 400;
@@ -65,7 +66,7 @@ export class BlocksDiagram {
 
     // Blocks observation
     this.subscriberList = [];
-
+    this.warning = warning;
     // Blocks navigation properties
     let indexLastBlockRight = this.initialBlockIndex;
     let hashLastBlockRight = "";
@@ -113,16 +114,15 @@ export class BlocksDiagram {
     this.subjectBrowse.subscribe({
       // i is the page number
       complete: () => {
-        console.error("End of blockchain");
-        console.error("closed");
+        this.warning.displaying(3, "End of the blockchain")
       },
       error: (err: any) => {
         if (err === 1) {
           // To reset the websocket, create a new handler for the next function
           // (of getnextblock)
           this.ws = undefined;
-        }else{
-          window.alert(`Error: ${err}`)
+        } else {
+          window.alert(`Error: ${err}`); // ALERT: display l'erreur?
         }
       },
       next: ([i, skipBlocks]) => {
@@ -264,7 +264,6 @@ export class BlocksDiagram {
         self.subscriberList.forEach((sub) => {
           sub.next(block);
         });
-
       });
   }
 
@@ -310,7 +309,7 @@ export class BlocksDiagram {
     try {
       bid = this.hex2Bytes(nextBlockID);
     } catch (error) {
-      console.error("failed to parse the block ID: ", error);
+      this.warning.displaying(1, `failed to parse the block ID: ${error}`);
       return;
     }
 
@@ -321,7 +320,7 @@ export class BlocksDiagram {
         ByzCoinRPC.serviceName
       );
     } catch (error) {
-      console.error("error creating conn: ", error);
+      this.warning.displaying(1, `error creating conn: ${error}`);
       return;
     }
 
@@ -349,19 +348,16 @@ export class BlocksDiagram {
         .subscribe({
           // ws callback "onMessage":
           complete: () => {
-            console.error("closed");
-            window.alert("THIS is my first ewrror")
+            this.warning.displaying(3, "closed")
           },
           error: (err: Error) => {
-            console.error("error: ", err);
+            this.warning.displaying(1, `error: ${err}`)
             this.ws = undefined;
           },
           next: ([data, ws]) => {
             // tslint:disable-next-line
             if (data.errorcode != 0) {
-              console.error(
-                `got an error with code ${data.errorcode} : ${data.errortext}`
-              );
+              this.warning.displaying(1, `got an error with code ${data.errorcode} : ${data.errortext}`)
               return 1;
             }
             if (ws !== undefined) {
