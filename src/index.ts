@@ -12,7 +12,7 @@ export function sayHi() {
   const roster = Roster.fromTOML(rosterStr);
   const warning = new Warning();
   if (!roster) {
-    warning.displaying(1, "Roster is undefined")
+    warning.display(1, "Roster is undefined")
     return;
   }
   const blocksDiagram = new BlocksDiagram(roster, warning);

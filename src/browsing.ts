@@ -81,13 +81,13 @@ export class Browsing {
            let pageDone = 0;
            subjectBrowse.subscribe({
              complete: () => {
-               this.warning.displaying(3, `End of the browsing of the instance ID: ${this.contractID}`)
+               this.warning.display(3, `End of the browsing of the instance ID: ${this.contractID}`)
                subjectInstruction.next([hashB, instructionB]);
              },
              error: (data: PaginateResponse) => {
                if (data.errorcode == 5) {
                  this.ws = undefined;
-                 this.warning.displaying(3, `error code ${data.errorcode} : ${data.errortext}`)
+                 this.warning.display(3, `error code ${data.errorcode} : ${data.errortext}`)
 
                  this.browse(
                    1,
@@ -99,7 +99,7 @@ export class Browsing {
                    instructionB
                  );
                }else{
-                 this.warning.displaying(1, `error code ${data.errorcode} : ${data.errortext}`)
+                 this.warning.display(1, `error code ${data.errorcode} : ${data.errortext}`)
                }
              },
              next: ([i, skipBlock]) => {
@@ -168,7 +168,7 @@ export class Browsing {
            try {
              bid = this.hex2Bytes(nextID);
            } catch (error) {
-             this.warning.displaying(1, `failed to parse the block ID: ${error}`)
+             this.warning.display(1, `failed to parse the block ID: ${error}`)
              return;
            }
            try {
@@ -177,7 +177,7 @@ export class Browsing {
                ByzCoinRPC.serviceName
              );
            } catch (error) {
-            this.warning.displaying(1, `error creating conn: ${error}`)
+            this.warning.display(1, `error creating conn: ${error}`)
              return;
            }
            if (this.ws !== undefined) {
@@ -205,10 +205,10 @@ export class Browsing {
                )
                .subscribe({
                  complete: () => {
-                  this.warning.displaying(3, "closed")
+                  this.warning.display(3, "closed")
                 },
                  error: (err: Error) => {
-                  this.warning.displaying(1, `error: ${err}`)
+                  this.warning.display(1, `error: ${err}`)
                   this.ws = undefined;
                  },
                  // ws callback "onMessage":

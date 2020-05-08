@@ -7,18 +7,18 @@ export class Warning {
       this.containerWarnings = d3.select("body").append("div").attr("class", "alertContainer")
   }
 
-  public displaying(typeError: number, text: string) {
+  public display(errorCode: number, text: string) {
     //display the block and the error with colors
     let span = undefined;
-    if (typeError === 1) {
+    if (errorCode === 1) {
       let divAlert = this.containerWarnings.append("div").attr("class", "alert");
       span = divAlert.append("span").attr("class", "closebtn").text(`x`);
       divAlert.append("text").text(`Error: ${text}`);
-    } else if (typeError === 2) {
+    } else if (errorCode === 2) {
       let divAlert = this.containerWarnings.append("div").attr("class", "alert warning");
       span = divAlert.append("span").attr("class", "closebtn").text(`x`);
       divAlert.append("text").text(`Warning: ${text}`);
-    } else if (typeError === 3) {
+    } else if (errorCode === 3) {
       let divAlert = this.containerWarnings.append("div").attr("class", "alert info");
       span = divAlert.append("span").attr("class", "closebtn").text(`x`);
       divAlert.append("text").text(`Info: ${text}`);
@@ -27,7 +27,6 @@ export class Warning {
       span = divAlert.append("span").attr("class", "closebtn").text(`x`);
       divAlert.append("text").text(`Other error not handled: ${text}`);
     }
-
       span.on("click", function () {
         let div = this.parentElement;
         div.style.opacity = "0";
