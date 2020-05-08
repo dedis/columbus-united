@@ -2,6 +2,8 @@ import { Roster } from "@dedis/cothority/network";
 
 import { BlocksDiagram } from "./blocksDiagram";
 import { Browsing } from "./browsing";
+import { DetailBlock } from "./detailBlock";
+
 import { getRosterStr } from "./roster";
 
 export function sayHi() {
@@ -13,8 +15,8 @@ export function sayHi() {
   const blocksDiagram = new BlocksDiagram(roster);
   blocksDiagram.loadInitialBlocks();
 
-  const mybrowse = new Browsing(roster);
-  mybrowse.sayHi1();
+  const myobserver = blocksDiagram.getBlockObserver();
+  const mydetailBlock = new DetailBlock(myobserver, new Browsing(roster));
 }
 
 const rosterStr = getRosterStr();
