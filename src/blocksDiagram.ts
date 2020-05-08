@@ -348,7 +348,11 @@ export class BlocksDiagram {
         .subscribe({
           // ws callback "onMessage":
           complete: () => {
-            this.warning.displaying(3, "closed")
+            this.warning.displaying(1, "closed")
+            this.warning.displaying(1, "Test for an error case")
+            this.warning.displaying(2, "Test for an warning case2")
+            this.warning.displaying(3, "Test for an info case3")
+            this.warning.displaying(4, "Test for an other case and also that it is really long message that is annoying because it might have some problem to display it and no one has any idea how itwill look like because it does not exist.....")
           },
           error: (err: Error) => {
             this.warning.displaying(1, `error: ${err}`)
