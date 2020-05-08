@@ -25,7 +25,7 @@ export class Browsing {
   myBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   barText: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   firstBlockIDStart: string;
-  cancel: boolean;
+  abort: boolean;
 
   constructor(roster: Roster) {
     this.roster = roster;
@@ -45,7 +45,7 @@ export class Browsing {
     this.barText = undefined;
     this.firstBlockIDStart =
       "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
-    this.cancel = false;
+    this.abort = false;
     this.nbInstanceFound = 0;
   }
 
@@ -59,7 +59,7 @@ export class Browsing {
     this.seenBlocks = 0;
     this.instanceSearch = instance;
     this.contractID = this.instanceSearch.instanceID.toString("hex");
-    this.cancel = false;
+    this.abort = false;
     this.nbInstanceFound = 0;
     this.browse(
       this.pageSize,
@@ -132,7 +132,7 @@ export class Browsing {
         if (i === pageSizeB) {
           pageDone++;
           if (pageDone === numPagesB) {
-            if (skipBlock.forwardLinks.length !== 0 && !this.cancel) {
+            if (skipBlock.forwardLinks.length !== 0 && !this.abort) {
               this.nextIDB = skipBlock.forwardLinks[0].to.toString("hex");
               pageDone = 0;
               this.getNextBlocks(
