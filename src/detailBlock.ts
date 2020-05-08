@@ -121,8 +121,9 @@ export class DetailBlock {
               next: self.printDataBrowsing.bind(self),
             });
             subjects[1].subscribe({
-              next: (i) => {
-                self.updateProgressBar(i);
+              next: ([percentage, seenBlock, totalBlock, nbInstanceFound]) => {
+                self.updateProgressBar(percentage, seenBlock, totalBlock, nbInstanceFound);
+                console.log("seenBlock")
               },
               complete: self.doneLoading,
             });
@@ -328,12 +329,12 @@ export class DetailBlock {
       .attr("id", "cancelButton")
       .text("ANNULATIOOOOOOOOOOOOOOOOOOOOOON")
       .on("click", function () {
-        self.browsing.cancel = true;
+        self.browsing.abort = true;
       });
   }
-  private updateProgressBar(i: number) {
-    this.textBar.text(`${i}%`);
-    document.getElementById("progressBar").style.width = i + "%";
+  private updateProgressBar(percentage: number, seenBlocks: number, totalBlocks: number, nbInstanceFound:number) {
+    this.textBar.text(`${percentage}%  --  Seen blocks: ${seenBlocks}/ Total blocks: ${totalBlocks}. Nombre of instances found: ${nbInstanceFound}`);
+    document.getElementById("progressBar").style.width = percentage + "%";
   }
   private doneLoading() {
     console.log("Done with loading");
