@@ -275,14 +275,16 @@ export class DetailBlock {
           .append("p")
           .text(`ContractID: ${instruction.delete.contractID}`);
       }
-      button.on("mouseover", function(){
-        let hash = tuple[0][i];
-        d3.select(`[id = "${hash}"]`).attr("stroke", "red").attr("stroke-width", 5);
-      })
-      button.on("mouseout", function(){
-        let hash = tuple[0][i];
-        d3.select(`[id = "${hash}"]`).attr("stroke", "none");
-      })
+      let blockSVG = d3.select(`[id = "${tuple[0][i]}"]`);
+      if (!blockSVG.empty()) {
+        blockSVG.attr("stroke", "red").attr("stroke-width", 5);
+      }
+      button.on("mouseover", function () {
+        blockSVG.attr("stroke", "green").attr("stroke-width", 15);
+      });
+      button.on("mouseout", function () {
+        blockSVG.attr("stroke", "red").attr("stroke-width", 5);
+      });
 
       textContainer
         .append("button")
