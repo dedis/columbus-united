@@ -114,7 +114,7 @@ export class BlocksDiagram {
     this.subjectBrowse.subscribe({
       // i is the page number
       complete: () => {
-        this.flash.display(3, "End of the blockchain")
+        this.flash.display(Flash.flashType.INFO, "End of the blockchain")
       },
       error: (err: any) => {
         if (err === 1) {
@@ -309,7 +309,7 @@ export class BlocksDiagram {
     try {
       bid = this.hex2Bytes(nextBlockID);
     } catch (error) {
-      this.flash.display(1, `failed to parse the block ID: ${error}`);
+      this.flash.display(Flash.flashType.ERROR, `failed to parse the block ID: ${error}`);
       return;
     }
 
@@ -320,7 +320,7 @@ export class BlocksDiagram {
         ByzCoinRPC.serviceName
       );
     } catch (error) {
-      this.flash.display(1, `error creating conn: ${error}`);
+      this.flash.display(Flash.flashType.ERROR, `error creating conn: ${error}`);
       return;
     }
 
@@ -348,20 +348,20 @@ export class BlocksDiagram {
         .subscribe({
           // ws callback "onMessage":
           complete: () => {
-            this.flash.display(1, "closed")
-            this.flash.display(1, "Test for an error case")
-            this.flash.display(2, "Test for an warning case2")
-            this.flash.display(3, "Test for an info case3")
-            this.flash.display(4, "Test for an other case and also that it is really long message that is annoying because it might have some problem to display it and no one has any idea how itwill look like because it does not exist.....")
+            this.flash.display(Flash.flashType.ERROR, "closed")
+            this.flash.display(Flash.flashType.ERROR, "Test for an error case")
+            this.flash.display(Flash.flashType.WARNING, "Test for an warning case2")
+            this.flash.display(Flash.flashType.INFO, "Test for an info case3")
+            this.flash.display(Flash.flashType.OTHER, "Test for an other case and also that it is really long message that is annoying because it might have some problem to display it and no one has any idea how itwill look like because it does not exist.....")
           },
           error: (err: Error) => {
-            this.flash.display(1, `error: ${err}`)
+            this.flash.display(Flash.flashType.ERROR, `error: ${err}`)
             this.ws = undefined;
           },
           next: ([data, ws]) => {
             // tslint:disable-next-line
             if (data.errorcode != 0) {
-              this.flash.display(1, `got an error with code ${data.errorcode} : ${data.errortext}`)
+              this.flash.display(Flash.flashType.ERROR, `got an error with code ${data.errorcode} : ${data.errortext}`)
               return 1;
             }
             if (ws !== undefined) {

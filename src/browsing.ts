@@ -81,13 +81,13 @@ export class Browsing {
            let pageDone = 0;
            subjectBrowse.subscribe({
              complete: () => {
-               this.flash.display(3, `End of the browsing of the instance ID: ${this.contractID}`)
+               this.flash.display(Flash.flashType.INFO, `End of the browsing of the instance ID: ${this.contractID}`)
                subjectInstruction.next([hashB, instructionB]);
              },
              error: (data: PaginateResponse) => {
                if (data.errorcode == 5) {
                  this.ws = undefined;
-                 this.flash.display(3, `error code ${data.errorcode} : ${data.errortext}`)
+                 this.flash.display(Flash.flashType.INFO, `error code ${data.errorcode} : ${data.errortext}`)
 
                  this.browse(
                    1,
@@ -99,7 +99,7 @@ export class Browsing {
                    instructionB
                  );
                }else{
-                 this.flash.display(1, `error code ${data.errorcode} : ${data.errortext}`)
+                 this.flash.display(Flash.flashType.ERROR, `error code ${data.errorcode} : ${data.errortext}`)
                }
              },
              next: ([i, skipBlock]) => {
@@ -168,7 +168,7 @@ export class Browsing {
            try {
              bid = this.hex2Bytes(nextID);
            } catch (error) {
-             this.flash.display(1, `failed to parse the block ID: ${error}`)
+             this.flash.display(Flash.flashType.ERROR, `failed to parse the block ID: ${error}`)
              return;
            }
            try {
@@ -177,7 +177,7 @@ export class Browsing {
                ByzCoinRPC.serviceName
              );
            } catch (error) {
-            this.flash.display(1, `error creating conn: ${error}`)
+            this.flash.display(Flash.flashType.ERROR, `error creating conn: ${error}`)
              return;
            }
            if (this.ws !== undefined) {
@@ -205,10 +205,10 @@ export class Browsing {
                )
                .subscribe({
                  complete: () => {
-                  this.flash.display(3, "closed")
+                  this.flash.display(Flash.flashType.INFO, "closed")
                 },
                  error: (err: Error) => {
-                  this.flash.display(1, `error: ${err}`)
+                  this.flash.display(Flash.flashType.ERROR, `error: ${err}`)
                   this.ws = undefined;
                  },
                  // ws callback "onMessage":
