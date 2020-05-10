@@ -1,29 +1,29 @@
 import * as d3 from "d3";
 
-export class Warning {
-    containerWarnings: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+export class Flash {
+    containerFlash: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
 
   constructor() {
-      this.containerWarnings = d3.select("body").append("div").attr("class", "alertContainer")
+      this.containerFlash = d3.select("body").append("div").attr("class", "alertContainer")
   }
 
   public display(errorCode: number, text: string) {
     //display the block and the error with colors
     let span = undefined;
     if (errorCode === 1) {
-      let divAlert = this.containerWarnings.append("div").attr("class", "alert");
+      let divAlert = this.containerFlash.append("div").attr("class", "alert");
       span = divAlert.append("span").attr("class", "closebtn").text(`x`);
       divAlert.append("text").text(`Error: ${text}`);
     } else if (errorCode === 2) {
-      let divAlert = this.containerWarnings.append("div").attr("class", "alert warning");
+      let divAlert = this.containerFlash.append("div").attr("class", "alert warning");
       span = divAlert.append("span").attr("class", "closebtn").text(`x`);
       divAlert.append("text").text(`Warning: ${text}`);
     } else if (errorCode === 3) {
-      let divAlert = this.containerWarnings.append("div").attr("class", "alert info");
+      let divAlert = this.containerFlash.append("div").attr("class", "alert info");
       span = divAlert.append("span").attr("class", "closebtn").text(`x`);
       divAlert.append("text").text(`Info: ${text}`);
     } else {
-      let divAlert = this.containerWarnings.append("div").attr("class", "alert other");
+      let divAlert = this.containerFlash.append("div").attr("class", "alert other");
       span = divAlert.append("span").attr("class", "closebtn").text(`x`);
       divAlert.append("text").text(`Other error not handled: ${text}`);
     }

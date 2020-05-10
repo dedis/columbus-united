@@ -9,7 +9,7 @@ import { WebSocketConnection } from "@dedis/cothority/network/connection";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable, Subject, Subscriber } from "rxjs";
-import { Warning } from './warning';
+import { Flash } from './flash';
 
 export class BlocksDiagram {
   // SVG properties
@@ -40,8 +40,8 @@ export class BlocksDiagram {
 
   // Blocks observation
   subscriberList: Array<Subscriber<SkipBlock>>;
-  warning: Warning;
-  constructor(roster: Roster, warning: Warning) {
+  flash: Flash;
+  constructor(roster: Roster, flash: Flash) {
     // SVG properties
     this.svgWidth = window.innerWidth;
     this.svgHeight = 400;
@@ -66,7 +66,7 @@ export class BlocksDiagram {
 
     // Blocks observation
     this.subscriberList = [];
-    this.warning = warning;
+    this.flash = flash;
     // Blocks navigation properties
     let indexLastBlockRight = this.initialBlockIndex;
     let hashLastBlockRight = "";
@@ -114,7 +114,7 @@ export class BlocksDiagram {
     this.subjectBrowse.subscribe({
       // i is the page number
       complete: () => {
-        this.warning.display(3, "End of the blockchain")
+        this.flash.display(3, "End of the blockchain")
       },
       error: (err: any) => {
         if (err === 1) {
@@ -309,7 +309,7 @@ export class BlocksDiagram {
     try {
       bid = this.hex2Bytes(nextBlockID);
     } catch (error) {
-      this.warning.display(1, `failed to parse the block ID: ${error}`);
+      this.flash.display(1, `failed to parse the block ID: ${error}`);
       return;
     }
 
@@ -320,7 +320,7 @@ export class BlocksDiagram {
         ByzCoinRPC.serviceName
       );
     } catch (error) {
-      this.warning.display(1, `error creating conn: ${error}`);
+      this.flash.display(1, `error creating conn: ${error}`);
       return;
     }
 
@@ -348,20 +348,20 @@ export class BlocksDiagram {
         .subscribe({
           // ws callback "onMessage":
           complete: () => {
-            this.warning.display(1, "closed")
-            this.warning.display(1, "Test for an error case")
-            this.warning.display(2, "Test for an warning case2")
-            this.warning.display(3, "Test for an info case3")
-            this.warning.display(4, "Test for an other case and also that it is really long message that is annoying because it might have some problem to display it and no one has any idea how itwill look like because it does not exist.....")
+            this.flash.display(1, "closed")
+            this.flash.display(1, "Test for an error case")
+            this.flash.display(2, "Test for an warning case2")
+            this.flash.display(3, "Test for an info case3")
+            this.flash.display(4, "Test for an other case and also that it is really long message that is annoying because it might have some problem to display it and no one has any idea how itwill look like because it does not exist.....")
           },
           error: (err: Error) => {
-            this.warning.display(1, `error: ${err}`)
+            this.flash.display(1, `error: ${err}`)
             this.ws = undefined;
           },
           next: ([data, ws]) => {
             // tslint:disable-next-line
             if (data.errorcode != 0) {
-              this.warning.display(1, `got an error with code ${data.errorcode} : ${data.errortext}`)
+              this.flash.display(1, `got an error with code ${data.errorcode} : ${data.errortext}`)
               return 1;
             }
             if (ws !== undefined) {

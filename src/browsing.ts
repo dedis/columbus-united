@@ -6,7 +6,7 @@ import { WebSocketConnection } from "@dedis/cothority/network/connection";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
-import { Warning } from './warning';
+import { Flash } from './flash';
 
 export class Browsing {
          roster: Roster;
@@ -24,8 +24,8 @@ export class Browsing {
          barText: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
          firstBlockIDStart: string;
 
-         warning: Warning;
-         constructor(roster: Roster, warning:Warning) {
+         flash: Flash;
+         constructor(roster: Roster, flash:Flash) {
            this.roster = roster;
 
            this.pageSize = 15;
@@ -41,7 +41,7 @@ export class Browsing {
            this.myProgress = undefined;
            this.myBar = undefined;
            this.barText = undefined;
-           this.warning = warning;
+           this.flash = flash;
            this.firstBlockIDStart =
              "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
          }
@@ -81,13 +81,13 @@ export class Browsing {
            let pageDone = 0;
            subjectBrowse.subscribe({
              complete: () => {
-               this.warning.display(3, `End of the browsing of the instance ID: ${this.contractID}`)
+               this.flash.display(3, `End of the browsing of the instance ID: ${this.contractID}`)
                subjectInstruction.next([hashB, instructionB]);
              },
              error: (data: PaginateResponse) => {
                if (data.errorcode == 5) {
                  this.ws = undefined;
-                 this.warning.display(3, `error code ${data.errorcode} : ${data.errortext}`)
+                 this.flash.display(3, `error code ${data.errorcode} : ${data.errortext}`)
 
                  this.browse(
                    1,
@@ -99,7 +99,7 @@ export class Browsing {
                    instructionB
                  );
                }else{
-                 this.warning.display(1, `error code ${data.errorcode} : ${data.errortext}`)
+                 this.flash.display(1, `error code ${data.errorcode} : ${data.errortext}`)
                }
              },
              next: ([i, skipBlock]) => {
@@ -168,7 +168,7 @@ export class Browsing {
            try {
              bid = this.hex2Bytes(nextID);
            } catch (error) {
-             this.warning.display(1, `failed to parse the block ID: ${error}`)
+             this.flash.display(1, `failed to parse the block ID: ${error}`)
              return;
            }
            try {
@@ -177,7 +177,7 @@ export class Browsing {
                ByzCoinRPC.serviceName
              );
            } catch (error) {
-            this.warning.display(1, `error creating conn: ${error}`)
+            this.flash.display(1, `error creating conn: ${error}`)
              return;
            }
            if (this.ws !== undefined) {
@@ -205,10 +205,10 @@ export class Browsing {
                )
                .subscribe({
                  complete: () => {
-                  this.warning.display(3, "closed")
+                  this.flash.display(3, "closed")
                 },
                  error: (err: Error) => {
-                  this.warning.display(1, `error: ${err}`)
+                  this.flash.display(1, `error: ${err}`)
                   this.ws = undefined;
                  },
                  // ws callback "onMessage":

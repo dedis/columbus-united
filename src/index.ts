@@ -3,23 +3,23 @@ import { Roster } from "@dedis/cothority/network";
 import { BlocksDiagram } from "./blocksDiagram";
 import { Browsing } from "./browsing";
 import { DetailBlock } from "./detailBlock";
-import { Warning } from './warning';
+import { Flash } from './flash';
 
 
 import { getRosterStr } from "./roster";
 
 export function sayHi() {
   const roster = Roster.fromTOML(rosterStr);
-  const warning = new Warning();
+  const flash = new Flash();
   if (!roster) {
-    warning.display(1, "Roster is undefined")
+    flash.display(1, "Roster is undefined")
     return;
   }
-  const blocksDiagram = new BlocksDiagram(roster, warning);
+  const blocksDiagram = new BlocksDiagram(roster, flash);
   blocksDiagram.loadInitialBlocks();
-  const browse = new Browsing(roster, warning)
+  const browse = new Browsing(roster, flash)
   const myobserver = blocksDiagram.getBlockObserver();
-  const mydetailBlock = new DetailBlock(myobserver, browse, warning);
+  const mydetailBlock = new DetailBlock(myobserver, browse, flash);
 }
 
 const rosterStr = getRosterStr();
