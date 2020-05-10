@@ -6,7 +6,7 @@ import {
 } from "@dedis/cothority/byzcoin/proto/stream";
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network/connection";
-import { SkipBlock } from "@dedis/cothority/skipchain";
+import { SkipBlock, SkipchainRPC } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
 
@@ -61,6 +61,7 @@ export class Browsing {
     this.contractID = this.instanceSearch.instanceID.toString("hex");
     this.abort = false;
     this.nbInstanceFound = 0;
+    this.totalBlocks = this.findTotalBlocks();
     this.browse(
       this.pageSize,
       this.numPages,
@@ -133,6 +134,7 @@ export class Browsing {
           pageDone++;
           if (pageDone === numPagesB) {
             if (skipBlock.forwardLinks.length !== 0 && !this.abort) {
+              console.log("Next block")
               this.nextIDB = skipBlock.forwardLinks[0].to.toString("hex");
               pageDone = 0;
               this.getNextBlocks(
@@ -260,6 +262,22 @@ export class Browsing {
       const percent: number = ~~((i / this.totalBlocks) * 100);
       subjectProgress.next([percent, this.seenBlocks, this.totalBlocks, this.nbInstanceFound]);
     }
+  }
+
+  private findTotalBlocks():number{
+    const rpc = new SkipchainRPC(this.roster);
+    const latestBlockPromise = rpc.getLatestBlock(Buffer.from("9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3", "hex"))
+    let totalblock = null
+    latestBlockPromise.then(
+      (skipBlock: SkipBlock) => {
+        console.log("last skipblock index",skipBlock.index)
+        totalblock = skipBlock.index
+      },
+      (e: Error) => {
+        console.log("error", e.message)
+      }
+    )
+    return totalblock
   }
 
   private hex2Bytes(hex: string) {
