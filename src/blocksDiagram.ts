@@ -77,8 +77,8 @@ export class BlocksDiagram {
       "940406333443363ce0635218d1286bfbe7e22bb56910c26b92117dc7497ff086";
 
     // Blocks navigation properties
-    this.initialBlockIndex = 0;
-    this.initialBlockHash = this.hashBlock0;
+    this.initialBlockIndex = 126;
+    this.initialBlockHash = hashBlock126;
     this.nbBlocksLoadedLeft = 0;
     this.nbBlocksLoadedRight = 0;
     let indexLastBlockLeft = this.initialBlockIndex;
@@ -203,13 +203,14 @@ export class BlocksDiagram {
    * Load the initial blocks.
    */
   loadInitialBlocks() {
+    /*
     this.getHashFromIndex(2)
     this.subjectBrowseSearch.subscribe({
          next: (hash) => {
            console.log("G TROUVE " + hash)
          }
        })
-
+*/
     this.getNextBlocks(
       this.initialBlockHash,
       this.pageSize,
@@ -217,14 +218,14 @@ export class BlocksDiagram {
       this.subjectBrowse,
       false
     );
-    /*
+    
     this.getNextBlocks(
       this.initialBlockHash,
       this.pageSize,
       this.nbPages,
       this.subjectBrowse,
       true
-    );*/
+    );
   }
 
   /**
