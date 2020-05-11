@@ -9,6 +9,7 @@ import { WebSocketConnection } from "@dedis/cothority/network/connection";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable, Subject, Subscriber } from "rxjs";
+
 import { Flash } from "./flash";
 
 export class BlocksDiagram {
@@ -53,7 +54,7 @@ export class BlocksDiagram {
     this.blockHeight = 300;
 
     // Colors
-    this.randomBlocksColor = true;
+    this.randomBlocksColor = false;
     this.textColor = "black";
     this.blockColor = "#4772D8";
 
