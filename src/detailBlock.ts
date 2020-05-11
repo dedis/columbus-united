@@ -5,8 +5,7 @@ import * as d3 from "d3";
 import { Observable } from "rxjs";
 
 import { Browsing } from "./browsing";
-import { Flash } from './flash';
-
+import { Flash } from "./flash";
 
 export class DetailBlock {
   skipbObservable: Observable<SkipBlock>;
@@ -18,9 +17,13 @@ export class DetailBlock {
   progressBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   textBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   loadContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-  flash:Flash;
+  flash: Flash;
 
-  constructor(observerSkip: Observable<SkipBlock>, subjectInstru: Browsing, flash:Flash) {
+  constructor(
+    observerSkip: Observable<SkipBlock>,
+    subjectInstru: Browsing,
+    flash: Flash
+  ) {
     this.transactionContainer = d3
       .select("body")
       .append("div")
@@ -126,8 +129,13 @@ export class DetailBlock {
             });
             subjects[1].subscribe({
               next: ([percentage, seenBlock, totalBlock, nbInstanceFound]) => {
-                self.updateProgressBar(percentage, seenBlock, totalBlock, nbInstanceFound);
-                console.log("seenBlock")
+                self.updateProgressBar(
+                  percentage,
+                  seenBlock,
+                  totalBlock,
+                  nbInstanceFound
+                );
+                console.log("seenBlock");
               },
               complete: self.doneLoading,
             });
@@ -311,7 +319,7 @@ export class DetailBlock {
   }
 
   private createProgressBar() {
-    let self = this;
+    const self = this;
     this.loadContainer = d3
       .select("body")
       .append("div")
@@ -336,8 +344,15 @@ export class DetailBlock {
         self.browsing.abort = true;
       });
   }
-  private updateProgressBar(percentage: number, seenBlocks: number, totalBlocks: number, nbInstanceFound:number) {
-    this.textBar.text(`${percentage}%  --  Seen blocks: ${seenBlocks}/ Total blocks: ${totalBlocks}. Nombre of instances found: ${nbInstanceFound}`);
+  private updateProgressBar(
+    percentage: number,
+    seenBlocks: number,
+    totalBlocks: number,
+    nbInstanceFound: number
+  ) {
+    this.textBar.text(
+      `${percentage}%  --  Seen blocks: ${seenBlocks}/ Total blocks: ${totalBlocks}. Nombre of instances found: ${nbInstanceFound}`
+    );
     document.getElementById("progressBar").style.width = percentage + "%";
   }
   private doneLoading() {
