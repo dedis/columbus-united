@@ -27,14 +27,14 @@ export class Browsing {
   firstBlockIDStart: string;
   abort: boolean;
 
-  constructor(roster: Roster) {
+  constructor(roster: Roster, totalBlock:number) {
     this.roster = roster;
 
     this.pageSize = 15;
     this.numPages = 15;
 
     this.nextIDB = "";
-    this.totalBlocks = 36650;
+    this.totalBlocks = totalBlock;
     this.seenBlocks = 0;
 
     this.contractID = "";
@@ -61,7 +61,6 @@ export class Browsing {
     this.contractID = this.instanceSearch.instanceID.toString("hex");
     this.abort = false;
     this.nbInstanceFound = 0;
-    this.totalBlocks = this.findTotalBlocks();
     this.browse(
       this.pageSize,
       this.numPages,
@@ -264,21 +263,7 @@ export class Browsing {
     }
   }
 
-  private findTotalBlocks():number{
-    const rpc = new SkipchainRPC(this.roster);
-    const latestBlockPromise = rpc.getLatestBlock(Buffer.from("9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3", "hex"))
-    let totalblock = null
-    latestBlockPromise.then(
-      (skipBlock: SkipBlock) => {
-        console.log("last skipblock index",skipBlock.index)
-        totalblock = skipBlock.index
-      },
-      (e: Error) => {
-        console.log("error", e.message)
-      }
-    )
-    return totalblock
-  }
+
 
   private hex2Bytes(hex: string) {
     if (!hex) {
