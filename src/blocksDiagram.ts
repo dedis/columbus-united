@@ -180,10 +180,6 @@ export class BlocksDiagram {
     });
   }
 
-  listTransaction() {
-    // console.log("salut?");
-  }
-
   /**
    * Append the given blocks to the blockchain.
    * @param listBlocks list of blocks to append
