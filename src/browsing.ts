@@ -34,7 +34,7 @@ export class Browsing {
     this.numPages = 15;
 
     this.nextIDB = "";
-    this.totalBlocks = totalBlock;
+    this.totalBlocks = this.findTotalBlocks();
     this.seenBlocks = 0;
 
     this.contractID = "";
@@ -263,7 +263,22 @@ export class Browsing {
     }
   }
 
-
+  private findTotalBlocks():number{
+    const rpc = new SkipchainRPC(this.roster);
+    const latestBlockPromise = rpc.getLatestBlock(Buffer.from("9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3", "hex"))
+    let totalblock = null
+    latestBlockPromise.then(
+      (skipBlock: SkipBlock) => {
+        console.log("last skipblock index",skipBlock.index)
+        console.log("HASH : "+skipBlock.hash.toString("hex"))
+        totalblock = skipBlock.index
+      },
+      (e: Error) => {
+        console.log("error", e.message)
+      }
+    )
+    return totalblock
+  }
 
   private hex2Bytes(hex: string) {
     if (!hex) {
