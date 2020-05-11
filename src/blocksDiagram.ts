@@ -97,12 +97,16 @@ export class BlocksDiagram {
               if (!(hashLastBlockRight === hashLastBlockRightBeforeUpdate)) {
                 hashLastBlockRightBeforeUpdate = hashLastBlockRight;
 
+                self.loaderAnimation();
+
                 self.getNextBlocks(
                   hashLastBlockRight,
                   self.pageSizeNb,
                   self.numPagesNb,
                   self.subjectBrowse
                 );
+
+                // TODO destroy loader
               }
             }
           })
@@ -135,7 +139,8 @@ export class BlocksDiagram {
             // Loading blocks to the right
             indexLastBlockRight = index;
             hashLastBlockRight = hash;
-            this.displayBlocks(skipBlocks);
+            //this.displayBlocks(skipBlocks);
+            setTimeout(() => { this.displayBlocks(skipBlocks) }, 3000);
           } else {
             // Loading blocks to the left
           }
@@ -178,6 +183,22 @@ export class BlocksDiagram {
     return new Observable((sub) => {
       this.subscriberList.push(sub);
     });
+  }
+
+  private loaderAnimation() {
+    const xTranslateBlock =
+        (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded + 10;
+
+    this.svgBlocks
+    .append("rect")
+    .attr("width", this.blockWidth)
+    .attr("height", this.blockHeight)
+    .attr("y", 25)
+    .attr("transform", (d: any) => {
+      const translate = [xTranslateBlock, 0];
+      return "translate(" + translate + ")";
+    })
+    .attr("fill", this.getRandomColor());
   }
 
   /**
