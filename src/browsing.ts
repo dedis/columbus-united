@@ -95,7 +95,6 @@ export class Browsing {
                if (data.errorcode == 5) {
                  this.ws = undefined;
                  this.flash.display(Flash.flashType.INFO, `error code ${data.errorcode} : ${data.errortext}`)
-
                  this.browse(
                    1,
                    1,
@@ -113,7 +112,7 @@ export class Browsing {
                const body = DataBody.decode(skipBlock.payload);
                body.txResults.forEach((transaction, _) => {
                  transaction.clientTransaction.instructions.forEach(
-                   (instruction, j) => {
+                   (instruction, _) => {
                      if (instruction.type === Instruction.typeSpawn) {
                        if (
                          instruction.deriveId("").toString("hex") ===
@@ -126,6 +125,7 @@ export class Browsing {
                        instruction.instanceID.toString("hex") ===
                        this.contractID
                      ) {
+                       this.nbInstanceFound++;
                        hashB.push(skipBlock.hash.toString("hex"));
                        instructionB.push(instruction);
                      }
@@ -135,7 +135,7 @@ export class Browsing {
                if (i === pageSizeB) {
                  pageDone++;
                  if (pageDone === numPagesB) {
-                   if (skipBlock.forwardLinks.length !== 0) {
+                   if (skipBlock.forwardLinks.length !== 0 && !this.abort) {
                      this.nextIDB = skipBlock.forwardLinks[0].to.toString(
                        "hex"
                      );
@@ -149,6 +149,8 @@ export class Browsing {
                      );
                    } else {
                      subjectBrowse.complete();
+                     subjectProgress.complete();
+                     subjectInstruction.complete();
                    }
                  }
                }
