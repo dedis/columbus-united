@@ -122,7 +122,7 @@ export class BlocksDiagram {
           // (of getnextblock)
           this.ws = undefined;
         } else {
-          window.alert(`Error: ${err}`); // ALERT: display l'erreur?
+          this.flash.display(Flash.flashType.ERROR, `Error: ${err}`);
         }
       },
       next: ([i, skipBlocks]) => {
