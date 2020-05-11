@@ -135,7 +135,7 @@ export class DetailBlock {
                   totalBlock,
                   nbInstanceFound
                 );
-                console.log("seenBlock");
+
               },
               complete: self.doneLoading,
             });
@@ -356,7 +356,6 @@ export class DetailBlock {
     document.getElementById("progressBar").style.width = percentage + "%";
   }
   private doneLoading() {
-    console.log("Done with loading");
     d3.select(".loadContainer").remove();
   }
 }
