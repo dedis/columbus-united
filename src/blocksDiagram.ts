@@ -97,7 +97,8 @@ export class BlocksDiagram {
               if (!(hashLastBlockRight === hashLastBlockRightBeforeUpdate)) {
                 hashLastBlockRightBeforeUpdate = hashLastBlockRight;
 
-                self.loaderAnimation();
+                self.destroyLoader();
+                self.createLoader();
 
                 self.getNextBlocks(
                   hashLastBlockRight,
@@ -106,7 +107,7 @@ export class BlocksDiagram {
                   self.subjectBrowse
                 );
 
-                // TODO destroy loader
+               
               }
             }
           })
@@ -185,13 +186,14 @@ export class BlocksDiagram {
     });
   }
 
-  private loaderAnimation() {
+  private createLoader() {
     const xTranslateBlock =
         (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded + 10;
 
     this.svgBlocks
     .append("rect")
-    .attr("width", this.blockWidth)
+    .attr("id", "loader1")
+    .attr("width", 10)
     .attr("height", this.blockHeight)
     .attr("y", 25)
     .attr("transform", (d: any) => {
@@ -199,6 +201,17 @@ export class BlocksDiagram {
       return "translate(" + translate + ")";
     })
     .attr("fill", this.getRandomColor());
+
+    d3.select("#loader1")
+      .transition()
+      .duration(3000)
+      .attr("width", "300")
+  }
+
+  private destroyLoader() {
+    
+    d3.select("#loader1")
+      .remove()
   }
 
   /**
@@ -215,10 +228,11 @@ export class BlocksDiagram {
     }
 
     // Iterate over the blocks to append them
-    for (let i = 0; i < listBlocks.length - 1; ++i, ++this.nbBlocksLoaded) {
+    //for (let i = 0; i < listBlocks.length - 1; ++i, ++this.nbBlocksLoaded) { TODO
+    for (let i = 0; i < listBlocks.length - 2; ++i, ++this.nbBlocksLoaded) {
       // x position where to start to display blocks
       const xTranslateBlock =
-        (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded + 10;
+        (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded +400;//+ 10; TODO
       const xTranslateText = xTranslateBlock + 5;
 
       const block = listBlocks[i];
@@ -256,6 +270,10 @@ export class BlocksDiagram {
         this.textColor
       );
     }
+    // TODO remove
+    ++this.nbBlocksLoaded
+    ++this.nbBlocksLoaded
+    
   }
 
   /**
