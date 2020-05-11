@@ -197,22 +197,19 @@ export class BlocksDiagram {
         }
       },
     });
-
-    this.subjectBrowseSearch = new Subject<string>();
   }
 
   /**
    * Load the initial blocks.
    */
   loadInitialBlocks() {
-    /*
-    this.getHashFromIndex(2)
-    this.subjectBrowseSearch.subscribe({
-         next: (hash) => {
-           console.log("G TROUVE " + hash)
+    
+    Utils.getBlockFromIndex(127, this.roster).subscribe({
+         next: (block: SkipBlock) => {
+           console.log("G TROUVE " + Utils.bytes2String(block.hash));
          }
        })
-*/
+
     this.getNextBlocks(
       this.initialBlockHash,
       this.pageSize,
@@ -518,81 +515,7 @@ export class BlocksDiagram {
     }
   }
 
-  private getHashFromIndex(index: number) {
-    let found: boolean = false
-    let hash: string = ""
-    let hashNextBlock: string = this.hashBlock0
-    let subjectBrowse1 = new Subject<[number, SkipBlock[]]>();
-    let pageDone = 0;
-
-    //let subs: Subscriber<string> = new Subscriber<string>();
-
-    subjectBrowse1.subscribe({
-      complete: () => {
-        console.error("end of blockchain");
-        console.error("closed");
-      },
-      error: (err: any) => {
-        console.error("error: ", err);
-        if (err === 1) {
-          console.error("browse recall: " + 1);
-          // To reset the websocket, create a new handler for the next function
-          // (of getnextblock)
-          this.ws = undefined;
-        }
-      },
-      next: ([i, skipBlocks]) => {
-        if(!found) {
-          for (let block of skipBlocks) {
-            //console.log("length " + skipBlocks.length);
-            if (block.index == index) {
-              hash =  Utils.bytes2String(block.hash);
-              found = true
-              //console.log("hash found " + hash)
-              console.log("FOUND")
-
-              this.subjectBrowseSearch.next(hash)
-              return;
-            }
-            console.log("ind = " + block.index)
-          }
-          
-          if (i == this.nbPages - 1) {
-            pageDone++;
-            if (pageDone == this.nbPages) {
-              let lastBlock = skipBlocks[skipBlocks.length - 1]
-              if (lastBlock.forwardLinks.length != 0) {
-                hashNextBlock = Utils.bytes2String(lastBlock.forwardLinks[0].to);
-                pageDone = 0;
-                this.getNextBlocks(
-                  hashNextBlock,
-                  this.pageSize,
-                  this.nbPages,
-                  subjectBrowse1,
-                  false
-                );
-              } else {
-                subjectBrowse1.complete();
-              }
-            }
-          }
-        }
-        
-        
-      },
-    });
-
-
-  this.getNextBlocks(
-        hashNextBlock,
-        this.pageSize,
-        this.nbPages,
-        subjectBrowse1,
-        false
-      );
-    
-
-  }
+  
 
   //private subscribe TODO
 }
