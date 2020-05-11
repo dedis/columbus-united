@@ -17,7 +17,9 @@ export class DetailBlock {
   progressBarContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   progressBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   textBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+  loadContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   flash:Flash;
+
   constructor(observerSkip: Observable<SkipBlock>, subjectInstru: Browsing, flash:Flash) {
     this.transactionContainer = d3
       .select("body")
@@ -38,6 +40,7 @@ export class DetailBlock {
     this.progressBar = undefined;
     this.textBar = undefined;
     this.flash = flash;
+    this.loadContainer = undefined;
   }
 
   private listTransaction(block: SkipBlock) {
@@ -122,9 +125,11 @@ export class DetailBlock {
               next: self.printDataBrowsing.bind(self),
             });
             subjects[1].subscribe({
-              next: (i) => {
-                self.updateProgressBar(i);
+              next: ([percentage, seenBlock, totalBlock, nbInstanceFound]) => {
+                self.updateProgressBar(percentage, seenBlock, totalBlock, nbInstanceFound);
+                console.log("seenBlock")
               },
+              complete: self.doneLoading,
             });
           });
       });
@@ -306,30 +311,37 @@ export class DetailBlock {
   }
 
   private createProgressBar() {
-    if (
-      this.progressBarContainer === undefined &&
-      this.progressBar === undefined
-    ) {
-      this.progressBarContainer = d3
-        .select("body")
-        .append("div")
-        .attr("id", "progressBarContainer");
-      this.progressBar = this.progressBarContainer
-        .append("div")
-        .attr("id", "progressBar");
-      this.textBar = this.progressBar
-        .append("div")
-        .attr("id", "textBar")
-        .text("0%");
-    } else {
-      this.textBar.text("0%");
-      const progressBarElement = document.getElementById("progressBar");
-      progressBarElement.style.width = 0 + "%";
-    }
+    let self = this;
+    this.loadContainer = d3
+      .select("body")
+      .append("div")
+      .attr("class", "loadContainer")
+      .text("CA LOAD");
+    this.progressBarContainer = this.loadContainer
+      .append("div")
+      .attr("id", "progressBarContainer");
+    this.progressBar = this.progressBarContainer
+      .append("div")
+      .attr("id", "progressBar");
+    this.textBar = this.progressBar
+      .append("div")
+      .attr("id", "textBar")
+      .text("0%");
+    this.loadContainer.append("div").attr("class", "loader");
+    this.loadContainer
+      .append("button")
+      .attr("id", "cancelButton")
+      .text("ANNULATIOOOOOOOOOOOOOOOOOOOOOON")
+      .on("click", function () {
+        self.browsing.abort = true;
+      });
   }
-
-  private updateProgressBar(i: number) {
-    this.textBar.text(`${i}%`);
-    document.getElementById("progressBar").style.width = i + "%";
+  private updateProgressBar(percentage: number, seenBlocks: number, totalBlocks: number, nbInstanceFound:number) {
+    this.textBar.text(`${percentage}%  --  Seen blocks: ${seenBlocks}/ Total blocks: ${totalBlocks}. Nombre of instances found: ${nbInstanceFound}`);
+    document.getElementById("progressBar").style.width = percentage + "%";
+  }
+  private doneLoading() {
+    console.log("Done with loading");
+    d3.select(".loadContainer").remove();
   }
 }

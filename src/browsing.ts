@@ -1,6 +1,9 @@
 import { ByzCoinRPC, Instruction } from "@dedis/cothority/byzcoin";
 import { DataBody } from "@dedis/cothority/byzcoin/proto";
-import { PaginateRequest, PaginateResponse } from "@dedis/cothority/byzcoin/proto/stream";
+import {
+  PaginateRequest,
+  PaginateResponse,
+} from "@dedis/cothority/byzcoin/proto/stream";
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network/connection";
 import { SkipBlock } from "@dedis/cothority/skipchain";
@@ -9,71 +12,75 @@ import { Subject } from "rxjs";
 import { Flash } from './flash';
 
 export class Browsing {
-         roster: Roster;
-         ws: WebSocketAdapter;
-         pageSize: number;
-         numPages: number;
-         nextIDB: string;
-         totalBlocks: number;
-         seenBlocks: number;
-         contractID: string;
-         instanceSearch: Instruction;
+  roster: Roster;
+  ws: WebSocketAdapter;
+  pageSize: number;
+  numPages: number;
+  nextIDB: string;
+  totalBlocks: number;
+  seenBlocks: number;
+  contractID: string;
+  instanceSearch: Instruction;
+  nbInstanceFound:number;
+  myProgress: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+  myBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+  barText: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+  firstBlockIDStart: string;
+  abort: boolean;
+  flash:Flash;
+  constructor(roster: Roster, flash:Flash) {
+    this.roster = roster;
 
-         myProgress: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-         myBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-         barText: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-         firstBlockIDStart: string;
+    this.pageSize = 15;
+    this.numPages = 15;
 
-         flash: Flash;
-         constructor(roster: Roster, flash:Flash) {
-           this.roster = roster;
+    this.nextIDB = "";
+    this.totalBlocks = 36650;
+    this.seenBlocks = 0;
 
-           this.pageSize = 15;
-           this.numPages = 15;
+    this.contractID = "";
+    this.instanceSearch = null;
 
-           this.nextIDB = "";
-           this.totalBlocks = 36650;
-           this.seenBlocks = 0;
+    this.myProgress = undefined;
+    this.myBar = undefined;
+    this.barText = undefined;
+    this.flash = flash;
+    this.firstBlockIDStart =
+      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
+    this.abort = false;
+    this.nbInstanceFound = 0;
+  }
 
-           this.contractID = "";
-           this.instanceSearch = null;
-
-           this.myProgress = undefined;
-           this.myBar = undefined;
-           this.barText = undefined;
-           this.flash = flash;
-           this.firstBlockIDStart =
-             "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
-         }
-
-         getInstructionSubject(
-           instance: Instruction
-         ): [Subject<[string[], Instruction[]]>, Subject<number>] {
-           const subjectInstruction = new Subject<[string[], Instruction[]]>();
-           const subjectProgress = new Subject<number>();
-           this.ws = undefined;
-           this.nextIDB = "";
-           this.seenBlocks = 0;
-           this.instanceSearch = instance;
-           this.contractID = this.instanceSearch.instanceID.toString("hex");
-           this.browse(
-             this.pageSize,
-             this.numPages,
-             this.firstBlockIDStart,
-             subjectInstruction,
-             subjectProgress,
-             [],
-             []
-           );
-           return [subjectInstruction, subjectProgress];
-         }
+  getInstructionSubject(
+    instance: Instruction
+  ): [Subject<[string[], Instruction[]]>, Subject<number[]>] {
+    const subjectInstruction = new Subject<[string[], Instruction[]]>();
+    const subjectProgress = new Subject<number[]>();
+    this.ws = undefined;
+    this.nextIDB = "";
+    this.seenBlocks = 0;
+    this.instanceSearch = instance;
+    this.contractID = this.instanceSearch.instanceID.toString("hex");
+    this.abort = false;
+    this.nbInstanceFound = 0;
+    this.browse(
+      this.pageSize,
+      this.numPages,
+      this.firstBlockIDStart,
+      subjectInstruction,
+      subjectProgress,
+      [],
+      []
+    );
+    return [subjectInstruction, subjectProgress];
+  }
 
          private browse(
            pageSizeB: number,
            numPagesB: number,
            firstBlockID: string,
            subjectInstruction: Subject<[string[], Instruction[]]>,
-           subjectProgress: Subject<number>,
+           subjectProgress: Subject<number[]>,
            hashB: string[],
            instructionB: Instruction[]
          ) {
@@ -162,7 +169,7 @@ export class Browsing {
            pageSizeNB: number,
            numPagesNB: number,
            subjectBrowse: Subject<[number, SkipBlock]>,
-           subjectProgress: Subject<number>
+           subjectProgress: Subject<number[]>
          ) {
            let bid: Buffer;
            try {
@@ -231,36 +238,36 @@ export class Browsing {
            data: PaginateResponse,
            localws: WebSocketAdapter,
            subjectBrowse: Subject<[number, SkipBlock]>,
-           subjectProgress: Subject<number>
+           subjectProgress: Subject<number[]>
          ) {
            if (data.errorcode != 0) {
              return 1;
            }
            if (localws !== undefined) {
-             this.ws = localws;
-           }
-           let runCount = 0;
-           for (const block of data.blocks) {
-             this.seenBlocks++;
-             this.seenBlocksNotify(this.seenBlocks, subjectProgress);
-             runCount++;
-             subjectBrowse.next([runCount, block]);
-           }
-           return 0;
-         }
+            this.ws = localws;
+          }
+          let runCount = 0;
+          for (const block of data.blocks) {
+            this.seenBlocks++;
+            this.seenBlocksNotify(this.seenBlocks, subjectProgress);
+            runCount++;
+            subjectBrowse.next([runCount, block]);
+          }
+          return 0;
+        }
+      
+        private seenBlocksNotify(i: number, subjectProgress: Subject<number[]>) {
+          if (i % ~~(0.01 * this.totalBlocks) == 0) {
+            const percent: number = ~~((i / this.totalBlocks) * 100);
+            subjectProgress.next([percent, this.seenBlocks, this.totalBlocks, this.nbInstanceFound]);
+          }
+        }
 
-         private seenBlocksNotify(i: number, subjectProgress: Subject<number>) {
-           if (i % ~~(0.01 * this.totalBlocks) == 0) {
-             const percent: number = ~~((i / this.totalBlocks) * 100);
-             subjectProgress.next(percent);
-           }
-         }
+  private hex2Bytes(hex: string) {
+    if (!hex) {
+      return Buffer.allocUnsafe(0);
+    }
 
-         private hex2Bytes(hex: string) {
-           if (!hex) {
-             return Buffer.allocUnsafe(0);
-           }
-
-           return Buffer.from(hex, "hex");
-         }
-       }
+    return Buffer.from(hex, "hex");
+  }
+}
