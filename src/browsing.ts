@@ -9,6 +9,7 @@ import { WebSocketConnection } from "@dedis/cothority/network/connection";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
+import { Flash } from "./flash";
 
 export class Browsing {
   roster: Roster;
@@ -20,14 +21,14 @@ export class Browsing {
   seenBlocks: number;
   contractID: string;
   instanceSearch: Instruction;
-  nbInstanceFound:number;
+  nbInstanceFound: number;
   myProgress: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   myBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   barText: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   firstBlockIDStart: string;
   abort: boolean;
-
-  constructor(roster: Roster) {
+  flash: Flash;
+  constructor(roster: Roster, flash: Flash) {
     this.roster = roster;
 
     this.pageSize = 15;
@@ -43,6 +44,7 @@ export class Browsing {
     this.myProgress = undefined;
     this.myBar = undefined;
     this.barText = undefined;
+    this.flash = flash;
     this.firstBlockIDStart =
       "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
     this.abort = false;
@@ -86,15 +88,19 @@ export class Browsing {
     let pageDone = 0;
     subjectBrowse.subscribe({
       complete: () => {
-        console.log("Fin de la Blockchain");
-        console.log("closed");
+        this.flash.display(
+          Flash.flashType.INFO,
+          `End of the browsing of the instance ID: ${this.contractID}`
+        );
         subjectInstruction.next([hashB, instructionB]);
       },
-      error: (err: any) => {
-        console.log("error: ", err);
-        if (err === 1) {
-          console.log("Browse recall: " + 1);
-          this.ws = undefined; // To reset the websocket, create a new handler for the next function (of getnextblock)
+      error: (data: PaginateResponse) => {
+        if (data.errorcode == 5) {
+          this.ws = undefined;
+          this.flash.display(
+            Flash.flashType.INFO,
+            `error code ${data.errorcode} : ${data.errortext}`
+          );
           this.browse(
             1,
             1,
@@ -104,18 +110,22 @@ export class Browsing {
             hashB,
             instructionB
           );
+        } else {
+          this.flash.display(
+            Flash.flashType.ERROR,
+            `error code ${data.errorcode} : ${data.errortext}`
+          );
         }
       },
       next: ([i, skipBlock]) => {
         const body = DataBody.decode(skipBlock.payload);
         body.txResults.forEach((transaction, _) => {
           transaction.clientTransaction.instructions.forEach(
-            (instruction, j) => {
+            (instruction, _) => {
               if (instruction.type === Instruction.typeSpawn) {
                 if (
                   instruction.deriveId("").toString("hex") === this.contractID
                 ) {
-                  this.nbInstanceFound++;
                   hashB.push(skipBlock.hash.toString("hex"));
                   instructionB.push(instruction);
                 }
@@ -172,7 +182,10 @@ export class Browsing {
     try {
       bid = this.hex2Bytes(nextID);
     } catch (error) {
-      console.log("failed to parse the block ID: ", error);
+      this.flash.display(
+        Flash.flashType.ERROR,
+        `failed to parse the block ID: ${error}`
+      );
       return;
     }
     try {
@@ -181,7 +194,10 @@ export class Browsing {
         ByzCoinRPC.serviceName
       );
     } catch (error) {
-      console.log("error creating conn: ", error);
+      this.flash.display(
+        Flash.flashType.ERROR,
+        `error creating conn: ${error}`
+      );
       return;
     }
     if (this.ws !== undefined) {
@@ -207,10 +223,10 @@ export class Browsing {
         )
         .subscribe({
           complete: () => {
-            console.log("closed");
+            this.flash.display(Flash.flashType.INFO, "closed");
           },
           error: (err: Error) => {
-            console.log("error: ", err);
+            this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
             this.ws = undefined;
           },
           // ws callback "onMessage":
@@ -222,8 +238,7 @@ export class Browsing {
               subjectProgress
             );
             if (ret === 1) {
-              console.log("Error Handling with a return 1");
-              subjectBrowse.error(1);
+              subjectBrowse.error(data);
             }
           },
         });
@@ -237,9 +252,6 @@ export class Browsing {
     subjectProgress: Subject<number[]>
   ) {
     if (data.errorcode != 0) {
-      console.log(
-        `got an error with code ${data.errorcode} : ${data.errortext}`
-      );
       return 1;
     }
     if (localws !== undefined) {
@@ -258,7 +270,12 @@ export class Browsing {
   private seenBlocksNotify(i: number, subjectProgress: Subject<number[]>) {
     if (i % ~~(0.01 * this.totalBlocks) == 0) {
       const percent: number = ~~((i / this.totalBlocks) * 100);
-      subjectProgress.next([percent, this.seenBlocks, this.totalBlocks, this.nbInstanceFound]);
+      subjectProgress.next([
+        percent,
+        this.seenBlocks,
+        this.totalBlocks,
+        this.nbInstanceFound,
+      ]);
     }
   }
 
