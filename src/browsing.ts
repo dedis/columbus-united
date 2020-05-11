@@ -10,6 +10,7 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
 import { Flash } from "./flash";
+import { Utils } from "./utils";
 
 export class Browsing {
   roster: Roster;
@@ -60,7 +61,7 @@ export class Browsing {
     this.nextIDB = "";
     this.seenBlocks = 0;
     this.instanceSearch = instance;
-    this.contractID = this.instanceSearch.instanceID.toString("hex");
+    this.contractID = Utils.bytes2String(this.instanceSearch.instanceID);
     this.abort = false;
     this.nbInstanceFound = 0;
     this.browse(
@@ -124,16 +125,16 @@ export class Browsing {
             (instruction, _) => {
               if (instruction.type === Instruction.typeSpawn) {
                 if (
-                  instruction.deriveId("").toString("hex") === this.contractID
+                  Utils.bytes2String(instruction.deriveId("")) === this.contractID
                 ) {
-                  hashB.push(skipBlock.hash.toString("hex"));
+                  hashB.push(Utils.bytes2String(skipBlock.hash));
                   instructionB.push(instruction);
                 }
               } else if (
-                instruction.instanceID.toString("hex") === this.contractID
+                Utils.bytes2String(instruction.instanceID) === this.contractID
               ) {
                 this.nbInstanceFound++;
-                hashB.push(skipBlock.hash.toString("hex"));
+                hashB.push(Utils.bytes2String(skipBlock.hash));
                 instructionB.push(instruction);
               }
             }
@@ -143,7 +144,7 @@ export class Browsing {
           pageDone++;
           if (pageDone === numPagesB) {
             if (skipBlock.forwardLinks.length !== 0 && !this.abort) {
-              this.nextIDB = skipBlock.forwardLinks[0].to.toString("hex");
+              this.nextIDB = Utils.bytes2String(skipBlock.forwardLinks[0].to);
               pageDone = 0;
               this.getNextBlocks(
                 this.nextIDB,
@@ -180,7 +181,7 @@ export class Browsing {
   ) {
     let bid: Buffer;
     try {
-      bid = this.hex2Bytes(nextID);
+      bid = Utils.hex2Bytes(nextID);
     } catch (error) {
       this.flash.display(
         Flash.flashType.ERROR,
@@ -277,13 +278,5 @@ export class Browsing {
         this.nbInstanceFound,
       ]);
     }
-  }
-
-  private hex2Bytes(hex: string) {
-    if (!hex) {
-      return Buffer.allocUnsafe(0);
-    }
-
-    return Buffer.from(hex, "hex");
   }
 }

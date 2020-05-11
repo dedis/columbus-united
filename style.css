@@ -60,10 +60,7 @@
   
   .blocksContainer {
       height: 350px;
-      /* TODO adjust automatically (function of page size) */
       border: 0px solid #000;
-      /*overflow-y: hidden;
-    overflow-x: scroll;*/
   }
   
   .blocks {

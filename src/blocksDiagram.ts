@@ -10,6 +10,7 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable, Subject, Subscriber } from "rxjs";
 import { Flash } from "./flash";
+import { Utils } from "./utils";
 
 export class BlocksDiagram {
   // SVG properties
@@ -26,17 +27,22 @@ export class BlocksDiagram {
   randomBlocksColor: boolean;
   textColor: string;
   blockColor: string;
-  validColor: string;
-  invalidColor: string;
 
   // Blockchain properties
   roster: Roster;
   ws: WebSocketAdapter;
   subjectBrowse: Subject<[number, SkipBlock[]]>;
-  pageSizeNb: number; // number of blocks in a page
-  numPagesNb: number; // number of pages
-  nbBlocksLoaded: number;
+  pageSize: number; // number of blocks in a page
+  nbPages: number; // number of pages
+
+  // Blocks navigation properties
+  hashBlock0: string;
   initialBlockIndex: number;
+  initialBlockHash: string;
+  nbBlocksLoadedLeft: number;
+  nbBlocksLoadedRight: number;
+
+  subjectBrowseSearch: Subject<string>; // TODO clean
 
   // Blocks observation
   subscriberList: Array<Subscriber<SkipBlock>>;
@@ -60,16 +66,28 @@ export class BlocksDiagram {
     // Blockchain properties
     this.roster = roster;
     this.subjectBrowse = new Subject<[number, SkipBlock[]]>();
-    this.pageSizeNb = 15;
-    this.numPagesNb = 1;
-    this.nbBlocksLoaded = 0;
+    this.pageSize = 15;
+    this.nbPages = 1;
 
     // Blocks observation
     this.subscriberList = [];
     this.flash = flash;
+
+    this.hashBlock0 =
+      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
+    const hashBlock126 =
+      "940406333443363ce0635218d1286bfbe7e22bb56910c26b92117dc7497ff086";
+
     // Blocks navigation properties
+    this.initialBlockIndex = 126;
+    this.initialBlockHash = hashBlock126;
+    this.nbBlocksLoadedLeft = 0;
+    this.nbBlocksLoadedRight = 0;
+    let indexLastBlockLeft = this.initialBlockIndex;
+    let hashLastBlockLeft = this.initialBlockHash;
+    let hashLastBlockLeftBeforeUpdate = "";
     let indexLastBlockRight = this.initialBlockIndex;
-    let hashLastBlockRight = "";
+    let hashLastBlockRight = this.initialBlockHash;
     let hashLastBlockRightBeforeUpdate = "";
 
     // SVG containing the blockchain
@@ -89,6 +107,38 @@ export class BlocksDiagram {
             const sizeBlockOnScreen =
               (self.blockWidth + self.blockPadding) * zoomLevel;
 
+            // Load blocks to the left
+            const indexLeftBlockOnScreen =
+              self.initialBlockIndex + x / sizeBlockOnScreen;
+
+            if (indexLeftBlockOnScreen < indexLastBlockLeft + 10) {
+              if (!(hashLastBlockLeft === hashLastBlockLeftBeforeUpdate)) {
+                hashLastBlockLeftBeforeUpdate = hashLastBlockLeft;
+
+                // Handle the case when we arrive at block 0: do not load
+                // below 0
+                console.log("indexLastBlockLeft" + indexLastBlockLeft);
+                let nbBlocksToLoad = self.pageSize;
+                if (indexLastBlockLeft - self.pageSize + 2 < 0) {
+                  nbBlocksToLoad = indexLastBlockLeft;
+                }
+                console.log(
+                  "nbblockstoload" +
+                    nbBlocksToLoad +
+                    " selfpagesize" +
+                    self.pageSize
+                );
+
+                self.getNextBlocks(
+                  hashLastBlockLeft,
+                  nbBlocksToLoad,
+                  self.nbPages,
+                  self.subjectBrowse,
+                  true
+                );
+              }
+            }
+
             // Load blocks to the right
             const indexRightBlockOnScreen =
               self.initialBlockIndex + (x + self.svgWidth) / sizeBlockOnScreen;
@@ -96,12 +146,12 @@ export class BlocksDiagram {
             if (indexRightBlockOnScreen > indexLastBlockRight - 10) {
               if (!(hashLastBlockRight === hashLastBlockRightBeforeUpdate)) {
                 hashLastBlockRightBeforeUpdate = hashLastBlockRight;
-
                 self.getNextBlocks(
                   hashLastBlockRight,
-                  self.pageSizeNb,
-                  self.numPagesNb,
-                  self.subjectBrowse
+                  self.pageSize,
+                  self.nbPages,
+                  self.subjectBrowse,
+                  false
                 );
               }
             }
@@ -126,41 +176,57 @@ export class BlocksDiagram {
         }
       },
       next: ([i, skipBlocks]) => {
+        // i is the page number
         // tslint:disable-next-line
-        if (i == this.numPagesNb - 1) {
-          const index = skipBlocks[skipBlocks.length - 1].index - 1;
-          const hash = skipBlocks[skipBlocks.length - 1].hash.toString("hex");
+        if (i == this.nbPages - 1) {
+          const lastBlock = skipBlocks[skipBlocks.length - 1];
+          const index = lastBlock.index;
+          const hash = Utils.bytes2String(lastBlock.hash);
 
-          if (index >= this.initialBlockIndex) {
-            // Loading blocks to the right
-            indexLastBlockRight = index;
-            hashLastBlockRight = hash;
-            this.displayBlocks(skipBlocks);
+          if (index < this.initialBlockIndex) {
+            // Load blocks to the left
+            indexLastBlockLeft = index + 1;
+            hashLastBlockLeft = hash;
+            this.displayBlocks(skipBlocks, true);
           } else {
-            // Loading blocks to the left
+            // Load blocks to the right
+            indexLastBlockRight = index - 1;
+            hashLastBlockRight = hash;
+            this.displayBlocks(skipBlocks, false);
           }
         }
       },
     });
+
+    this.subjectBrowseSearch = new Subject<string>();
   }
 
   /**
    * Load the initial blocks.
    */
   loadInitialBlocks() {
-    const hashBlock0 =
-      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
-    const hashBlock126 =
-      "940406333443363ce0635218d1286bfbe7e22bb56910c26b92117dc7497ff086";
-
-    this.initialBlockIndex = 0;
-    const initialBlockHash = hashBlock0;
-
+    /*
+    this.getHashFromIndex(2)
+    this.subjectBrowseSearch.subscribe({
+         next: (hash) => {
+           console.log("G TROUVE " + hash)
+         }
+       })
+*/
     this.getNextBlocks(
-      initialBlockHash,
-      this.pageSizeNb,
-      this.numPagesNb,
-      this.subjectBrowse
+      this.initialBlockHash,
+      this.pageSize,
+      this.nbPages,
+      this.subjectBrowse,
+      false
+    );
+    
+    this.getNextBlocks(
+      this.initialBlockHash,
+      this.pageSize,
+      this.nbPages,
+      this.subjectBrowse,
+      true
     );
   }
 
@@ -183,57 +249,127 @@ export class BlocksDiagram {
   /**
    * Append the given blocks to the blockchain.
    * @param listBlocks list of blocks to append
+   * @param backward false for loading blocks to the right, true for loading
+   * blocks to the left
    */
-  private displayBlocks(listBlocks: SkipBlock[]) {
+  private displayBlocks(listBlocks: SkipBlock[], backward: boolean) {
     // Determine the color of the blocks
     let blockColor: string;
     if (this.randomBlocksColor) {
-      blockColor = this.getRandomColor();
+      blockColor = Utils.getRandomColor();
     } else {
       blockColor = this.blockColor;
     }
 
-    // Iterate over the blocks to append them
-    for (let i = 0; i < listBlocks.length - 1; ++i, ++this.nbBlocksLoaded) {
-      // x position where to start to display blocks
-      const xTranslateBlock =
-        (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded + 10;
-      const xTranslateText = xTranslateBlock + 5;
-
-      const block = listBlocks[i];
-
-      // Append the block inside the svg container
-      this.appendBlock(xTranslateBlock, blockColor, block);
-
-      // Box the text index in an object to pass it by reference
-      const textIndex = { index: 0 };
-
-      // Index
-      this.appendTextInBlock(
-        xTranslateText,
-        textIndex,
-        "index: " + block.index,
-        this.textColor
+    if (backward) {
+      console.log(
+        "Load left blocks " +
+          (listBlocks[0].index - this.pageSize + 2) +
+          " to " +
+          listBlocks[0].index
       );
+      // Load blocks to the left
+      // Iterate over the blocks to append them
+      for (
+        let i = 0;
+        i < listBlocks.length - 1;
+        ++i, ++this.nbBlocksLoadedLeft
+      ) {
+        // x position where to start to display blocks
+        const xTranslateBlock =
+          -1 * (this.blockWidth + this.blockPadding) * this.nbBlocksLoadedLeft +
+          10;
+        const xTranslateText = xTranslateBlock + 5;
 
-      // Hash
-      const hash = block.hash.toString("hex");
-      this.appendTextInBlock(
-        xTranslateText,
-        textIndex,
-        "hash: " + hash.slice(0, 22) + "...",
-        this.textColor
-      );
+        const block = listBlocks[i];
 
-      // Number of transactions
-      const body = DataBody.decode(block.payload);
-      const nbTransactions = body.txResults.length;
-      this.appendTextInBlock(
-        xTranslateText,
-        textIndex,
-        "#transactions: " + nbTransactions,
-        this.textColor
+        // Append the block inside the svg container
+        this.appendBlock(xTranslateBlock, blockColor, block);
+
+        // Box the text index in an object to pass it by reference
+        const textIndex = { index: 0 };
+
+        // Index
+        this.appendTextInBlock(
+          xTranslateText,
+          textIndex,
+          "index: " + block.index,
+          this.textColor
+        );
+
+        // Hash
+        const hash = Utils.bytes2String(block.hash);
+        this.appendTextInBlock(
+          xTranslateText,
+          textIndex,
+          "hash: " + hash.slice(0, 22) + "...",
+          this.textColor
+        );
+
+        // Number of transactions
+        const body = DataBody.decode(block.payload);
+        const nbTransactions = body.txResults.length;
+        this.appendTextInBlock(
+          xTranslateText,
+          textIndex,
+          "#transactions: " + nbTransactions,
+          this.textColor
+        );
+      }
+    } else {
+      console.log(
+        "Load right blocks " +
+          listBlocks[0].index +
+          " to " +
+          (listBlocks[0].index + this.pageSize - 2)
       );
+      // Load blocks to the right
+      // Iterate over the blocks to append them
+      for (
+        let i = 0;
+        i < listBlocks.length - 1;
+        ++i, ++this.nbBlocksLoadedRight
+      ) {
+        // x position where to start to display blocks
+        const xTranslateBlock =
+          (this.blockWidth + this.blockPadding) * this.nbBlocksLoadedRight + 10;
+        const xTranslateText = xTranslateBlock + 5;
+
+        const block = listBlocks[i];
+
+        // Append the block inside the svg container
+        this.appendBlock(xTranslateBlock, blockColor, block);
+
+        // Box the text index in an object to pass it by reference
+        const textIndex = { index: 0 };
+
+        // Index
+        this.appendTextInBlock(
+          xTranslateText,
+          textIndex,
+          "index: " + block.index,
+          this.textColor
+        );
+
+        // Hash
+        const hash = Utils.bytes2String(block.hash);
+        this.appendTextInBlock(
+          xTranslateText,
+          textIndex,
+          "hash: " + hash.slice(0, 22) + "...",
+          this.textColor
+        );
+
+        // Number of transactions
+        const body = DataBody.decode(block.payload);
+        const nbTransactions = body.txResults.length;
+        this.appendTextInBlock(
+          xTranslateText,
+          textIndex,
+          "#transactions: " + nbTransactions,
+          this.textColor
+        );
+      }
     }
   }
 
@@ -291,23 +427,26 @@ export class BlocksDiagram {
     ++textIndex.index;
   }
 
-  /**
+/**
    * Requests blocks to the blockchain.
    * @param nextBlockID hash of the first block of the next blocks to get
-   * @param pageSizeNb number of blocks in a page
-   * @param numPagesNb number of pages to request
+   * @param pageSize number of blocks in a page
+   * @param nbPages number of pages to request
    * @param subjectBrowse observable to get the blocks from the blockchain
+   * @param backward false for loading blocks to the right, true for loading
+   * blocks to the left
    */
   private getNextBlocks(
     nextBlockID: string,
-    pageSizeNb: number,
-    numPagesNb: number,
-    subjectBrowse: Subject<[number, SkipBlock[]]>
+    pageSize: number,
+    nbPages: number,
+    subjectBrowse: Subject<[number, SkipBlock[]]>,
+    backward: boolean
   ) {
     let bid: Buffer;
 
     try {
-      bid = this.hex2Bytes(nextBlockID);
+      bid = Utils.hex2Bytes(nextBlockID);
     } catch (error) {
       this.flash.display(
         Flash.flashType.ERROR,
@@ -332,9 +471,9 @@ export class BlocksDiagram {
 
     if (this.ws !== undefined) {
       const message = new PaginateRequest({
-        backward: false,
-        numpages: numPagesNb,
-        pagesize: pageSizeNb,
+        backward: backward,
+        numpages: nbPages,
+        pagesize: pageSize,
         startid: bid,
       });
 
@@ -344,9 +483,9 @@ export class BlocksDiagram {
       conn
         .sendStream<PaginateResponse>( // fetch next block
           new PaginateRequest({
-            backward: false,
-            numpages: numPagesNb,
-            pagesize: pageSizeNb,
+            backward: backward,
+            numpages: nbPages,
+            pagesize: pageSize,
             startid: bid,
           }),
           PaginateResponse
@@ -379,25 +518,81 @@ export class BlocksDiagram {
     }
   }
 
-  /**
-   * Converter from hex string to bytes.
-   * @param hex string to convert
-   */
-  private hex2Bytes(hex: string) {
-    if (!hex) {
-      return Buffer.allocUnsafe(0);
-    }
+  private getHashFromIndex(index: number) {
+    let found: boolean = false
+    let hash: string = ""
+    let hashNextBlock: string = this.hashBlock0
+    let subjectBrowse1 = new Subject<[number, SkipBlock[]]>();
+    let pageDone = 0;
 
-    return Buffer.from(hex, "hex");
+    //let subs: Subscriber<string> = new Subscriber<string>();
+
+    subjectBrowse1.subscribe({
+      complete: () => {
+        console.error("end of blockchain");
+        console.error("closed");
+      },
+      error: (err: any) => {
+        console.error("error: ", err);
+        if (err === 1) {
+          console.error("browse recall: " + 1);
+          // To reset the websocket, create a new handler for the next function
+          // (of getnextblock)
+          this.ws = undefined;
+        }
+      },
+      next: ([i, skipBlocks]) => {
+        if(!found) {
+          for (let block of skipBlocks) {
+            //console.log("length " + skipBlocks.length);
+            if (block.index == index) {
+              hash =  Utils.bytes2String(block.hash);
+              found = true
+              //console.log("hash found " + hash)
+              console.log("FOUND")
+
+              this.subjectBrowseSearch.next(hash)
+              return;
+            }
+            console.log("ind = " + block.index)
+          }
+          
+          if (i == this.nbPages - 1) {
+            pageDone++;
+            if (pageDone == this.nbPages) {
+              let lastBlock = skipBlocks[skipBlocks.length - 1]
+              if (lastBlock.forwardLinks.length != 0) {
+                hashNextBlock = Utils.bytes2String(lastBlock.forwardLinks[0].to);
+                pageDone = 0;
+                this.getNextBlocks(
+                  hashNextBlock,
+                  this.pageSize,
+                  this.nbPages,
+                  subjectBrowse1,
+                  false
+                );
+              } else {
+                subjectBrowse1.complete();
+              }
+            }
+          }
+        }
+        
+        
+      },
+    });
+
+
+  this.getNextBlocks(
+        hashNextBlock,
+        this.pageSize,
+        this.nbPages,
+        subjectBrowse1,
+        false
+      );
+    
+
   }
 
-  /**
-   * Generate a random color in HEX format
-   * Source: https://stackoverflow.com/a/1152508
-   */
-  private getRandomColor() {
-    return (
-      "#" + (0x1000000 + Math.random() * 0xffffff).toString(16).substr(1, 6)
-    );
-  }
+  //private subscribe TODO
 }
