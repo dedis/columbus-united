@@ -1,5 +1,7 @@
 # columbus-united
 
+![Prettier](https://github.com/dedis/columbus-united/workflows/Prettier/badge.svg)
+
 Implementation of an intuitive and insightful blockchain explorer - by Julien von Felten and Iozzia Anthony Lucien
 
 ## Ubuntu
