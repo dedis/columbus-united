@@ -36,10 +36,10 @@ export class Flash {
       span = divAlert.append("span").attr("class", "closebtn").text(`x`);
       divAlert.append("text").text(`Other error not handled: ${text}`);
     }
-    span.on("click", function() {
+    span.on("click", function () {
       const div = this.parentElement;
       div.style.opacity = "0";
-      setTimeout(function() {
+      setTimeout(function () {
         div.style.display = "none";
       }, 200);
     });

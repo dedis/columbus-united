@@ -135,7 +135,6 @@ export class DetailBlock {
                   totalBlock,
                   nbInstanceFound
                 );
-
               },
               complete: self.doneLoading,
             });
