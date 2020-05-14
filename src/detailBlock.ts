@@ -151,22 +151,36 @@ export class DetailBlock {
           .text(`Search for all instance of this ID in the blockchain`)
           // tslint:disable-next-line
           .on("click", function () {
-            self.createProgressBar();
-            const subjects = self.browsing.getInstructionSubject(instruction);
-            subjects[0].subscribe({
-              next: self.printDataBrowsing.bind(self),
-            });
-            subjects[1].subscribe({
-              next: ([percentage, seenBlock, totalBlock, nbInstanceFound]) => {
-                self.updateProgressBar(
+            const conf = confirm(
+              `Do you really want to browse the whole blockchain with the instance ID: ${instruction.instanceID.toString(
+                "hex"
+              )}? \nThis may take a while!`
+            );
+            if (conf) {
+              self.createProgressBar();
+              const subjects = self.browsing.getInstructionSubject(instruction);
+              subjects[0].subscribe({
+                next: self.printDataBrowsing.bind(self),
+              });
+              subjects[1].subscribe({
+                next: ([
                   percentage,
                   seenBlock,
                   totalBlock,
-                  nbInstanceFound
-                );
-              }, // tslint:disable-next-line
-              complete: self.doneLoading,
-            });
+                  nbInstanceFound,
+                ]) => {
+                  self.updateProgressBar(
+                    percentage,
+                    seenBlock,
+                    totalBlock,
+                    nbInstanceFound
+                  );
+                }, // tslint:disable-next-line
+                complete: self.doneLoading,
+              });
+            } else {
+              self.flash.display(Flash.flashType.INFO, "Browsing cancelled");
+            }
           });
       });
     });
