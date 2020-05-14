@@ -17,8 +17,14 @@ export function sayHi() {
   const blocksDiagram = new BlocksDiagram(roster, flash);
   blocksDiagram.loadInitialBlocks();
   const browse = new Browsing(roster, flash);
-  const myobserver = blocksDiagram.getBlockObserver();
-  const mydetailBlock = new DetailBlock(myobserver, browse, flash);
+  const blockObserver = blocksDiagram.getBlockObserver();
+  const updateObserver = blocksDiagram.isUpdatedObserver();
+  const mydetailBlock = new DetailBlock(
+    blockObserver,
+    browse,
+    flash,
+    updateObserver
+  );
 }
 
 const rosterStr = getRosterStr();
