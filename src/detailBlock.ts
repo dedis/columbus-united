@@ -17,6 +17,8 @@ export class DetailBlock {
   textBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   hashHighligh: string[];
   updateObserver: Observable<SkipBlock[]>;
+  colorBlock: string;
+  colorClickedBlock: string;
   constructor(
     observerSkip: Observable<SkipBlock>,
     subjectInstru: Browsing,
@@ -48,9 +50,23 @@ export class DetailBlock {
         self.highlightBlocks(this.hashHighligh);
       },
     });
+    this.colorBlock = "#1b6f8a"; // must be set differently when we will choose the colors
+    this.colorClickedBlock = "#a6f8b2"; // must be set differently when we will choose the colors
   }
 
   private listTransaction(block: SkipBlock) {
+    if (this.clickedBlock != block) {
+      if (this.clickedBlock != null) {
+        let blockSVG = d3.select(
+          `[id = "${this.clickedBlock.hash.toString("hex")}"]`
+        );
+        blockSVG.attr("fill", this.colorBlock);
+      }
+
+      this.clickedBlock = block;
+      let selection = d3.select(`[id = "${block.hash.toString("hex")}"]`);
+      selection.attr("fill", this.colorClickedBlock);
+    }
     const self = this;
     this.transactionContainer.text(
       `Block ${block.index}, Hash: ${block.hash.toString("hex")}`
