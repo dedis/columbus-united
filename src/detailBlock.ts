@@ -377,7 +377,7 @@ export class DetailBlock {
     const acc1 = document.querySelectorAll(
       "[id^='buttonInstance'], [id=buttonInstanceArgs], [id=buttonInstanceArg]"
     );
-    this.addClickListener(acc1);
+    this.addClickListenerClose(acc1);
     this.highlightBlocks(tuple[0]);
     this.hashHighligh = tuple[0];
   }
