@@ -122,22 +122,32 @@ export class DetailBlock {
           .attr("id", "buttonBrowse")
           .text(`Search for all instance of this ID in the blockchain`)
           .on("click", function () {
-            self.createProgressBar();
-            const subjects = self.browsing.getInstructionSubject(instruction);
-            subjects[0].subscribe({
-              next: self.printDataBrowsing.bind(self),
-            });
-            subjects[1].subscribe({
-              next: ([percentage, seenBlock, totalBlock, nbInstanceFound]) => {
-                self.updateProgressBar(
+            let conf = confirm(`Do you really want to browse the whole blockchain with the instance ID: ${instruction.instanceID.toString("hex")}? \nThis may take a while!`);
+            if (conf) {
+              self.createProgressBar();
+              const subjects = self.browsing.getInstructionSubject(instruction);
+              subjects[0].subscribe({
+                next: self.printDataBrowsing.bind(self),
+              });
+              subjects[1].subscribe({
+                next: ([
                   percentage,
                   seenBlock,
                   totalBlock,
-                  nbInstanceFound
-                );
-              },
-              complete: self.doneLoading,
-            });
+                  nbInstanceFound,
+                ]) => {
+                  self.updateProgressBar(
+                    percentage,
+                    seenBlock,
+                    totalBlock,
+                    nbInstanceFound
+                  );
+                },
+                complete: self.doneLoading,
+              });
+            }else{
+              self.flash.display(Flash.flashType.INFO, "Browsing cancelled")
+            }
           });
       });
     });
