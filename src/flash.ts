@@ -35,16 +35,17 @@ export class Flash {
         .attr("class", "alert other");
       span = divAlert.append("span").attr("class", "closebtn").text(`x`);
       divAlert.append("text").text(`Other error not handled: ${text}`);
-    }
+    } // tslint:disable-next-line
     span.on("click", function () {
       const div = this.parentElement;
       div.style.opacity = "0";
+      // tslint:disable-next-line
       setTimeout(function () {
         div.style.display = "none";
       }, 200);
     });
   }
-}
+} // tslint:disable-next-line
 export namespace Flash {
   export enum flashType {
     ERROR,
