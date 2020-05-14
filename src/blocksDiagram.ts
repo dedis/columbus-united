@@ -41,6 +41,8 @@ export class BlocksDiagram {
 
   // Blocks observation
   subscriberList: Array<Subscriber<SkipBlock>>;
+  updateObserver = new Subject<SkipBlock[]>();
+
   flash: Flash;
   constructor(roster: Roster, flash: Flash) {
     // SVG properties
@@ -181,6 +183,10 @@ export class BlocksDiagram {
     });
   }
 
+  isUpdatedObserver(): Subject<SkipBlock[]> {
+    return this.updateObserver;
+  }
+
   /**
    * Append the given blocks to the blockchain.
    * @param listBlocks list of blocks to append
@@ -236,6 +242,7 @@ export class BlocksDiagram {
         this.textColor
       );
     }
+    this.updateObserver.next(listBlocks);
   }
 
   /**
@@ -253,6 +260,7 @@ export class BlocksDiagram {
     const self = this;
     this.svgBlocks
       .append("rect")
+      .attr("id", block.hash.toString("hex"))
       .attr("width", this.blockWidth)
       .attr("height", this.blockHeight)
       .attr("y", 25)
