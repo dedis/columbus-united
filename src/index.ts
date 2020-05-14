@@ -5,7 +5,6 @@ import { Browsing } from "./browsing";
 import { DetailBlock } from "./detailBlock";
 
 import { getRosterStr } from "./roster";
-import { SkipchainRPC, SkipBlock } from '@dedis/cothority/skipchain';
 
 export function sayHi() {
   const roster = Roster.fromTOML(rosterStr);
@@ -17,7 +16,6 @@ export function sayHi() {
   blocksDiagram.loadInitialBlocks();
 
   const myobserver = blocksDiagram.getBlockObserver();
-
   const mydetailBlock = new DetailBlock(myobserver, new Browsing(roster));
 }
 
