@@ -1,44 +1,50 @@
-import { SkipBlock } from "@dedis/cothority/skipchain";
-import { Roster } from "@dedis/cothority/network";
-import { Observable } from "rxjs";
-import { WebSocketConnection } from "@dedis/cothority/network/connection";
 import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
 import {
-  PaginateResponse,
   PaginateRequest,
+  PaginateResponse,
 } from "@dedis/cothority/byzcoin/proto/stream";
+import { Roster } from "@dedis/cothority/network";
+import { SkipBlock } from "@dedis/cothority/skipchain";
+import { Observable } from "rxjs";
+
+import { WebSocketConnection } from "@dedis/cothority/network/connection";
 
 export class TotalBlock {
   roster: Roster;
   lastBlockSeenID: string;
-  lastBlock:SkipBlock;
-  totalBlock:number;
+  lastBlock: SkipBlock;
+  totalBlock: number;
   constructor(roster: Roster) {
     this.roster = roster;
     this.lastBlockSeenID =
       "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
-      let observableLastBlock = this.getLatestBlock(this.lastBlockSeenID, this.roster)
-      observableLastBlock.subscribe({
-        next: (skipBlock) => {
-          this.lastBlockSeenID = skipBlock.hash.toString("hex");
-          this.lastBlock = skipBlock;
-          this.totalBlock = skipBlock.index
-        },
-      })
-  }
-
-  getTotalBlock():number {
-    let observableLastBlock = this.getLatestBlock(this.lastBlockSeenID, this.roster)
+    const observableLastBlock = this.getLatestBlock(
+      this.lastBlockSeenID,
+      this.roster
+    );
     observableLastBlock.subscribe({
       next: (skipBlock) => {
         this.lastBlockSeenID = skipBlock.hash.toString("hex");
         this.lastBlock = skipBlock;
-        return skipBlock.index
+        this.totalBlock = skipBlock.index;
       },
-    })
-    return 0;
+    });
   }
 
+  getTotalBlock(): number {
+    const observableLastBlock = this.getLatestBlock(
+      this.lastBlockSeenID,
+      this.roster
+    );
+    observableLastBlock.subscribe({
+      next: (skipBlock) => {
+        this.lastBlockSeenID = skipBlock.hash.toString("hex");
+        this.lastBlock = skipBlock;
+        return skipBlock.index;
+      },
+    });
+    return 0;
+  }
 
   // getLatestBlock follows the highest possible forward links from the given
   // block ID (hex hash) until the last known block of the chain and notifies the
@@ -51,6 +57,7 @@ export class TotalBlock {
       let nextID = Buffer.from(startID, "hex");
 
       try {
+        // tslint:disable-next-line
         var conn = new WebSocketConnection(
           roster.list[0].getWebSocketAddress(),
           ByzCoinRPC.serviceName
@@ -62,6 +69,7 @@ export class TotalBlock {
         .sendStream<PaginateResponse>( // fetch next block
           new PaginateRequest({
             startid: nextID,
+            // tslint:disable-next-line
             pagesize: 1,
             numpages: 1,
             backward: false,
@@ -77,6 +85,7 @@ export class TotalBlock {
           },
           // ws callback "onMessage":
           next: ([data, ws]) => {
+            // tslint:disable-next-line
             if (data.errorcode != 0) {
               sub.error(data.errortext);
             }
@@ -87,6 +96,7 @@ export class TotalBlock {
               nextID = block.forwardLinks[block.forwardLinks.length - 1].to;
               const message = new PaginateRequest({
                 startid: nextID,
+                // tslint:disable-next-line
                 pagesize: 1,
                 numpages: 1,
                 backward: false,
