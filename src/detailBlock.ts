@@ -403,8 +403,12 @@ export class DetailBlock {
     this.loadContainer = d3
       .select("body")
       .append("div")
-      .attr("class", "loadContainer")
-      .text("CA LOAD");
+      .attr("class", "loadContainer");
+      this.loadContainer.append("div").attr("class", "logo").on("click", function(){
+        window.open("https://www.epfl.ch/labs/dedis/")
+      })
+    this.loadContainer.append("div").attr("class", "loader");
+
     this.progressBarContainer = this.loadContainer
       .append("div")
       .attr("id", "progressBarContainer");
@@ -415,14 +419,18 @@ export class DetailBlock {
       .append("div")
       .attr("id", "textBar")
       .text("0%");
-    this.loadContainer.append("div").attr("class", "loader");
+
     this.loadContainer
       .append("button")
+      .attr("class", "cancelButton")
       .attr("id", "cancelButton")
-      .text("ANNULATIOOOOOOOOOOOOOOOOOOOOOON")
+      .text("Abort research")
       // tslint:disable-next-line
       .on("click", function () {
-        self.browsing.abort = true;
+        const conf = confirm("Are you sure you want to abort the browse?");
+        if (conf) {
+          self.browsing.abort = true;
+        }
       });
   }
   private updateProgressBar(
@@ -432,7 +440,7 @@ export class DetailBlock {
     nbInstanceFound: number
   ) {
     this.textBar.text(
-      `${percentage}%  --  Seen blocks: ${seenBlocks}/ Total blocks: ${totalBlocks}. Nombre of instances found: ${nbInstanceFound}`
+      `${percentage}% --- Seen blocks: ${seenBlocks}/ ${totalBlocks} total blocks. Instances found: ${nbInstanceFound}`
     );
     document.getElementById("progressBar").style.width = percentage + "%";
   }
