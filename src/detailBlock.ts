@@ -5,6 +5,7 @@ import * as d3 from "d3";
 import { Observable } from "rxjs";
 
 import { Browsing } from "./browsing";
+import { Flash } from "./flash";
 
 export class DetailBlock {
   skipbObservable: Observable<SkipBlock>;
@@ -16,8 +17,13 @@ export class DetailBlock {
   progressBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   textBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   loadContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+  flash: Flash;
 
-  constructor(observerSkip: Observable<SkipBlock>, subjectInstru: Browsing) {
+  constructor(
+    observerSkip: Observable<SkipBlock>,
+    subjectInstru: Browsing,
+    flash: Flash
+  ) {
     this.transactionContainer = d3
       .select("body")
       .append("div")
@@ -36,6 +42,7 @@ export class DetailBlock {
     this.progressBarContainer = undefined;
     this.progressBar = undefined;
     this.textBar = undefined;
+    this.flash = flash;
     this.loadContainer = undefined;
   }
 
@@ -97,6 +104,7 @@ export class DetailBlock {
         textInstruction
           .append("p")
           .text(`Instance ID: ${instruction.instanceID.toString("hex")}`);
+        // tslint:disable-next-line
         args.forEach((arg, i) => {
           textInstruction
             .append("button")
@@ -114,6 +122,7 @@ export class DetailBlock {
           .attr("class", "oneDetailButton")
           .attr("id", "buttonBrowse")
           .text(`Search for all instance of this ID in the blockchain`)
+          // tslint:disable-next-line
           .on("click", function () {
             self.createProgressBar();
             const subjects = self.browsing.getInstructionSubject(instruction);
@@ -122,9 +131,13 @@ export class DetailBlock {
             });
             subjects[1].subscribe({
               next: ([percentage, seenBlock, totalBlock, nbInstanceFound]) => {
-                self.updateProgressBar(percentage, seenBlock, totalBlock, nbInstanceFound);
-                console.log("seenBlock")
-              },
+                self.updateProgressBar(
+                  percentage,
+                  seenBlock,
+                  totalBlock,
+                  nbInstanceFound
+                );
+              }, // tslint:disable-next-line
               complete: self.doneLoading,
             });
           });
@@ -198,6 +211,7 @@ export class DetailBlock {
   }
   private addClickListener(acc: NodeListOf<Element>) {
     for (const button of acc) {
+      // tslint:disable-next-line
       button.addEventListener("click", function () {
         this.classList.toggle("active");
         const panel = this.nextElementSibling;
@@ -270,7 +284,7 @@ export class DetailBlock {
             `Delete with instanceID: ${instruction.instanceID.toString(
               "hex"
             )}, and Hash is: ${instruction.hash().toString("hex")}`
-          );
+          ); // tslint:disable-next-line
         const textContainer = this.browseContainer
           .append("div")
           .attr("class", "oneDetailText");
@@ -287,6 +301,7 @@ export class DetailBlock {
         .append("div")
         .attr("class", "oneDetailText");
       argsList = argsDetails.append("p");
+      // tslint:disable-next-line
       args.forEach((arg, i) => {
         argsList
           .append("button")
@@ -307,7 +322,7 @@ export class DetailBlock {
   }
 
   private createProgressBar() {
-    let self = this;
+    const self = this;
     this.loadContainer = d3
       .select("body")
       .append("div")
@@ -328,16 +343,23 @@ export class DetailBlock {
       .append("button")
       .attr("id", "cancelButton")
       .text("ANNULATIOOOOOOOOOOOOOOOOOOOOOON")
+      // tslint:disable-next-line
       .on("click", function () {
         self.browsing.abort = true;
       });
   }
-  private updateProgressBar(percentage: number, seenBlocks: number, totalBlocks: number, nbInstanceFound:number) {
-    this.textBar.text(`${percentage}%  --  Seen blocks: ${seenBlocks}/ Total blocks: ${totalBlocks}. Nombre of instances found: ${nbInstanceFound}`);
+  private updateProgressBar(
+    percentage: number,
+    seenBlocks: number,
+    totalBlocks: number,
+    nbInstanceFound: number
+  ) {
+    this.textBar.text(
+      `${percentage}%  --  Seen blocks: ${seenBlocks}/ Total blocks: ${totalBlocks}. Nombre of instances found: ${nbInstanceFound}`
+    );
     document.getElementById("progressBar").style.width = percentage + "%";
   }
   private doneLoading() {
-    console.log("Done with loading");
     d3.select(".loadContainer").remove();
   }
 }
