@@ -18,8 +18,13 @@ export function sayHi() {
   blocksDiagram.loadInitialBlocks();
   const browse = new Browsing(roster, flash);
   const blockObserver = blocksDiagram.getBlockObserver();
-  const updateObserver = blocksDiagram.isUpdatedObserver()
-  const mydetailBlock = new DetailBlock(blockObserver, browse, flash, updateObserver);
+  const updateObserver = blocksDiagram.isUpdatedObserver();
+  const mydetailBlock = new DetailBlock(
+    blockObserver,
+    browse,
+    flash,
+    updateObserver
+  );
 }
 
 const rosterStr = getRosterStr();

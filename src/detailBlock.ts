@@ -28,7 +28,7 @@ export class DetailBlock {
     flash: Flash,
     updateObserver: Observable<SkipBlock[]>
   ) {
-    let self = this;
+    const self = this;
     this.transactionContainer = d3
       .select("body")
       .append("div")
@@ -61,17 +61,19 @@ export class DetailBlock {
   }
 
   private listTransaction(block: SkipBlock) {
-    if (this.clickedBlock != block) {
+    if (this.clickedBlock !== block) {
       if (this.clickedBlock != null) {
-        let blockSVG = d3.select(
+        const blockSVG = d3.select(
           `[id = "${this.clickedBlock.hash.toString("hex")}"]`
         );
         blockSVG.attr("fill", this.colorBlock);
       }
 
       this.clickedBlock = block;
-      let selection = d3.select(`[id = "${block.hash.toString("hex")}"]`);
-      selection.attr("fill", this.colorClickedBlock);
+      d3.select(`[id = "${block.hash.toString("hex")}"]`).attr(
+        "fill",
+        this.colorClickedBlock
+      );
     }
     const self = this;
     this.transactionContainer.text(
@@ -352,14 +354,14 @@ export class DetailBlock {
 
   private highlightBlocks(hashs: string[]) {
     for (let i = 0; i < hashs.length; i++) {
-      let blockSVG = d3.select(`[id = "${hashs[i]}"]`);
-      let button = d3.select(`#buttonInstance${i}`);
+      const blockSVG = d3.select(`[id = "${hashs[i]}"]`);
+      const button = d3.select(`#buttonInstance${i}`);
       if (!blockSVG.empty()) {
         blockSVG.attr("stroke", "red").attr("stroke-width", 5);
-      }
+      } // tslint:disable-next-line
       button.on("mouseover", function () {
         blockSVG.attr("stroke", "green").attr("stroke-width", 15);
-      });
+      }); // tslint:disable-next-line
       button.on("mouseout", function () {
         blockSVG.attr("stroke", "red").attr("stroke-width", 5);
       });
@@ -368,14 +370,14 @@ export class DetailBlock {
 
   private removeHighlighBlocks(hashs: string[]) {
     for (let i = 0; i < hashs.length; i++) {
-      let blockSVG = d3.select(`[id = "${hashs[i]}"]`);
-      let button = d3.select(`#buttonInstance${i}`);
+      const blockSVG = d3.select(`[id = "${hashs[i]}"]`);
+      const button = d3.select(`#buttonInstance${i}`);
       if (!blockSVG.empty()) {
         blockSVG.attr("stroke", "red").attr("stroke-width", 0);
-      }
+      } // tslint:disable-next-line
       button.on("mouseover", function () {
         blockSVG.attr("stroke", "green").attr("stroke-width", 0);
-      });
+      }); // tslint:disable-next-line
       button.on("mouseout", function () {
         blockSVG.attr("stroke", "red").attr("stroke-width", 0);
       });

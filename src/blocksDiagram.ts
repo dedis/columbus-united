@@ -183,8 +183,8 @@ export class BlocksDiagram {
     });
   }
 
-  isUpdatedObserver():Subject<SkipBlock[]>{
-    return this.updateObserver
+  isUpdatedObserver(): Subject<SkipBlock[]> {
+    return this.updateObserver;
   }
 
   /**
@@ -242,8 +242,7 @@ export class BlocksDiagram {
         this.textColor
       );
     }
-    this.updateObserver.next(listBlocks)
-    //TODO next?
+    this.updateObserver.next(listBlocks);
   }
 
   /**
