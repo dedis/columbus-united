@@ -253,12 +253,13 @@ export class DetailBlock {
   private addClickListener(acc: NodeListOf<Element>) {
     for (const button of acc) {
       // tslint:disable-next-line
+      button.classList.toggle("active");
       button.addEventListener("click", function () {
-        this.classList.toggle("active");
         const panel = this.nextElementSibling;
         if (panel.style.display === "block") {
           panel.style.display = "none";
         } else {
+          this.classList.toggle("active");
           panel.style.display = "block";
         }
       });
