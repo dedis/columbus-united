@@ -404,9 +404,12 @@ export class DetailBlock {
       .select("body")
       .append("div")
       .attr("class", "loadContainer");
-      this.loadContainer.append("div").attr("class", "logo").on("click", function(){
-        window.open("https://www.epfl.ch/labs/dedis/")
-      })
+    this.loadContainer
+      .append("div")
+      .attr("class", "logo") // tslint:disable-next-line
+      .on("click", function () {
+        window.open("https://www.epfl.ch/labs/dedis/");
+      });
     this.loadContainer.append("div").attr("class", "loader");
 
     this.progressBarContainer = this.loadContainer
