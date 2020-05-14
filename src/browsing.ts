@@ -95,6 +95,7 @@ export class Browsing {
         subjectInstruction.next([hashB, instructionB]);
       },
       error: (data: PaginateResponse) => {
+        // tslint:disable-next-line
         if (data.errorcode == 5) {
           this.ws = undefined;
           this.flash.display(
@@ -121,6 +122,7 @@ export class Browsing {
         const body = DataBody.decode(skipBlock.payload);
         body.txResults.forEach((transaction, _) => {
           transaction.clientTransaction.instructions.forEach(
+            // tslint:disable-next-line
             (instruction, _) => {
               if (instruction.type === Instruction.typeSpawn) {
                 if (
@@ -189,6 +191,7 @@ export class Browsing {
       return;
     }
     try {
+      // tslint:disable-next-line
       var conn = new WebSocketConnection(
         this.roster.list[0].getWebSocketAddress(),
         ByzCoinRPC.serviceName
@@ -203,6 +206,7 @@ export class Browsing {
     if (this.ws !== undefined) {
       const message = new PaginateRequest({
         startid: bid,
+        // tslint:disable-next-line
         pagesize: pageSizeNB,
         numpages: numPagesNB,
         backward: false,
@@ -215,6 +219,7 @@ export class Browsing {
         .sendStream<PaginateResponse>( // fetch next block
           new PaginateRequest({
             startid: bid,
+            // tslint:disable-next-line
             pagesize: pageSizeNB,
             numpages: numPagesNB,
             backward: false,
@@ -251,6 +256,7 @@ export class Browsing {
     subjectBrowse: Subject<[number, SkipBlock]>,
     subjectProgress: Subject<number[]>
   ) {
+    // tslint:disable-next-line
     if (data.errorcode != 0) {
       return 1;
     }
@@ -268,7 +274,9 @@ export class Browsing {
   }
 
   private seenBlocksNotify(i: number, subjectProgress: Subject<number[]>) {
+    // tslint:disable-next-line
     if (i % ~~(0.01 * this.totalBlocks) == 0) {
+      // tslint:disable-next-line
       const percent: number = ~~((i / this.totalBlocks) * 100);
       subjectProgress.next([
         percent,

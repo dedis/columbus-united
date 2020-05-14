@@ -7,9 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "bundle": "webpack",
     "watch": "webpack --watch",
-    "lint": "tslint 'src/{,**/}*.ts' 'spec/{,**/}*.ts' && prettier --check *.html",
-    "makePretty": "prettier --write \"src/**/*{.ts,.js}\"",
-    "isPretty": "prettier --check \"src/**/*{.ts,.js}\""
+    "lint": "tslint 'src/{,**/}*.ts' 'spec/{,**/}*.ts'",
+    "makePretty": "prettier --config package.json --write \"src/**/*{.ts,.js}\" \"*.html\"",
+    "isPretty": "prettier --config package.json --check \"src/**/*{.ts,.js}\" \"*.html\""
   },
   "author": "",
   "license": "ISC",

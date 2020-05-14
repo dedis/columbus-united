@@ -104,6 +104,7 @@ export class DetailBlock {
         textInstruction
           .append("p")
           .text(`Instance ID: ${instruction.instanceID.toString("hex")}`);
+        // tslint:disable-next-line
         args.forEach((arg, i) => {
           textInstruction
             .append("button")
@@ -121,6 +122,7 @@ export class DetailBlock {
           .attr("class", "oneDetailButton")
           .attr("id", "buttonBrowse")
           .text(`Search for all instance of this ID in the blockchain`)
+          // tslint:disable-next-line
           .on("click", function () {
             let conf = confirm(`Do you really want to browse the whole blockchain with the instance ID: ${instruction.instanceID.toString("hex")}? \nThis may take a while!`);
             if (conf) {
@@ -142,7 +144,7 @@ export class DetailBlock {
                     totalBlock,
                     nbInstanceFound
                   );
-                },
+                }, // tslint:disable-next-line
                 complete: self.doneLoading,
               });
             }else{
@@ -219,6 +221,7 @@ export class DetailBlock {
   }
   private addClickListener(acc: NodeListOf<Element>) {
     for (const button of acc) {
+      // tslint:disable-next-line
       button.addEventListener("click", function () {
         this.classList.toggle("active");
         const panel = this.nextElementSibling;
@@ -291,7 +294,7 @@ export class DetailBlock {
             `Delete with instanceID: ${instruction.instanceID.toString(
               "hex"
             )}, and Hash is: ${instruction.hash().toString("hex")}`
-          );
+          ); // tslint:disable-next-line
         const textContainer = this.browseContainer
           .append("div")
           .attr("class", "oneDetailText");
@@ -308,6 +311,7 @@ export class DetailBlock {
         .append("div")
         .attr("class", "oneDetailText");
       argsList = argsDetails.append("p");
+      // tslint:disable-next-line
       args.forEach((arg, i) => {
         argsList
           .append("button")
@@ -349,6 +353,7 @@ export class DetailBlock {
       .append("button")
       .attr("id", "cancelButton")
       .text("ANNULATIOOOOOOOOOOOOOOOOOOOOOON")
+      // tslint:disable-next-line
       .on("click", function () {
         self.browsing.abort = true;
       });
