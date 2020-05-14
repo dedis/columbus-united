@@ -10,6 +10,7 @@ import { SkipBlock, SkipchainRPC } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
 import { Flash } from "./flash";
+import { TotalBlock } from './totalBlock';
 
 export class Browsing {
   roster: Roster;
@@ -28,14 +29,15 @@ export class Browsing {
   firstBlockIDStart: string;
   abort: boolean;
   flash: Flash;
-  constructor(roster: Roster, flash: Flash) {
+  constructor(roster: Roster, flash: Flash, totalBlock:TotalBlock) {
     this.roster = roster;
 
     this.pageSize = 15;
     this.numPages = 15;
 
     this.nextIDB = "";
-    this.totalBlocks = 36650;
+    this.totalBlocks = totalBlock.totalBlock;
+    console.log("ToAL: "+this.totalBlocks)
     this.seenBlocks = 0;
 
     this.contractID = "";

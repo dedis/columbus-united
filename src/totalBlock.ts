@@ -12,10 +12,19 @@ export class TotalBlock {
   roster: Roster;
   lastBlockSeenID: string;
   lastBlock:SkipBlock;
+  totalBlock:number;
   constructor(roster: Roster) {
     this.roster = roster;
     this.lastBlockSeenID =
       "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
+      let observableLastBlock = this.getLatestBlock(this.lastBlockSeenID, this.roster)
+      observableLastBlock.subscribe({
+        next: (skipBlock) => {
+          this.lastBlockSeenID = skipBlock.hash.toString("hex");
+          this.lastBlock = skipBlock;
+          this.totalBlock = skipBlock.index
+        },
+      })
   }
 
   getTotalBlock():number {
