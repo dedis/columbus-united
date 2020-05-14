@@ -5,6 +5,7 @@ import * as d3 from "d3";
 import { Observable } from "rxjs";
 
 import { Browsing } from "./browsing";
+import { Flash } from "./flash";
 
 export class DetailBlock {
   skipbObservable: Observable<SkipBlock>;
@@ -19,9 +20,12 @@ export class DetailBlock {
   updateObserver: Observable<SkipBlock[]>;
   colorBlock: string;
   colorClickedBlock: string;
+  loadContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+  flash: Flash;
   constructor(
     observerSkip: Observable<SkipBlock>,
     subjectInstru: Browsing,
+    flash: Flash,
     updateObserver: Observable<SkipBlock[]>
   ) {
     let self = this;
@@ -52,6 +56,8 @@ export class DetailBlock {
     });
     this.colorBlock = "#1b6f8a"; // must be set differently when we will choose the colors
     this.colorClickedBlock = "#a6f8b2"; // must be set differently when we will choose the colors
+    this.flash = flash;
+    this.loadContainer = undefined;
   }
 
   private listTransaction(block: SkipBlock) {
@@ -123,6 +129,7 @@ export class DetailBlock {
         textInstruction
           .append("p")
           .text(`Instance ID: ${instruction.instanceID.toString("hex")}`);
+        // tslint:disable-next-line
         args.forEach((arg, i) => {
           textInstruction
             .append("button")
@@ -140,6 +147,7 @@ export class DetailBlock {
           .attr("class", "oneDetailButton")
           .attr("id", "buttonBrowse")
           .text(`Search for all instance of this ID in the blockchain`)
+          // tslint:disable-next-line
           .on("click", function () {
             self.createProgressBar();
             const subjects = self.browsing.getInstructionSubject(instruction);
@@ -147,9 +155,15 @@ export class DetailBlock {
               next: self.printDataBrowsing.bind(self),
             });
             subjects[1].subscribe({
-              next: (i) => {
-                self.updateProgressBar(i);
-              },
+              next: ([percentage, seenBlock, totalBlock, nbInstanceFound]) => {
+                self.updateProgressBar(
+                  percentage,
+                  seenBlock,
+                  totalBlock,
+                  nbInstanceFound
+                );
+              }, // tslint:disable-next-line
+              complete: self.doneLoading,
             });
           });
       });
@@ -222,6 +236,7 @@ export class DetailBlock {
   }
   private addClickListener(acc: NodeListOf<Element>) {
     for (const button of acc) {
+      // tslint:disable-next-line
       button.addEventListener("click", function () {
         this.classList.toggle("active");
         const panel = this.nextElementSibling;
@@ -295,7 +310,7 @@ export class DetailBlock {
             `Delete with instanceID: ${instruction.instanceID.toString(
               "hex"
             )}, and Hash is: ${instruction.hash().toString("hex")}`
-          );
+          ); // tslint:disable-next-line
         const textContainer = this.browseContainer
           .append("div")
           .attr("class", "oneDetailText");
@@ -313,6 +328,7 @@ export class DetailBlock {
         .append("div")
         .attr("class", "oneDetailText");
       argsList = argsDetails.append("p");
+      // tslint:disable-next-line
       args.forEach((arg, i) => {
         argsList
           .append("button")
@@ -367,30 +383,44 @@ export class DetailBlock {
   }
 
   private createProgressBar() {
-    if (
-      this.progressBarContainer === undefined &&
-      this.progressBar === undefined
-    ) {
-      this.progressBarContainer = d3
-        .select("body")
-        .append("div")
-        .attr("id", "progressBarContainer");
-      this.progressBar = this.progressBarContainer
-        .append("div")
-        .attr("id", "progressBar");
-      this.textBar = this.progressBar
-        .append("div")
-        .attr("id", "textBar")
-        .text("0%");
-    } else {
-      this.textBar.text("0%");
-      const progressBarElement = document.getElementById("progressBar");
-      progressBarElement.style.width = 0 + "%";
-    }
+    const self = this;
+    this.loadContainer = d3
+      .select("body")
+      .append("div")
+      .attr("class", "loadContainer")
+      .text("CA LOAD");
+    this.progressBarContainer = this.loadContainer
+      .append("div")
+      .attr("id", "progressBarContainer");
+    this.progressBar = this.progressBarContainer
+      .append("div")
+      .attr("id", "progressBar");
+    this.textBar = this.progressBar
+      .append("div")
+      .attr("id", "textBar")
+      .text("0%");
+    this.loadContainer.append("div").attr("class", "loader");
+    this.loadContainer
+      .append("button")
+      .attr("id", "cancelButton")
+      .text("ANNULATIOOOOOOOOOOOOOOOOOOOOOON")
+      // tslint:disable-next-line
+      .on("click", function () {
+        self.browsing.abort = true;
+      });
   }
-
-  private updateProgressBar(i: number) {
-    this.textBar.text(`${i}%`);
-    document.getElementById("progressBar").style.width = i + "%";
+  private updateProgressBar(
+    percentage: number,
+    seenBlocks: number,
+    totalBlocks: number,
+    nbInstanceFound: number
+  ) {
+    this.textBar.text(
+      `${percentage}%  --  Seen blocks: ${seenBlocks}/ Total blocks: ${totalBlocks}. Nombre of instances found: ${nbInstanceFound}`
+    );
+    document.getElementById("progressBar").style.width = percentage + "%";
+  }
+  private doneLoading() {
+    d3.select(".loadContainer").remove();
   }
 }

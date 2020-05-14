@@ -10,6 +10,8 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable, Subject, Subscriber } from "rxjs";
 
+import { Flash } from "./flash";
+
 export class BlocksDiagram {
   // SVG properties
   svgWidth: number;
@@ -40,7 +42,9 @@ export class BlocksDiagram {
   // Blocks observation
   subscriberList: Array<Subscriber<SkipBlock>>;
   updateObserver = new Subject<SkipBlock[]>();
-  constructor(roster: Roster) {
+
+  flash: Flash;
+  constructor(roster: Roster, flash: Flash) {
     // SVG properties
     this.svgWidth = window.innerWidth;
     this.svgHeight = 400;
@@ -52,7 +56,7 @@ export class BlocksDiagram {
     this.blockHeight = 300;
 
     // Colors
-    this.randomBlocksColor = true;
+    this.randomBlocksColor = false;
     this.textColor = "black";
     this.blockColor = "#4772D8";
 
@@ -65,6 +69,7 @@ export class BlocksDiagram {
 
     // Blocks observation
     this.subscriberList = [];
+    this.flash = flash;
     // Blocks navigation properties
     let indexLastBlockRight = this.initialBlockIndex;
     let hashLastBlockRight = "";
@@ -112,16 +117,15 @@ export class BlocksDiagram {
     this.subjectBrowse.subscribe({
       // i is the page number
       complete: () => {
-        console.error("End of blockchain");
-        console.error("closed");
+        this.flash.display(Flash.flashType.INFO, "End of the blockchain");
       },
       error: (err: any) => {
-        console.error("error: ", err);
         if (err === 1) {
-          console.error("Browse recall: " + 1);
           // To reset the websocket, create a new handler for the next function
           // (of getnextblock)
           this.ws = undefined;
+        } else {
+          this.flash.display(Flash.flashType.ERROR, `Error: ${err}`);
         }
       },
       next: ([i, skipBlocks]) => {
@@ -270,7 +274,6 @@ export class BlocksDiagram {
         self.subscriberList.forEach((sub) => {
           sub.next(block);
         });
-
       });
   }
 
@@ -316,7 +319,10 @@ export class BlocksDiagram {
     try {
       bid = this.hex2Bytes(nextBlockID);
     } catch (error) {
-      console.error("failed to parse the block ID: ", error);
+      this.flash.display(
+        Flash.flashType.ERROR,
+        `failed to parse the block ID: ${error}`
+      );
       return;
     }
 
@@ -327,7 +333,10 @@ export class BlocksDiagram {
         ByzCoinRPC.serviceName
       );
     } catch (error) {
-      console.error("error creating conn: ", error);
+      this.flash.display(
+        Flash.flashType.ERROR,
+        `error creating conn: ${error}`
+      );
       return;
     }
 
@@ -355,16 +364,17 @@ export class BlocksDiagram {
         .subscribe({
           // ws callback "onMessage":
           complete: () => {
-            console.error("closed");
+            this.flash.display(Flash.flashType.ERROR, "closed");
           },
           error: (err: Error) => {
-            console.error("error: ", err);
+            this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
             this.ws = undefined;
           },
           next: ([data, ws]) => {
             // tslint:disable-next-line
             if (data.errorcode != 0) {
-              console.error(
+              this.flash.display(
+                Flash.flashType.ERROR,
                 `got an error with code ${data.errorcode} : ${data.errortext}`
               );
               return 1;
