@@ -91,7 +91,7 @@ export class DetailBlock {
         .text(`Transaction ${i} ${accepted}`);
       const textContainer = this.transactionContainer
         .append("div")
-        .attr("class", "oneDetailText");
+        .attr("class", "oneDetailTextOpen");
 
       transaction.clientTransaction.instructions.forEach((instruction, j) => {
         let args = null;
@@ -124,7 +124,7 @@ export class DetailBlock {
         }
         const textInstruction = textContainer
           .append("div")
-          .attr("class", "oneDetailText");
+          .attr("class", "oneDetailTextOpen");
         textInstruction
           .append("p")
           .text(`Hash:${instruction.hash().toString("hex")}`);
@@ -140,7 +140,7 @@ export class DetailBlock {
             .text(`${i}) ${arg.name}`);
           const argsValue = textInstruction
             .append("div")
-            .attr("class", "oneDetailText");
+            .attr("class", "oneDetailTextClose");
           argsValue.append("p").text(`${arg.value}`);
         });
 
@@ -192,7 +192,7 @@ export class DetailBlock {
       .text(`Block details`);
     const detailsBlock = this.transactionContainer
       .append("div")
-      .attr("class", "oneDetailText");
+      .attr("class", "oneDetailTextClose");
     detailsBlock
       .append("button")
       .attr("class", "oneDetailButton")
@@ -200,7 +200,7 @@ export class DetailBlock {
       .text(`Verifiers: ${block.verifiers.length}`);
     const verifiersContainer = detailsBlock
       .append("div")
-      .attr("class", "oneDetailText");
+      .attr("class", "oneDetailTextClose");
 
     block.verifiers.forEach((uid, j) => {
       verifiersContainer
@@ -215,7 +215,7 @@ export class DetailBlock {
       .text(`Backlinks: ${block.backlinks.length}`);
     const backLinksContainer = detailsBlock
       .append("div")
-      .attr("class", "oneDetailText");
+      .attr("class", "oneDetailTextClose");
     block.backlinks.forEach((value, j) => {
       backLinksContainer
         .append("p")
@@ -229,7 +229,7 @@ export class DetailBlock {
       .text(`ForwardLinks:${block.forwardLinks.length}`);
     const forwardsContainer = detailsBlock
       .append("div")
-      .attr("class", "oneDetailText");
+      .attr("class", "oneDetailTextClose");
     block.forwardLinks.forEach((fl, j) => {
       forwardsContainer
         .append("p")
@@ -242,15 +242,15 @@ export class DetailBlock {
     });
 
     const acc1 = document.querySelectorAll(
-      "[id=buttonTransaction], [id=buttonInstruction], [id=buttonArgs]"
+      "[id=buttonTransaction], [id=buttonInstruction]"
     );
     const acc2 = document.querySelectorAll(
-      "[id=buttonDetailBlock], [id=buttonVerifiers], [id=buttonBacklinks], [id=buttonForwardLinks]"
+      "[id=buttonArgs], [id=buttonDetailBlock], [id=buttonVerifiers], [id=buttonBacklinks], [id=buttonForwardLinks]"
     );
-    this.addClickListener(acc1);
-    this.addClickListener(acc2);
+    this.addClickListenerOpen(acc1);
+    this.addClickListenerClose(acc2);
   }
-  private addClickListener(acc: NodeListOf<Element>) {
+  private addClickListenerOpen(acc: NodeListOf<Element>) {
     for (const button of acc) {
       // tslint:disable-next-line
       button.classList.toggle("active");
@@ -260,6 +260,21 @@ export class DetailBlock {
           panel.style.display = "none";
         } else {
           this.classList.toggle("active");
+          panel.style.display = "block";
+        }
+      });
+    }
+  }
+
+  private addClickListenerClose(acc: NodeListOf<Element>) {
+    for (const button of acc) {
+      // tslint:disable-next-line
+      button.addEventListener("click", function () {
+        button.classList.toggle("active");
+        const panel = this.nextElementSibling;
+        if (panel.style.display === "block") {
+          panel.style.display = "none";
+        } else {
           panel.style.display = "block";
         }
       });
@@ -294,7 +309,7 @@ export class DetailBlock {
           );
         textContainer = this.browseContainer
           .append("div")
-          .attr("class", "oneDetailText");
+          .attr("class", "oneDetailTextCloseClose");
         textContainer.append("p").text(`In the block: ${tuple[0][i]}`);
         textContainer
           .append("p")
@@ -312,7 +327,7 @@ export class DetailBlock {
           );
         textContainer = this.browseContainer
           .append("div")
-          .attr("class", "oneDetailText");
+          .attr("class", "oneDetailTextClose");
         textContainer.append("p").text(`In the block: ${tuple[0][i]}`);
         textContainer
           .append("p")
@@ -330,7 +345,7 @@ export class DetailBlock {
           ); // tslint:disable-next-line
         const textContainer = this.browseContainer
           .append("div")
-          .attr("class", "oneDetailText");
+          .attr("class", "oneDetailTextClose");
         textContainer
           .append("p")
           .text(`ContractID: ${instruction.delete.contractID}`);
@@ -343,7 +358,7 @@ export class DetailBlock {
         .text(`args are:`);
       const argsDetails = textContainer
         .append("div")
-        .attr("class", "oneDetailText");
+        .attr("class", "oneDetailTextClose");
       argsList = argsDetails.append("p");
       // tslint:disable-next-line
       args.forEach((arg, i) => {
@@ -352,7 +367,7 @@ export class DetailBlock {
           .attr("class", "oneDetailButton")
           .attr("id", "buttonInstanceArg")
           .text(`${i}) ${arg.name}`);
-        const argsValue = argsList.append("div").attr("class", "oneDetailText");
+        const argsValue = argsList.append("div").attr("class", "oneDetailTextClose");
         argsValue.append("p").text(`${arg.value}`);
       });
       if (tuple[0][i] === this.clickedBlock.hash.toString("hex")) {

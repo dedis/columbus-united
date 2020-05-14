@@ -102,7 +102,7 @@
       background-color: #eee;
   }
   
-  .oneDetailText {
+  .oneDetailTextOpen {
       font-size: 15px;
       outline: none;
       text-align: left;
@@ -111,6 +111,19 @@
       color: #444;
       padding: 0 18px;
       display: block;
+      background-color: #ccc;
+      overflow: hidden;
+  }
+  
+  .oneDetailTextClose {
+      font-size: 15px;
+      outline: none;
+      text-align: left;
+      border: none;
+      width: 100%;
+      color: #444;
+      padding: 0 18px;
+      display: none;
       background-color: #ccc;
       overflow: hidden;
   }
