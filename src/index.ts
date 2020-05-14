@@ -15,8 +15,9 @@ export function sayHi() {
   const blocksDiagram = new BlocksDiagram(roster);
   blocksDiagram.loadInitialBlocks();
 
-  const myobserver = blocksDiagram.getBlockObserver();
-  const mydetailBlock = new DetailBlock(myobserver, new Browsing(roster));
+  const blockObserver = blocksDiagram.getBlockObserver();
+  const updateObserver = blocksDiagram.isUpdatedObserver()
+  const mydetailBlock = new DetailBlock(blockObserver, new Browsing(roster), updateObserver);
 }
 
 const rosterStr = getRosterStr();

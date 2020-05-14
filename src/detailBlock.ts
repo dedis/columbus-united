@@ -15,8 +15,14 @@ export class DetailBlock {
   progressBarContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   progressBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   textBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-  
-  constructor(observerSkip: Observable<SkipBlock>, subjectInstru: Browsing) {
+  hashHighligh: string[];
+  updateObserver: Observable<SkipBlock[]>;
+  constructor(
+    observerSkip: Observable<SkipBlock>,
+    subjectInstru: Browsing,
+    updateObserver: Observable<SkipBlock[]>
+  ) {
+    let self = this;
     this.transactionContainer = d3
       .select("body")
       .append("div")
@@ -35,10 +41,16 @@ export class DetailBlock {
     this.progressBarContainer = undefined;
     this.progressBar = undefined;
     this.textBar = undefined;
+    this.hashHighligh = [];
+    this.updateObserver = updateObserver;
+    this.updateObserver.subscribe({
+      next: (value) => {
+        self.highlightBlocks(this.hashHighligh);
+      },
+    });
   }
 
   private listTransaction(block: SkipBlock) {
-    this.clickedBlock = block;
     const self = this;
     this.transactionContainer.text(
       `Block ${block.index}, Hash: ${block.hash.toString("hex")}`
@@ -207,7 +219,7 @@ export class DetailBlock {
   }
 
   private printDataBrowsing(tuple: [string[], Instruction[]]) {
-    let self = this;
+    this.removeHighlighBlocks(this.hashHighligh);
     this.browseContainer.text(
       `Summary of the instance: ${tuple[1][0].instanceID.toString("hex")}`
     );
@@ -226,7 +238,7 @@ export class DetailBlock {
         button = this.browseContainer
           .append("button")
           .attr("class", "oneDetailButton")
-          .attr("id", "buttonInstance")
+          .attr("id", `buttonInstance${i}`)
           .text(
             `Spawn with instanceID: ${instruction.instanceID.toString(
               "hex"
@@ -244,7 +256,7 @@ export class DetailBlock {
         button = this.browseContainer
           .append("button")
           .attr("class", "oneDetailButton")
-          .attr("id", "buttonInstance")
+          .attr("id", `buttonInstance${i}`)
           .text(
             `Invoke with instanceID: ${instruction.instanceID.toString(
               "hex"
@@ -262,7 +274,7 @@ export class DetailBlock {
         button = this.browseContainer
           .append("button")
           .attr("class", "oneDetailButton")
-          .attr("id", "buttonInstance")
+          .attr("id", `buttonInstance${i}`)
           .text(
             `Delete with instanceID: ${instruction.instanceID.toString(
               "hex"
@@ -275,16 +287,6 @@ export class DetailBlock {
           .append("p")
           .text(`ContractID: ${instruction.delete.contractID}`);
       }
-      let blockSVG = d3.select(`[id = "${tuple[0][i]}"]`);
-      if (!blockSVG.empty()) {
-        blockSVG.attr("stroke", "red").attr("stroke-width", 5);
-      }
-      button.on("mouseover", function () {
-        blockSVG.attr("stroke", "green").attr("stroke-width", 15);
-      });
-      button.on("mouseout", function () {
-        blockSVG.attr("stroke", "red").attr("stroke-width", 5);
-      });
 
       textContainer
         .append("button")
@@ -309,9 +311,43 @@ export class DetailBlock {
       }
     }
     const acc1 = document.querySelectorAll(
-      "[id=buttonInstance], [id=buttonInstanceArgs], [id=buttonInstanceArg]"
+      "[id^='buttonInstance'], [id=buttonInstanceArgs], [id=buttonInstanceArg]"
     );
     this.addClickListener(acc1);
+    this.highlightBlocks(tuple[0]);
+    this.hashHighligh = tuple[0];
+  }
+
+  private highlightBlocks(hashs: string[]) {
+    for (let i = 0; i < hashs.length; i++) {
+      let blockSVG = d3.select(`[id = "${hashs[i]}"]`);
+      let button = d3.select(`#buttonInstance${i}`);
+      if (!blockSVG.empty()) {
+        blockSVG.attr("stroke", "red").attr("stroke-width", 5);
+      }
+      button.on("mouseover", function () {
+        blockSVG.attr("stroke", "green").attr("stroke-width", 15);
+      });
+      button.on("mouseout", function () {
+        blockSVG.attr("stroke", "red").attr("stroke-width", 5);
+      });
+    }
+  }
+
+  private removeHighlighBlocks(hashs: string[]) {
+    for (let i = 0; i < hashs.length; i++) {
+      let blockSVG = d3.select(`[id = "${hashs[i]}"]`);
+      let button = d3.select(`#buttonInstance${i}`);
+      if (!blockSVG.empty()) {
+        blockSVG.attr("stroke", "red").attr("stroke-width", 0);
+      }
+      button.on("mouseover", function () {
+        blockSVG.attr("stroke", "green").attr("stroke-width", 0);
+      });
+      button.on("mouseout", function () {
+        blockSVG.attr("stroke", "red").attr("stroke-width", 0);
+      });
+    }
   }
 
   private createProgressBar() {

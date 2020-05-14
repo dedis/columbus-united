@@ -39,7 +39,7 @@ export class BlocksDiagram {
 
   // Blocks observation
   subscriberList: Array<Subscriber<SkipBlock>>;
-
+  updateObserver = new Subject<SkipBlock[]>();
   constructor(roster: Roster) {
     // SVG properties
     this.svgWidth = window.innerWidth;
@@ -65,7 +65,6 @@ export class BlocksDiagram {
 
     // Blocks observation
     this.subscriberList = [];
-
     // Blocks navigation properties
     let indexLastBlockRight = this.initialBlockIndex;
     let hashLastBlockRight = "";
@@ -180,6 +179,10 @@ export class BlocksDiagram {
     });
   }
 
+  isUpdatedObserver():Subject<SkipBlock[]>{
+    return this.updateObserver
+  }
+
   /**
    * Append the given blocks to the blockchain.
    * @param listBlocks list of blocks to append
@@ -235,6 +238,8 @@ export class BlocksDiagram {
         this.textColor
       );
     }
+    this.updateObserver.next(listBlocks)
+    //TODO next?
   }
 
   /**
@@ -267,10 +272,6 @@ export class BlocksDiagram {
         });
 
       });
-  }
-
-  listTransaction() {
-    console.log("salut?")
   }
 
   /**
