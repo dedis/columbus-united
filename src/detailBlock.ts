@@ -81,6 +81,7 @@ export class DetailBlock {
     }
     const self = this;
     this.transactionContainer
+      .attr("id", "transactionContainer")
       .text("")
       .append("p")
       .text(
@@ -317,6 +318,7 @@ export class DetailBlock {
   private printDataBrowsing(tuple: [string[], Instruction[]]) {
     this.removeHighlighBlocks(this.hashHighligh);
     this.browseContainer
+      .attr("id", "browseContainer")
       .text("")
       .append("p")
       .text(
