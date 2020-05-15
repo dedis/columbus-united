@@ -80,7 +80,7 @@ export class DetailBlock {
       );
     }
     const self = this;
-    this.transactionContainer.append("p").text(
+    this.transactionContainer.text("").append("p").text( // empty text must remains in order to redraw the transactionContainer at each click
       `Block ${block.index}, Hash: ${block.hash.toString("hex")}`
     );
     const body = DataBody.decode(block.payload);
