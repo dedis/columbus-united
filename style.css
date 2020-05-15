@@ -1,4 +1,4 @@
-<<<<<<< HEAD .container {
+.container {
     max-height: 1000;
     width: 1500;
     overflow-y: scroll;
@@ -97,27 +97,62 @@
     font-size: 15px;
 }
 
-.oneDetailButton {
-    background-color: rgb(199, 199, 199);
-    cursor: pointer;
-    width: 100%;
-    height: 50px;
-    border: 1px solid rgb(133, 133, 133);
-    text-align: left;
-    outline: none;
-    transition: 0.4s;
-}
-
-.oneDetailButton p {
-    padding-left: 18px;
-}
-
 .active {
     background-color: rgb(160, 160, 160);
     ;
 }
 
-.oneDetailButton:hover {
+.oneDetailButtonTransaction {
+    background-color: rgb(199, 199, 199);
+    cursor: pointer;
+    width: 100%;
+    height: 50px;
+    text-align: left;
+    outline: none;
+    transition: 0.4s;
+}
+
+.oneDetailButtonTransaction p {
+    padding-left: 18px;
+}
+
+.oneDetailButtonTransaction:hover {
+    background-color: rgb(133, 133, 133);
+}
+
+.oneDetailButtonInstruction {
+    background-color: rgb(199, 199, 199);
+    cursor: pointer;
+    width: 100%;
+    height: 50px;
+    text-align: left;
+    outline: none;
+    transition: 0.4s;
+}
+
+.oneDetailButtonInstruction p {
+    padding-left: 30px;
+}
+
+.oneDetailButtonInstruction:hover {
+    background-color: rgb(133, 133, 133);
+}
+
+.oneDetailButtonArgs {
+    background-color: rgb(199, 199, 199);
+    cursor: pointer;
+    width: 100%;
+    height: 50px;
+    text-align: left;
+    outline: none;
+    transition: 0.4s;
+}
+
+.oneDetailButtonArgs p {
+    padding-left: 45px;
+}
+
+.oneDetailButtonArgs:hover {
     background-color: rgb(133, 133, 133);
 }
 
@@ -131,9 +166,7 @@
     overflow: hidden;
 }
 
-.oneDetailTextOpen p {
-    padding-left: 18px;
-}
+.oneDetailTextOpen p {}
 
 .oneDetailTextClose {
     outline: none;
@@ -145,9 +178,7 @@
     overflow: hidden;
 }
 
-.oneDetailTextClose p {
-    padding-left: 18px;
-}
+.oneDetailTextClose p {}
 
 .alertContainer {
     position: absolute;
@@ -229,4 +260,66 @@
     transform: translateX(-50%);
     top: 10%;
     content: url(https://avatars2.githubusercontent.com/u/3638331?s=200&v=4)
+}
+
+
+/*
+List of classes for the new transaction container
+*/
+
+.blockDetailcontainer {
+    max-height: 1000;
+    width: 1500;
+    overflow-y: scroll;
+    border: 1px solid rgb(133, 133, 133);
+    background-color: rgb(199, 199, 199);
+}
+
+.blockDetailcontainer p {
+    color: black;
+    font-size: 15px;
+}
+
+.detailTransactionButton {
+    background-color: rgb(199, 199, 199);
+    cursor: pointer;
+    width: 100%;
+    height: 50px;
+    border-top: 2px dashed rgb(133, 133, 133);
+    border-bottom: 2px dotted rgb(133, 133, 133);
+    border-left: none;
+    border-right: none;
+    text-align: left;
+    outline: none;
+    transition: 0.4s;
+}
+
+.detailTransactionButton p {
+    padding-left: 15px;
+}
+
+.detailTransactionButton:hover {
+    background-color: rgb(133, 133, 133);
+}
+
+.detailTransactionContainer {
+    text-align: left;
+    border: none;
+    display: block;
+    background-color: rgb(199, 199, 199);
+    overflow: hidden;
+    padding-left: 30px;
+}
+
+.detailInstructionButton {
+    background-color: rgb(199, 199, 199);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    border: none;
+    transition: 0.4s;
+}
+
+.detailInstructionButton:hover {
+    background-color: rgb(133, 133, 133);
 }
