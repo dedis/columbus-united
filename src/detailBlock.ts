@@ -35,7 +35,7 @@ export class DetailBlock {
     this.transactionContainer = d3
       .select("body")
       .append("div")
-      .attr("class", "blocksDetailcontainer");
+      .attr("class", "blockDetailcontainer");
     this.browseContainer = d3
       .select("body")
       .append("div")
@@ -105,7 +105,7 @@ export class DetailBlock {
       buttonDetail1
         .append("p")
         .text(
-          `Transaction ${i} ${accepted}, #instructions: ${totalInstruction}`
+          `\u22B3 Transaction ${i} ${accepted}, #instructions: ${totalInstruction}`
         );
       const textContainer = this.transactionContainer
         .append("div")
@@ -148,7 +148,7 @@ export class DetailBlock {
         }
         const textInstruction = textContainer
           .append("div")
-          .attr("class", "oneDetailTextOpen");
+          .attr("class", "detailInstructionContainer");
         textInstruction
           .append("p")
           .text(`Hash:${instruction.hash().toString("hex")}`);
@@ -159,22 +159,22 @@ export class DetailBlock {
         args.forEach((arg, i) => {
           const buttonDetailA = textInstruction
             .append("button")
-            .attr("class", "oneDetailButtonArgs")
+            .attr("class", "detailArgsButton")
             .attr("id", "buttonArgs");
           buttonDetailA.append("p").text(`${i}) ${arg.name}`);
           const argsValue = textInstruction
             .append("div")
-            .attr("class", "oneDetailTextClose");
+            .attr("class", "detailArgsContainer");
           argsValue.append("p").text(`${arg.value}`);
         });
 
         const buttonDetailS = textInstruction
           .append("button")
-          .attr("class", "oneDetailButtonArgs")
+          .attr("class", "startBrowseButton")
           .attr("id", "buttonBrowse");
         buttonDetailS
           .append("p")
-          .text(`Search for all instance of this ID in the blockchain`)
+          .text(`Search for all instance with the ID: "${instruction.instanceID.toString("hex")}" in the blockchain`)
           // tslint:disable-next-line
           .on("click", function () {
             const conf = confirm(
@@ -213,35 +213,35 @@ export class DetailBlock {
 
     let buttonDetail = this.transactionContainer
       .append("button")
-      .attr("class", "oneDetailButtonTransaction")
+      .attr("class", "detailTransactionButton")
       .attr("id", "buttonDetailBlock");
     buttonDetail.append("p").text(`Block details`);
     const detailsBlock = this.transactionContainer
       .append("div")
-      .attr("class", "oneDetailTextClose");
+      .attr("class", "detailTransactionContainer");
     buttonDetail = detailsBlock
       .append("button")
-      .attr("class", "oneDetailButtonInstruction")
+      .attr("class", "detailsBlockButton")
       .attr("id", "buttonVerifiers");
-    buttonDetail.append("p").text(`Verifiers: ${block.verifiers.length}`);
+    buttonDetail.append("p").text(`\u2022 Verifiers: ${block.verifiers.length}`);
     const verifiersContainer = detailsBlock
       .append("div")
-      .attr("class", "oneDetailTextClose");
+      .attr("class", "detailsBlockContainer");
 
     block.verifiers.forEach((uid, j) => {
       verifiersContainer
         .append("p")
-        .text(`Verifier: ${j} , ID: ${uid.toString("hex")}`);
+        .text(` Verifier: ${j} , ID: ${uid.toString("hex")}`);
     });
 
     buttonDetail = detailsBlock
       .append("button")
-      .attr("class", "oneDetailButtonInstruction")
+      .attr("class", "detailsBlockButton")
       .attr("id", "buttonBacklinks");
-    buttonDetail.append("p").text(`Backlinks: ${block.backlinks.length}`);
+    buttonDetail.append("p").text(`\u2022 Backlinks: ${block.backlinks.length}`);
     const backLinksContainer = detailsBlock
       .append("div")
-      .attr("class", "oneDetailTextClose");
+      .attr("class", "detailsBlockContainer");
     block.backlinks.forEach((value, j) => {
       backLinksContainer
         .append("p")
@@ -250,12 +250,12 @@ export class DetailBlock {
 
     buttonDetail = detailsBlock
       .append("button")
-      .attr("class", "oneDetailButtonInstruction")
+      .attr("class", "detailsBlockButton")
       .attr("id", "buttonForwardLinks");
-    buttonDetail.append("p").text(`ForwardLinks:${block.forwardLinks.length}`);
+    buttonDetail.append("p").text(`\u2022 ForwardLinks:${block.forwardLinks.length}`);
     const forwardsContainer = detailsBlock
       .append("div")
-      .attr("class", "oneDetailTextClose");
+      .attr("class", "detailsBlockContainer");
     block.forwardLinks.forEach((fl, j) => {
       forwardsContainer
         .append("p")
