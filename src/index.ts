@@ -6,6 +6,7 @@ import { DetailBlock } from "./detailBlock";
 import { Flash } from "./flash";
 
 import { getRosterStr } from "./roster";
+import { TotalBlock } from "./totalBlock";
 
 export function sayHi() {
   const roster = Roster.fromTOML(rosterStr);
@@ -16,7 +17,8 @@ export function sayHi() {
   }
   const blocksDiagram = new BlocksDiagram(roster, flash);
   blocksDiagram.loadInitialBlocks();
-  const browse = new Browsing(roster, flash);
+  const totalBlock = new TotalBlock(roster);
+  const browse = new Browsing(roster, flash, totalBlock);
   const blockObserver = blocksDiagram.getBlockObserver();
   const updateObserver = blocksDiagram.isUpdatedObserver();
   const mydetailBlock = new DetailBlock(
