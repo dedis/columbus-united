@@ -10,9 +10,7 @@ import { Flash } from "./flash";
 
 export class DetailBlock {
   skipbObservable: Observable<SkipBlock>;
-  transactionContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   browsing: Browsing;
-  browseContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   clickedBlock: SkipBlock;
   progressBarContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   progressBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
@@ -32,14 +30,6 @@ export class DetailBlock {
     updateObserver: Observable<SkipBlock[]>
   ) {
     const self = this;
-    this.transactionContainer = d3
-      .select("body")
-      .append("div")
-      .attr("class", "blockDetailcontainer");
-    this.browseContainer = d3
-      .select("body")
-      .append("div")
-      .attr("class", "blockDetailcontainer");
     this.skipbObservable = observerSkip;
     this.skipbObservable.subscribe({
       next: this.listTransaction.bind(this),
@@ -79,8 +69,9 @@ export class DetailBlock {
         this.colorClickedBlock
       );
     }
+    let transactionContainer = d3.select(".blockDetailcontainer")
     const self = this;
-    this.transactionContainer
+    transactionContainer
       .attr("id", "transactionContainer")
       .text("")
       .append("p")
@@ -93,7 +84,7 @@ export class DetailBlock {
       const accepted: string = transaction.accepted
         ? "Accepted"
         : "Not accepted";
-      const buttonDetail1 = this.transactionContainer
+      const buttonDetail1 = transactionContainer
         .append("button")
         .attr("class", "detailTransactionButton")
         .attr("id", "buttonTransaction");
@@ -106,7 +97,7 @@ export class DetailBlock {
         .text(
           `\u22B3 Transaction ${i} ${accepted}, #instructions: ${totalInstruction}`
         );
-      const textContainer = this.transactionContainer
+      const textContainer = transactionContainer
         .append("div")
         .attr("class", "detailTransactionContainer");
 
@@ -214,12 +205,12 @@ export class DetailBlock {
       });
     });
 
-    let buttonDetail = this.transactionContainer
+    let buttonDetail = transactionContainer
       .append("button")
       .attr("class", "detailTransactionButton")
       .attr("id", "buttonDetailBlock");
     buttonDetail.append("p").text(`Block details`);
-    const detailsBlock = this.transactionContainer
+    const detailsBlock = transactionContainer
       .append("div")
       .attr("class", "detailTransactionContainer");
     buttonDetail = detailsBlock
@@ -316,8 +307,11 @@ export class DetailBlock {
   }
 
   private printDataBrowsing(tuple: [string[], Instruction[]]) {
+    let browseContainer = d3.select(".container");
+     browseContainer.attr("style","opacity:100%")
+
     this.removeHighlighBlocks(this.hashHighligh);
-    this.browseContainer
+    browseContainer
       .attr("id", "browseContainer")
       .text("")
       .append("p")
@@ -336,7 +330,7 @@ export class DetailBlock {
       > = null;
       let textContainer = null;
       if (instruction.type === Instruction.typeSpawn) {
-        button = this.browseContainer
+        button = browseContainer
           .append("button")
           .attr("class", "detailInstanceButton")
           .attr("id", `buttonInstance${i}`);
@@ -347,7 +341,7 @@ export class DetailBlock {
               .hash()
               .toString("hex")}`
           );
-        textContainer = this.browseContainer
+        textContainer = browseContainer
           .append("div")
           .attr("class", "detailInstanceContainer");
         textContainer.append("p").text(`In the block: ${tuple[0][i]}`);
@@ -356,7 +350,7 @@ export class DetailBlock {
           .text(`ContractID: ${instruction.spawn.contractID}`);
         args = instruction.spawn.args;
       } else if (instruction.type === Instruction.typeInvoke) {
-        button = this.browseContainer
+        button = browseContainer
           .append("button")
           .attr("class", "detailInstanceButton")
           .attr("id", `buttonInstance${i}`);
@@ -367,7 +361,7 @@ export class DetailBlock {
               .hash()
               .toString("hex")}`
           );
-        textContainer = this.browseContainer
+        textContainer = browseContainer
           .append("div")
           .attr("class", "detailInstanceContainer");
         textContainer.append("p").text(`In the block: ${tuple[0][i]}`);
@@ -376,7 +370,7 @@ export class DetailBlock {
           .text(`ContractID: ${instruction.invoke.contractID}`);
         args = instruction.invoke.args;
       } else if (instruction.type === Instruction.typeDelete) {
-        button = this.browseContainer
+        button = browseContainer
           .append("button")
           .attr("class", "detailInstanceButton")
           .attr("id", `buttonInstance${i}`);
@@ -387,7 +381,7 @@ export class DetailBlock {
               .hash()
               .toString("hex")}`
           ); // tslint:disable-next-line
-        const textContainer = this.browseContainer
+        const textContainer = browseContainer
           .append("div")
           .attr("class", "detailInstanceContainer");
         textContainer
