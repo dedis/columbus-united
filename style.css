@@ -84,102 +84,6 @@
     width: 100%;
 }
 
-.blocksDetailcontainer {
-    max-height: 1000;
-    width: 1500;
-    overflow-y: scroll;
-    border: 1px solid rgb(133, 133, 133);
-    background-color: rgb(199, 199, 199);
-}
-
-.blocksDetailcontainer p {
-    color: black;
-    font-size: 17px;
-}
-
-.active {
-    background-color: rgb(160, 160, 160);
-    ;
-}
-
-.oneDetailButtonTransaction {
-    background-color: rgb(199, 199, 199);
-    cursor: pointer;
-    width: 100%;
-    height: 50px;
-    text-align: left;
-    outline: none;
-    transition: 0.4s;
-}
-
-.oneDetailButtonTransaction p {
-    padding-left: 18px;
-}
-
-.oneDetailButtonTransaction:hover {
-    background-color: rgb(133, 133, 133);
-}
-
-.oneDetailButtonInstruction {
-    background-color: rgb(199, 199, 199);
-    cursor: pointer;
-    width: 100%;
-    height: 50px;
-    text-align: left;
-    outline: none;
-    transition: 0.4s;
-}
-
-.oneDetailButtonInstruction p {
-    padding-left: 30px;
-}
-
-.oneDetailButtonInstruction:hover {
-    background-color: rgb(133, 133, 133);
-}
-
-.oneDetailButtonArgs {
-    background-color: rgb(199, 199, 199);
-    cursor: pointer;
-    width: 100%;
-    height: 50px;
-    text-align: left;
-    outline: none;
-    transition: 0.4s;
-}
-
-.oneDetailButtonArgs p {
-    padding-left: 45px;
-}
-
-.oneDetailButtonArgs:hover {
-    background-color: rgb(133, 133, 133);
-}
-
-.oneDetailTextOpen {
-    outline: none;
-    text-align: left;
-    border: none;
-    width: 100%;
-    display: block;
-    background-color: rgb(199, 199, 199);
-    overflow: hidden;
-}
-
-.oneDetailTextOpen p {}
-
-.oneDetailTextClose {
-    outline: none;
-    text-align: left;
-    border: none;
-    width: 100%;
-    display: none;
-    background-color: rgb(199, 199, 199);
-    overflow: hidden;
-}
-
-.oneDetailTextClose p {}
-
 .alertContainer {
     position: absolute;
     top: 0%;
@@ -267,11 +171,16 @@
 List of classes for the new transaction container
 */
 
+.active {
+    background-color: rgb(160, 160, 160);
+}
+
 .blockDetailcontainer {
     max-height: 1000;
     width: 1500;
     overflow-y: scroll;
     background-color: rgb(199, 199, 199);
+    margin-bottom: 100px;
 }
 
 .blockDetailcontainer p {
@@ -289,7 +198,6 @@ List of classes for the new transaction container
     border-left: 2px dashed rgb(133, 133, 133);
     border-right: 2px dashed rgb(133, 133, 133);
     text-align: left;
-    outline: none;
     transition: 0.4s;
     margin-bottom: 1px;
 }
@@ -311,6 +219,10 @@ List of classes for the new transaction container
     display: block;
     background-color: rgb(199, 199, 199);
     overflow: hidden;
+}
+
+.detailTransactionContainer p {
+    font-size: 20px;
     padding-left: 30px;
 }
 
@@ -323,6 +235,10 @@ List of classes for the new transaction container
     transition: 0.4s;
 }
 
+.detailInstructionButton p {
+    padding-left: 30px;
+}
+
 .detailInstructionButton:hover {
     background-color: rgb(133, 133, 133);
 }
@@ -330,16 +246,14 @@ List of classes for the new transaction container
 .detailInstructionContainer {
     text-align: left;
     border: none;
-    width: 100%;
     display: block;
     background-color: rgb(199, 199, 199);
     overflow: hidden;
-    padding-left: 15px;
 }
 
 .detailInstructionContainer p {
     font-size: 20px;
-    padding-left: 15px;
+    padding-left: 45px;
 }
 
 .detailArgsButton {
@@ -351,6 +265,10 @@ List of classes for the new transaction container
     transition: 0.4s;
 }
 
+.detailArgsButton p {
+    padding-left: 45px;
+}
+
 .detailArgsButton:hover {
     background-color: rgb(133, 133, 133);
 }
@@ -358,12 +276,18 @@ List of classes for the new transaction container
 .detailArgsContainer {
     outline: none;
     text-align: left;
-    border: none;
+    border-top: none;
+    border-bottom: 2px dashed rgb(133, 133, 133);
+    border-left: none;
+    border-right: none;
     width: 100%;
     display: none;
     background-color: rgb(199, 199, 199);
     overflow: hidden;
-    padding-left: 15px;
+}
+
+.detailArgsContainer p {
+    padding-left: 60px;
 }
 
 .oneDetailTextClose p {
@@ -376,7 +300,10 @@ List of classes for the new transaction container
     cursor: pointer;
     width: 100%;
     text-align: center;
-    border: none;
+    border-top: 2px dashed rgb(133, 133, 133);
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
     transition: 0.4s;
 }
 
@@ -416,4 +343,111 @@ List of classes for the new transaction container
     color: black;
     font-size: 17px;
     padding-left: 15px;
+}
+
+
+/*
+CSS for the browsing result
+*/
+
+.detailInstanceButton {
+    background-color: rgb(199, 199, 199);
+    cursor: pointer;
+    width: 100%;
+    height: 50px;
+    border-top: 2px dashed rgb(133, 133, 133);
+    border-bottom: none;
+    border-left: 2px dashed rgb(133, 133, 133);
+    border-right: 2px dashed rgb(133, 133, 133);
+    text-align: left;
+    transition: 0.4s;
+    margin-bottom: 1px;
+}
+
+.detailInstanceButton p {
+    padding-left: 15px;
+}
+
+.detailInstanceButton:hover {
+    background-color: rgb(133, 133, 133);
+}
+
+.detailInstanceContainer {
+    text-align: left;
+    border-bottom: none;
+    border-top: none;
+    border-left: 2px dashed rgb(133, 133, 133);
+    border-right: 2px dashed rgb(133, 133, 133);
+    display: none;
+    background-color: rgb(199, 199, 199);
+    overflow: hidden;
+}
+
+.detailInstanceContainer p {
+    font-size: 20px;
+    padding-left: 30px;
+}
+
+.detailSeeArgsButton {
+    background-color: rgb(199, 199, 199);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    border: none;
+    transition: 0.4s;
+}
+
+.detailSeeArgsButton p {
+    padding-left: 30px;
+}
+
+.detailSeeArgsButton:hover {
+    background-color: rgb(133, 133, 133);
+}
+
+.detailSeeArgsContainer {
+    text-align: left;
+    border: none;
+    display: none;
+    background-color: rgb(199, 199, 199);
+    overflow: hidden;
+}
+
+.detailSeeArgsContainer p {
+    font-size: 20px;
+    padding-left: 45px;
+}
+
+.detailInstanceArgsButton {
+    background-color: rgb(199, 199, 199);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    border: none;
+    transition: 0.4s;
+}
+
+.detailInstanceArgsButton p {
+    padding-left: 45px;
+}
+
+.detailInstanceArgsButton:hover {
+    background-color: rgb(133, 133, 133);
+}
+
+.detailInstanceArgsContainer {
+    outline: none;
+    text-align: left;
+    border-top: none;
+    border-bottom: 2px dashed rgb(133, 133, 133);
+    border-left: none;
+    border-right: none;
+    width: 100%;
+    display: none;
+    background-color: rgb(199, 199, 199);
+    overflow: hidden;
+}
+
+.detailInstanceArgsContainer p {
+    padding-left: 60px;
 }

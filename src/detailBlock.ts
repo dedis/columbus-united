@@ -39,7 +39,7 @@ export class DetailBlock {
     this.browseContainer = d3
       .select("body")
       .append("div")
-      .attr("class", "container");
+      .attr("class", "blockDetailcontainer");
     this.skipbObservable = observerSkip;
     this.skipbObservable.subscribe({
       next: this.listTransaction.bind(this),
@@ -63,8 +63,6 @@ export class DetailBlock {
     this.loadContainer = undefined;
     this.progressBarItem = undefined;
   }
-
-  
 
   private listTransaction(block: SkipBlock) {
     if (this.clickedBlock !== block) {
@@ -171,10 +169,7 @@ export class DetailBlock {
         const buttonDetailS = textInstruction
           .append("button")
           .attr("class", "startBrowseButton")
-          .attr("id", "buttonBrowse");
-        buttonDetailS
-          .append("p")
-          .text(`Search for all instance with the ID: "${instruction.instanceID.toString("hex")}" in the blockchain`)
+          .attr("id", "buttonBrowse")
           // tslint:disable-next-line
           .on("click", function () {
             const conf = confirm(
@@ -208,6 +203,13 @@ export class DetailBlock {
               self.flash.display(Flash.flashType.INFO, "Browsing cancelled");
             }
           });
+        buttonDetailS
+          .append("p")
+          .text(
+            `Search for all instance with the ID: "${instruction.instanceID.toString(
+              "hex"
+            )}" in the blockchain`
+          );
       });
     });
 
@@ -223,7 +225,9 @@ export class DetailBlock {
       .append("button")
       .attr("class", "detailsBlockButton")
       .attr("id", "buttonVerifiers");
-    buttonDetail.append("p").text(`\u2022 Verifiers: ${block.verifiers.length}`);
+    buttonDetail
+      .append("p")
+      .text(`\u2022 Verifiers: ${block.verifiers.length}`);
     const verifiersContainer = detailsBlock
       .append("div")
       .attr("class", "detailsBlockContainer");
@@ -238,7 +242,9 @@ export class DetailBlock {
       .append("button")
       .attr("class", "detailsBlockButton")
       .attr("id", "buttonBacklinks");
-    buttonDetail.append("p").text(`\u2022 Backlinks: ${block.backlinks.length}`);
+    buttonDetail
+      .append("p")
+      .text(`\u2022 Backlinks: ${block.backlinks.length}`);
     const backLinksContainer = detailsBlock
       .append("div")
       .attr("class", "detailsBlockContainer");
@@ -252,7 +258,9 @@ export class DetailBlock {
       .append("button")
       .attr("class", "detailsBlockButton")
       .attr("id", "buttonForwardLinks");
-    buttonDetail.append("p").text(`\u2022 ForwardLinks:${block.forwardLinks.length}`);
+    buttonDetail
+      .append("p")
+      .text(`\u2022 ForwardLinks:${block.forwardLinks.length}`);
     const forwardsContainer = detailsBlock
       .append("div")
       .attr("class", "detailsBlockContainer");
@@ -308,14 +316,17 @@ export class DetailBlock {
 
   private printDataBrowsing(tuple: [string[], Instruction[]]) {
     this.removeHighlighBlocks(this.hashHighligh);
-    this.browseContainer.text(
-      `Summary of the instance: ${tuple[1][0].instanceID.toString("hex")}`
-    );
+    this.browseContainer
+      .text("")
+      .append("p")
+      .text(
+        `Summary of the instance: ${tuple[1][0].instanceID.toString("hex")}`
+      );
     for (let i = 0; i < tuple[0].length; i++) {
       const instruction = tuple[1][i];
       let button = null;
       let args = null;
-      let argsList: d3.Selection<
+      const argsList: d3.Selection<
         HTMLParagraphElement,
         unknown,
         HTMLElement,
@@ -325,18 +336,18 @@ export class DetailBlock {
       if (instruction.type === Instruction.typeSpawn) {
         button = this.browseContainer
           .append("button")
-          .attr("class", "oneDetailButtonTransaction")
+          .attr("class", "detailInstanceButton")
           .attr("id", `buttonInstance${i}`);
         button
           .append("p")
           .text(
-            `Spawn with instanceID: ${instruction.instanceID.toString(
-              "hex"
-            )}, and Hash is: ${instruction.hash().toString("hex")}`
+            `${i}) Spawn: Hash of instanceID is: ${instruction
+              .hash()
+              .toString("hex")}`
           );
         textContainer = this.browseContainer
           .append("div")
-          .attr("class", "oneDetailTextCloseClose");
+          .attr("class", "detailInstanceContainer");
         textContainer.append("p").text(`In the block: ${tuple[0][i]}`);
         textContainer
           .append("p")
@@ -345,18 +356,18 @@ export class DetailBlock {
       } else if (instruction.type === Instruction.typeInvoke) {
         button = this.browseContainer
           .append("button")
-          .attr("class", "oneDetailButtonTransaction")
+          .attr("class", "detailInstanceButton")
           .attr("id", `buttonInstance${i}`);
         button
           .append("p")
           .text(
-            `Invoke with instanceID: ${instruction.instanceID.toString(
-              "hex"
-            )}, and Hash is: ${instruction.hash().toString("hex")}`
+            `${i}) Invoke: Hash of instanceID is: ${instruction
+              .hash()
+              .toString("hex")}`
           );
         textContainer = this.browseContainer
           .append("div")
-          .attr("class", "oneDetailTextClose");
+          .attr("class", "detailInstanceContainer");
         textContainer.append("p").text(`In the block: ${tuple[0][i]}`);
         textContainer
           .append("p")
@@ -365,47 +376,50 @@ export class DetailBlock {
       } else if (instruction.type === Instruction.typeDelete) {
         button = this.browseContainer
           .append("button")
-          .attr("class", "oneDetailButtonTransaction")
+          .attr("class", "detailInstanceButton")
           .attr("id", `buttonInstance${i}`);
         button
           .append("p")
           .text(
-            `Delete with instanceID: ${instruction.instanceID.toString(
-              "hex"
-            )}, and Hash is: ${instruction.hash().toString("hex")}`
+            `${i}) Delete: Hash of instanceID is: ${instruction
+              .hash()
+              .toString("hex")}`
           ); // tslint:disable-next-line
         const textContainer = this.browseContainer
           .append("div")
-          .attr("class", "oneDetailTextClose");
+          .attr("class", "detailInstanceContainer");
         textContainer
           .append("p")
           .text(`ContractID: ${instruction.delete.contractID}`);
       }
-
-      const buttonDetail = textContainer
-        .append("button")
-        .attr("class", "oneDetailButtonInstruction")
-        .attr("id", "buttonInstanceArgs");
-      buttonDetail.append("p").text(`args are:`);
-      const argsDetails = textContainer
-        .append("div")
-        .attr("class", "oneDetailTextClose");
-      argsList = argsDetails.append("p");
-      // tslint:disable-next-line
-      args.forEach((arg, i) => {
-        const buttonDetailA = argsList
-          .append("button")
-          .attr("class", "oneDetailButtonArgs")
-          .attr("id", "buttonInstanceArg");
-        buttonDetailA.append("p").text(`${i}) ${arg.name}`);
-        const argsValue = argsList
-          .append("div")
-          .attr("class", "oneDetailTextClose");
-        argsValue.append("p").text(`${arg.value}`);
-      });
       if (tuple[0][i] === this.clickedBlock.hash.toString("hex")) {
         button.style("background-color", "red");
       }
+      const buttonDetail = textContainer
+        .append("button")
+        .attr("class", "detailSeeArgsButton")
+        .attr("id", "buttonInstanceArgs");
+      buttonDetail.append("p").text(`Click to see the arguments`);
+      const argsDetails = textContainer
+        .append("div")
+        .attr("class", "detailSeeArgsContainer");
+      let totalArgs = 0;
+      args.forEach((_, __) => {
+        totalArgs++;
+      });
+      argsDetails.append("p").text(`Total number of arguments: ${totalArgs}`);
+      // tslint:disable-next-line
+      args.forEach((arg, i) => {
+        const buttonDetailA = argsDetails
+          .append("button")
+          .attr("class", "detailInstanceArgsButton")
+          .attr("id", "buttonInstanceArg");
+        buttonDetailA.append("p").text(`${i}) ${arg.name}`);
+        const argsValue = argsDetails
+          .append("div")
+          .attr("class", "detailInstanceArgsContainer");
+        argsValue.append("p").text(`${arg.value}`);
+      });
     }
     const acc1 = document.querySelectorAll(
       "[id^='buttonInstance'], [id=buttonInstanceArgs], [id=buttonInstanceArg]"
