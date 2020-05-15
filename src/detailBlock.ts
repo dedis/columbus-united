@@ -76,7 +76,7 @@ export class DetailBlock {
       );
     }
     const self = this;
-    this.transactionContainer.text(
+    this.transactionContainer.append("p").text(
       `Block ${block.index}, Hash: ${block.hash.toString("hex")}`
     );
     const body = DataBody.decode(block.payload);
@@ -84,11 +84,11 @@ export class DetailBlock {
       const accepted: string = transaction.accepted
         ? "Accepted"
         : "Not accepted";
-      this.transactionContainer
+      const buttonDetail = this.transactionContainer
         .append("button")
         .attr("class", "oneDetailButton")
-        .attr("id", "buttonTransaction")
-        .text(`Transaction ${i} ${accepted}`);
+        .attr("id", "buttonTransaction");
+      buttonDetail.append("p").text(`Transaction ${i} ${accepted}`);
       const textContainer = this.transactionContainer
         .append("div")
         .attr("class", "oneDetailTextOpen");
@@ -96,28 +96,35 @@ export class DetailBlock {
       transaction.clientTransaction.instructions.forEach((instruction, j) => {
         let args = null;
         if (instruction.type === Instruction.typeSpawn) {
-          textContainer
+          const buttonDetail = textContainer
             .append("button")
             .attr("class", "oneDetailButton")
             .attr("id", "buttonInstruction")
+          buttonDetail
+            .append("p")
+            .attr("padding-left", "36px")
             .text(
               `Spawn instruction ${j}, name of contract: ${instruction.spawn.contractID}`
             );
           args = instruction.spawn.args;
         } else if (instruction.type === Instruction.typeInvoke) {
-          textContainer
+          const buttonDetail = textContainer
             .append("button")
             .attr("class", "oneDetailButton")
-            .attr("id", "buttonInstruction")
+            .attr("id", "buttonInstruction");
+          buttonDetail
+            .append("p")
             .text(
               `Invoke instruction ${j}, name of contract: ${instruction.invoke.contractID}`
             );
           args = instruction.invoke.args;
         } else if (instruction.type === Instruction.typeDelete) {
-          textContainer
+          const buttonDetail = textContainer
             .append("button")
             .attr("class", "oneDetailButton")
-            .attr("id", "buttonInstruction")
+            .attr("id", "buttonInstruction");
+          buttonDetail
+            .append("p")
             .text(
               `Delete instruction ${j}, name of contract:${instruction.delete.contractID}`
             );
@@ -133,21 +140,23 @@ export class DetailBlock {
           .text(`Instance ID: ${instruction.instanceID.toString("hex")}`);
         // tslint:disable-next-line
         args.forEach((arg, i) => {
-          textInstruction
+          const buttonDetail = textInstruction
             .append("button")
             .attr("class", "oneDetailButton")
-            .attr("id", "buttonArgs")
-            .text(`${i}) ${arg.name}`);
+            .attr("id", "buttonArgs");
+          buttonDetail.append("p").text(`${i}) ${arg.name}`);
           const argsValue = textInstruction
             .append("div")
-            .attr("class", "oneDetailTextClose");
+            .attr("class", "oneDetailTextClose")
           argsValue.append("p").text(`${arg.value}`);
         });
 
-        textInstruction
+        const buttonDetail = textInstruction
           .append("button")
           .attr("class", "oneDetailButton")
-          .attr("id", "buttonBrowse")
+          .attr("id", "buttonBrowse");
+        buttonDetail
+          .append("p")
           .text(`Search for all instance of this ID in the blockchain`)
           // tslint:disable-next-line
           .on("click", function () {
@@ -185,19 +194,19 @@ export class DetailBlock {
       });
     });
 
-    this.transactionContainer
+    let buttonDetail = this.transactionContainer
       .append("button")
       .attr("class", "oneDetailButton")
-      .attr("id", "buttonDetailBlock")
-      .text(`Block details`);
+      .attr("id", "buttonDetailBlock");
+    buttonDetail.append("p").text(`Block details`);
     const detailsBlock = this.transactionContainer
       .append("div")
       .attr("class", "oneDetailTextClose");
-    detailsBlock
+    buttonDetail = detailsBlock
       .append("button")
       .attr("class", "oneDetailButton")
-      .attr("id", "buttonVerifiers")
-      .text(`Verifiers: ${block.verifiers.length}`);
+      .attr("id", "buttonVerifiers");
+    buttonDetail.append("p").text(`Verifiers: ${block.verifiers.length}`);
     const verifiersContainer = detailsBlock
       .append("div")
       .attr("class", "oneDetailTextClose");
@@ -208,11 +217,11 @@ export class DetailBlock {
         .text(`Verifier: ${j} , ID: ${uid.toString("hex")}`);
     });
 
-    detailsBlock
+    buttonDetail = detailsBlock
       .append("button")
       .attr("class", "oneDetailButton")
-      .attr("id", "buttonBacklinks")
-      .text(`Backlinks: ${block.backlinks.length}`);
+      .attr("id", "buttonBacklinks");
+    buttonDetail.append("p").text(`Backlinks: ${block.backlinks.length}`);
     const backLinksContainer = detailsBlock
       .append("div")
       .attr("class", "oneDetailTextClose");
@@ -222,11 +231,11 @@ export class DetailBlock {
         .text(`Backlink: ${j}, Value: ${value.toString("hex")}`);
     });
 
-    detailsBlock
+    buttonDetail = detailsBlock
       .append("button")
       .attr("class", "oneDetailButton")
-      .attr("id", "buttonForwardLinks")
-      .text(`ForwardLinks:${block.forwardLinks.length}`);
+      .attr("id", "buttonForwardLinks");
+    buttonDetail.append("p").text(`ForwardLinks:${block.forwardLinks.length}`);
     const forwardsContainer = detailsBlock
       .append("div")
       .attr("class", "oneDetailTextClose");
@@ -301,7 +310,9 @@ export class DetailBlock {
         button = this.browseContainer
           .append("button")
           .attr("class", "oneDetailButton")
-          .attr("id", `buttonInstance${i}`)
+          .attr("id", `buttonInstance${i}`);
+        button
+          .append("p")
           .text(
             `Spawn with instanceID: ${instruction.instanceID.toString(
               "hex"
@@ -319,7 +330,9 @@ export class DetailBlock {
         button = this.browseContainer
           .append("button")
           .attr("class", "oneDetailButton")
-          .attr("id", `buttonInstance${i}`)
+          .attr("id", `buttonInstance${i}`);
+        button
+          .append("p")
           .text(
             `Invoke with instanceID: ${instruction.instanceID.toString(
               "hex"
@@ -337,7 +350,9 @@ export class DetailBlock {
         button = this.browseContainer
           .append("button")
           .attr("class", "oneDetailButton")
-          .attr("id", `buttonInstance${i}`)
+          .attr("id", `buttonInstance${i}`);
+        button
+          .append("p")
           .text(
             `Delete with instanceID: ${instruction.instanceID.toString(
               "hex"
@@ -351,23 +366,25 @@ export class DetailBlock {
           .text(`ContractID: ${instruction.delete.contractID}`);
       }
 
-      textContainer
+      const buttonDetail = textContainer
         .append("button")
         .attr("class", "oneDetailButton")
-        .attr("id", "buttonInstanceArgs")
-        .text(`args are:`);
+        .attr("id", "buttonInstanceArgs");
+      buttonDetail.append("p").text(`args are:`);
       const argsDetails = textContainer
         .append("div")
         .attr("class", "oneDetailTextClose");
       argsList = argsDetails.append("p");
       // tslint:disable-next-line
       args.forEach((arg, i) => {
-        argsList
+        const buttonDetail = argsList
           .append("button")
           .attr("class", "oneDetailButton")
-          .attr("id", "buttonInstanceArg")
-          .text(`${i}) ${arg.name}`);
-        const argsValue = argsList.append("div").attr("class", "oneDetailTextClose");
+          .attr("id", "buttonInstanceArg");
+        buttonDetail.append("p").text(`${i}) ${arg.name}`);
+        const argsValue = argsList
+          .append("div")
+          .attr("class", "oneDetailTextClose");
         argsValue.append("p").text(`${arg.value}`);
       });
       if (tuple[0][i] === this.clickedBlock.hash.toString("hex")) {
