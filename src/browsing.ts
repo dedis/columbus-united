@@ -8,7 +8,7 @@ import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network/connection";
 import { SkipBlock, SkipchainRPC } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
-import { Subject } from "rxjs";
+import { Subject, Observable } from "rxjs";
 import { Flash } from "./flash";
 import { TotalBlock } from "./totalBlock";
 
@@ -18,7 +18,7 @@ export class Browsing {
   pageSize: number;
   numPages: number;
   nextIDB: string;
-  totalBlocks: number;
+  totalBlocks: TotalBlock;
   seenBlocks: number;
   contractID: string;
   instanceSearch: Instruction;
@@ -29,6 +29,7 @@ export class Browsing {
   firstBlockIDStart: string;
   abort: boolean;
   flash: Flash;
+  totatBlockNumber : number;
   constructor(roster: Roster, flash: Flash, totalBlock: TotalBlock) {
     this.roster = roster;
 
@@ -36,7 +37,8 @@ export class Browsing {
     this.numPages = 15;
 
     this.nextIDB = "";
-    this.totalBlocks = totalBlock.totalBlock;
+    this.totalBlocks = totalBlock
+    this.totatBlockNumber = -1;
     this.seenBlocks = 0;
 
     this.contractID = "";
@@ -64,6 +66,10 @@ export class Browsing {
     this.contractID = this.instanceSearch.instanceID.toString("hex");
     this.abort = false;
     this.nbInstanceFound = 0;
+    let self = this
+    this.totalBlocks.getTotalBlock().subscribe({
+      next:(skipblock) => {self.totatBlockNumber = skipblock.index}
+    });
     this.browse(
       this.pageSize,
       this.numPages,
@@ -275,14 +281,22 @@ export class Browsing {
   }
 
   private seenBlocksNotify(i: number, subjectProgress: Subject<number[]>) {
+    console.log("Totalblock: "+this.totatBlockNumber)
     // tslint:disable-next-line
-    if (i % ~~(0.01 * this.totalBlocks) == 0) {
+    if (this.totatBlockNumber > 0 && i % ~~(0.01 * this.totatBlockNumber) == 0) {
       // tslint:disable-next-line
-      const percent: number = ~~((i / this.totalBlocks) * 100);
+      const percent: number = ~~((i / this.totatBlockNumber) * 100);
       subjectProgress.next([
         percent,
         this.seenBlocks,
-        this.totalBlocks,
+        this.totatBlockNumber,
+        this.nbInstanceFound,
+      ]);
+    }else if(this.totatBlockNumber < 0){
+      subjectProgress.next([
+        0,
+        this.seenBlocks,
+        this.totatBlockNumber,
         this.nbInstanceFound,
       ]);
     }

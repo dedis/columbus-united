@@ -431,10 +431,16 @@ export class DetailBlock {
     totalBlocks: number,
     nbInstanceFound: number
   ) {
+    if(totalBlocks > 0){
     this.textBar.text(
       `${percentage}%  --  Seen blocks: ${seenBlocks}/ Total blocks: ${totalBlocks}. Nombre of instances found: ${nbInstanceFound}`
     );
-    document.getElementById("progressBar").style.width = percentage + "%";
+    document.getElementById("progressBar").style.width = percentage + "%";  //TODO: paramètre de classe
+    }else{
+      this.textBar.text(
+        `???%  --  Seen blocks: ${seenBlocks}/ Total blocks: ???. Nombre of instances found: ${nbInstanceFound}`
+      )
+    }
   }
   private doneLoading() {
     d3.select(".loadContainer").remove();
