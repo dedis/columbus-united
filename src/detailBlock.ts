@@ -403,26 +403,39 @@ export class DetailBlock {
     this.loadContainer = d3
       .select("body")
       .append("div")
-      .attr("class", "loadContainer")
-      .text("CA LOAD");
+      .attr("class", "loadContainer");
+    this.loadContainer
+      .append("div")
+      .attr("class", "logo") // tslint:disable-next-line
+      .on("click", function () {
+        window.open("https://www.epfl.ch/labs/dedis/");
+      });
+    const divLoad = this.loadContainer.append("div").attr("class", "divLoad");
+    divLoad.append("div").attr("class", "loader");
+
     this.progressBarContainer = this.loadContainer
       .append("div")
       .attr("id", "progressBarContainer");
+
     this.progressBar = this.progressBarContainer
       .append("div")
       .attr("id", "progressBar");
-    this.textBar = this.progressBar
+    this.textBar = this.progressBarContainer
       .append("div")
       .attr("id", "textBar")
-      .text("0%");
-    this.loadContainer.append("div").attr("class", "loader");
+      .text(`???% --- block parsed: ??? / ??? and instances found: ???`);
+
     this.loadContainer
       .append("button")
+      .attr("class", "cancelButton")
       .attr("id", "cancelButton")
-      .text("ANNULATIOOOOOOOOOOOOOOOOOOOOOON")
+      .text("Abort research")
       // tslint:disable-next-line
       .on("click", function () {
-        self.browsing.abort = true;
+        const conf = confirm("Are you sure you want to abort the browse?");
+        if (conf) {
+          self.browsing.abort = true;
+        }
       });
   }
   private updateProgressBar(
@@ -432,7 +445,7 @@ export class DetailBlock {
     nbInstanceFound: number
   ) {
     this.textBar.text(
-      `${percentage}%  --  Seen blocks: ${seenBlocks}/ Total blocks: ${totalBlocks}. Nombre of instances found: ${nbInstanceFound}`
+      `${percentage}% --- block parsed: ${seenBlocks}/ ${totalBlocks} and instances found: ${nbInstanceFound}`
     );
     document.getElementById("progressBar").style.width = percentage + "%";
   }
