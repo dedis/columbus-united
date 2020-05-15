@@ -410,18 +410,20 @@ export class DetailBlock {
       .on("click", function () {
         window.open("https://www.epfl.ch/labs/dedis/");
       });
-    this.loadContainer.append("div").attr("class", "loader");
+    const divLoad = this.loadContainer.append("div").attr("class", "divLoad");
+    divLoad.append("div").attr("class", "loader");
 
     this.progressBarContainer = this.loadContainer
       .append("div")
       .attr("id", "progressBarContainer");
+
     this.progressBar = this.progressBarContainer
       .append("div")
       .attr("id", "progressBar");
-    this.textBar = this.progressBar
+    this.textBar = this.progressBarContainer
       .append("div")
       .attr("id", "textBar")
-      .text("0%");
+      .text(`???% --- block parsed: ??? / ??? and instances found: ???`);
 
     this.loadContainer
       .append("button")
