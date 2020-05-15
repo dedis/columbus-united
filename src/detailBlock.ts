@@ -3,6 +3,7 @@ import { DataBody } from "@dedis/cothority/byzcoin/proto";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable } from "rxjs";
+import { throttleTime } from "rxjs/operators";
 
 import { Browsing } from "./browsing";
 import { Flash } from "./flash";
@@ -22,6 +23,8 @@ export class DetailBlock {
   colorClickedBlock: string;
   loadContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   flash: Flash;
+  progressBarItem: HTMLElement;
+
   constructor(
     observerSkip: Observable<SkipBlock>,
     subjectInstru: Browsing,
@@ -58,6 +61,7 @@ export class DetailBlock {
     this.colorClickedBlock = "#a6f8b2"; // must be set differently when we will choose the colors
     this.flash = flash;
     this.loadContainer = undefined;
+    this.progressBarItem = undefined;
   }
 
   private listTransaction(block: SkipBlock) {
@@ -162,7 +166,7 @@ export class DetailBlock {
               subjects[0].subscribe({
                 next: self.printDataBrowsing.bind(self),
               });
-              subjects[1].subscribe({
+              subjects[1].pipe(throttleTime(100)).subscribe({
                 next: ([
                   percentage,
                   seenBlock,
@@ -437,6 +441,7 @@ export class DetailBlock {
           self.browsing.abort = true;
         }
       });
+    this.progressBarItem = document.getElementById("progressBar");
   }
   private updateProgressBar(
     percentage: number,
@@ -444,15 +449,15 @@ export class DetailBlock {
     totalBlocks: number,
     nbInstanceFound: number
   ) {
-    if(totalBlocks > 0){
-    this.textBar.text(
-      `${percentage}% --- block parsed: ${seenBlocks}/ ${totalBlocks} and instances found: ${nbInstanceFound}`
-    );
-    document.getElementById("progressBar").style.width = percentage + "%";  //TODO: paramètre de classe
-    }else{
+    if (totalBlocks > 0) {
+      this.textBar.text(
+        `${percentage}% --- block parsed: ${seenBlocks}/ ${totalBlocks} and instances found: ${nbInstanceFound}`
+      );
+      this.progressBarItem.style.width = percentage + "%";
+    } else {
       this.textBar.text(
         `???%  --  Seen blocks: ${seenBlocks}/ Total blocks: ???. Nombre of instances found: ${nbInstanceFound}`
-      )
+      );
     }
   }
   private doneLoading() {

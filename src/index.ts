@@ -18,7 +18,6 @@ export function sayHi() {
   const blocksDiagram = new BlocksDiagram(roster, flash);
   blocksDiagram.loadInitialBlocks();
   const totalBlock = new TotalBlock(roster);
-  
   const browse = new Browsing(roster, flash, totalBlock);
   const blockObserver = blocksDiagram.getBlockObserver();
   const updateObserver = blocksDiagram.isUpdatedObserver();

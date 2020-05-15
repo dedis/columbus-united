@@ -12,8 +12,6 @@ import { WebSocketConnection } from "@dedis/cothority/network/connection";
 export class TotalBlock {
   roster: Roster;
   lastBlockSeenID: string;
-  lastBlock: SkipBlock;
-  
   constructor(roster: Roster) {
     this.roster = roster;
     this.lastBlockSeenID =
@@ -21,7 +19,7 @@ export class TotalBlock {
   }
 
   getTotalBlock(): Observable<SkipBlock> {
-      return this.getLatestBlock(this.lastBlockSeenID, this.roster)
+    return this.getLatestBlock(this.lastBlockSeenID, this.roster);
   }
 
   // getLatestBlock follows the highest possible forward links from the given
@@ -69,7 +67,7 @@ export class TotalBlock {
             }
             const block = data.blocks[0];
             if (block.forwardLinks.length === 0) {
-              this.lastBlockSeenID = block.hash.toString("hex")
+              this.lastBlockSeenID = block.hash.toString("hex");
               sub.next(block);
             } else {
               nextID = block.forwardLinks[block.forwardLinks.length - 1].to;
