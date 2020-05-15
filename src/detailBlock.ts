@@ -443,7 +443,7 @@ export class DetailBlock {
     nbInstanceFound: number
   ) {
     this.textBar.text(
-      `${percentage}% --- Seen blocks: ${seenBlocks}/ ${totalBlocks} total blocks. Instances found: ${nbInstanceFound}`
+      `${percentage}% --- block parsed: ${seenBlocks}/ ${totalBlocks} and instances found: ${nbInstanceFound}`
     );
     document.getElementById("progressBar").style.width = percentage + "%";
   }
