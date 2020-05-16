@@ -9,7 +9,7 @@ import { getRosterStr } from "./roster";
 import { TotalBlock } from "./totalBlock";
 
 import "uikit";
-import './style.css';
+import "./style.css";
 
 export function sayHi() {
   const roster = Roster.fromTOML(rosterStr);
