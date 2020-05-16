@@ -1,4 +1,5 @@
 const path = require("path");
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
     entry: ["@babel/polyfill", "./src/index.ts"],
@@ -11,6 +12,7 @@ module.exports = {
         libraryTarget: "umd",
         globalObject: "this",
     },
+    plugins: [new MiniCssExtractPlugin()],
     module: {
         rules: [
             {
@@ -44,6 +46,10 @@ module.exports = {
                     },
                     "ts-loader",
                 ],
+            },
+            {
+                test: /\.css$/i,
+                use: [MiniCssExtractPlugin.loader, 'css-loader'],
             },
         ],
     },
