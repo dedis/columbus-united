@@ -4,7 +4,7 @@ div.block-infos {
 }
 
 .blockDetailcontainer {
-    max-height: 1000;
+    max-height: 500px;
     overflow-y: scroll;
     background-color: rgb(199, 199, 199);
     padding: 20px;
@@ -12,7 +12,7 @@ div.block-infos {
 }
 
 .container {
-    max-height: 1000;
+    max-height: 500px;
     overflow-y: scroll;
     border: 1px solid #ccc;
     background-color: rgb(199, 199, 199);
@@ -24,6 +24,10 @@ div.block-infos {
 @media only screen and (max-width: 1000px) {
     div.block-infos {
         flex-direction: column;
+    }
+    div.blockDetailcontainer,
+    div.container {
+        flex: none;
     }
 }
 
@@ -188,21 +192,8 @@ div.block-infos {
 
 
 /*
-footer
+footer from status.dedis.ch
 */
-
-
-/*#footer {
-    margin-top: 55px;
-    padding-top: 5px;
-    border-top: 2px dashed #254A73;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    z-index: 3;
-    position: fixed;
-    background: #f5f5f5;
-}*/
 
 .theme--light.v-footer {
     background: #f5f5f5;
