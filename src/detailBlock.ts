@@ -65,6 +65,31 @@ export class DetailBlock {
   }
 
   private listTransaction(block: SkipBlock) {
+    const ul = d3.select("body").append("ul"); // 1: add first element to html
+    ul.attr("uk-accordion", ""); // add the attribute: <ul uk-accordion </u>
+    ul.attr("multiple", "true"); // Options can be added: to open multiple lines at the same time here for example
+    const li = ul.append("li"); // append li
+    const a = li.append("a"); // append a
+    a.attr("class", "uk-accordion-title").attr("href", "#").text("Item 1");
+    const div = li.append("div");
+    div.attr("class", "uk-accordion-content");
+    div
+      .append("p")
+      .text(
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"
+      );
+
+    const li2 = ul.append("li");
+    const a2 = li2.append("a");
+    a2.attr("class", "uk-accordion-title").attr("href", "#").text("Item 2");
+    const div2 = li2.append("div");
+    div2.attr("class", "uk-accordion-content");
+    div2
+      .append("p")
+      .text(
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"
+      );
+
     if (this.clickedBlock !== block) {
       if (this.clickedBlock != null) {
         const blockSVG = d3.select(
