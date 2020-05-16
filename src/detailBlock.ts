@@ -69,7 +69,7 @@ export class DetailBlock {
         this.colorClickedBlock
       );
     }
-    let transactionContainer = d3.select(".blockDetailcontainer")
+    const transactionContainer = d3.select(".blockDetailcontainer");
     const self = this;
     transactionContainer
       .attr("id", "transactionContainer")
@@ -307,8 +307,8 @@ export class DetailBlock {
   }
 
   private printDataBrowsing(tuple: [string[], Instruction[]]) {
-    let browseContainer = d3.select(".container");
-     browseContainer.attr("style","opacity:100%")
+    const browseContainer = d3.select(".container");
+    browseContainer.attr("style", "opacity:100%");
 
     this.removeHighlighBlocks(this.hashHighligh);
     browseContainer
