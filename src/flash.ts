@@ -9,7 +9,7 @@ export class Flash {
       .append("div")
       .attr("class", "alertContainer");
   }
-
+  // TODO: adapt the class using uikit for the flash using the alert
   display(errorCode: Flash.flashType, text: string) {
     // display the block and the error with colors
     let span;
