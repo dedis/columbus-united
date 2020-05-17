@@ -55,6 +55,8 @@ export class DetailBlock {
   }
 
   private listTransaction(block: SkipBlock) {
+    // This is an example using the uiukit library that will be removed
+    // in the next PR where the interface will be adapted using this library
     const ul = d3.select("body").append("ul"); // 1: add first element to html
     ul.attr("uk-accordion", ""); // add the attribute: <ul uk-accordion </u>
     ul.attr("multiple", "true"); // Options can be added: to open multiple lines at the same time here for example
