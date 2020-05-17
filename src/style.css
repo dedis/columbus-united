@@ -1,3 +1,4 @@
+@import "~uikit/dist/css/uikit.min.css";
 div.block-infos {
     display: flex;
     flex-direction: row;
@@ -46,14 +47,14 @@ div.block-infos {
     bottom: 0%;
     width: 1%;
     z-index: 1;
-    background-color: #4CAF50;
+    background-color: #4caf50;
 }
 
 #textBar {
     position: relative;
     z-index: 2;
     padding: 10px;
-    font-family: 'Roboto', sans-serif;
+    font-family: "Roboto", sans-serif;
     font-weight: 500;
     font-size: 150%;
     text-align: center;
@@ -112,7 +113,7 @@ div.block-infos {
     position: absolute;
     top: 0%;
     left: 25%;
-    width: 50%
+    width: 50%;
 }
 
 .alert {
@@ -129,7 +130,7 @@ div.block-infos {
 }
 
 .alert.info {
-    background-color: #2196F3;
+    background-color: #2196f3;
 }
 
 .alert.warning {
@@ -161,21 +162,21 @@ div.block-infos {
     padding: 10px;
     box-sizing: border-box;
     text-decoration: none;
-    font-family: 'Roboto', sans-serif;
+    font-family: "Roboto", sans-serif;
     font-weight: 500;
     font-size: 110%;
-    color: #FFFFFF;
+    color: #ffffff;
     text-shadow: 0 0.04em 0.04em rgba(0, 0, 0, 0.35);
     text-align: center;
     transition: all 0.2s;
-    background-color: #0004e2
+    background-color: #0004e2;
 }
 
 .cancelButton:hover {
     border-color: rgba(255, 255, 255, 1);
 }
 
-@media all and (max-width:30em) {
+@media all and (max-width: 30em) {
     .cancelButton {
         display: block;
         margin: 0.2em auto;
@@ -187,7 +188,7 @@ div.block-infos {
     left: 50%;
     transform: translateX(-50%);
     top: 10%;
-    content: url(https://avatars2.githubusercontent.com/u/3638331?s=200&v=4)
+    content: url(https://avatars2.githubusercontent.com/u/3638331?s=200&v=4);
 }
 
 

@@ -8,6 +8,9 @@ import { Flash } from "./flash";
 import { getRosterStr } from "./roster";
 import { TotalBlock } from "./totalBlock";
 
+import "uikit";
+import "./style.css";
+
 export function sayHi() {
   const roster = Roster.fromTOML(rosterStr);
   const flash = new Flash();
