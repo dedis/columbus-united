@@ -1,11 +1,21 @@
 @import "~uikit/dist/css/uikit.min.css";
+body {
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow-y: hidden;
+}
+
 div.block-infos {
     display: flex;
+    flex-grow: 0;
     flex-direction: row;
+    flex: 1;
+    min-height: 200px;
+    margin-bottom: 36px;
 }
 
 .blockDetailcontainer {
-    max-height: 500px;
     overflow-y: scroll;
     background-color: rgb(199, 199, 199);
     padding: 20px;
@@ -13,13 +23,11 @@ div.block-infos {
 }
 
 .container {
-    max-height: 500px;
     overflow-y: scroll;
     border: 1px solid #ccc;
     background-color: rgb(199, 199, 199);
     padding: 20px;
     flex: 1;
-    opacity: 0%;
 }
 
 @media only screen and (max-width: 1000px) {
@@ -97,7 +105,7 @@ div.block-infos {
 }
 
 .blocksContainer {
-    height: 350px;
+    height: 400px;
     /* TODO adjust automatically (function of page size) */
     border: 0px solid #000;
     /*overflow-y: hidden;
