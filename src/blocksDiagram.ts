@@ -12,6 +12,7 @@ import { Observable, Subject, Subscriber } from "rxjs";
 
 import { Flash } from "./flash";
 import { Utils } from "./utils";
+import { ConsoleReporter } from "jasmine";
 
 export class BlocksDiagram {
   // SVG properties
@@ -37,13 +38,12 @@ export class BlocksDiagram {
   nbPages: number; // number of pages
 
   // Blocks navigation properties
-  hashBlock0: string;
+  hashFirstBlock: string;
   initialBlockIndex: number;
+  initialBlockFound: boolean;
   initialBlockHash: string;
   nbBlocksLoadedLeft: number;
   nbBlocksLoadedRight: number;
-
-  subjectBrowseSearch: Subject<string>; // TODO clean
 
   // Blocks observation
   subscriberList: Array<Subscriber<SkipBlock>>;
@@ -62,7 +62,7 @@ export class BlocksDiagram {
     this.blockHeight = 300;
 
     // Colors
-    this.randomBlocksColor = false;
+    this.randomBlocksColor = true;
     this.textColor = "black";
     this.blockColor = "#4772D8";
 
@@ -76,14 +76,39 @@ export class BlocksDiagram {
     this.subscriberList = [];
     this.flash = flash;
 
-    this.hashBlock0 =
+    this.initialBlockIndex = 500; // change the first block here
+    this.initialBlockFound = false;
+    this.hashFirstBlock =
       "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
-    const hashBlock126 =
-      "940406333443363ce0635218d1286bfbe7e22bb56910c26b92117dc7497ff086";
+    if (this.initialBlockIndex === 0) {
+      this.initialBlockHash = this.hashFirstBlock;
+      this.initialBlockFound = true;
+    } else if (this.initialBlockIndex > 0) {
+      // TODO
+      /*
+      Utils.getBlockFromIndex(
+        this.hashFirstBlock,
+        this.initialBlockIndex,
+        this.roster
+      ).subscribe({
+        next: (block: SkipBlock) => {
+          this.initialBlockHash = Utils.bytes2String(block.hash);
+          this.initialBlockFound = true;
+          console.log("hash block " + this.initialBlockIndex + " found: " + this.initialBlockHash)
+        },
+      });
+      */
+        // Artificially put initial block as block 500 for testing purpose
+        this.initialBlockHash = "3c76918f74ebcf43dae5b020f02f936e3190e86ec757c2fbb72951a7445c8430"
+        this.initialBlockFound = true;
+    } else {
+      flash.display(
+        Flash.flashType.ERROR,
+        "index of initial block cannot be negative"
+      );
+    }
 
     // Blocks navigation properties
-    this.initialBlockIndex = 126;
-    this.initialBlockHash = hashBlock126;
     this.nbBlocksLoadedLeft = 0;
     this.nbBlocksLoadedRight = 0;
     let indexLastBlockLeft = this.initialBlockIndex;
@@ -206,11 +231,11 @@ export class BlocksDiagram {
    * Load the initial blocks.
    */
   loadInitialBlocks() {
-    Utils.getBlockFromIndex(127, this.roster).subscribe({
-      next: (block: SkipBlock) => {
-        console.log("G TROUVE " + Utils.bytes2String(block.hash));
-      },
-    });
+    if (!this.initialBlockFound) {
+      this.flash.display(Flash.flashType.ERROR, "unable to find initial block " + this.initialBlockIndex);
+      this.initialBlockIndex = 0;
+      this.initialBlockHash = this.hashFirstBlock;
+    }
 
     this.getNextBlocks(
       this.initialBlockHash,
@@ -522,6 +547,4 @@ export class BlocksDiagram {
         });
     }
   }
-
-  //private subscribe TODO
 }

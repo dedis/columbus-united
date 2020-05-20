@@ -40,12 +40,10 @@ export class Utils {
   }
 
   static getBlockFromIndex(
+    hashfirstBlock: string,
     index: number,
     roster: Roster
   ): Observable<SkipBlock> {
-    let hashBlock0 =
-      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
-
     return new Observable((sub) => {
       let conn: WebSocketConnection;
       try {
@@ -63,7 +61,7 @@ export class Utils {
             backward: false,
             numpages: 1,
             pagesize: 1,
-            startid: this.hex2Bytes(hashBlock0),
+            startid: this.hex2Bytes(hashfirstBlock),
           }),
           PaginateResponse
         )
