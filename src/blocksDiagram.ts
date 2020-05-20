@@ -71,12 +71,13 @@ export class BlocksDiagram {
     this.subjectBrowse = new Subject<[number, SkipBlock[]]>();
     this.pageSize = 15;
     this.nbPages = 1;
+    const nbBlocksUpdate = this.nbPages * this.pageSize
 
     // Blocks observation
     this.subscriberList = [];
     this.flash = flash;
 
-    this.initialBlockIndex = 500; // change the first block here
+    this.initialBlockIndex = 100; // change the first block here
     this.initialBlockFound = false;
     this.hashFirstBlock =
       "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
@@ -98,8 +99,8 @@ export class BlocksDiagram {
         },
       });
       */
-        // Artificially put initial block as block 500 for testing purpose
-        this.initialBlockHash = "3c76918f74ebcf43dae5b020f02f936e3190e86ec757c2fbb72951a7445c8430"
+        // Artificially put initial block as block 100 for testing purpose
+        this.initialBlockHash = "b2592d85855d2a54c0dd9a1752629105ad0848bc8b69d15bc85f5cf0164a7eca"
         this.initialBlockFound = true;
     } else {
       flash.display(
@@ -111,12 +112,14 @@ export class BlocksDiagram {
     // Blocks navigation properties
     this.nbBlocksLoadedLeft = 0;
     this.nbBlocksLoadedRight = 0;
-    let indexLastBlockLeft = this.initialBlockIndex;
-    let hashLastBlockLeft = this.initialBlockHash;
-    let hashLastBlockLeftBeforeUpdate = "";
-    let indexLastBlockRight = this.initialBlockIndex;
-    let hashLastBlockRight = this.initialBlockHash;
-    let hashLastBlockRightBeforeUpdate = "";
+
+    let indexNextBlockLeft = this.initialBlockIndex;
+    let hashNextBlockLeft = this.initialBlockHash;
+    let hashNextBlockLeftBeforeUpdate = "";
+
+    let indexNextBlockRight = this.initialBlockIndex;
+    let hashNextBlockRight = this.initialBlockHash;
+    let hashNextBlockRightBeforeUpdate = "";
 
     // SVG containing the blockchain
     this.svgBlocks = d3
@@ -139,16 +142,16 @@ export class BlocksDiagram {
             const indexLeftBlockOnScreen =
               self.initialBlockIndex + x / sizeBlockOnScreen;
 
-            if (indexLeftBlockOnScreen < indexLastBlockLeft + 10) {
-              if (!(hashLastBlockLeft === hashLastBlockLeftBeforeUpdate)) {
-                hashLastBlockLeftBeforeUpdate = hashLastBlockLeft;
+            if (indexLeftBlockOnScreen < indexNextBlockLeft + nbBlocksUpdate) {
+              if (hashNextBlockLeft !== hashNextBlockLeftBeforeUpdate) {
+                hashNextBlockLeftBeforeUpdate = hashNextBlockLeft;
 
                 // Handle the case when we arrive at block 0: do not load
                 // below 0
-                console.log("indexLastBlockLeft" + indexLastBlockLeft);
+                console.log("indexNextBlockLeft" + indexNextBlockLeft);
                 let nbBlocksToLoad = self.pageSize;
-                if (indexLastBlockLeft - self.pageSize + 2 < 0) {
-                  nbBlocksToLoad = indexLastBlockLeft;
+                if (indexNextBlockLeft - self.pageSize + 2 < 0) {
+                  nbBlocksToLoad = indexNextBlockLeft;
                 }
                 console.log(
                   "nbblockstoload" +
@@ -158,7 +161,7 @@ export class BlocksDiagram {
                 );
 
                 self.getNextBlocks(
-                  hashLastBlockLeft,
+                  hashNextBlockLeft,
                   nbBlocksToLoad,
                   self.nbPages,
                   self.subjectBrowse,
@@ -171,11 +174,11 @@ export class BlocksDiagram {
             const indexRightBlockOnScreen =
               self.initialBlockIndex + (x + self.svgWidth) / sizeBlockOnScreen;
 
-            if (indexRightBlockOnScreen > indexLastBlockRight - 10) {
-              if (!(hashLastBlockRight === hashLastBlockRightBeforeUpdate)) {
-                hashLastBlockRightBeforeUpdate = hashLastBlockRight;
+            if (indexRightBlockOnScreen > indexNextBlockRight - nbBlocksUpdate) {
+              if (!(hashNextBlockRight === hashNextBlockRightBeforeUpdate)) {
+                hashNextBlockRightBeforeUpdate = hashNextBlockRight;
                 self.getNextBlocks(
-                  hashLastBlockRight,
+                  hashNextBlockRight,
                   self.pageSize,
                   self.nbPages,
                   self.subjectBrowse,
@@ -208,18 +211,19 @@ export class BlocksDiagram {
         // tslint:disable-next-line
         if (i == this.nbPages - 1) {
           const lastBlock = skipBlocks[skipBlocks.length - 1];
-          const index = lastBlock.index;
-          const hash = Utils.bytes2String(lastBlock.hash);
+          const indexLastBlock = lastBlock.index;
 
-          if (index < this.initialBlockIndex) {
+          if (indexLastBlock < this.initialBlockIndex) {
             // Load blocks to the left
-            indexLastBlockLeft = index + 1;
-            hashLastBlockLeft = hash;
+            indexNextBlockLeft = indexLastBlock + 2;
+            hashNextBlockLeft = Utils.getLeftBlockHash(lastBlock)
+            console.log("indexNextBlockLeft = " + indexNextBlockLeft + " hashNextBlockLeft " + hashNextBlockLeft)
             this.displayBlocks(skipBlocks, true);
           } else {
             // Load blocks to the right
-            indexLastBlockRight = index - 1;
-            hashLastBlockRight = hash;
+            indexNextBlockRight = indexLastBlock - 2;
+            hashNextBlockRight = Utils.getRightBlockHash(lastBlock)
+            console.log("indexNextBlockRight = " + indexNextBlockRight + " hashNextBlockRight " + hashNextBlockRight)
             this.displayBlocks(skipBlocks, false);
           }
         }
@@ -244,7 +248,7 @@ export class BlocksDiagram {
       this.subjectBrowse,
       false
     );
-
+// TODO
     this.getNextBlocks(
       this.initialBlockHash,
       this.pageSize,
@@ -280,7 +284,7 @@ export class BlocksDiagram {
    * @param backward false for loading blocks to the right, true for loading
    * blocks to the left
    */
-  private displayBlocks(listBlocks: SkipBlock[], backward: boolean) {
+  private displayBlocks(listBlocks: SkipBlock[], backwards: boolean) {
     // Determine the color of the blocks
     let blockColor: string;
     if (this.randomBlocksColor) {
@@ -289,7 +293,7 @@ export class BlocksDiagram {
       blockColor = this.blockColor;
     }
 
-    if (backward) {
+    if (backwards) {
       console.log(
         "Load left blocks " +
           (listBlocks[0].index - this.pageSize + 2) +
@@ -300,7 +304,7 @@ export class BlocksDiagram {
       // Iterate over the blocks to append them
       for (
         let i = 0;
-        i < listBlocks.length - 1;
+        i < listBlocks.length;
         ++i, ++this.nbBlocksLoadedLeft
       ) {
         // x position where to start to display blocks
@@ -355,7 +359,7 @@ export class BlocksDiagram {
       // Iterate over the blocks to append them
       for (
         let i = 0;
-        i < listBlocks.length - 1;
+        i < listBlocks.length;
         ++i, ++this.nbBlocksLoadedRight
       ) {
         // x position where to start to display blocks

@@ -99,4 +99,12 @@ export class Utils {
         });
     });
   }
+
+  static getLeftBlockHash(block: SkipBlock): string {
+    return this.bytes2String(block.backlinks[0])
+  }
+
+  static getRightBlockHash(block: SkipBlock): string {
+    return this.bytes2String(block.forwardLinks[0].to)
+  }
 }
