@@ -12,7 +12,6 @@ import { Observable, Subject, Subscriber } from "rxjs";
 
 import { Flash } from "./flash";
 import { Utils } from "./utils";
-import { ConsoleReporter } from "jasmine";
 
 export class BlocksDiagram {
   // SVG properties
@@ -25,9 +24,9 @@ export class BlocksDiagram {
   blockWidth: number;
   blockHeight: number;
   // Margin between the left of the screen and the initial block
-  initialBlockMargin: number
+  initialBlockMargin: number;
   // Margin between the left of the block and the left of the text in the block
-  textMargin: number
+  textMargin: number;
 
   // Colors
   randomBlocksColor: boolean;
@@ -40,7 +39,7 @@ export class BlocksDiagram {
   subjectBrowse: Subject<[number, SkipBlock[]]>;
   pageSize: number; // number of blocks in a page
   nbPages: number; // number of pages
-  nbBlocksUpdate: number // number of blocks fetched in each update
+  nbBlocksUpdate: number; // number of blocks fetched in each update
 
   // Blocks navigation properties
   hashFirstBlock: string;
@@ -65,8 +64,8 @@ export class BlocksDiagram {
     this.blockPadding = 10;
     this.blockWidth = 300;
     this.blockHeight = 300;
-    this.initialBlockMargin = this.blockPadding
-    this.textMargin = 5
+    this.initialBlockMargin = this.blockPadding;
+    this.textMargin = 5;
 
     // Colors
     this.randomBlocksColor = true;
@@ -78,7 +77,7 @@ export class BlocksDiagram {
     this.subjectBrowse = new Subject<[number, SkipBlock[]]>();
     this.pageSize = 15;
     this.nbPages = 1;
-    this.nbBlocksUpdate = this.nbPages * this.pageSize
+    this.nbBlocksUpdate = this.nbPages * this.pageSize;
 
     // Blocks observation
     this.subscriberList = [];
@@ -102,13 +101,18 @@ export class BlocksDiagram {
         next: (block: SkipBlock) => {
           this.initialBlockHash = Utils.bytes2String(block.hash);
           this.initialBlockFound = true;
-          console.log("hash block " + this.initialBlockIndex + " found: " + this.initialBlockHash)
+          console.log("hash block found: " + this.initialBlockHash)
         },
       });
       */
-        // Artificially put initial block as block 100 for testing purpose
-        this.initialBlockHash = "b2592d85855d2a54c0dd9a1752629105ad0848bc8b69d15bc85f5cf0164a7eca"
-        this.initialBlockFound = true;
+      // Artificially put initial block as block 100 for testing purpose
+
+      const hash100 =
+        "b2592d85855d2a54c0dd9a1752629105ad0848bc8b69d15bc85f5cf0164a7eca";
+      const hash101 =
+        "68760c327d6d8222e85b14af4f4c436b10d91ca4f388e862f4368648bf767139";
+      this.initialBlockHash = hash100;
+      this.initialBlockFound = true;
     } else {
       flash.display(
         Flash.flashType.ERROR,
@@ -145,35 +149,41 @@ export class BlocksDiagram {
             const sizeBlockOnScreen =
               (self.blockWidth + self.blockPadding) * zoomLevel;
 
+            const nbBlocksOnScreen = this.svgWidth / sizeBlockOnScreen;
+// TODO
+            let nbLoadsNeeded = Math.ceil(
+              nbBlocksOnScreen / this.nbBlocksUpdate
+            );
+
             // Load blocks to the left
             const indexLeftBlockOnScreen =
               self.initialBlockIndex + x / sizeBlockOnScreen;
 
-            if (indexLeftBlockOnScreen < indexNextBlockLeft + this.nbBlocksUpdate) {
+            // Check if an update is needed
+            if (
+              indexLeftBlockOnScreen <
+              indexNextBlockLeft + nbBlocksOnScreen
+            ) {
               if (hashNextBlockLeft !== hashNextBlockLeftBeforeUpdate) {
                 hashNextBlockLeftBeforeUpdate = hashNextBlockLeft;
 
-                // Handle the case when we arrive at block 0: do not load
-                // below 0
-                console.log("indexNextBlockLeft" + indexNextBlockLeft);
-                let nbBlocksToLoad = self.pageSize;
-                if (indexNextBlockLeft - self.pageSize + 2 < 0) {
-                  nbBlocksToLoad = indexNextBlockLeft;
-                }
-                console.log(
-                  "nbblockstoload" +
-                    nbBlocksToLoad +
-                    " selfpagesize" +
-                    self.pageSize
-                );
+                if (!(indexNextBlockLeft < 0)) {
+                  // Handle the case when we arrive at block 0: do not load
+                  // below 0
+                  let nbBlocksToLoad = self.pageSize;
+                  const indexLastBlockLeft = indexNextBlockLeft + 1;
+                  if (indexLastBlockLeft - this.nbBlocksUpdate < 0) {
+                    nbBlocksToLoad = indexLastBlockLeft;
+                  }
 
-                self.getNextBlocks(
-                  hashNextBlockLeft,
-                  nbBlocksToLoad,
-                  self.nbPages,
-                  self.subjectBrowse,
-                  true
-                );
+                  self.getNextBlocks(
+                    hashNextBlockLeft,
+                    nbBlocksToLoad,
+                    self.nbPages,
+                    self.subjectBrowse,
+                    true
+                  );
+                }
               }
             }
 
@@ -181,7 +191,11 @@ export class BlocksDiagram {
             const indexRightBlockOnScreen =
               self.initialBlockIndex + (x + self.svgWidth) / sizeBlockOnScreen;
 
-            if (indexRightBlockOnScreen > indexNextBlockRight - this.nbBlocksUpdate) {
+            // Check if an update is needed
+            if (
+              indexRightBlockOnScreen >
+              indexNextBlockRight - nbBlocksOnScreen
+            ) {
               if (!(hashNextBlockRight === hashNextBlockRightBeforeUpdate)) {
                 hashNextBlockRightBeforeUpdate = hashNextBlockRight;
                 self.getNextBlocks(
@@ -217,20 +231,24 @@ export class BlocksDiagram {
         // i is the page number
         // tslint:disable-next-line
         if (i == this.nbPages - 1) {
+          // If this is the first series of blocks, set the hash of the left first block
+          const firstBlock = skipBlocks[0];
+          if (firstBlock.index === this.initialBlockIndex) {
+            hashNextBlockLeft = Utils.getLeftBlockHash(firstBlock);
+          }
+
           const lastBlock = skipBlocks[skipBlocks.length - 1];
           const indexLastBlock = lastBlock.index;
 
           if (indexLastBlock < this.initialBlockIndex) {
             // Load blocks to the left
-            indexNextBlockLeft = indexLastBlock + 2;
-            hashNextBlockLeft = Utils.getLeftBlockHash(lastBlock)
-            console.log("indexNextBlockLeft = " + indexNextBlockLeft + " hashNextBlockLeft " + hashNextBlockLeft)
+            indexNextBlockLeft = indexLastBlock - 1;
+            hashNextBlockLeft = Utils.getLeftBlockHash(lastBlock);
             this.displayBlocks(skipBlocks, true);
           } else {
             // Load blocks to the right
-            indexNextBlockRight = indexLastBlock - 2;
-            hashNextBlockRight = Utils.getRightBlockHash(lastBlock)
-            console.log("indexNextBlockRight = " + indexNextBlockRight + " hashNextBlockRight " + hashNextBlockRight)
+            indexNextBlockRight = indexLastBlock + 1;
+            hashNextBlockRight = Utils.getRightBlockHash(lastBlock);
             this.displayBlocks(skipBlocks, false);
           }
         }
@@ -243,25 +261,21 @@ export class BlocksDiagram {
    */
   loadInitialBlocks() {
     if (!this.initialBlockFound) {
-      this.flash.display(Flash.flashType.ERROR, "unable to find initial block " + this.initialBlockIndex);
+      this.flash.display(
+        Flash.flashType.ERROR,
+        "unable to find initial block " + this.initialBlockIndex
+      );
       this.initialBlockIndex = 0;
       this.initialBlockHash = this.hashFirstBlock;
     }
 
+    // Fetch initial blocks
     this.getNextBlocks(
       this.initialBlockHash,
       this.pageSize,
       this.nbPages,
       this.subjectBrowse,
       false
-    );
-// TODO
-    this.getNextBlocks(
-      this.initialBlockHash,
-      this.pageSize,
-      this.nbPages,
-      this.subjectBrowse,
-      true
     );
   }
 
@@ -300,37 +314,41 @@ export class BlocksDiagram {
       blockColor = this.blockColor;
     }
 
-    if(backwards) { // left
+    if (backwards) {
+      // left
       console.log(
         "Load left blocks " +
-          (listBlocks[0].index - this.nbBlocksUpdate + 1) +
+          (listBlocks[listBlocks.length - 1].index) +
           " to " +
           listBlocks[0].index
       );
-    } else { // right
+    } else {
+      // right
       console.log(
         "Load right blocks " +
           listBlocks[0].index +
           " to " +
-          (listBlocks[0].index + this.nbBlocksUpdate - 1)
+          (listBlocks[listBlocks.length - 1].index)
       );
     }
 
+    let unitBlockAndPaddingWidth = this.blockWidth + this.blockPadding;
+
     // Iterate over the blocks to append them
-    for (
-      let i = 0;
-      i < listBlocks.length;
-      ++i
-    ) {
+    for (let i = 0; i < listBlocks.length; ++i) {
       // x position where to start to display blocks
       let xTranslateBlock;
-      if(backwards) { // left
+      if (backwards) {
+        // left
         xTranslateBlock =
-        -1 * (this.blockWidth + this.blockPadding) * this.nbBlocksLoadedLeft +
-        this.initialBlockMargin;
-      } else { // right
+          -1 * unitBlockAndPaddingWidth * this.nbBlocksLoadedLeft +
+          this.initialBlockMargin -
+          unitBlockAndPaddingWidth;
+      } else {
+        // right
         xTranslateBlock =
-        (this.blockWidth + this.blockPadding) * this.nbBlocksLoadedRight + this.initialBlockMargin;
+          unitBlockAndPaddingWidth * this.nbBlocksLoadedRight +
+          this.initialBlockMargin;
       }
 
       const xTranslateText = xTranslateBlock + this.textMargin;
@@ -370,10 +388,12 @@ export class BlocksDiagram {
         this.textColor
       );
 
-      if(backwards) { // left
-        ++this.nbBlocksLoadedLeft
-      } else { // right
-        ++this.nbBlocksLoadedRight
+      if (backwards) {
+        // left
+        ++this.nbBlocksLoadedLeft;
+      } else {
+        // right
+        ++this.nbBlocksLoadedRight;
       }
     }
     this.updateObserver.next(listBlocks);
