@@ -11,6 +11,7 @@ import * as d3 from "d3";
 import { Subject } from "rxjs";
 import { Flash } from "./flash";
 import { Utils } from "./utils";
+import { TotalBlock } from "./totalBlock";
 
 export class Browsing {
   roster: Roster;
@@ -18,7 +19,7 @@ export class Browsing {
   pageSize: number;
   numPages: number;
   nextIDB: string;
-  totalBlocks: number;
+  totalBlocks: TotalBlock;
   seenBlocks: number;
   contractID: string;
   instanceSearch: Instruction;
@@ -29,14 +30,16 @@ export class Browsing {
   firstBlockIDStart: string;
   abort: boolean;
   flash: Flash;
-  constructor(roster: Roster, flash: Flash) {
+  totatBlockNumber: number;
+  constructor(roster: Roster, flash: Flash, totalBlock: TotalBlock) {
     this.roster = roster;
 
     this.pageSize = 15;
     this.numPages = 15;
 
     this.nextIDB = "";
-    this.totalBlocks = 36650;
+    this.totalBlocks = totalBlock;
+    this.totatBlockNumber = -1;
     this.seenBlocks = 0;
 
     this.contractID = "";
@@ -64,6 +67,12 @@ export class Browsing {
     this.contractID = Utils.bytes2String(this.instanceSearch.instanceID);
     this.abort = false;
     this.nbInstanceFound = 0;
+    const self = this;
+    this.totalBlocks.getTotalBlock().subscribe({
+      next: (skipblock) => {
+        self.totatBlockNumber = skipblock.index;
+      },
+    });
     this.browse(
       this.pageSize,
       this.numPages,
@@ -96,6 +105,7 @@ export class Browsing {
         subjectInstruction.next([hashB, instructionB]);
       },
       error: (data: PaginateResponse) => {
+        // tslint:disable-next-line
         if (data.errorcode == 5) {
           this.ws = undefined;
           this.flash.display(
@@ -122,6 +132,7 @@ export class Browsing {
         const body = DataBody.decode(skipBlock.payload);
         body.txResults.forEach((transaction, _) => {
           transaction.clientTransaction.instructions.forEach(
+            // tslint:disable-next-line
             (instruction, _) => {
               if (instruction.type === Instruction.typeSpawn) {
                 if (
@@ -190,6 +201,7 @@ export class Browsing {
       return;
     }
     try {
+      // tslint:disable-next-line
       var conn = new WebSocketConnection(
         this.roster.list[0].getWebSocketAddress(),
         ByzCoinRPC.serviceName
@@ -204,6 +216,7 @@ export class Browsing {
     if (this.ws !== undefined) {
       const message = new PaginateRequest({
         startid: bid,
+        // tslint:disable-next-line
         pagesize: pageSizeNB,
         numpages: numPagesNB,
         backward: false,
@@ -216,6 +229,7 @@ export class Browsing {
         .sendStream<PaginateResponse>( // fetch next block
           new PaginateRequest({
             startid: bid,
+            // tslint:disable-next-line
             pagesize: pageSizeNB,
             numpages: numPagesNB,
             backward: false,
@@ -252,6 +266,7 @@ export class Browsing {
     subjectBrowse: Subject<[number, SkipBlock]>,
     subjectProgress: Subject<number[]>
   ) {
+    // tslint:disable-next-line
     if (data.errorcode != 0) {
       return 1;
     }
@@ -269,12 +284,23 @@ export class Browsing {
   }
 
   private seenBlocksNotify(i: number, subjectProgress: Subject<number[]>) {
-    if (i % ~~(0.01 * this.totalBlocks) == 0) {
-      const percent: number = ~~((i / this.totalBlocks) * 100);
+    if (
+      this.totatBlockNumber > 0 && // tslint:disable-next-line
+      i % ~~(0.01 * this.totatBlockNumber) == 0
+    ) {
+      // tslint:disable-next-line
+      const percent: number = ~~((i / this.totatBlockNumber) * 100);
       subjectProgress.next([
         percent,
         this.seenBlocks,
-        this.totalBlocks,
+        this.totatBlockNumber,
+        this.nbInstanceFound,
+      ]);
+    } else if (this.totatBlockNumber < 0) {
+      subjectProgress.next([
+        0,
+        this.seenBlocks,
+        this.totatBlockNumber,
         this.nbInstanceFound,
       ]);
     }

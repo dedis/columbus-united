@@ -1,21 +1,33 @@
 <!-- index.html -->
 <html>
-
-<head>
-    <link rel="stylesheet" href="style.css">
-    <meta charset="UTF-8">
+  <head>
+    <link rel="stylesheet" href="dist/main.css" />
+    <meta charset="UTF-8" />
     <script src="dist/bundle.min.js" type="text/javascript"></script>
-</head>
+  </head>
 
-<body>
+  <body>
     <h1>Columbus</h1>
-    <div class='blocksContainer'>
-        <svg class='blocks'></svg>
+    <div class="blocksContainer">
+      <svg class="blocks"></svg>
+    </div>
+    <div class="block-infos">
+      <div class="blockDetailcontainer"></div>
+      <div class="container"></div>
     </div>
 
-</body>
-<script>
+    <footer
+      class="v-footer v-footer--fixed theme--light"
+      style="height: 32px; display: block;"
+    >
+      <span style="padding-left: 1rem;"
+        >© DEDIS 2018 - by Anthony Iozzia and Julien von Felten</span
+      >
+      <span style="padding-left: 1rem;"> v.1.0.11</span>
+      <a href="https://github.com/dedis/columbus-united">github repository</a>
+    </footer>
+  </body>
+  <script>
     jsapp.sayHi();
-</script>
-
+  </script>
 </html>

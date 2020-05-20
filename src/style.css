@@ -1,0 +1,520 @@
+@import "~uikit/dist/css/uikit.min.css";
+div.block-infos {
+    display: flex;
+    flex-direction: row;
+}
+
+.blockDetailcontainer {
+    max-height: 500px;
+    overflow-y: scroll;
+    background-color: rgb(199, 199, 199);
+    padding: 20px;
+    flex: 1;
+}
+
+.container {
+    max-height: 500px;
+    overflow-y: scroll;
+    border: 1px solid #ccc;
+    background-color: rgb(199, 199, 199);
+    padding: 20px;
+    flex: 1;
+    opacity: 0%;
+}
+
+@media only screen and (max-width: 1000px) {
+    div.block-infos {
+        flex-direction: column;
+    }
+    div.blockDetailcontainer,
+    div.container {
+        flex: none;
+    }
+}
+
+#progressBarContainer {
+    width: 80%;
+    position: absolute;
+    background-color: rgb(199, 199, 199);
+    top: 52%;
+    left: 10%;
+}
+
+#progressBar {
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    bottom: 0%;
+    width: 1%;
+    z-index: 1;
+    background-color: #4caf50;
+}
+
+#textBar {
+    position: relative;
+    z-index: 2;
+    padding: 10px;
+    font-family: "Roboto", sans-serif;
+    font-weight: 500;
+    font-size: 150%;
+    text-align: center;
+    color: black;
+}
+
+.loadContainer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(168, 168, 168);
+    color: black;
+}
+
+.divLoad {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.loader {
+    border: 16px solid #f3f3f3;
+    border-top: 16px solid #3498db;
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.blocksContainer {
+    height: 350px;
+    /* TODO adjust automatically (function of page size) */
+    border: 0px solid #000;
+    /*overflow-y: hidden;
+    overflow-x: scroll;*/
+}
+
+.blocks {
+    display: block;
+    width: 100%;
+}
+
+.alertContainer {
+    position: absolute;
+    top: 0%;
+    left: 25%;
+    width: 50%;
+}
+
+.alert {
+    padding: 20px;
+    background-color: #f44336;
+    color: white;
+    opacity: 1;
+    transition: opacity 0.6s;
+    margin-bottom: 15px;
+}
+
+.alert.other {
+    background-color: rgb(0, 54, 14);
+}
+
+.alert.info {
+    background-color: #2196f3;
+}
+
+.alert.warning {
+    background-color: #ff9800;
+}
+
+.closebtn {
+    margin-left: 15px;
+    color: white;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.closebtn:hover {
+    color: black;
+}
+
+.cancelButton {
+    position: absolute;
+    top: 80%;
+    right: 10%;
+    display: inline-block;
+    border: 0.16em solid rgba(255, 255, 255, 0);
+    border-radius: 2em;
+    padding: 10px;
+    box-sizing: border-box;
+    text-decoration: none;
+    font-family: "Roboto", sans-serif;
+    font-weight: 500;
+    font-size: 110%;
+    color: #ffffff;
+    text-shadow: 0 0.04em 0.04em rgba(0, 0, 0, 0.35);
+    text-align: center;
+    transition: all 0.2s;
+    background-color: #0004e2;
+}
+
+.cancelButton:hover {
+    border-color: rgba(255, 255, 255, 1);
+}
+
+@media all and (max-width: 30em) {
+    .cancelButton {
+        display: block;
+        margin: 0.2em auto;
+    }
+}
+
+.logo {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: 10%;
+    content: url(https://avatars2.githubusercontent.com/u/3638331?s=200&v=4);
+}
+
+
+/*
+footer from status.dedis.ch
+*/
+
+.theme--light.v-footer {
+    background: #f5f5f5;
+    color: rgba(0, 0, 0, .87);
+}
+
+.theme--dark.v-footer {
+    background: #212121;
+    color: #fff
+}
+
+.v-footer {
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-flex: 0!important;
+    -ms-flex: 0 1 auto!important;
+    flex: 0 1 auto!important;
+    min-height: 36px;
+    -webkit-transition: .2s cubic-bezier(.4, 0, .2, 1);
+    transition: .2s cubic-bezier(.4, 0, .2, 1)
+}
+
+.v-footer--absolute,
+.v-footer--fixed {
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 3
+}
+
+.v-footer--inset {
+    z-index: 2
+}
+
+.v-footer--absolute {
+    position: absolute
+}
+
+.v-footer--fixed {
+    position: fixed;
+}
+
+
+/*
+List of classes for the new transaction container
+*/
+
+.active {
+    background-color: rgb(160, 160, 160);
+}
+
+.blockDetailcontainer p {
+    color: black;
+    font-size: 17px;
+}
+
+.detailTransactionButton {
+    background-color: rgb(199, 199, 199);
+    cursor: pointer;
+    width: 100%;
+    height: 50px;
+    border-top: 2px dashed rgb(133, 133, 133);
+    border-bottom: none;
+    border-left: 2px dashed rgb(133, 133, 133);
+    border-right: 2px dashed rgb(133, 133, 133);
+    text-align: left;
+    transition: 0.4s;
+    margin-bottom: 1px;
+}
+
+.detailTransactionButton p {
+    padding-left: 15px;
+}
+
+.detailTransactionButton:hover {
+    background-color: rgb(133, 133, 133);
+}
+
+.detailTransactionContainer {
+    text-align: left;
+    border-bottom: none;
+    border-top: none;
+    border-left: 2px dashed rgb(133, 133, 133);
+    border-right: 2px dashed rgb(133, 133, 133);
+    display: block;
+    background-color: rgb(199, 199, 199);
+    overflow: hidden;
+}
+
+.detailTransactionContainer p {
+    font-size: 20px;
+    padding-left: 30px;
+}
+
+.detailInstructionButton {
+    background-color: rgb(199, 199, 199);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    border: none;
+    transition: 0.4s;
+}
+
+.detailInstructionButton p {
+    padding-left: 30px;
+}
+
+.detailInstructionButton:hover {
+    background-color: rgb(133, 133, 133);
+}
+
+.detailInstructionContainer {
+    text-align: left;
+    border: none;
+    display: block;
+    background-color: rgb(199, 199, 199);
+    overflow: hidden;
+}
+
+.detailInstructionContainer p {
+    font-size: 20px;
+    padding-left: 45px;
+}
+
+.detailArgsButton {
+    background-color: rgb(199, 199, 199);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    border: none;
+    transition: 0.4s;
+}
+
+.detailArgsButton p {
+    padding-left: 45px;
+}
+
+.detailArgsButton:hover {
+    background-color: rgb(133, 133, 133);
+}
+
+.detailArgsContainer {
+    outline: none;
+    text-align: left;
+    border-top: none;
+    border-bottom: 2px dashed rgb(133, 133, 133);
+    border-left: none;
+    border-right: none;
+    width: 100%;
+    display: none;
+    background-color: rgb(199, 199, 199);
+    overflow: hidden;
+}
+
+.detailArgsContainer p {
+    padding-left: 60px;
+}
+
+.oneDetailTextClose p {
+    color: black;
+    font-size: 17px;
+}
+
+.startBrowseButton {
+    background-color: rgb(199, 199, 199);
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+    border-top: 2px dashed rgb(133, 133, 133);
+    border-bottom: none;
+    border-left: none;
+    border-right: none;
+    transition: 0.4s;
+}
+
+.startBrowseButton p {
+    color: black;
+    font-size: 17px;
+}
+
+.startBrowseButton:hover {
+    background-color: rgb(133, 133, 133);
+}
+
+.detailsBlockButton {
+    background-color: rgb(199, 199, 199);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    border: none;
+    transition: 0.4s;
+}
+
+.detailsBlockButton:hover {
+    background-color: rgb(133, 133, 133);
+}
+
+.detailsBlockContainer {
+    text-align: left;
+    border: none;
+    width: 100%;
+    display: none;
+    background-color: rgb(199, 199, 199);
+    overflow: hidden;
+    padding-left: 15px;
+}
+
+.detailsBlockContainer p {
+    color: black;
+    font-size: 17px;
+    padding-left: 15px;
+}
+
+
+/*
+CSS for the browsing result
+*/
+
+.detailInstanceButton {
+    background-color: rgb(199, 199, 199);
+    cursor: pointer;
+    width: 100%;
+    height: 50px;
+    border-top: 2px dashed rgb(133, 133, 133);
+    border-bottom: none;
+    border-left: 2px dashed rgb(133, 133, 133);
+    border-right: 2px dashed rgb(133, 133, 133);
+    text-align: left;
+    transition: 0.4s;
+    margin-bottom: 1px;
+}
+
+.detailInstanceButton p {
+    padding-left: 15px;
+}
+
+.detailInstanceButton:hover {
+    background-color: rgb(133, 133, 133);
+}
+
+.detailInstanceContainer {
+    text-align: left;
+    border-bottom: none;
+    border-top: none;
+    border-left: 2px dashed rgb(133, 133, 133);
+    border-right: 2px dashed rgb(133, 133, 133);
+    display: none;
+    background-color: rgb(199, 199, 199);
+    overflow: hidden;
+}
+
+.detailInstanceContainer p {
+    font-size: 20px;
+    padding-left: 30px;
+}
+
+.detailSeeArgsButton {
+    background-color: rgb(199, 199, 199);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    border: none;
+    transition: 0.4s;
+}
+
+.detailSeeArgsButton p {
+    padding-left: 30px;
+}
+
+.detailSeeArgsButton:hover {
+    background-color: rgb(133, 133, 133);
+}
+
+.detailSeeArgsContainer {
+    text-align: left;
+    border: none;
+    display: none;
+    background-color: rgb(199, 199, 199);
+    overflow: hidden;
+}
+
+.detailSeeArgsContainer p {
+    font-size: 20px;
+    padding-left: 45px;
+}
+
+.detailInstanceArgsButton {
+    background-color: rgb(199, 199, 199);
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    border: none;
+    transition: 0.4s;
+}
+
+.detailInstanceArgsButton p {
+    padding-left: 45px;
+}
+
+.detailInstanceArgsButton:hover {
+    background-color: rgb(133, 133, 133);
+}
+
+.detailInstanceArgsContainer {
+    outline: none;
+    text-align: left;
+    border-top: none;
+    border-bottom: 2px dashed rgb(133, 133, 133);
+    border-left: none;
+    border-right: none;
+    width: 100%;
+    display: none;
+    background-color: rgb(199, 199, 199);
+    overflow: hidden;
+}
+
+.detailInstanceArgsContainer p {
+    padding-left: 60px;
+}
