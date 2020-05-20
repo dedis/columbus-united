@@ -206,12 +206,11 @@ export class BlocksDiagram {
    * Load the initial blocks.
    */
   loadInitialBlocks() {
-    
     Utils.getBlockFromIndex(127, this.roster).subscribe({
-         next: (block: SkipBlock) => {
-           console.log("G TROUVE " + Utils.bytes2String(block.hash));
-         }
-       })
+      next: (block: SkipBlock) => {
+        console.log("G TROUVE " + Utils.bytes2String(block.hash));
+      },
+    });
 
     this.getNextBlocks(
       this.initialBlockHash,
@@ -220,7 +219,7 @@ export class BlocksDiagram {
       this.subjectBrowse,
       false
     );
-    
+
     this.getNextBlocks(
       this.initialBlockHash,
       this.pageSize,
@@ -433,7 +432,7 @@ export class BlocksDiagram {
     ++textIndex.index;
   }
 
-/**
+  /**
    * Requests blocks to the blockchain.
    * @param nextBlockID hash of the first block of the next blocks to get
    * @param pageSize number of blocks in a page
@@ -523,8 +522,6 @@ export class BlocksDiagram {
         });
     }
   }
-
-  
 
   //private subscribe TODO
 }

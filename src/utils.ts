@@ -79,11 +79,11 @@ export class Utils {
             const block = data.blocks[0];
 
             if (data.errorcode != 0) {
-              sub.error(data.errortext)
+              sub.error(data.errortext);
             } else if (block.index == index) {
               sub.next(block);
             } else if (block.forwardLinks.length == 0) {
-              sub.error("End of blockchain")
+              sub.error("End of blockchain");
             } else {
               const message = new PaginateRequest({
                 backward: false,

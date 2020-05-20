@@ -136,7 +136,8 @@ export class Browsing {
             (instruction, _) => {
               if (instruction.type === Instruction.typeSpawn) {
                 if (
-                  Utils.bytes2String(instruction.deriveId("")) === this.contractID
+                  Utils.bytes2String(instruction.deriveId("")) ===
+                  this.contractID
                 ) {
                   hashB.push(Utils.bytes2String(skipBlock.hash));
                   instructionB.push(instruction);
