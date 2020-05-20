@@ -24,6 +24,10 @@ export class BlocksDiagram {
   blockPadding: number; // size of the space between blocks
   blockWidth: number;
   blockHeight: number;
+  // Margin between the left of the screen and the initial block
+  initialBlockMargin: number
+  // Margin between the left of the block and the left of the text in the block
+  textMargin: number
 
   // Colors
   randomBlocksColor: boolean;
@@ -36,6 +40,7 @@ export class BlocksDiagram {
   subjectBrowse: Subject<[number, SkipBlock[]]>;
   pageSize: number; // number of blocks in a page
   nbPages: number; // number of pages
+  nbBlocksUpdate: number // number of blocks fetched in each update
 
   // Blocks navigation properties
   hashFirstBlock: string;
@@ -60,6 +65,8 @@ export class BlocksDiagram {
     this.blockPadding = 10;
     this.blockWidth = 300;
     this.blockHeight = 300;
+    this.initialBlockMargin = this.blockPadding
+    this.textMargin = 5
 
     // Colors
     this.randomBlocksColor = true;
@@ -71,7 +78,7 @@ export class BlocksDiagram {
     this.subjectBrowse = new Subject<[number, SkipBlock[]]>();
     this.pageSize = 15;
     this.nbPages = 1;
-    const nbBlocksUpdate = this.nbPages * this.pageSize
+    this.nbBlocksUpdate = this.nbPages * this.pageSize
 
     // Blocks observation
     this.subscriberList = [];
@@ -142,7 +149,7 @@ export class BlocksDiagram {
             const indexLeftBlockOnScreen =
               self.initialBlockIndex + x / sizeBlockOnScreen;
 
-            if (indexLeftBlockOnScreen < indexNextBlockLeft + nbBlocksUpdate) {
+            if (indexLeftBlockOnScreen < indexNextBlockLeft + this.nbBlocksUpdate) {
               if (hashNextBlockLeft !== hashNextBlockLeftBeforeUpdate) {
                 hashNextBlockLeftBeforeUpdate = hashNextBlockLeft;
 
@@ -174,7 +181,7 @@ export class BlocksDiagram {
             const indexRightBlockOnScreen =
               self.initialBlockIndex + (x + self.svgWidth) / sizeBlockOnScreen;
 
-            if (indexRightBlockOnScreen > indexNextBlockRight - nbBlocksUpdate) {
+            if (indexRightBlockOnScreen > indexNextBlockRight - this.nbBlocksUpdate) {
               if (!(hashNextBlockRight === hashNextBlockRightBeforeUpdate)) {
                 hashNextBlockRightBeforeUpdate = hashNextBlockRight;
                 self.getNextBlocks(
@@ -293,114 +300,80 @@ export class BlocksDiagram {
       blockColor = this.blockColor;
     }
 
-    if (backwards) {
+    if(backwards) { // left
       console.log(
         "Load left blocks " +
-          (listBlocks[0].index - this.pageSize + 2) +
+          (listBlocks[0].index - this.nbBlocksUpdate + 1) +
           " to " +
           listBlocks[0].index
       );
-      // Load blocks to the left
-      // Iterate over the blocks to append them
-      for (
-        let i = 0;
-        i < listBlocks.length;
-        ++i, ++this.nbBlocksLoadedLeft
-      ) {
-        // x position where to start to display blocks
-        const xTranslateBlock =
-          -1 * (this.blockWidth + this.blockPadding) * this.nbBlocksLoadedLeft +
-          10;
-        const xTranslateText = xTranslateBlock + 5;
-
-        const block = listBlocks[i];
-
-        // Append the block inside the svg container
-        this.appendBlock(xTranslateBlock, blockColor, block);
-
-        // Box the text index in an object to pass it by reference
-        const textIndex = { index: 0 };
-
-        // Index
-        this.appendTextInBlock(
-          xTranslateText,
-          textIndex,
-          "index: " + block.index,
-          this.textColor
-        );
-
-        // Hash
-        const hash = Utils.bytes2String(block.hash);
-        this.appendTextInBlock(
-          xTranslateText,
-          textIndex,
-          "hash: " + hash.slice(0, 22) + "...",
-          this.textColor
-        );
-
-        // Number of transactions
-        const body = DataBody.decode(block.payload);
-        const nbTransactions = body.txResults.length;
-        this.appendTextInBlock(
-          xTranslateText,
-          textIndex,
-          "#transactions: " + nbTransactions,
-          this.textColor
-        );
-      }
-    } else {
+    } else { // right
       console.log(
         "Load right blocks " +
           listBlocks[0].index +
           " to " +
-          (listBlocks[0].index + this.pageSize - 2)
+          (listBlocks[0].index + this.nbBlocksUpdate - 1)
       );
-      // Load blocks to the right
-      // Iterate over the blocks to append them
-      for (
-        let i = 0;
-        i < listBlocks.length;
-        ++i, ++this.nbBlocksLoadedRight
-      ) {
-        // x position where to start to display blocks
-        const xTranslateBlock =
-          (this.blockWidth + this.blockPadding) * this.nbBlocksLoadedRight + 10;
-        const xTranslateText = xTranslateBlock + 5;
+    }
 
-        const block = listBlocks[i];
+    // Iterate over the blocks to append them
+    for (
+      let i = 0;
+      i < listBlocks.length;
+      ++i
+    ) {
+      // x position where to start to display blocks
+      let xTranslateBlock;
+      if(backwards) { // left
+        xTranslateBlock =
+        -1 * (this.blockWidth + this.blockPadding) * this.nbBlocksLoadedLeft +
+        this.initialBlockMargin;
+      } else { // right
+        xTranslateBlock =
+        (this.blockWidth + this.blockPadding) * this.nbBlocksLoadedRight + this.initialBlockMargin;
+      }
 
-        // Append the block inside the svg container
-        this.appendBlock(xTranslateBlock, blockColor, block);
+      const xTranslateText = xTranslateBlock + this.textMargin;
 
-        // Box the text index in an object to pass it by reference
-        const textIndex = { index: 0 };
+      const block = listBlocks[i];
 
-        // Index
-        this.appendTextInBlock(
-          xTranslateText,
-          textIndex,
-          "index: " + block.index,
-          this.textColor
-        );
+      // Append the block inside the svg container
+      this.appendBlock(xTranslateBlock, blockColor, block);
 
-        // Hash
-        const hash = Utils.bytes2String(block.hash);
-        this.appendTextInBlock(
-          xTranslateText,
-          textIndex,
-          "hash: " + hash.slice(0, 22) + "...",
-          this.textColor
-        );
+      // Box the text index in an object to pass it by reference
+      const textIndex = { index: 0 };
 
-        // Number of transactions
-        const body = DataBody.decode(block.payload);
-        const nbTransactions = body.txResults.length;
-        this.appendTextInBlock(
-          xTranslateText,
-          textIndex,
-          "#transactions: " + nbTransactions,
-          this.textColor
-        );
+      // Index
+      this.appendTextInBlock(
+        xTranslateText,
+        textIndex,
+        "index: " + block.index,
+        this.textColor
+      );
+
+      // Hash
+      const hash = Utils.bytes2String(block.hash);
+      this.appendTextInBlock(
+        xTranslateText,
+        textIndex,
+        "hash: " + hash.slice(0, 22) + "...",
+        this.textColor
+      );
+
+      // Number of transactions
+      const body = DataBody.decode(block.payload);
+      const nbTransactions = body.txResults.length;
+      this.appendTextInBlock(
+        xTranslateText,
+        textIndex,
+        "#transactions: " + nbTransactions,
+        this.textColor
+      );
+
+      if(backwards) { // left
+        ++this.nbBlocksLoadedLeft
+      } else { // right
+        ++this.nbBlocksLoadedRight
       }
     }
     this.updateObserver.next(listBlocks);
