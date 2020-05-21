@@ -27,6 +27,9 @@ export class BlocksDiagram {
   initialBlockMargin: number;
   // Margin between the left of the block and the left of the text in the block
   textMargin: number;
+  unitBlockAndPaddingWidth: number;
+  loaderAnimationDuration: number; // duration of the loader in ms
+  timeoutDisplayBlocksDuration: number;
 
   // Colors
   randomBlocksColor: boolean;
@@ -66,9 +69,12 @@ export class BlocksDiagram {
     this.blockHeight = 300;
     this.initialBlockMargin = this.blockPadding;
     this.textMargin = 5;
+    this.unitBlockAndPaddingWidth = this.blockWidth + this.blockPadding;
+    this.loaderAnimationDuration = 1000;
+    this.timeoutDisplayBlocksDuration = 2000;
 
     // Colors
-    this.randomBlocksColor = true;
+    this.randomBlocksColor = false;
     this.textColor = "black";
     this.blockColor = "#4772D8";
 
@@ -198,8 +204,7 @@ export class BlocksDiagram {
             ) {
               if (!(hashNextBlockRight === hashNextBlockRightBeforeUpdate)) {
                 hashNextBlockRightBeforeUpdate = hashNextBlockRight;
-                self.destroyLoader();
-                self.createLoader();
+
                 self.getNextBlocks(
                   hashNextBlockRight,
                   self.pageSize,
@@ -207,8 +212,6 @@ export class BlocksDiagram {
                   self.subjectBrowse,
                   false
                 );
-
-               
               }
             }
           })
@@ -248,13 +251,20 @@ export class BlocksDiagram {
             // Load blocks to the left
             indexNextBlockLeft = indexLastBlock - 1;
             hashNextBlockLeft = Utils.getLeftBlockHash(lastBlock);
-            this.displayBlocks(skipBlocks, true);
-            setTimeout(() => { this.displayBlocks(skipBlocks) }, 3000);
+
+            this.loaderAnimation(true)
+
+            //this.displayBlocks(skipBlocks, true, this.getBlockColor());
+            this.setTimeoutDisplayBlocks(skipBlocks, true);
           } else {
             // Load blocks to the right
             indexNextBlockRight = indexLastBlock + 1;
             hashNextBlockRight = Utils.getRightBlockHash(lastBlock);
-            this.displayBlocks(skipBlocks, false);
+
+            this.loaderAnimation(false)
+
+            //this.displayBlocks(skipBlocks, false, this.getBlockColor());
+            this.setTimeoutDisplayBlocks(skipBlocks, false);
           }
         }
       },
@@ -304,49 +314,75 @@ export class BlocksDiagram {
     return this.updateObserver;
   }
 
-  private createLoader() {
-    const xTranslateBlock =
-        (this.blockWidth + this.blockPadding) * this.nbBlocksLoaded + 10;
-
-    this.svgBlocks
-    .append("rect")
-    .attr("id", "loader1")
-    .attr("width", 10)
-    .attr("height", this.blockHeight)
-    .attr("y", 25)
-    .attr("transform", (d: any) => {
-      const translate = [xTranslateBlock, 0];
-      return "translate(" + translate + ")";
-    })
-    .attr("fill", this.getRandomColor());
-
-    d3.select("#loader1")
-      .transition()
-      .duration(3000)
-      .attr("width", "300")
+  private loaderAnimation(backwards: boolean) {
+    this.destroyLoader(backwards);
+    this.createLoader(backwards);
   }
 
-  private destroyLoader() {
-    
-    d3.select("#loader1")
-      .remove()
+  private createLoader(backwards: boolean) {
+    let xTranslateBlock = this.getXTranslateBlock(backwards);
+    const loaderId = this.getLoaderId(backwards)
+
+    let initialLoaderWidth = 10
+    this.svgBlocks
+      .append("rect")
+      .attr("id", loaderId)
+      .attr("width", initialLoaderWidth)
+      .attr("height", this.blockHeight)
+      .attr("y", 25)
+      .attr("transform", (d: any) => {
+        const translate = [xTranslateBlock, 0];
+        return "translate(" + translate + ")";
+      })
+      .attr("fill", this.getBlockColor());
+
+    d3.select(loaderId)
+      .transition()
+      .duration(this.loaderAnimationDuration)
+      .attr("width", this.blockWidth);
+  }
+
+  private destroyLoader(backwards: boolean) {
+    d3.select(this.getLoaderId(backwards)).remove();
+  }
+
+  private getLoaderId(backwards: boolean): string {
+    return backwards ? "#loaderLeft" : "#loaderRight"
+  }
+
+  /**
+   * x position where to start to display blocks.
+   * @param backwards
+   */
+  private getXTranslateBlock(backwards: boolean): number {
+    let xTranslateBlock: number;
+    if (backwards) {
+      // left
+      xTranslateBlock =
+        -1 * this.unitBlockAndPaddingWidth * this.nbBlocksLoadedLeft +
+        this.initialBlockMargin -
+        this.unitBlockAndPaddingWidth;
+    } else {
+      // right
+      xTranslateBlock =
+        this.unitBlockAndPaddingWidth * this.nbBlocksLoadedRight +
+        this.initialBlockMargin;
+    }
+
+    return xTranslateBlock;
   }
 
   /**
    * Append the given blocks to the blockchain.
    * @param listBlocks list of blocks to append
-   * @param backward false for loading blocks to the right, true for loading
+   * @param backwards false for loading blocks to the right, true for loading
    * blocks to the left
    */
-  private displayBlocks(listBlocks: SkipBlock[], backwards: boolean) {
-    // Determine the color of the blocks
-    let blockColor: string;
-    if (this.randomBlocksColor) {
-      blockColor = Utils.getRandomColor();
-    } else {
-      blockColor = this.blockColor;
-    }
-
+  private displayBlocks(
+    listBlocks: SkipBlock[],
+    backwards: boolean,
+    blockColor: string
+  ) {
     if (backwards) {
       // left
       console.log(
@@ -365,24 +401,9 @@ export class BlocksDiagram {
       );
     }
 
-    let unitBlockAndPaddingWidth = this.blockWidth + this.blockPadding;
-
     // Iterate over the blocks to append them
     for (let i = 0; i < listBlocks.length; ++i) {
-      // x position where to start to display blocks
-      let xTranslateBlock;
-      if (backwards) {
-        // left
-        xTranslateBlock =
-          -1 * unitBlockAndPaddingWidth * this.nbBlocksLoadedLeft +
-          this.initialBlockMargin -
-          unitBlockAndPaddingWidth;
-      } else {
-        // right
-        xTranslateBlock =
-          unitBlockAndPaddingWidth * this.nbBlocksLoadedRight +
-          this.initialBlockMargin;
-      }
+      let xTranslateBlock = this.getXTranslateBlock(backwards);
 
       const xTranslateText = xTranslateBlock + this.textMargin;
 
@@ -576,5 +597,22 @@ export class BlocksDiagram {
           },
         });
     }
+  }
+
+  /**
+   * Determine the color of the blocks.
+   */
+  private getBlockColor(): string {
+    if (this.randomBlocksColor) {
+      return Utils.getRandomColor();
+    } else {
+      return this.blockColor;
+    }
+  }
+
+  private setTimeoutDisplayBlocks(skipBlocks: SkipBlock[], backwards: boolean) {
+    setTimeout(() => {
+      this.displayBlocks(skipBlocks, backwards, this.getBlockColor());
+    }, this.timeoutDisplayBlocksDuration);
   }
 }
