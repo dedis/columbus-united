@@ -7,14 +7,17 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "bundle": "webpack",
     "watch": "webpack --watch",
-    "lint": "tslint 'src/{,**/}*.ts' 'spec/{,**/}*.ts' && prettier --check *.html"
+    "lint": "tslint 'src/{,**/}*.ts' 'spec/{,**/}*.ts'",
+    "makePretty": "prettier --config package.json --write \"src/**/*{.ts,.js}\" \"*.html\"",
+    "isPretty": "prettier --config package.json --check \"src/**/*{.ts,.js}\" \"*.html\""
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@dedis/cothority": "^3.4.4",
     "d3": "^5.15.1",
-    "rxjs": "^6.5.4"
+    "rxjs": "^6.5.4",
+    "uikit": "^3.4.6"
   },
   "devDependencies": {
     "@babel/core": "^7.7.7",
@@ -24,10 +27,13 @@
     "@types/jasmine": "^3.5.0",
     "@types/long": "^4.0.0",
     "babel-loader": "^8.0.6",
+    "css-loader": "^3.5.3",
     "dockerode": "^3.0.2",
     "jasmine": "^3.5.0",
     "jasmine-console-reporter": "^3.1.0",
+    "mini-css-extract-plugin": "^0.9.0",
     "nyc": "^15.0.0",
+    "prettier": "2.0.5",
     "ts-loader": "^6.2.1",
     "ts-node": "^8.5.4",
     "tslint": "^5.20.1",
