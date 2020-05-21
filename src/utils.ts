@@ -39,6 +39,21 @@ export class Utils {
     );
   }
 
+  /**
+   * Use:
+   * Utils.getBlockFromIndex(
+        hashFirstBlock,
+        initialBlockIndex,
+        roster
+      ).subscribe({
+        next: (block: SkipBlock) => {
+          // Do something
+        },
+      });
+   * @param hashfirstBlock 
+   * @param index 
+   * @param roster 
+   */
   static getBlockFromIndex(
     hashfirstBlock: string,
     index: number,
@@ -101,10 +116,10 @@ export class Utils {
   }
 
   static getLeftBlockHash(block: SkipBlock): string {
-    return this.bytes2String(block.backlinks[0])
+    return this.bytes2String(block.backlinks[0]);
   }
 
   static getRightBlockHash(block: SkipBlock): string {
-    return this.bytes2String(block.forwardLinks[0].to)
+    return this.bytes2String(block.forwardLinks[0].to);
   }
 }
