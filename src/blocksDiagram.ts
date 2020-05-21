@@ -91,7 +91,7 @@ export class BlocksDiagram {
       this.initialBlockHash = this.hashFirstBlock;
       this.initialBlockFound = true;
     } else if (this.initialBlockIndex > 0) {
-      // TODO
+      // TODO wait until the block has been found
       /*
       Utils.getBlockFromIndex(
         this.hashFirstBlock,
@@ -150,7 +150,7 @@ export class BlocksDiagram {
               (self.blockWidth + self.blockPadding) * zoomLevel;
 
             const nbBlocksOnScreen = this.svgWidth / sizeBlockOnScreen;
-// TODO
+            // TODO pb unzoom blocks
             let nbLoadsNeeded = Math.ceil(
               nbBlocksOnScreen / this.nbBlocksUpdate
             );
@@ -318,7 +318,7 @@ export class BlocksDiagram {
       // left
       console.log(
         "Load left blocks " +
-          (listBlocks[listBlocks.length - 1].index) +
+          listBlocks[listBlocks.length - 1].index +
           " to " +
           listBlocks[0].index
       );
@@ -328,7 +328,7 @@ export class BlocksDiagram {
         "Load right blocks " +
           listBlocks[0].index +
           " to " +
-          (listBlocks[listBlocks.length - 1].index)
+          listBlocks[listBlocks.length - 1].index
       );
     }
 
