@@ -323,6 +323,12 @@ export class BlocksDiagram {
     let xTranslateBlock = this.getXTranslateBlock(backwards);
     const loaderId = this.getLoaderId(backwards)
 
+    if(backwards) {
+      xTranslateBlock =
+        -1 * this.unitBlockAndPaddingWidth * this.nbBlocksLoadedLeft +
+        this.blockPadding;
+    }
+
     let initialLoaderWidth = 10
     this.svgBlocks
       .append("rect")
@@ -336,18 +342,47 @@ export class BlocksDiagram {
       })
       .attr("fill", this.getBlockColor());
 
-    d3.select(loaderId)
+    // Loader position
+    let xStart, xEnd;
+    if(backwards) {
+      xStart = xTranslateBlock - this.initialBlockMargin
+      xEnd = xTranslateBlock
+      // TODO fix
+      d3.select("#" + loaderId)
+      .attr("x", xStart)
       .transition()
+      .ease(d3.easeSin)
       .duration(this.loaderAnimationDuration)
-      .attr("width", this.blockWidth);
+      .attr("width", this.blockWidth)
+      .attr("x", xEnd)
+    } else {
+      xStart = xTranslateBlock - this.initialBlockMargin
+      xEnd = xStart
+      d3.select("#" + loaderId)
+      //.attr("x", xStart)
+      .transition()
+      .ease(d3.easeSin)
+      .duration(this.loaderAnimationDuration)
+      .attr("width", this.blockWidth)
+      //.attr("x", xEnd)
+    }
+/*
+    d3.select("#" + loaderId)
+      //.attr("x", xStart)
+      .transition()
+      .ease(d3.easeSin)
+      .duration(this.loaderAnimationDuration)
+      .attr("width", this.blockWidth)
+      //.attr("x", xEnd)
+      */
   }
 
   private destroyLoader(backwards: boolean) {
-    d3.select(this.getLoaderId(backwards)).remove();
+    d3.select("#" + this.getLoaderId(backwards)).remove();
   }
 
   private getLoaderId(backwards: boolean): string {
-    return backwards ? "#loaderLeft" : "#loaderRight"
+    return backwards ? "loaderLeft" : "loaderRight"
   }
 
   /**
@@ -360,13 +395,13 @@ export class BlocksDiagram {
       // left
       xTranslateBlock =
         -1 * this.unitBlockAndPaddingWidth * this.nbBlocksLoadedLeft +
-        this.initialBlockMargin -
+        this.blockPadding -
         this.unitBlockAndPaddingWidth;
     } else {
       // right
       xTranslateBlock =
         this.unitBlockAndPaddingWidth * this.nbBlocksLoadedRight +
-        this.initialBlockMargin;
+        this.blockPadding;
     }
 
     return xTranslateBlock;
