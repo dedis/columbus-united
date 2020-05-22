@@ -255,7 +255,7 @@ export class BlocksDiagram {
             this.loaderAnimation(true)
 
             //this.displayBlocks(skipBlocks, true, this.getBlockColor());
-            this.setTimeoutDisplayBlocks(skipBlocks, true);
+            //this.setTimeoutDisplayBlocks(skipBlocks, true);
           } else {
             // Load blocks to the right
             indexNextBlockRight = indexLastBlock + 1;
@@ -264,7 +264,7 @@ export class BlocksDiagram {
             this.loaderAnimation(false)
 
             //this.displayBlocks(skipBlocks, false, this.getBlockColor());
-            this.setTimeoutDisplayBlocks(skipBlocks, false);
+            //this.setTimeoutDisplayBlocks(skipBlocks, false);
           }
         }
       },
@@ -348,6 +348,7 @@ export class BlocksDiagram {
       xStart = xTranslateBlock - this.initialBlockMargin
       xEnd = xTranslateBlock
       // TODO fix
+      
       d3.select("#" + loaderId)
       .attr("x", xStart)
       .transition()
@@ -355,6 +356,7 @@ export class BlocksDiagram {
       .duration(this.loaderAnimationDuration)
       .attr("width", this.blockWidth)
       .attr("x", xEnd)
+      
     } else {
       xStart = xTranslateBlock - this.initialBlockMargin
       xEnd = xStart
