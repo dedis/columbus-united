@@ -164,10 +164,13 @@ export class DetailBlock {
             )}"`
           )
           .on("mouseover", function () {
-            searchInstance.attr("class", "uk-button uk-button-default uk-animation-scale-up")
+            searchInstance.attr(
+              "class",
+              "uk-button uk-button-default uk-animation-scale-up"
+            );
           })
           .on("mouseout", function () {
-            searchInstance.attr("class", "uk-button uk-button-default")
+            searchInstance.attr("class", "uk-button uk-button-default");
           })
           .on("click", function () {
             const conf = confirm(
