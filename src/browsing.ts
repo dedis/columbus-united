@@ -103,8 +103,9 @@ export class Browsing {
     this.nbInstanceFound = 0;
 
     this.nextIDB = "";
-    this.contractID = this.instanceSearch.instanceID.toString("hex");
+
     this.instanceSearch = instance;
+    this.contractID = this.instanceSearch.instanceID.toString("hex");
 
     this.abort = false;
 

@@ -8,53 +8,97 @@ import { throttleTime } from "rxjs/operators";
 import { Browsing } from "./browsing";
 import { Flash } from "./flash";
 
+/**
+ * Create the interface under the blockchain. It displays
+ * the two containers for the details of the clicked block
+ * and for the result of the browsing for one instance.
+ * It will also highlights some blocks in the blockchain.
+ * It also handles the loading screen with the progressbar
+ * to be updated.
+ *
+ * @author Julien von Felten <julien.vonfelten@epfl.ch>
+ *
+ * @export
+ * @class DetailBlock
+ */
 export class DetailBlock {
-  skipbObservable: Observable<SkipBlock>;
-  browsing: Browsing;
+  // Observable for the clicked block
+  skipBclickedObs: Observable<SkipBlock>;
   clickedBlock: SkipBlock;
+  colorBlock: string;
+  colorClickedBlock: string;
+
+  // Observable that notifies the updated blocks of blocksDiagram
+  loadedSkipBObs: Observable<SkipBlock[]>;
+
+  flash: Flash;
+  browsing: Browsing;
+  hashHighligh: string[];
+
+  // progress bar
   progressBarContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   progressBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   textBar: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-  hashHighligh: string[];
-  updateObserver: Observable<SkipBlock[]>;
-  colorBlock: string;
-  colorClickedBlock: string;
   loadContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-  flash: Flash;
   progressBarItem: HTMLElement;
 
+  /**
+   * Creates an instance of DetailBlock.
+   * @param {Observable<SkipBlock>} skipBclickedObs : Observable for the clicked block
+   * @param {Browsing} browsing
+   * @param {Flash} flash
+   * @param {Observable<SkipBlock[]>} loadedSkipBObs : Observable that notifies
+   *                              the updated blocks of blocksDiagram
+   * @memberof DetailBlock
+   */
   constructor(
-    observerSkip: Observable<SkipBlock>,
-    subjectInstru: Browsing,
+    skipBclickedObs: Observable<SkipBlock>,
+    browsing: Browsing,
     flash: Flash,
-    updateObserver: Observable<SkipBlock[]>
+    loadedSkipBObs: Observable<SkipBlock[]>
   ) {
     const self = this;
-    this.skipbObservable = observerSkip;
-    this.skipbObservable.subscribe({
+
+    this.skipBclickedObs = skipBclickedObs;
+    this.skipBclickedObs.subscribe({
       next: this.listTransaction.bind(this),
     });
-    this.browsing = subjectInstru;
     this.clickedBlock = null;
+    this.colorBlock = "#4772D8"; // must be set differently when we will choose the colors
+    this.colorClickedBlock = "#0040D4"; // must be set differently when we will choose the colors
 
-    this.progressBarContainer = undefined;
-    this.progressBar = undefined;
-    this.textBar = undefined;
-    this.hashHighligh = [];
-    this.updateObserver = updateObserver;
-    this.updateObserver.subscribe({
+    this.loadedSkipBObs = loadedSkipBObs;
+    this.loadedSkipBObs.subscribe({
       next: (value) => {
         self.highlightBlocks(this.hashHighligh);
       },
     });
-    this.colorBlock = "#1b6f8a"; // must be set differently when we will choose the colors
-    this.colorClickedBlock = "#a6f8b2"; // must be set differently when we will choose the colors
+
     this.flash = flash;
+    this.browsing = browsing;
+    this.hashHighligh = [];
+
+    this.progressBarContainer = undefined;
+    this.progressBar = undefined;
+    this.textBar = undefined;
     this.loadContainer = undefined;
     this.progressBarItem = undefined;
   }
 
+  /**
+   * Display the list of all the transactions inside the clicked block.
+   * It is triggered on click by the blocksDiagram class which notifies the
+   * skipBclickedObs observable. It also displays the details of the block
+   * (verifiers, backlinks, forwardlinks).
+   * A browse button to search for the instanceID of the instruction is also
+   * displayed
+   *
+   * @private
+   * @param {SkipBlock} block : the clicked block
+   * @memberof DetailBlock
+   */
   private listTransaction(block: SkipBlock) {
+    // (re)set the color of the clickedBlock
     if (this.clickedBlock !== block) {
       if (this.clickedBlock != null) {
         const blockSVG = d3.select(
@@ -81,6 +125,8 @@ export class DetailBlock {
     ulTransaction.attr("uk-accordion", "");
     ulTransaction.attr("multiple", "true");
     const body = DataBody.decode(block.payload);
+
+    // transactions of the block
     body.txResults.forEach((transaction, i) => {
       const accepted: string = transaction.accepted
         ? "Accepted"
@@ -99,15 +145,15 @@ export class DetailBlock {
         .text(
           `\u22B3 Transaction ${i} ${accepted}, #instructions: ${totalInstruction}`
         );
-
       const divTransaction = liTransaction.append("div");
       divTransaction.attr(
         "class",
         "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
       );
+
       const ulInstruction = divTransaction.append("ul");
       ulInstruction.attr("uk-accordion", "");
-
+      // instructions of the transaction
       transaction.clientTransaction.instructions.forEach((instruction, j) => {
         let args = null;
         const liInstruction = ulInstruction.append("li");
@@ -135,12 +181,14 @@ export class DetailBlock {
           "class",
           "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
         );
+        // Detail of one instruction
         divInstruction
           .append("p")
           .text(`Hash:${instruction.hash().toString("hex")}`);
         divInstruction
           .append("p")
           .text(`Instance ID: ${instruction.instanceID.toString("hex")}`);
+        // Args of the instruction
         const ulArgs = divInstruction.append("ul");
         ulArgs.attr("uk-accordion", "");
         args.forEach((arg, i) => {
@@ -155,6 +203,7 @@ export class DetailBlock {
           );
           divArgs.append("p").text(`${arg.value}`);
         });
+        // Search button
         const searchInstance = divInstruction.append("button");
         searchInstance
           .attr("id", "buttonBrowse")
@@ -164,15 +213,17 @@ export class DetailBlock {
               "hex"
             )}"`
           )
+          // Animation on mouseover
           .on("mouseover", function () {
             searchInstance.attr(
               "class",
               "uk-button uk-button-default uk-animation-scale-up"
             );
-          })
+          }) // No animation on mouseout
           .on("mouseout", function () {
             searchInstance.attr("class", "uk-button uk-button-default");
           })
+          // Confirmation and start browsing on click
           .on("click", function () {
             const conf = confirm(
               `Do you really want to browse the whole blockchain with the instance ID: ${instruction.instanceID.toString(
@@ -180,11 +231,13 @@ export class DetailBlock {
               )}? \nThis may take a while!`
             );
             if (conf) {
-              self.createProgressBar();
+              self.createLoadingScreen();
+              console.log(instruction);
               const subjects = self.browsing.getInstructionSubject(instruction);
               subjects[0].subscribe({
                 next: self.printDataBrowsing.bind(self),
               });
+              // throttleTime: ignores the values for the 100 first ms
               subjects[1].pipe(throttleTime(100)).subscribe({
                 next: ([
                   percentage,
@@ -192,7 +245,7 @@ export class DetailBlock {
                   totalBlock,
                   nbInstanceFound,
                 ]) => {
-                  self.updateProgressBar(
+                  self.updateLoadingScreen(
                     percentage,
                     seenBlock,
                     totalBlock,
@@ -207,7 +260,7 @@ export class DetailBlock {
           });
       });
     });
-
+    // Details of the blocks (Verifier, backlinks, forwardlinks)
     const liDetails = ulTransaction.append("li");
     const aDetails = liDetails.append("a");
     aDetails
@@ -220,6 +273,7 @@ export class DetailBlock {
       "class",
       "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
     );
+
     // Verifier details
     const ulVerifier = divDetails.append("ul");
     ulVerifier.attr("uk-accordion", "");
@@ -294,8 +348,19 @@ export class DetailBlock {
     });
   }
 
+  /**
+   * Displays the result of the browsing, highlights the
+   * blocks found.
+   *
+   * @private
+   * @param {[string[], Instruction[]]} tuple : value of the observable
+   *                              browsing.getInstructionSubject function
+   * @memberof DetailBlock
+   */
   private printDataBrowsing(tuple: [string[], Instruction[]]) {
+    // removes previous highlighted blocks
     this.removeHighlighBlocks(this.hashHighligh);
+
     const browseContainer = d3.select(".container");
     browseContainer
       .attr("id", "browseContainer")
@@ -307,13 +372,16 @@ export class DetailBlock {
     const ulInstructionB = browseContainer.append("ul");
     ulInstructionB.attr("uk-accordion", "");
     ulInstructionB.attr("multiple", "true");
+
     for (let i = 0; i < tuple[1].length; i++) {
       const instruction = tuple[1][i];
       const liInstructionB = ulInstructionB.append("li");
       const aInstructionB = liInstructionB.append("a");
       aInstructionB.attr("class", "uk-accordion-title").attr("href", "#");
+
       let contractID = "";
       let args = null;
+
       if (instruction.type === Instruction.typeSpawn) {
         aInstructionB
           .attr("id", `buttonInstance${i}`)
@@ -344,9 +412,11 @@ export class DetailBlock {
           );
         contractID = `ContractID: ${instruction.delete.contractID}`;
       }
+      // Add an highlight of the instance which was browsed
       if (tuple[0][i] === this.clickedBlock.hash.toString("hex")) {
         aInstructionB.style("background-color", "red");
       }
+      // Detail of each instruction
       const divInstructionB = liInstructionB.append("div");
       divInstructionB.attr(
         "class",
@@ -359,6 +429,8 @@ export class DetailBlock {
       ulDetailB.attr("uk-accordion", "");
       const liDetailB = ulDetailB.append("li");
       const aDetailB = liDetailB.append("a");
+
+      // Arguments of the instruction
       aDetailB
         .attr("class", "uk-accordion-title")
         .attr("href", "#")
@@ -390,10 +462,18 @@ export class DetailBlock {
         divArgsB.append("p").text(`${arg.value}`);
       });
     }
+    // Highlights the blocks in the blockchain
     this.highlightBlocks(tuple[0]);
     this.hashHighligh = tuple[0];
   }
 
+  /**
+   * Highlights the blocks in the blockchain
+   *
+   * @private
+   * @param {string[]} hashs : the hash of the blocks to be highlighted
+   * @memberof DetailBlock
+   */
   private highlightBlocks(hashs: string[]) {
     for (let i = 0; i < hashs.length; i++) {
       const blockSVG = d3.select(`[id = "${hashs[i]}"]`);
@@ -409,7 +489,13 @@ export class DetailBlock {
       });
     }
   }
-
+  /**
+   * Removes the highlights of the blocks in the blockchain
+   *
+   * @private
+   * @param {string[]} hashs : the hash of the blocks to remove the highlight
+   * @memberof DetailBlock
+   */
   private removeHighlighBlocks(hashs: string[]) {
     for (let i = 0; i < hashs.length; i++) {
       const blockSVG = d3.select(`[id = "${hashs[i]}"]`);
@@ -426,7 +512,13 @@ export class DetailBlock {
     }
   }
 
-  private createProgressBar() {
+  /**
+   * Creates the loading screen
+   *
+   * @private
+   * @memberof DetailBlock
+   */
+  private createLoadingScreen() {
     const self = this;
     this.loadContainer = d3
       .select("body")
@@ -467,7 +559,18 @@ export class DetailBlock {
       });
     this.progressBarItem = document.getElementById("progressBar");
   }
-  private updateProgressBar(
+
+  /**
+   * Called at each percent by the subject. It updates the loading screen
+   *
+   * @private
+   * @param {number} percentage
+   * @param {number} seenBlocks
+   * @param {number} totalBlocks
+   * @param {number} nbInstanceFound
+   * @memberof DetailBlock
+   */
+  private updateLoadingScreen(
     percentage: number,
     seenBlocks: number,
     totalBlocks: number,
@@ -484,6 +587,12 @@ export class DetailBlock {
       );
     }
   }
+  /**
+   * Removes the loading screen
+   *
+   * @private
+   * @memberof DetailBlock
+   */
   private doneLoading() {
     d3.select(".loadContainer").remove();
   }
