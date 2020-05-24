@@ -102,7 +102,7 @@ export class DetailBlock {
       const divTransaction = liTransaction.append("div");
       divTransaction.attr(
         "class",
-        "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom uk-padding-remove-top uk-padding-remove-bottom"
+        "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
       );
       const ulInstruction = divTransaction.append("ul");
       ulInstruction.attr("uk-accordion", "");
@@ -132,7 +132,7 @@ export class DetailBlock {
         const divInstruction = liInstruction.append("div");
         divInstruction.attr(
           "class",
-          "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+          "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
         );
         divInstruction
           .append("p")
@@ -150,7 +150,7 @@ export class DetailBlock {
           const divArgs = liArgs.append("div");
           divArgs.attr(
             "class",
-            "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+            "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
           );
           divArgs.append("p").text(`${arg.value}`);
         });
@@ -217,7 +217,7 @@ export class DetailBlock {
     const divDetails = liDetails.append("div");
     divDetails.attr(
       "class",
-      "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+      "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
     );
     // Verifier details
     const ulVerifier = divDetails.append("ul");
@@ -231,7 +231,7 @@ export class DetailBlock {
     const divVerifier = liVerifier.append("div");
     divVerifier.attr(
       "class",
-      "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+      "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
     );
     block.verifiers.forEach((uid, j) => {
       divVerifier
@@ -251,7 +251,7 @@ export class DetailBlock {
     const divBackLink = liBackLink.append("div");
     divBackLink.attr(
       "class",
-      "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+      "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
     );
     block.backlinks.forEach((value, j) => {
       divBackLink
@@ -271,7 +271,7 @@ export class DetailBlock {
     const divForwardLink = liForwardLink.append("div");
     divForwardLink.attr(
       "class",
-      "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+      "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
     );
     block.forwardLinks.forEach((fl, j) => {
       divForwardLink.append("p").text(`From: ${fl.from.toString("hex")}`);
@@ -349,7 +349,7 @@ export class DetailBlock {
       const divInstructionB = liInstructionB.append("div");
       divInstructionB.attr(
         "class",
-        "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+        "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
       );
       divInstructionB.append("p").text(`In the block: ${tuple[0][i]}`);
       divInstructionB.append("p").text(contractID);
@@ -365,7 +365,7 @@ export class DetailBlock {
       const divDetailB = liDetailB.append("div");
       divDetailB.attr(
         "class",
-        "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+        "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
       );
       let totalArgs = 0;
       args.forEach((_, __) => {
@@ -384,7 +384,7 @@ export class DetailBlock {
         const divArgsB = liArgsB.append("div");
         divArgsB.attr(
           "class",
-          "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+          "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
         );
         divArgsB.append("p").text(`${arg.value}`);
       });
