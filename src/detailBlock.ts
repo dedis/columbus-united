@@ -100,7 +100,10 @@ export class DetailBlock {
         );
 
       const divTransaction = liTransaction.append("div");
-      divTransaction.attr("class", "uk-accordion-content");
+      divTransaction.attr(
+        "class",
+        "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom uk-padding-remove-top uk-padding-remove-bottom"
+      );
       const ulInstruction = divTransaction.append("ul");
       ulInstruction.attr("uk-accordion", "");
 
@@ -127,7 +130,10 @@ export class DetailBlock {
         }
 
         const divInstruction = liInstruction.append("div");
-        divInstruction.attr("class", "uk-accordion-content");
+        divInstruction.attr(
+          "class",
+          "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+        );
         divInstruction
           .append("p")
           .text(`Hash:${instruction.hash().toString("hex")}`);
@@ -142,7 +148,10 @@ export class DetailBlock {
           aArgs.attr("class", "uk-accordion-title").attr("href", "#");
           aArgs.text(`${i}) ${arg.name}`);
           const divArgs = liArgs.append("div");
-          divArgs.attr("class", "uk-accordion-content");
+          divArgs.attr(
+            "class",
+            "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+          );
           divArgs.append("p").text(`${arg.value}`);
         });
         const searchInstance = divInstruction.append("button");
@@ -194,10 +203,13 @@ export class DetailBlock {
     aDetails
       .attr("class", "uk-accordion-title")
       .attr("href", "#")
-      .text("Block details");
+      .text("\u22B3 Block details");
 
     const divDetails = liDetails.append("div");
-    divDetails.attr("class", "uk-accordion-content");
+    divDetails.attr(
+      "class",
+      "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+    );
     // Verifier details
     const ulVerifier = divDetails.append("ul");
     ulVerifier.attr("uk-accordion", "");
@@ -208,7 +220,10 @@ export class DetailBlock {
       .attr("href", "#")
       .text(`\u2022 Verifiers: ${block.verifiers.length}`);
     const divVerifier = liVerifier.append("div");
-    divVerifier.attr("class", "uk-accordion-content");
+    divVerifier.attr(
+      "class",
+      "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+    );
     block.verifiers.forEach((uid, j) => {
       divVerifier
         .append("p")
@@ -225,7 +240,10 @@ export class DetailBlock {
       .attr("href", "#")
       .text(`\u2022 BackLinks: ${block.backlinks.length}`);
     const divBackLink = liBackLink.append("div");
-    divBackLink.attr("class", "uk-accordion-content");
+    divBackLink.attr(
+      "class",
+      "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+    );
     block.backlinks.forEach((value, j) => {
       divBackLink
         .append("p")
@@ -242,7 +260,10 @@ export class DetailBlock {
       .attr("href", "#")
       .text(`\u2022 ForwardLinks: ${block.forwardLinks.length}`);
     const divForwardLink = liForwardLink.append("div");
-    divForwardLink.attr("class", "uk-accordion-content");
+    divForwardLink.attr(
+      "class",
+      "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+    );
     block.forwardLinks.forEach((fl, j) => {
       divForwardLink.append("p").text(`From: ${fl.from.toString("hex")}`);
       divForwardLink.append("p").text(`Hash: ${fl.hash().toString("hex")}`);
@@ -264,9 +285,8 @@ export class DetailBlock {
   }
 
   private printDataBrowsing(tuple: [string[], Instruction[]]) {
-    const browseContainer = d3.select(".container");
     this.removeHighlighBlocks(this.hashHighligh);
-
+    const browseContainer = d3.select(".container");
     browseContainer
       .attr("id", "browseContainer")
       .text("")
@@ -318,7 +338,10 @@ export class DetailBlock {
         aInstructionB.style("background-color", "red");
       }
       const divInstructionB = liInstructionB.append("div");
-      divInstructionB.attr("class", "uk-accordion-content");
+      divInstructionB.attr(
+        "class",
+        "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+      );
       divInstructionB.append("p").text(`In the block: ${tuple[0][i]}`);
       divInstructionB.append("p").text(contractID);
 
@@ -331,7 +354,10 @@ export class DetailBlock {
         .attr("href", "#")
         .text("Click to see the arguments");
       const divDetailB = liDetailB.append("div");
-      divDetailB.attr("class", "uk-accordion-content");
+      divDetailB.attr(
+        "class",
+        "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+      );
       let totalArgs = 0;
       args.forEach((_, __) => {
         totalArgs++;
@@ -347,7 +373,10 @@ export class DetailBlock {
           .attr("href", "#")
           .text(`${i}) ${arg.name}`);
         const divArgsB = liArgsB.append("div");
-        divArgsB.attr("class", "uk-accordion-content");
+        divArgsB.attr(
+          "class",
+          "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+        );
         divArgsB.append("p").text(`${arg.value}`);
       });
     }
