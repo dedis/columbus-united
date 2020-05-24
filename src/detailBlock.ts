@@ -55,7 +55,6 @@ export class DetailBlock {
   }
 
   private listTransaction2(block: SkipBlock) {
-    const self = this;
     if (this.clickedBlock !== block) {
       if (this.clickedBlock != null) {
         const blockSVG = d3.select(
@@ -69,103 +68,86 @@ export class DetailBlock {
         "fill",
         this.colorClickedBlock
       );
-    }/*
+    }
+
     const transactionContainer = d3.select(".blockDetailcontainer");
     transactionContainer
       .attr("id", "transactionContainer")
       .text("")
       .append("p")
       .text(`Block ${block.index}, Hash: ${block.hash.toString("hex")}`);
-    const ulTransaction = transactionContainer.append("ul");
-    ulTransaction.attr("uk-accordion", "").attr("multiple", "true");
+    // This is an example using the uiukit library that will be removed
+    // in the next PR where the interface will be adapted using this library
+    const ulTransaction = transactionContainer.append("ul"); // 1: add first element to html
+    ulTransaction.attr("uk-accordion", ""); // add the attribute: <ul uk-accordion </u>
+    ulTransaction.attr("multiple", "true"); // Options can be added: to open multiple lines at the same time here for example
     const body = DataBody.decode(block.payload);
     body.txResults.forEach((transaction, i) => {
       const accepted: string = transaction.accepted
         ? "Accepted"
         : "Not accepted";
+      const liTransaction = ulTransaction.append("li"); // append li
+      const aTransaction = liTransaction.append("a"); // append a
       let totalInstruction = 0;
       transaction.clientTransaction.instructions.forEach((_, __) => {
         totalInstruction++;
       });
-      const liTransaction = ulTransaction.append("li");
-      const aTransaction = liTransaction.append("a");
+
       aTransaction
         .attr("class", "uk-accordion-title")
         .attr("href", "#")
         .text(
           `\u22B3 Transaction ${i} ${accepted}, #instructions: ${totalInstruction}`
         );
-    });*/
-    const transactionContainer = d3.select(".blockDetailcontainer");
 
-    // This is an example using the uiukit library that will be removed	
-    // in the next PR where the interface will be adapted using this library	
-    const ul = d3.select("body").append("ul"); // 1: add first element to html	
-    ul.attr("uk-accordion", ""); // add the attribute: <ul uk-accordion </u>	
-    ul.attr("multiple", "true"); // Options can be added: to open multiple lines at the same time here for example	
-    const li = ul.append("li"); // append li	
-    const a = li.append("a"); // append a	
-    a.attr("class", "uk-accordion-title").attr("href", "#").text("Item 1");	
-    const div = li.append("div");	
-    div.attr("class", "uk-accordion-content");	
-    div	
-      .append("p")	
-      .text(	
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"	
-      );	
+      const divTransaction = liTransaction.append("div");
+      divTransaction.attr("class", "uk-accordion-content");
+      const ulInstruction = divTransaction.append("ul");
+      ulInstruction.attr("uk-accordion", "");
 
-    const li2 = ul.append("li");	
-    const a2 = li2.append("a");	
-    a2.attr("class", "uk-accordion-title").attr("href", "#").text("Item 2");	
-    const div2 = li2.append("div");	
-    div2.attr("class", "uk-accordion-content");	
-    div2	
-      .append("p")	
-      .text(	
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua"	
-      );	
+      transaction.clientTransaction.instructions.forEach((instruction, j) => {
+        let args = null;
+        const liInstruction = ulInstruction.append("li");
+        const aInstruction = liInstruction.append("a");
+        aInstruction.attr("class", "uk-accordion-title").attr("href", "#");
 
-
-
-
-
+        if (instruction.type === Instruction.typeSpawn) {
+          aInstruction.text(
+            `\u2022 Spawn instruction ${j}, name of contract: ${instruction.spawn.contractID}`
+          );
+          args = instruction.spawn.args;
+        } else if (instruction.type === Instruction.typeInvoke) {
+          aInstruction.text(
+            `\u2022 Invoke instruction ${j}, name of contract: ${instruction.invoke.contractID}`
+          );
+          args = instruction.invoke.args;
+        } else if (instruction.type === Instruction.typeDelete) {
+          aInstruction.text(
+            `\u2022 Delete instruction ${j}, name of contract:${instruction.delete.contractID}`
+          );
+        }
+        
+        const divInstruction = liInstruction.append("div");
+        divInstruction.attr("class", "uk-accordion-content");
+        divInstruction.append("p").text(`Hash:${instruction.hash().toString("hex")}`);
+        divInstruction.append("p").text(`Instance ID: ${instruction.instanceID.toString("hex")}`);
+        const ulArgs = divInstruction.append("ul")
+        ulArgs.attr("uk-accordion", "");
+        args.forEach((arg, i) => {
+          const liArgs = ulArgs.append("li")
+          const aArgs = liArgs.append("a")
+          aArgs.attr("class", "uk-accordion-title").attr("href", "#");
+          aArgs.text(`${i}) ${arg.name}`)
+          const divArgs = liArgs.append("div")
+          divArgs.attr("class", "uk-accordion-content");
+          divArgs.append("p").text(`${arg.value}`)
+        });
+      });
+    });
+    
   }
 
   private listTransaction(block: SkipBlock) {
-    // This is an example using the uiukit library that will be removed
-    // in the next PR where the interface will be adapted using this library
-    const ul = d3.select("body").append("ul"); // 1: add first element to html
-    ul.attr("uk-accordion", ""); // add the attribute: <ul uk-accordion </u>
-    ul.attr("multiple", "true"); // Options can be added: to open multiple lines at the same time here for example
-    const li = ul.append("li"); // append li
-    const a = li.append("a"); // append a
-    a.attr("class", "uk-accordion-title").attr("href", "#").text("Item1");
-    const div = li.append("div");
-    div.attr("class", "uk-accordion-content");
-    let newul = div.append("ul");
-    newul
-      .attr("uk-accordion", "")
-      .attr("multiple", "true")
-      .attr("class", ".uk-padding-small");
-    let newli = newul.append("li");
-    let newa = newli.append("a");
-    newa.attr("class", "uk-accordion-title").attr("href", "#").text("Item1.1");
-    let newdiv = newli.append("div");
-    newdiv
-      .attr("class", "uk-accordion-content")
-      .attr("class", ".uk-padding-left-small");
-    newdiv.append("p").text("c'est ouf si on voit ca");
-
-    const li2 = ul.append("li"); // append li
-    const a2 = li2.append("a"); // append a
-    a2.attr("class", "uk-accordion-title").attr("href", "#").text("item 2");
-    const div2 = li2.append("div");
-    div2.attr("class", "uk-accordion-content");
-    div2
-      .append("p")
-      .attr("class", ".uk-padding-left-small")
-      .text("Text2 inside tiem 2");
-
     if (this.clickedBlock !== block) {
       if (this.clickedBlock != null) {
         const blockSVG = d3.select(
