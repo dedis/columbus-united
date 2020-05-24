@@ -138,12 +138,13 @@ export class DetailBlock {
       transaction.clientTransaction.instructions.forEach((_, __) => {
         totalInstruction++;
       });
-
+      let s = ""
+      if(totalInstruction>2) s = "s"
       aTransaction
         .attr("class", "uk-accordion-title")
         .attr("href", "#")
         .text(
-          `\u22B3 Transaction ${i} ${accepted}, #instructions: ${totalInstruction}`
+          `\u22B3 Transaction ${i} ${accepted}, show ${totalInstruction} instruction${s}:`
         );
       const divTransaction = liTransaction.append("div");
       divTransaction.attr(
@@ -199,7 +200,7 @@ export class DetailBlock {
           const divArgs = liArgs.append("div");
           divArgs.attr(
             "class",
-            "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
+            "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
           );
           divArgs.append("p").text(`${arg.value}`);
         });
@@ -379,38 +380,31 @@ export class DetailBlock {
       const aInstructionB = liInstructionB.append("a");
       aInstructionB.attr("class", "uk-accordion-title").attr("href", "#");
 
-      let contractID = "";
       let args = null;
-
+      let contractID = "";
       if (instruction.type === Instruction.typeSpawn) {
         aInstructionB
           .attr("id", `buttonInstance${i}`)
           .text(
-            `${i}) Spawn: Hash of instanceID is: ${instruction
-              .hash()
-              .toString("hex")}`
+            `${i}) Spawn in the block ???`
           );
-        contractID = `ContractID: ${instruction.spawn.contractID}`;
         args = instruction.spawn.args;
+        contractID = instruction.spawn.contractID;
       } else if (instruction.type === Instruction.typeInvoke) {
         aInstructionB
           .attr("id", `buttonInstance${i}`)
           .text(
-            `${i}) Invoke: Hash of instanceID is: ${instruction
-              .hash()
-              .toString("hex")}`
+            `${i}) Invoke in the block ???`
           );
-        contractID = `ContractID: ${instruction.invoke.contractID}`;
         args = instruction.invoke.args;
+        contractID = instruction.invoke.contractID;
       } else if (instruction.type === Instruction.typeDelete) {
         aInstructionB
           .attr("id", `buttonInstance${i}`)
           .text(
-            `${i}) Delete: Hash of instanceID is: ${instruction
-              .hash()
-              .toString("hex")}`
+            `${i}) Delete in the block ???`
           );
-        contractID = `ContractID: ${instruction.delete.contractID}`;
+          contractID = instruction.delete.contractID;
       }
       // Add an highlight of the instance which was browsed
       if (tuple[0][i] === this.clickedBlock.hash.toString("hex")) {
@@ -422,30 +416,13 @@ export class DetailBlock {
         "class",
         "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
       );
+      divInstructionB.append("p").text(`Hash of instanceID is: ${instruction
+        .hash()
+        .toString("hex")}`);
+      divInstructionB.append("p").text(`contractID: ${contractID}`)
       divInstructionB.append("p").text(`In the block: ${tuple[0][i]}`);
-      divInstructionB.append("p").text(contractID);
-
-      const ulDetailB = divInstructionB.append("ul");
-      ulDetailB.attr("uk-accordion", "");
-      const liDetailB = ulDetailB.append("li");
-      const aDetailB = liDetailB.append("a");
-
-      // Arguments of the instruction
-      aDetailB
-        .attr("class", "uk-accordion-title")
-        .attr("href", "#")
-        .text("Click to see the arguments");
-      const divDetailB = liDetailB.append("div");
-      divDetailB.attr(
-        "class",
-        "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
-      );
-      let totalArgs = 0;
-      args.forEach((_, __) => {
-        totalArgs++;
-      });
-      divDetailB.append("p").text(`Total number of arguments: ${totalArgs}`);
-      const ulArgsB = divDetailB.append("ul");
+      divInstructionB.append("p").text("Arguments: ");
+      const ulArgsB = divInstructionB.append("ul");
       ulArgsB.attr("uk-accordion", "");
       args.forEach((arg, i) => {
         const liArgsB = ulArgsB.append("li");
