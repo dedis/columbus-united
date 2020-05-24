@@ -132,14 +132,16 @@ export class DetailBlock {
         ? "Accepted"
         : "Not accepted";
       const liTransaction = ulTransaction.append("li");
-      liTransaction.attr("class", "uk-open");
+      liTransaction.attr("class", "uk-open").attr("style", "border:2px dashed rgb(133, 133, 133)");
       const aTransaction = liTransaction.append("a");
       let totalInstruction = 0;
       transaction.clientTransaction.instructions.forEach((_, __) => {
         totalInstruction++;
       });
-      let s = ""
-      if(totalInstruction>2) s = "s"
+      let s = "";
+      if (totalInstruction > 2) {
+        s = "s";
+      }
       aTransaction
         .attr("class", "uk-accordion-title")
         .attr("href", "#")
@@ -149,7 +151,7 @@ export class DetailBlock {
       const divTransaction = liTransaction.append("div");
       divTransaction.attr(
         "class",
-        "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
+        "uk-accordion-content"
       );
 
       const ulInstruction = divTransaction.append("ul");
@@ -158,6 +160,7 @@ export class DetailBlock {
       transaction.clientTransaction.instructions.forEach((instruction, j) => {
         let args = null;
         const liInstruction = ulInstruction.append("li");
+        liInstruction.attr("style", "padding-left:15px").attr("class", "uk-open")
         const aInstruction = liInstruction.append("a");
         aInstruction.attr("class", "uk-accordion-title").attr("href", "#");
 
@@ -180,8 +183,8 @@ export class DetailBlock {
         const divInstruction = liInstruction.append("div");
         divInstruction.attr(
           "class",
-          "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
-        );
+          "uk-accordion-content"
+        ).attr("style", "padding-left:15px");
         // Detail of one instruction
         divInstruction
           .append("p")
@@ -189,6 +192,9 @@ export class DetailBlock {
         divInstruction
           .append("p")
           .text(`Instance ID: ${instruction.instanceID.toString("hex")}`);
+        divInstruction
+          .append("p")
+          .text("Arguments:");
         // Args of the instruction
         const ulArgs = divInstruction.append("ul");
         ulArgs.attr("uk-accordion", "");
@@ -200,7 +206,7 @@ export class DetailBlock {
           const divArgs = liArgs.append("div");
           divArgs.attr(
             "class",
-            "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-bottom"
+            "uk-accordion-content"
           );
           divArgs.append("p").text(`${arg.value}`);
         });
@@ -208,7 +214,8 @@ export class DetailBlock {
         const searchInstance = divInstruction.append("button");
         searchInstance
           .attr("id", "buttonBrowse")
-          .attr("class", "uk-button uk-button-default")
+          .attr("class", "uk-button uk-button-default uk-padding-remove-right uk-padding-remove-left")
+          .attr("style", "border:none")
           .text(
             `Search for all instance with the ID: "${instruction.instanceID.toString(
               "hex"
@@ -261,7 +268,7 @@ export class DetailBlock {
     const divDetails = liDetails.append("div");
     divDetails.attr(
       "class",
-      "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
+      "uk-accordion-content"
     );
 
     // Verifier details
@@ -276,7 +283,7 @@ export class DetailBlock {
     const divVerifier = liVerifier.append("div");
     divVerifier.attr(
       "class",
-      "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
+      "uk-accordion-content"
     );
     block.verifiers.forEach((uid, j) => {
       divVerifier
@@ -296,7 +303,7 @@ export class DetailBlock {
     const divBackLink = liBackLink.append("div");
     divBackLink.attr(
       "class",
-      "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
+      "uk-accordion-content"
     );
     block.backlinks.forEach((value, j) => {
       divBackLink
@@ -316,7 +323,7 @@ export class DetailBlock {
     const divForwardLink = liForwardLink.append("div");
     divForwardLink.attr(
       "class",
-      "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
+      "uk-accordion-content"
     );
     block.forwardLinks.forEach((fl, j) => {
       divForwardLink.append("p").text(`From: ${fl.from.toString("hex")}`);
@@ -364,6 +371,7 @@ export class DetailBlock {
     ulInstructionB.attr("multiple", "true");
 
     for (let i = 0; i < tuple[1].length; i++) {
+      const blocki = tuple[0][i]
       const instruction = tuple[1][i];
       const liInstructionB = ulInstructionB.append("li");
       const aInstructionB = liInstructionB.append("a");
@@ -374,29 +382,26 @@ export class DetailBlock {
       if (instruction.type === Instruction.typeSpawn) {
         aInstructionB
           .attr("id", `buttonInstance${i}`)
-          .text(
-            `${i}) Spawn in the block ${tuple[0][i].index}`
-          );
+          .text(`${i}) Spawn in the block ${blocki.index}`);
         args = instruction.spawn.args;
         contractID = instruction.spawn.contractID;
       } else if (instruction.type === Instruction.typeInvoke) {
         aInstructionB
           .attr("id", `buttonInstance${i}`)
-          .text(
-            `${i}) Invoke in the block ${tuple[0][i].index}`
-          );
+          .text(`${i}) Invoke in the block ${blocki.index}`);
         args = instruction.invoke.args;
         contractID = instruction.invoke.contractID;
       } else if (instruction.type === Instruction.typeDelete) {
         aInstructionB
           .attr("id", `buttonInstance${i}`)
-          .text(
-            `${i}) Delete in the block ${tuple[0][i].index}`
-          );
-          contractID = instruction.delete.contractID;
+          .text(`${i}) Delete in the block ${blocki.index}`);
+        contractID = instruction.delete.contractID;
       }
       // Add an highlight of the instance which was browsed
-      if (tuple[0][i].hash.toString("hex") === this.clickedBlock.hash.toString("hex")) {
+      if (
+        blocki.hash.toString("hex") ===
+        this.clickedBlock.hash.toString("hex")
+      ) {
         aInstructionB.style("background-color", "red");
       }
       // Detail of each instruction
@@ -405,11 +410,13 @@ export class DetailBlock {
         "class",
         "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
       );
-      divInstructionB.append("p").text(`Hash of instanceID is: ${instruction
-        .hash()
-        .toString("hex")}`);
-      divInstructionB.append("p").text(`contractID: ${contractID}`)
-      divInstructionB.append("p").text(`In the block: ${tuple[0][i].hash.toString("hex")}`);
+      divInstructionB
+        .append("p")
+        .text(`Hash of instanceID is: ${instruction.hash().toString("hex")}`);
+      divInstructionB.append("p").text(`contractID: ${contractID}`);
+      divInstructionB
+        .append("p")
+        .text(`In the block: ${blocki.hash.toString("hex")}`);
       divInstructionB.append("p").text("Arguments: ");
       const ulArgsB = divInstructionB.append("ul");
       ulArgsB.attr("uk-accordion", "");
