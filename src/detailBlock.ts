@@ -263,35 +263,6 @@ export class DetailBlock {
     });
   }
 
-  private addClickListenerOpen(acc: NodeListOf<Element>) {
-    for (const button of acc) {
-      button.classList.toggle("active"); // tslint:disable-next-line
-      button.addEventListener("click", function () {
-        const panel = this.nextElementSibling;
-        if (panel.style.display === "block") {
-          panel.style.display = "none";
-        } else {
-          this.classList.toggle("active");
-          panel.style.display = "block";
-        }
-      });
-    }
-  }
-
-  private addClickListenerClose(acc: NodeListOf<Element>) {
-    for (const button of acc) {
-      // tslint:disable-next-line
-      button.addEventListener("click", function () {
-        button.classList.toggle("active");
-        const panel = this.nextElementSibling;
-        if (panel.style.display === "block") {
-          panel.style.display = "none";
-        } else {
-          panel.style.display = "block";
-        }
-      });
-    }
-  }
   private printDataBrowsing(tuple: [string[], Instruction[]]) {
     const browseContainer = d3.select(".container");
     this.removeHighlighBlocks(this.hashHighligh);
@@ -314,27 +285,33 @@ export class DetailBlock {
       let contractID = "";
       let args = null;
       if (instruction.type === Instruction.typeSpawn) {
-        aInstructionB.text(
-          `${i}) Spawn: Hash of instanceID is: ${instruction
-            .hash()
-            .toString("hex")}`
-        );
+        aInstructionB
+          .attr("id", `buttonInstance${i}`)
+          .text(
+            `${i}) Spawn: Hash of instanceID is: ${instruction
+              .hash()
+              .toString("hex")}`
+          );
         contractID = `ContractID: ${instruction.spawn.contractID}`;
         args = instruction.spawn.args;
       } else if (instruction.type === Instruction.typeInvoke) {
-        aInstructionB.text(
-          `${i}) Invoke: Hash of instanceID is: ${instruction
-            .hash()
-            .toString("hex")}`
-        );
+        aInstructionB
+          .attr("id", `buttonInstance${i}`)
+          .text(
+            `${i}) Invoke: Hash of instanceID is: ${instruction
+              .hash()
+              .toString("hex")}`
+          );
         contractID = `ContractID: ${instruction.invoke.contractID}`;
         args = instruction.invoke.args;
       } else if (instruction.type === Instruction.typeDelete) {
-        aInstructionB.text(
-          `${i}) Delete: Hash of instanceID is: ${instruction
-            .hash()
-            .toString("hex")}`
-        );
+        aInstructionB
+          .attr("id", `buttonInstance${i}`)
+          .text(
+            `${i}) Delete: Hash of instanceID is: ${instruction
+              .hash()
+              .toString("hex")}`
+          );
         contractID = `ContractID: ${instruction.delete.contractID}`;
       }
       if (tuple[0][i] === this.clickedBlock.hash.toString("hex")) {
@@ -374,124 +351,6 @@ export class DetailBlock {
         divArgsB.append("p").text(`${arg.value}`);
       });
     }
-    this.highlightBlocks(tuple[0]);
-    this.hashHighligh = tuple[0];
-  }
-
-  private printDataBrowsing2(tuple: [string[], Instruction[]]) {
-    const browseContainer = d3.select(".container");
-
-    this.removeHighlighBlocks(this.hashHighligh);
-    browseContainer
-      .attr("id", "browseContainer")
-      .text("")
-      .append("p")
-      .text(
-        `Summary of the instance: ${tuple[1][0].instanceID.toString("hex")}`
-      );
-    for (let i = 0; i < tuple[0].length; i++) {
-      const instruction = tuple[1][i];
-      let button = null;
-      let args = null;
-      const argsList: d3.Selection<
-        HTMLParagraphElement,
-        unknown,
-        HTMLElement,
-        any
-      > = null;
-      let textContainer = null;
-      if (instruction.type === Instruction.typeSpawn) {
-        button = browseContainer
-          .append("button")
-          .attr("class", "detailInstanceButton")
-          .attr("id", `buttonInstance${i}`);
-        button
-          .append("p")
-          .text(
-            `${i}) Spawn: Hash of instanceID is: ${instruction
-              .hash()
-              .toString("hex")}`
-          );
-        textContainer = browseContainer
-          .append("div")
-          .attr("class", "detailInstanceContainer");
-        textContainer.append("p").text(`In the block: ${tuple[0][i]}`);
-        textContainer
-          .append("p")
-          .text(`ContractID: ${instruction.spawn.contractID}`);
-        args = instruction.spawn.args;
-      } else if (instruction.type === Instruction.typeInvoke) {
-        button = browseContainer
-          .append("button")
-          .attr("class", "detailInstanceButton")
-          .attr("id", `buttonInstance${i}`);
-        button
-          .append("p")
-          .text(
-            `${i}) Invoke: Hash of instanceID is: ${instruction
-              .hash()
-              .toString("hex")}`
-          );
-        textContainer = browseContainer
-          .append("div")
-          .attr("class", "detailInstanceContainer");
-        textContainer.append("p").text(`In the block: ${tuple[0][i]}`);
-        textContainer
-          .append("p")
-          .text(`ContractID: ${instruction.invoke.contractID}`);
-        args = instruction.invoke.args;
-      } else if (instruction.type === Instruction.typeDelete) {
-        button = browseContainer
-          .append("button")
-          .attr("class", "detailInstanceButton")
-          .attr("id", `buttonInstance${i}`);
-        button
-          .append("p")
-          .text(
-            `${i}) Delete: Hash of instanceID is: ${instruction
-              .hash()
-              .toString("hex")}`
-          ); // tslint:disable-next-line
-        const textContainer = browseContainer
-          .append("div")
-          .attr("class", "detailInstanceContainer");
-        textContainer
-          .append("p")
-          .text(`ContractID: ${instruction.delete.contractID}`);
-      }
-      if (tuple[0][i] === this.clickedBlock.hash.toString("hex")) {
-        button.style("background-color", "red");
-      }
-      const buttonDetail = textContainer
-        .append("button")
-        .attr("class", "detailSeeArgsButton")
-        .attr("id", "buttonInstanceArgs");
-      buttonDetail.append("p").text(`Click to see the arguments`);
-      const argsDetails = textContainer
-        .append("div")
-        .attr("class", "detailSeeArgsContainer");
-      let totalArgs = 0;
-      args.forEach((_, __) => {
-        totalArgs++;
-      });
-      argsDetails.append("p").text(`Total number of arguments: ${totalArgs}`);
-      // tslint:disable-next-line
-      args.forEach((arg, i) => {
-        const buttonDetailA = argsDetails
-          .append("button")
-          .attr("class", "detailInstanceArgsButton")
-          .attr("id", "buttonInstanceArg");
-        buttonDetailA.append("p").text(`${i}) ${arg.name}`);
-        const argsValue = argsDetails
-          .append("div")
-          .attr("class", "detailInstanceArgsContainer");
-        argsValue.append("p").text(`${arg.value}`);
-      });
-    }
-    const acc1 = document.querySelectorAll(
-      "[id^='buttonInstance'], [id=buttonInstanceArgs], [id=buttonInstanceArg]"
-    );
-    this.addClickListenerClose(acc1);
     this.highlightBlocks(tuple[0]);
     this.hashHighligh = tuple[0];
   }
