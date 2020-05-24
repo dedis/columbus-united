@@ -33,7 +33,7 @@ export class DetailBlock {
 
   flash: Flash;
   browsing: Browsing;
-  hashHighligh: string[];
+  hashHighligh: SkipBlock[];
 
   // progress bar
   progressBarContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
@@ -214,16 +214,6 @@ export class DetailBlock {
               "hex"
             )}"`
           )
-          // Animation on mouseover
-          .on("mouseover", function () {
-            searchInstance.attr(
-              "class",
-              "uk-button uk-button-default uk-animation-scale-up"
-            );
-          }) // No animation on mouseout
-          .on("mouseout", function () {
-            searchInstance.attr("class", "uk-button uk-button-default");
-          })
           // Confirmation and start browsing on click
           .on("click", function () {
             const conf = confirm(
@@ -233,7 +223,6 @@ export class DetailBlock {
             );
             if (conf) {
               self.createLoadingScreen();
-              console.log(instruction);
               const subjects = self.browsing.getInstructionSubject(instruction);
               subjects[0].subscribe({
                 next: self.printDataBrowsing.bind(self),
@@ -354,11 +343,11 @@ export class DetailBlock {
    * blocks found.
    *
    * @private
-   * @param {[string[], Instruction[]]} tuple : value of the observable
+   * @param {[SkipBlock[], Instruction[]]} tuple : value of the observable
    *                              browsing.getInstructionSubject function
    * @memberof DetailBlock
    */
-  private printDataBrowsing(tuple: [string[], Instruction[]]) {
+  private printDataBrowsing(tuple: [SkipBlock[], Instruction[]]) {
     // removes previous highlighted blocks
     this.removeHighlighBlocks(this.hashHighligh);
 
@@ -386,7 +375,7 @@ export class DetailBlock {
         aInstructionB
           .attr("id", `buttonInstance${i}`)
           .text(
-            `${i}) Spawn in the block ???`
+            `${i}) Spawn in the block ${tuple[0][i].index}`
           );
         args = instruction.spawn.args;
         contractID = instruction.spawn.contractID;
@@ -394,7 +383,7 @@ export class DetailBlock {
         aInstructionB
           .attr("id", `buttonInstance${i}`)
           .text(
-            `${i}) Invoke in the block ???`
+            `${i}) Invoke in the block ${tuple[0][i].index}`
           );
         args = instruction.invoke.args;
         contractID = instruction.invoke.contractID;
@@ -402,12 +391,12 @@ export class DetailBlock {
         aInstructionB
           .attr("id", `buttonInstance${i}`)
           .text(
-            `${i}) Delete in the block ???`
+            `${i}) Delete in the block ${tuple[0][i].index}`
           );
           contractID = instruction.delete.contractID;
       }
       // Add an highlight of the instance which was browsed
-      if (tuple[0][i] === this.clickedBlock.hash.toString("hex")) {
+      if (tuple[0][i].hash.toString("hex") === this.clickedBlock.hash.toString("hex")) {
         aInstructionB.style("background-color", "red");
       }
       // Detail of each instruction
@@ -420,7 +409,7 @@ export class DetailBlock {
         .hash()
         .toString("hex")}`);
       divInstructionB.append("p").text(`contractID: ${contractID}`)
-      divInstructionB.append("p").text(`In the block: ${tuple[0][i]}`);
+      divInstructionB.append("p").text(`In the block: ${tuple[0][i].hash.toString("hex")}`);
       divInstructionB.append("p").text("Arguments: ");
       const ulArgsB = divInstructionB.append("ul");
       ulArgsB.attr("uk-accordion", "");
@@ -448,12 +437,12 @@ export class DetailBlock {
    * Highlights the blocks in the blockchain
    *
    * @private
-   * @param {string[]} hashs : the hash of the blocks to be highlighted
+   * @param {string[]} blocks : the blocks to be highlighted
    * @memberof DetailBlock
    */
-  private highlightBlocks(hashs: string[]) {
-    for (let i = 0; i < hashs.length; i++) {
-      const blockSVG = d3.select(`[id = "${hashs[i]}"]`);
+  private highlightBlocks(blocks: SkipBlock[]) {
+    for (let i = 0; i < blocks.length; i++) {
+      const blockSVG = d3.select(`[id = "${blocks[i].hash.toString("hex")}"]`);
       const button = d3.select(`#buttonInstance${i}`);
       if (!blockSVG.empty()) {
         blockSVG.attr("stroke", "red").attr("stroke-width", 5);
@@ -470,12 +459,12 @@ export class DetailBlock {
    * Removes the highlights of the blocks in the blockchain
    *
    * @private
-   * @param {string[]} hashs : the hash of the blocks to remove the highlight
+   * @param {string[]} blocks : the blocks to remove the highlight
    * @memberof DetailBlock
    */
-  private removeHighlighBlocks(hashs: string[]) {
-    for (let i = 0; i < hashs.length; i++) {
-      const blockSVG = d3.select(`[id = "${hashs[i]}"]`);
+  private removeHighlighBlocks(blocks: SkipBlock[]) {
+    for (let i = 0; i < blocks.length; i++) {
+      const blockSVG = d3.select(`[id = "${blocks[i].hash.toString("hex")}"]`);
       const button = d3.select(`#buttonInstance${i}`);
       if (!blockSVG.empty()) {
         blockSVG.attr("stroke", "red").attr("stroke-width", 0);

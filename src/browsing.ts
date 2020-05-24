@@ -73,7 +73,7 @@ export class Browsing {
    * This method is the start of the browsing from the first block. It
    * will (re)sets all the parameters needed to start a new browsing.
    * It will return a tuple with two Subjects:
-   * 1) Subject of tuple with the hashes and instructions of the
+   * 1) Subject of tuple with the blocks and instructions of the
    * instruction given as parameter.
    * 2) Subject of array of numbers corresponding of: the percent of
    * the progress,the number of blocks seen, the totat number of blocks,
@@ -82,14 +82,14 @@ export class Browsing {
    * @param {Instruction} instance : the instruction that we wish to search
    *                                in the blockchain
    *
-   * @returns {[Subject<[string[], Instruction[]]>, Subject<number[]>]}:
+   * @returns {[Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>]}:
    * @memberof Browsing
    */
   getInstructionSubject(
     instance: Instruction
-  ): [Subject<[string[], Instruction[]]>, Subject<number[]>] {
+  ): [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>] {
     const self = this;
-    const subjectInstruction = new Subject<[string[], Instruction[]]>();
+    const subjectInstruction = new Subject<[SkipBlock[], Instruction[]]>();
     const subjectProgress = new Subject<number[]>();
 
     this.ws = undefined;
@@ -130,10 +130,10 @@ export class Browsing {
    * @param {number} pageSizeB : Number of blocks inside one page
    * @param {number} numPagesB : Number of pages requested
    * @param {string} firstBlockID : hash of the start of browsing
-   * @param {Subject<[string[], Instruction[]]>} subjectInstruction : Subject
+   * @param {Subject<[SkipBlock[], Instruction[]]>} subjectInstruction : Subject
    *                                            for the instruction
    * @param {Subject<number[]>} subjectProgress : Subject for the loading
-   * @param {string[]} hashB : Accumulator for the subjectInstruction
+   * @param {SkipBlock[]} skipBlocksSubject : Accumulator for the subjectInstruction
    * @param {Instruction[]} instructionB : Accumulator for the subjectInstruction
    * @memberof Browsing
    */
@@ -141,9 +141,9 @@ export class Browsing {
     pageSizeB: number,
     numPagesB: number,
     firstBlockID: string,
-    subjectInstruction: Subject<[string[], Instruction[]]>,
+    subjectInstruction: Subject<[SkipBlock[], Instruction[]]>,
     subjectProgress: Subject<number[]>,
-    hashB: string[],
+    skipBlocksSubject: SkipBlock[],
     instructionB: Instruction[]
   ) {
     const subjectBrowse = new Subject<[number, SkipBlock]>();
@@ -154,7 +154,7 @@ export class Browsing {
           Flash.flashType.INFO,
           `End of the browsing of the instance ID: ${this.contractID}`
         );
-        subjectInstruction.next([hashB, instructionB]);
+        subjectInstruction.next([skipBlocksSubject, instructionB]);
       },
 
       error: (data: PaginateResponse) => {
@@ -172,7 +172,7 @@ export class Browsing {
             this.nextIDB,
             subjectInstruction,
             subjectProgress,
-            hashB,
+            skipBlocksSubject,
             instructionB
           );
         } else {
@@ -193,7 +193,7 @@ export class Browsing {
                 if (
                   instruction.deriveId("").toString("hex") === this.contractID
                 ) {
-                  hashB.push(skipBlock.hash.toString("hex"));
+                  skipBlocksSubject.push(skipBlock);
                   instructionB.push(instruction);
                 }
               } else if (
@@ -201,7 +201,7 @@ export class Browsing {
               ) {
                 // get the hashes and instruction corresponding to the input instruction
                 this.nbInstanceFound++;
-                hashB.push(skipBlock.hash.toString("hex"));
+                skipBlocksSubject.push(skipBlock);
                 instructionB.push(instruction);
               }
             }
