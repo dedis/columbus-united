@@ -7,7 +7,6 @@ import {
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network/connection";
 import { SkipBlock } from "@dedis/cothority/skipchain";
-import * as d3 from "d3";
 import { Subject } from "rxjs";
 import { Flash } from "./flash";
 import { TotalBlock } from "./totalBlock";
@@ -45,7 +44,7 @@ export class Browsing {
   flash: Flash;
 
   /**
-   *Creates an instance of Browsing.
+   * Creates an instance of Browsing.
    * @param {Roster} roster
    * @param {Flash} flash
    * @param {TotalBlock} totalBlock
@@ -160,7 +159,7 @@ export class Browsing {
       error: (data: PaginateResponse) => {
         // tslint:disable-next-line
         if (data.errorcode == 5) {
-          //if errorcode is 5: too many blocks requested => rebrowse with less blocks
+          // if errorcode is 5: too many blocks requested => rebrowse with less blocks
           this.ws = undefined;
           this.flash.display(
             Flash.flashType.INFO,
@@ -211,7 +210,7 @@ export class Browsing {
         if (i === pageSizeB) {
           pageDone++;
           if (pageDone === numPagesB) {
-            //condition to end the browsing
+            // condition to end the browsing
             if (skipBlock.forwardLinks.length !== 0 && !this.abort) {
               this.nextIDB = skipBlock.forwardLinks[0].to.toString("hex");
               pageDone = 0;
