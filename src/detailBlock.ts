@@ -86,7 +86,7 @@ export class DetailBlock {
         ? "Accepted"
         : "Not accepted";
       const liTransaction = ulTransaction.append("li");
-      liTransaction.attr("class", "uk-open")
+      liTransaction.attr("class", "uk-open");
       const aTransaction = liTransaction.append("a");
       let totalInstruction = 0;
       transaction.clientTransaction.instructions.forEach((_, __) => {
