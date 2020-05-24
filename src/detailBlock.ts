@@ -69,7 +69,7 @@ export class DetailBlock {
         this.colorClickedBlock
       );
     }
-
+    const self = this;
     const transactionContainer = d3.select(".blockDetailcontainer");
     transactionContainer
       .attr("id", "transactionContainer")
@@ -126,136 +126,35 @@ export class DetailBlock {
             `\u2022 Delete instruction ${j}, name of contract:${instruction.delete.contractID}`
           );
         }
-        
+
         const divInstruction = liInstruction.append("div");
         divInstruction.attr("class", "uk-accordion-content");
-        divInstruction.append("p").text(`Hash:${instruction.hash().toString("hex")}`);
-        divInstruction.append("p").text(`Instance ID: ${instruction.instanceID.toString("hex")}`);
-        const ulArgs = divInstruction.append("ul")
-        ulArgs.attr("uk-accordion", "");
-        args.forEach((arg, i) => {
-          const liArgs = ulArgs.append("li")
-          const aArgs = liArgs.append("a")
-          aArgs.attr("class", "uk-accordion-title").attr("href", "#");
-          aArgs.text(`${i}) ${arg.name}`)
-          const divArgs = liArgs.append("div")
-          divArgs.attr("class", "uk-accordion-content");
-          divArgs.append("p").text(`${arg.value}`)
-        });
-      });
-    });
-    
-  }
-
-  private listTransaction(block: SkipBlock) {
-    if (this.clickedBlock !== block) {
-      if (this.clickedBlock != null) {
-        const blockSVG = d3.select(
-          `[id = "${this.clickedBlock.hash.toString("hex")}"]`
-        );
-        blockSVG.attr("fill", this.colorBlock);
-      }
-
-      this.clickedBlock = block;
-      d3.select(`[id = "${block.hash.toString("hex")}"]`).attr(
-        "fill",
-        this.colorClickedBlock
-      );
-    }
-    const transactionContainer = d3.select(".blockDetailcontainer");
-    const self = this;
-    transactionContainer
-      .attr("id", "transactionContainer")
-      .text("")
-      .append("p")
-      .text(
-        // empty text must remains in order to redraw the transactionContainer at each click
-        `Block ${block.index}, Hash: ${block.hash.toString("hex")}`
-      );
-    const body = DataBody.decode(block.payload);
-    body.txResults.forEach((transaction, i) => {
-      const accepted: string = transaction.accepted
-        ? "Accepted"
-        : "Not accepted";
-      const buttonDetail1 = transactionContainer
-        .append("button")
-        .attr("class", "detailTransactionButton")
-        .attr("id", "buttonTransaction");
-      let totalInstruction = 0;
-      transaction.clientTransaction.instructions.forEach((_, __) => {
-        totalInstruction++;
-      });
-      buttonDetail1
-        .append("p")
-        .text(
-          `\u22B3 Transaction ${i} ${accepted}, #instructions: ${totalInstruction}`
-        );
-      const textContainer = transactionContainer
-        .append("div")
-        .attr("class", "detailTransactionContainer");
-
-      transaction.clientTransaction.instructions.forEach((instruction, j) => {
-        let args = null;
-        if (instruction.type === Instruction.typeSpawn) {
-          const buttonDetail2 = textContainer
-            .append("button")
-            .attr("class", "detailInstructionButton")
-            .attr("id", "buttonInstruction");
-          buttonDetail2
-            .append("p")
-            .text(
-              `\u2022 Spawn instruction ${j}, name of contract: ${instruction.spawn.contractID}`
-            );
-          args = instruction.spawn.args;
-        } else if (instruction.type === Instruction.typeInvoke) {
-          const buttonDetail3 = textContainer
-            .append("button")
-            .attr("class", "detailInstructionButton")
-            .attr("id", "buttonInstruction");
-          buttonDetail3
-            .append("p")
-            .text(
-              `\u2022 Invoke instruction ${j}, name of contract: ${instruction.invoke.contractID}`
-            );
-          args = instruction.invoke.args;
-        } else if (instruction.type === Instruction.typeDelete) {
-          const buttonDetail4 = textContainer
-            .append("button")
-            .attr("class", "detailInstructionButton")
-            .attr("id", "buttonInstruction");
-          buttonDetail4
-            .append("p")
-            .text(
-              `\u2022 Delete instruction ${j}, name of contract:${instruction.delete.contractID}`
-            );
-        }
-        const textInstruction = textContainer
-          .append("div")
-          .attr("class", "detailInstructionContainer");
-        textInstruction
+        divInstruction
           .append("p")
           .text(`Hash:${instruction.hash().toString("hex")}`);
-        textInstruction
+        divInstruction
           .append("p")
           .text(`Instance ID: ${instruction.instanceID.toString("hex")}`);
-        // tslint:disable-next-line
+        const ulArgs = divInstruction.append("ul");
+        ulArgs.attr("uk-accordion", "");
         args.forEach((arg, i) => {
-          const buttonDetailA = textInstruction
-            .append("button")
-            .attr("class", "detailArgsButton")
-            .attr("id", "buttonArgs");
-          buttonDetailA.append("p").text(`${i}) ${arg.name}`);
-          const argsValue = textInstruction
-            .append("div")
-            .attr("class", "detailArgsContainer");
-          argsValue.append("p").text(`${arg.value}`);
+          const liArgs = ulArgs.append("li");
+          const aArgs = liArgs.append("a");
+          aArgs.attr("class", "uk-accordion-title").attr("href", "#");
+          aArgs.text(`${i}) ${arg.name}`);
+          const divArgs = liArgs.append("div");
+          divArgs.attr("class", "uk-accordion-content");
+          divArgs.append("p").text(`${arg.value}`);
         });
-
-        const buttonDetailS = textInstruction
-          .append("button")
-          .attr("class", "startBrowseButton")
+        const searchInstance = divInstruction.append("button");
+        searchInstance
           .attr("id", "buttonBrowse")
-          // tslint:disable-next-line
+          .attr("class", "uk-button uk-button-default")
+          .text(
+            `Search for all instance with the ID: "${instruction.instanceID.toString(
+              "hex"
+            )}" in the blockchain`
+          )
           .on("click", function () {
             const conf = confirm(
               `Do you really want to browse the whole blockchain with the instance ID: ${instruction.instanceID.toString(
@@ -288,87 +187,75 @@ export class DetailBlock {
               self.flash.display(Flash.flashType.INFO, "Browsing cancelled");
             }
           });
-        buttonDetailS
-          .append("p")
-          .text(
-            `Search for all instance with the ID: "${instruction.instanceID.toString(
-              "hex"
-            )}" in the blockchain`
-          );
       });
     });
 
-    let buttonDetail = transactionContainer
-      .append("button")
-      .attr("class", "detailTransactionButton")
-      .attr("id", "buttonDetailBlock");
-    buttonDetail.append("p").text(`Block details`);
-    const detailsBlock = transactionContainer
-      .append("div")
-      .attr("class", "detailTransactionContainer");
-    buttonDetail = detailsBlock
-      .append("button")
-      .attr("class", "detailsBlockButton")
-      .attr("id", "buttonVerifiers");
-    buttonDetail
-      .append("p")
-      .text(`\u2022 Verifiers: ${block.verifiers.length}`);
-    const verifiersContainer = detailsBlock
-      .append("div")
-      .attr("class", "detailsBlockContainer");
+    const liDetails = ulTransaction.append("li");
+    const aDetails = liDetails.append("a");
+    aDetails
+      .attr("class", "uk-accordion-title")
+      .attr("href", "#")
+      .text("Block details");
 
+    const divDetails = liDetails.append("div");
+    divDetails.attr("class", "uk-accordion-content");
+    //Verifier details
+    const ulVerifier = divDetails.append("ul");
+    ulVerifier.attr("uk-accordion", "");
+    const liVerifier = ulVerifier.append("li");
+    const aVerifier = liVerifier.append("a");
+    aVerifier
+      .attr("class", "uk-accordion-title")
+      .attr("href", "#")
+      .text(`\u2022 Verifiers: ${block.verifiers.length}`);
+    const divVerifier = liVerifier.append("div");
+    divVerifier.attr("class", "uk-accordion-content");
     block.verifiers.forEach((uid, j) => {
-      verifiersContainer
+      divVerifier
         .append("p")
         .text(` Verifier: ${j} , ID: ${uid.toString("hex")}`);
     });
 
-    buttonDetail = detailsBlock
-      .append("button")
-      .attr("class", "detailsBlockButton")
-      .attr("id", "buttonBacklinks");
-    buttonDetail
-      .append("p")
-      .text(`\u2022 Backlinks: ${block.backlinks.length}`);
-    const backLinksContainer = detailsBlock
-      .append("div")
-      .attr("class", "detailsBlockContainer");
+    //BackLink details
+    const ulBackLink = divDetails.append("ul");
+    ulBackLink.attr("uk-accordion", "");
+    const liBackLink = ulBackLink.append("li");
+    const aBackLink = liBackLink.append("a");
+    aBackLink
+      .attr("class", "uk-accordion-title")
+      .attr("href", "#")
+      .text(`\u2022 BackLinks: ${block.backlinks.length}`);
+    const divBackLink = liBackLink.append("div");
+    divBackLink.attr("class", "uk-accordion-content");
     block.backlinks.forEach((value, j) => {
-      backLinksContainer
+      divBackLink
         .append("p")
         .text(`Backlink: ${j}, Value: ${value.toString("hex")}`);
     });
 
-    buttonDetail = detailsBlock
-      .append("button")
-      .attr("class", "detailsBlockButton")
-      .attr("id", "buttonForwardLinks");
-    buttonDetail
-      .append("p")
-      .text(`\u2022 ForwardLinks:${block.forwardLinks.length}`);
-    const forwardsContainer = detailsBlock
-      .append("div")
-      .attr("class", "detailsBlockContainer");
+    //ForwardLink
+    const ulForwardLink = divDetails.append("ul");
+    ulForwardLink.attr("uk-accordion", "");
+    const liForwardLink = ulForwardLink.append("li");
+    const aForwardLink = liForwardLink.append("a");
+    aForwardLink
+      .attr("class", "uk-accordion-title")
+      .attr("href", "#")
+      .text(`\u2022 ForwardLinks: ${block.forwardLinks.length}`);
+    const divForwardLink = liForwardLink.append("div");
+    divForwardLink.attr("class", "uk-accordion-content");
     block.forwardLinks.forEach((fl, j) => {
-      forwardsContainer
+      divForwardLink.append("p").text(`From: ${fl.from.toString("hex")}`);
+      divForwardLink.append("p").text(`Hash: ${fl.hash().toString("hex")}`);
+      divForwardLink
         .append("p")
-        .text(
-          `From: ${fl.from.toString("hex")}, Hash: ${fl.hash().toString("hex")}`
-        );
-      forwardsContainer
-        .append("p")
-        .text(`signature: ${fl.signature.sig.toString("hex")}`);
+        .text(`signature: ${fl.signature.sig.toString("hex").slice(0,fl.hash().toString("hex").length - 6)}`);
+        divForwardLink
+          .append("p")
+          .text(`${fl.signature.sig.toString("hex").slice(fl.hash().toString("hex").length - 6)}`);
     });
-
-    const acc1 = document.querySelectorAll(
-      "[id=buttonTransaction], [id=buttonInstruction]"
-    );
-    const acc2 = document.querySelectorAll(
-      "[id=buttonArgs], [id=buttonDetailBlock], [id=buttonVerifiers], [id=buttonBacklinks], [id=buttonForwardLinks]"
-    );
-    this.addClickListenerOpen(acc1);
-    this.addClickListenerClose(acc2);
   }
+
   private addClickListenerOpen(acc: NodeListOf<Element>) {
     for (const button of acc) {
       button.classList.toggle("active"); // tslint:disable-next-line
