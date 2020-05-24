@@ -32,7 +32,7 @@ export class DetailBlock {
     const self = this;
     this.skipbObservable = observerSkip;
     this.skipbObservable.subscribe({
-      next: this.listTransaction2.bind(this),
+      next: this.listTransaction.bind(this),
     });
     this.browsing = subjectInstru;
     this.clickedBlock = null;
@@ -54,7 +54,7 @@ export class DetailBlock {
     this.progressBarItem = undefined;
   }
 
-  private listTransaction2(block: SkipBlock) {
+  private listTransaction(block: SkipBlock) {
     if (this.clickedBlock !== block) {
       if (this.clickedBlock != null) {
         const blockSVG = d3.select(
@@ -76,18 +76,17 @@ export class DetailBlock {
       .text("")
       .append("p")
       .text(`Block ${block.index}, Hash: ${block.hash.toString("hex")}`);
-    // This is an example using the uiukit library that will be removed
-    // in the next PR where the interface will be adapted using this library
-    const ulTransaction = transactionContainer.append("ul"); // 1: add first element to html
-    ulTransaction.attr("uk-accordion", ""); // add the attribute: <ul uk-accordion </u>
-    ulTransaction.attr("multiple", "true"); // Options can be added: to open multiple lines at the same time here for example
+
+    const ulTransaction = transactionContainer.append("ul");
+    ulTransaction.attr("uk-accordion", "");
+    ulTransaction.attr("multiple", "true");
     const body = DataBody.decode(block.payload);
     body.txResults.forEach((transaction, i) => {
       const accepted: string = transaction.accepted
         ? "Accepted"
         : "Not accepted";
-      const liTransaction = ulTransaction.append("li"); // append li
-      const aTransaction = liTransaction.append("a"); // append a
+      const liTransaction = ulTransaction.append("li");
+      const aTransaction = liTransaction.append("a");
       let totalInstruction = 0;
       transaction.clientTransaction.instructions.forEach((_, __) => {
         totalInstruction++;
@@ -199,7 +198,7 @@ export class DetailBlock {
 
     const divDetails = liDetails.append("div");
     divDetails.attr("class", "uk-accordion-content");
-    //Verifier details
+    // Verifier details
     const ulVerifier = divDetails.append("ul");
     ulVerifier.attr("uk-accordion", "");
     const liVerifier = ulVerifier.append("li");
@@ -216,7 +215,7 @@ export class DetailBlock {
         .text(` Verifier: ${j} , ID: ${uid.toString("hex")}`);
     });
 
-    //BackLink details
+    // BackLink details
     const ulBackLink = divDetails.append("ul");
     ulBackLink.attr("uk-accordion", "");
     const liBackLink = ulBackLink.append("li");
@@ -233,7 +232,7 @@ export class DetailBlock {
         .text(`Backlink: ${j}, Value: ${value.toString("hex")}`);
     });
 
-    //ForwardLink
+    // ForwardLink
     const ulForwardLink = divDetails.append("ul");
     ulForwardLink.attr("uk-accordion", "");
     const liForwardLink = ulForwardLink.append("li");
@@ -249,10 +248,18 @@ export class DetailBlock {
       divForwardLink.append("p").text(`Hash: ${fl.hash().toString("hex")}`);
       divForwardLink
         .append("p")
-        .text(`signature: ${fl.signature.sig.toString("hex").slice(0,fl.hash().toString("hex").length - 6)}`);
-        divForwardLink
-          .append("p")
-          .text(`${fl.signature.sig.toString("hex").slice(fl.hash().toString("hex").length - 6)}`);
+        .text(
+          `signature: ${fl.signature.sig
+            .toString("hex")
+            .slice(0, fl.hash().toString("hex").length - 6)}`
+        );
+      divForwardLink
+        .append("p")
+        .text(
+          `${fl.signature.sig
+            .toString("hex")
+            .slice(fl.hash().toString("hex").length - 6)}`
+        );
     });
   }
 
@@ -285,10 +292,94 @@ export class DetailBlock {
       });
     }
   }
-
   private printDataBrowsing(tuple: [string[], Instruction[]]) {
     const browseContainer = d3.select(".container");
-    browseContainer.attr("style", "opacity:100%");
+    this.removeHighlighBlocks(this.hashHighligh);
+
+    browseContainer
+      .attr("id", "browseContainer")
+      .text("")
+      .append("p")
+      .text(
+        `Summary of the instance: ${tuple[1][0].instanceID.toString("hex")}`
+      );
+    const ulInstructionB = browseContainer.append("ul");
+    ulInstructionB.attr("uk-accordion", "");
+    ulInstructionB.attr("multiple", "true");
+    for (let i = 0; i < tuple[1].length; i++) {
+      const instruction = tuple[1][i];
+      const liInstructionB = ulInstructionB.append("li");
+      const aInstructionB = liInstructionB.append("a");
+      aInstructionB.attr("class", "uk-accordion-title").attr("href", "#");
+      let contractID = "";
+      let args = null;
+      if (instruction.type === Instruction.typeSpawn) {
+        aInstructionB.text(
+          `${i}) Spawn: Hash of instanceID is: ${instruction
+            .hash()
+            .toString("hex")}`
+        );
+        contractID = `ContractID: ${instruction.spawn.contractID}`;
+        args = instruction.spawn.args;
+      } else if (instruction.type === Instruction.typeInvoke) {
+        aInstructionB.text(
+          `${i}) Invoke: Hash of instanceID is: ${instruction
+            .hash()
+            .toString("hex")}`
+        );
+        contractID = `ContractID: ${instruction.invoke.contractID}`;
+        args = instruction.invoke.args;
+      } else if (instruction.type === Instruction.typeDelete) {
+        aInstructionB.text(
+          `${i}) Delete: Hash of instanceID is: ${instruction
+            .hash()
+            .toString("hex")}`
+        );
+        contractID = `ContractID: ${instruction.delete.contractID}`;
+      }
+      if (tuple[0][i] === this.clickedBlock.hash.toString("hex")) {
+        aInstructionB.style("background-color", "red");
+      }
+      const divInstructionB = liInstructionB.append("div");
+      divInstructionB.attr("class", "uk-accordion-content");
+      divInstructionB.append("p").text(`In the block: ${tuple[0][i]}`);
+      divInstructionB.append("p").text(contractID);
+
+      const ulDetailB = divInstructionB.append("ul");
+      ulDetailB.attr("uk-accordion", "");
+      const liDetailB = ulDetailB.append("li");
+      const aDetailB = liDetailB.append("a");
+      aDetailB
+        .attr("class", "uk-accordion-title")
+        .attr("href", "#")
+        .text("Click to see the arguments");
+      const divDetailB = liDetailB.append("div");
+      divDetailB.attr("class", "uk-accordion-content");
+      let totalArgs = 0;
+      args.forEach((_, __) => {
+        totalArgs++;
+      });
+      divDetailB.append("p").text(`Total number of arguments: ${totalArgs}`);
+      const ulArgsB = divDetailB.append("ul");
+      ulArgsB.attr("uk-accordion", "");
+      args.forEach((arg, i) => {
+        const liArgsB = ulArgsB.append("li");
+        const aArgsB = liArgsB.append("a");
+        aArgsB
+          .attr("class", "uk-accordion-title")
+          .attr("href", "#")
+          .text(`${i}) ${arg.name}`);
+        const divArgsB = liArgsB.append("div");
+        divArgsB.attr("class", "uk-accordion-content");
+        divArgsB.append("p").text(`${arg.value}`);
+      });
+    }
+    this.highlightBlocks(tuple[0]);
+    this.hashHighligh = tuple[0];
+  }
+
+  private printDataBrowsing2(tuple: [string[], Instruction[]]) {
+    const browseContainer = d3.select(".container");
 
     this.removeHighlighBlocks(this.hashHighligh);
     browseContainer
