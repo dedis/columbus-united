@@ -15,25 +15,25 @@ export class Flash {
     let span;
     if (errorCode === Flash.flashType.ERROR) {
       const divAlert = this.containerFlash.append("div").attr("class", "alert");
-      span = divAlert.append("span").attr("class", "closebtn").text(`x`);
+      span = divAlert.append("span").attr("class", "closebtn").text(`\u2715`);
       divAlert.append("text").text(`Error: ${text}`);
     } else if (errorCode === Flash.flashType.WARNING) {
       const divAlert = this.containerFlash
         .append("div")
         .attr("class", "alert warning");
-      span = divAlert.append("span").attr("class", "closebtn").text(`x`);
+      span = divAlert.append("span").attr("class", "closebtn").text(`\u2715`);
       divAlert.append("text").text(`Warning: ${text}`);
     } else if (errorCode === Flash.flashType.INFO) {
       const divAlert = this.containerFlash
         .append("div")
         .attr("class", "alert info");
-      span = divAlert.append("span").attr("class", "closebtn").text(`x`);
+      span = divAlert.append("span").attr("class", "closebtn").text(`\u2715`);
       divAlert.append("text").text(`Info: ${text}`);
     } else {
       const divAlert = this.containerFlash
         .append("div")
         .attr("class", "alert other");
-      span = divAlert.append("span").attr("class", "closebtn").text(`x`);
+      span = divAlert.append("span").attr("class", "closebtn").text(`\u2715`);
       divAlert.append("text").text(`Other error not handled: ${text}`);
     } // tslint:disable-next-line
     span.on("click", function () {

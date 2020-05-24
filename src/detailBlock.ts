@@ -161,8 +161,14 @@ export class DetailBlock {
           .text(
             `Search for all instance with the ID: "${instruction.instanceID.toString(
               "hex"
-            )}" in the blockchain`
+            )}"`
           )
+          .on("mouseover", function () {
+            searchInstance.attr("class", "uk-button uk-button-default uk-animation-scale-up")
+          })
+          .on("mouseout", function () {
+            searchInstance.attr("class", "uk-button uk-button-default")
+          })
           .on("click", function () {
             const conf = confirm(
               `Do you really want to browse the whole blockchain with the instance ID: ${instruction.instanceID.toString(
