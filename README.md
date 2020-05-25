@@ -3,7 +3,7 @@
 ![Prettier](https://github.com/dedis/columbus-united/workflows/Prettier/badge.svg)
 
 Implementation of an intuitive and insightful blockchain explorer - by Julien
-von Felten and Iozzia Anthony Lucien
+von Felten and Anthony Iozzia
 
 ## Ubuntu
 
@@ -66,6 +66,8 @@ To view debug messages: `./conode.Linux.x86_64 -d 2 server`
 Compile in root of this project: `npm run bundle`  
 For automatic compilation upon changes: `npm run watch`  
 Check TypeScript code formatting: `npm run lint`  
+Check if the code is well formatted: `npm run isPretty`  
+Format the code: `npm run makePretty`  
 
 ## Recommendations for Visual Studio Code
 
