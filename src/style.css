@@ -41,7 +41,7 @@ div.block-infos {
     }
 }
 
-#progressBarContainer {
+#progress-bar-container {
     width: 80%;
     position: absolute;
     background-color: rgb(199, 199, 199);
@@ -49,7 +49,7 @@ div.block-infos {
     left: 10%;
 }
 
-#progressBar {
+#progress-bar {
     position: absolute;
     top: 0%;
     left: 0%;
@@ -59,7 +59,7 @@ div.block-infos {
     background-color: #4caf50;
 }
 
-#textBar {
+#text-bar {
     position: relative;
     z-index: 2;
     padding: 10px;
@@ -70,7 +70,7 @@ div.block-infos {
     color: black;
 }
 
-.loadContainer {
+.load-container {
     position: fixed;
     top: 0;
     left: 0;
@@ -80,7 +80,7 @@ div.block-infos {
     color: black;
 }
 
-.divLoad {
+.div-load {
     position: absolute;
     top: 30%;
     left: 50%;
@@ -134,11 +134,11 @@ div.block-infos {
     transform: translateX(-50%);
 }
 
-.clickableDetailBlock>li {
+.clickable-detail-block>li {
     padding: 10px;
 }
 
-.clickableDetailBlock .uk-accordion-content p {
+.clickable-detail-block .uk-accordion-content p {
     overflow-x: auto;
 }
 

@@ -13,7 +13,7 @@ import { Flash } from "./flash";
  * the two containers for the details of the clicked block
  * and for the result of the browsing for one instance.
  * It will also highlights some blocks in the blockchain.
- * It also handles the loading screen with the progressbar
+ * It also handles the loading screen with the progress bar
  * to be updated.
  *
  * @author Julien von Felten <julien.vonfelten@epfl.ch>
@@ -124,7 +124,7 @@ export class DetailBlock {
     const ulTransaction = transactionContainer.append("ul");
     ulTransaction.attr("uk-accordion", "");
     ulTransaction.attr("multiple", "true");
-    ulTransaction.attr("class", "clickableDetailBlock");
+    ulTransaction.attr("class", "clickable-detail-block");
     const body = DataBody.decode(block.payload);
 
     // transactions of the block
@@ -468,26 +468,26 @@ export class DetailBlock {
     this.loadContainer = d3
       .select("body")
       .append("div")
-      .attr("class", "loadContainer");
+      .attr("class", "load-container");
     this.loadContainer
       .append("div")
       .attr("class", "logo") // tslint:disable-next-line
       .on("click", function () {
         window.open("https://www.epfl.ch/labs/dedis/");
       });
-    const divLoad = this.loadContainer.append("div").attr("class", "divLoad");
+    const divLoad = this.loadContainer.append("div").attr("class", "div-load");
     divLoad.append("div").attr("class", "loader");
 
     this.progressBarContainer = this.loadContainer
       .append("div")
-      .attr("id", "progressBarContainer");
+      .attr("id", "progress-bar-container");
 
     this.progressBar = this.progressBarContainer
       .append("div")
-      .attr("id", "progressBar");
+      .attr("id", "progress-bar");
     this.textBar = this.progressBarContainer
       .append("div")
-      .attr("id", "textBar")
+      .attr("id", "text-bar")
       .text(`???% --- block parsed: ??? / ??? and instances found: ???`);
 
     this.loadContainer
@@ -502,7 +502,7 @@ export class DetailBlock {
           self.browsing.abort = true;
         }
       });
-    this.progressBarItem = document.getElementById("progressBar");
+    this.progressBarItem = document.getElementById("progress-bar");
   }
 
   /**
@@ -539,6 +539,6 @@ export class DetailBlock {
    * @memberof DetailBlock
    */
   private doneLoading() {
-    d3.select(".loadContainer").remove();
+    d3.select(".load-container").remove();
   }
 }
