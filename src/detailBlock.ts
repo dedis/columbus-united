@@ -114,7 +114,7 @@ export class DetailBlock {
       );
     }
     const self = this;
-    const transactionContainer = d3.select(".blockDetailcontainer");
+    const transactionContainer = d3.select(".block-detail-container");
     transactionContainer
       .attr("id", "transactionContainer")
       .text("")
@@ -331,7 +331,7 @@ export class DetailBlock {
     // removes previous highlighted blocks
     this.removeHighlighBlocks(this.hashHighligh);
 
-    const browseContainer = d3.select(".container");
+    const browseContainer = d3.select(".browse-container");
     browseContainer
       .attr("id", "browseContainer")
       .text("")

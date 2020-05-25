@@ -17,14 +17,14 @@ div.block-infos {
     border: 1px solid rgb(100, 100, 100);
 }
 
-.blockDetailcontainer {
+.block-detail-container {
     overflow-y: scroll;
     background-color: rgb(199, 199, 199);
     padding: 8px;
     flex: 1;
 }
 
-.container {
+.browse-container {
     overflow-y: scroll;
     background-color: rgb(199, 199, 199);
     padding: 8px;
@@ -35,8 +35,8 @@ div.block-infos {
     div.block-infos {
         flex-direction: column;
     }
-    div.blockDetailcontainer,
-    div.container {
+    div.block-detail-container,
+    div.browse-container {
         flex: none;
     }
 }
@@ -283,12 +283,12 @@ List of classes for the new transaction container
     background-color: rgb(160, 160, 160);
 }
 
-.blockDetailcontainer p {
+.block-detail-container p {
     color: black;
     font-size: 17px;
 }
 
-.container p {
+.browse-container p {
     color: black;
     font-size: 17px;
 }
