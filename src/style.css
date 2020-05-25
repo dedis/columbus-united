@@ -142,7 +142,7 @@ div.block-infos {
     overflow-x: auto;
 }
 
-.alertContainer {
+.alert-container {
     position: absolute;
     top: 0%;
     left: 25%;
@@ -170,7 +170,7 @@ div.block-infos {
     background-color: #ff9800;
 }
 
-.closebtn {
+.close-btn {
     margin-left: 15px;
     color: white;
     font-weight: bold;
@@ -181,11 +181,11 @@ div.block-infos {
     transition: 0.3s;
 }
 
-.closebtn:hover {
+.close-btn:hover {
     color: black;
 }
 
-.cancelButton {
+.cancel-button {
     position: absolute;
     top: 80%;
     right: 10%;
@@ -205,12 +205,12 @@ div.block-infos {
     background-color: #0004e2;
 }
 
-.cancelButton:hover {
+.cancel-button:hover {
     border-color: rgba(255, 255, 255, 1);
 }
 
 @media all and (max-width: 30em) {
-    .cancelButton {
+    .cancel-button {
         display: block;
         margin: 0.2em auto;
     }
@@ -291,268 +291,4 @@ List of classes for the new transaction container
 .browse-container p {
     color: black;
     font-size: 17px;
-}
-
-.detailTransactionButton {
-    background-color: rgb(199, 199, 199);
-    cursor: pointer;
-    width: 100%;
-    height: 50px;
-    border-top: 2px dashed rgb(133, 133, 133);
-    border-bottom: none;
-    border-left: 2px dashed rgb(133, 133, 133);
-    border-right: 2px dashed rgb(133, 133, 133);
-    text-align: left;
-    transition: 0.4s;
-    margin-bottom: 1px;
-}
-
-.detailTransactionButton p {
-    padding-left: 15px;
-}
-
-.detailTransactionButton:hover {
-    background-color: rgb(133, 133, 133);
-}
-
-.detailTransactionContainer {
-    text-align: left;
-    border-bottom: none;
-    border-top: none;
-    border-left: 2px dashed rgb(133, 133, 133);
-    border-right: 2px dashed rgb(133, 133, 133);
-    display: block;
-    background-color: rgb(199, 199, 199);
-    overflow: hidden;
-}
-
-.detailTransactionContainer p {
-    font-size: 20px;
-    padding-left: 30px;
-}
-
-.detailInstructionButton {
-    background-color: rgb(199, 199, 199);
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
-    border: none;
-    transition: 0.4s;
-}
-
-.detailInstructionButton p {
-    padding-left: 30px;
-}
-
-.detailInstructionButton:hover {
-    background-color: rgb(133, 133, 133);
-}
-
-.detailInstructionContainer {
-    text-align: left;
-    border: none;
-    display: block;
-    background-color: rgb(199, 199, 199);
-    overflow: hidden;
-}
-
-.detailInstructionContainer p {
-    font-size: 20px;
-    padding-left: 45px;
-}
-
-.detailArgsButton {
-    background-color: rgb(199, 199, 199);
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
-    border: none;
-    transition: 0.4s;
-}
-
-.detailArgsButton p {
-    padding-left: 45px;
-}
-
-.detailArgsButton:hover {
-    background-color: rgb(133, 133, 133);
-}
-
-.detailArgsContainer {
-    outline: none;
-    text-align: left;
-    border-top: none;
-    border-bottom: 2px dashed rgb(133, 133, 133);
-    border-left: none;
-    border-right: none;
-    width: 100%;
-    display: none;
-    background-color: rgb(199, 199, 199);
-    overflow: hidden;
-}
-
-.detailArgsContainer p {
-    padding-left: 60px;
-}
-
-.oneDetailTextClose p {
-    color: black;
-    font-size: 17px;
-}
-
-.startBrowseButton {
-    background-color: rgb(199, 199, 199);
-    cursor: pointer;
-    width: 100%;
-    text-align: center;
-    border-top: 2px dashed rgb(133, 133, 133);
-    border-bottom: none;
-    border-left: none;
-    border-right: none;
-    transition: 0.4s;
-}
-
-.startBrowseButton p {
-    color: black;
-    font-size: 17px;
-}
-
-.startBrowseButton:hover {
-    background-color: rgb(133, 133, 133);
-}
-
-.detailsBlockButton {
-    background-color: rgb(199, 199, 199);
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
-    border: none;
-    transition: 0.4s;
-}
-
-.detailsBlockButton:hover {
-    background-color: rgb(133, 133, 133);
-}
-
-.detailsBlockContainer {
-    text-align: left;
-    border: none;
-    width: 100%;
-    display: none;
-    background-color: rgb(199, 199, 199);
-    overflow: hidden;
-    padding-left: 15px;
-}
-
-.detailsBlockContainer p {
-    color: black;
-    font-size: 17px;
-    padding-left: 15px;
-}
-
-
-/*
-CSS for the browsing result
-*/
-
-.detailInstanceButton {
-    background-color: rgb(199, 199, 199);
-    cursor: pointer;
-    width: 100%;
-    height: 50px;
-    border-top: 2px dashed rgb(133, 133, 133);
-    border-bottom: none;
-    border-left: 2px dashed rgb(133, 133, 133);
-    border-right: 2px dashed rgb(133, 133, 133);
-    text-align: left;
-    transition: 0.4s;
-    margin-bottom: 1px;
-}
-
-.detailInstanceButton p {
-    padding-left: 15px;
-}
-
-.detailInstanceButton:hover {
-    background-color: rgb(133, 133, 133);
-}
-
-.detailInstanceContainer {
-    text-align: left;
-    border-bottom: none;
-    border-top: none;
-    border-left: 2px dashed rgb(133, 133, 133);
-    border-right: 2px dashed rgb(133, 133, 133);
-    display: none;
-    background-color: rgb(199, 199, 199);
-    overflow: hidden;
-}
-
-.detailInstanceContainer p {
-    font-size: 20px;
-    padding-left: 30px;
-}
-
-.detailSeeArgsButton {
-    background-color: rgb(199, 199, 199);
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
-    border: none;
-    transition: 0.4s;
-}
-
-.detailSeeArgsButton p {
-    padding-left: 30px;
-}
-
-.detailSeeArgsButton:hover {
-    background-color: rgb(133, 133, 133);
-}
-
-.detailSeeArgsContainer {
-    text-align: left;
-    border: none;
-    display: none;
-    background-color: rgb(199, 199, 199);
-    overflow: hidden;
-}
-
-.detailSeeArgsContainer p {
-    font-size: 20px;
-    padding-left: 45px;
-}
-
-.detailInstanceArgsButton {
-    background-color: rgb(199, 199, 199);
-    cursor: pointer;
-    width: 100%;
-    text-align: left;
-    border: none;
-    transition: 0.4s;
-}
-
-.detailInstanceArgsButton p {
-    padding-left: 45px;
-}
-
-.detailInstanceArgsButton:hover {
-    background-color: rgb(133, 133, 133);
-}
-
-.detailInstanceArgsContainer {
-    outline: none;
-    text-align: left;
-    border-top: none;
-    border-bottom: 2px dashed rgb(133, 133, 133);
-    border-left: none;
-    border-right: none;
-    width: 100%;
-    display: none;
-    background-color: rgb(199, 199, 199);
-    overflow: hidden;
-}
-
-.detailInstanceArgsContainer p {
-    padding-left: 60px;
 }

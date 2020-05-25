@@ -342,7 +342,7 @@ export class DetailBlock {
     const ulInstructionB = browseContainer.append("ul");
     ulInstructionB.attr("uk-accordion", "");
     ulInstructionB.attr("multiple", "true");
-
+    ulInstructionB.attr("class", "clickable-detail-block")
     for (let i = 0; i < tuple[1].length; i++) {
       const blocki = tuple[0][i];
       const instruction = tuple[1][i];
@@ -492,8 +492,8 @@ export class DetailBlock {
 
     this.loadContainer
       .append("button")
-      .attr("class", "cancelButton")
-      .attr("id", "cancelButton")
+      .attr("class", "cancel-button")
+      .attr("id", "cancel-button")
       .text("Abort research")
       // tslint:disable-next-line
       .on("click", function () {
