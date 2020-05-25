@@ -1,40 +1,52 @@
 <!-- index.html -->
 <html>
-
-<head>
+  <head>
     <link rel="stylesheet" href="dist/main.css" />
     <meta charset="UTF-8" />
     <script src="dist/bundle.min.js" type="text/javascript"></script>
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="uk-inline">
-        <button class="uk-button uk-button-default uk-button-large uk-width-1-1" type="button" style="font-size: 50px; border: none;">
+      <button
+        class="uk-button uk-button-default uk-button-large uk-width-1-1"
+        type="button"
+        style="font-size: 50px; border: none;"
+      >
         Columbus
       </button>
-        <div uk-dropdown>
-            The project Columbus is a project aiming to facilitate the visualization of the blockchain of ByzCoin. You can navigate throw the different blocks by going right or left. Then you can have more details about one block by clicking on the wanted block and
-            then select a transaction. You will see all instructions with their type (spawn, invoke or delete) of each instrucions. A button is there to browse the whole blockchain in order to find the evolution of this instance throu the blockchain.
-            The evolution will be displayed on the right bottom.
-        </div>
+      <div uk-dropdown class="description">
+        The project Columbus is a project aiming to facilitate the visualization
+        of the blockchain of ByzCoin. <br />
+        You can navigate throw the different blocks by going right or left. Then
+        you can have more details about one block by clicking on the wanted
+        block and selecting a transaction. You will see all instructions with
+        their type (spawn, invoke or delete) of each instrucions. <br />
+        A button is there to browse the whole blockchain in order to find the
+        evolution of this instance throu the blockchain. The evolution will be
+        displayed on the right bottom.
+      </div>
     </div>
     <div class="blocksContainer">
-        <svg class="blocks"></svg>
+      <svg class="blocks"></svg>
     </div>
     <div class="block-infos">
-        <div class="blockDetailcontainer"></div>
-        <div class="container"></div>
+      <div class="blockDetailcontainer"></div>
+      <div class="container"></div>
     </div>
 
-    <footer class="v-footer v-footer--fixed theme--light" style="height: 32px; display: block;">
-        <span style="padding-left: 1rem;">© DEDIS 2018 - by Anthony Iozzia and Julien von Felten</span
+    <footer
+      class="v-footer v-footer--fixed theme--light"
+      style="height: 32px; display: block;"
+    >
+      <span style="padding-left: 1rem;"
+        >© DEDIS 2018 - by Anthony Iozzia and Julien von Felten</span
       >
       <span style="padding-left: 1rem;"> v.1.0.11</span>
-        <a href="https://github.com/dedis/columbus-united">github repository</a>
+      <a href="https://github.com/dedis/columbus-united">github repository</a>
     </footer>
-</body>
-<script>
+  </body>
+  <script>
     jsapp.sayHi();
-</script>
-
+  </script>
 </html>

@@ -126,6 +126,14 @@ div.block-infos {
     color: #333 !important;
 }
 
+.description {
+    width: 30%;
+    left: 50% !important;
+    text-align: justify;
+    text-justify: inter-word;
+    transform: translateX(-50%);
+}
+
 .clickableDetailBlock>li {
     padding: 10px;
 }
