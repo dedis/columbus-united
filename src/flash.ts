@@ -33,7 +33,10 @@ export class Flash {
     switch (errorCode) {
       case Flash.flashType.ERROR:
         divAlert = this.containerFlash.append("div").attr("class", "alert");
-        span = divAlert.append("span").attr("class", "close-btn").text(`\u2715`);
+        span = divAlert
+          .append("span")
+          .attr("class", "close-btn")
+          .text(`\u2715`);
         divAlert.append("text").text(`Error: ${text}`);
         break;
 
@@ -41,7 +44,10 @@ export class Flash {
         divAlert = this.containerFlash
           .append("div")
           .attr("class", "alert warning");
-        span = divAlert.append("span").attr("class", "close-btn").text(`\u2715`);
+        span = divAlert
+          .append("span")
+          .attr("class", "close-btn")
+          .text(`\u2715`);
         divAlert.append("text").text(`Warning: ${text}`);
         break;
 
@@ -49,7 +55,10 @@ export class Flash {
         divAlert = this.containerFlash
           .append("div")
           .attr("class", "alert info");
-        span = divAlert.append("span").attr("class", "close-btn").text(`\u2715`);
+        span = divAlert
+          .append("span")
+          .attr("class", "close-btn")
+          .text(`\u2715`);
         divAlert.append("text").text(`Info: ${text}`);
         break;
 
@@ -58,7 +67,10 @@ export class Flash {
         divAlert = this.containerFlash
           .append("div")
           .attr("class", "alert other");
-        span = divAlert.append("span").attr("class", "close-btn").text(`\u2715`);
+        span = divAlert
+          .append("span")
+          .attr("class", "close-btn")
+          .text(`\u2715`);
         divAlert.append("text").text(`Other error not handled: ${text}`);
         break;
     }
