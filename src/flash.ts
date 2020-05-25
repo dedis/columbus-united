@@ -75,6 +75,7 @@ export class Flash {
         break;
     }
     // on click to remove the flash
+    // tslint:disable-next-line
     span.on("click", function () {
       const div = this.parentElement;
       div.style.opacity = "0";
@@ -84,11 +85,12 @@ export class Flash {
       }, 200);
     });
   }
-}
+} // tslint:disable-next-line
 
 /**
  * enumeration to express the different flash types
  */
+// tslint:disable-next-line
 export namespace Flash {
   export enum flashType {
     ERROR,

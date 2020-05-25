@@ -193,6 +193,7 @@ export class DetailBlock {
         // Args of the instruction
         const ulArgs = divInstruction.append("ul");
         ulArgs.attr("uk-accordion", "");
+        // tslint:disable-next-line
         args.forEach((arg, i) => {
           const liArgs = ulArgs.append("li");
           const aArgs = liArgs.append("a");
@@ -217,6 +218,7 @@ export class DetailBlock {
             )}"`
           )
           // Confirmation and start browsing on click
+          // tslint:disable-next-line
           .on("click", function () {
             const conf = confirm(
               `Do you really want to browse the whole blockchain with the instance ID: ${instruction.instanceID.toString(
@@ -231,6 +233,7 @@ export class DetailBlock {
               });
               // throttleTime: ignores the values for the 100 first ms
               subjects[1].pipe(throttleTime(100)).subscribe({
+                complete: self.doneLoading,
                 next: ([
                   percentage,
                   seenBlock,
@@ -243,8 +246,7 @@ export class DetailBlock {
                     totalBlock,
                     nbInstanceFound
                   );
-                }, // tslint:disable-next-line
-                complete: self.doneLoading,
+                },
               });
             } else {
               self.flash.display(Flash.flashType.INFO, "Browsing cancelled");
@@ -392,6 +394,7 @@ export class DetailBlock {
       divInstructionB.append("p").text("Arguments: ");
       const ulArgsB = divInstructionB.append("ul");
       ulArgsB.attr("uk-accordion", "");
+      // tslint:disable-next-line
       args.forEach((arg, i) => {
         const liArgsB = ulArgsB.append("li");
         const aArgsB = liArgsB.append("a");
