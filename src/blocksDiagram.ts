@@ -45,7 +45,7 @@ export class BlocksDiagram {
 
   flash: Flash;
   constructor(roster: Roster, flash: Flash) {
-    const blocksHeight = this.computeBlocksHeight()
+    const blocksHeight = this.computeBlocksHeight();
 
     // SVG properties
     this.svgWidth = window.innerWidth;
@@ -412,11 +412,11 @@ export class BlocksDiagram {
   }
 
   private computeBlocksHeight(): number {
-    const windowHeight = window.innerHeight
-    if(windowHeight < 300) {
-      return 150
+    const windowHeight = window.innerHeight;
+    if (windowHeight < 300) {
+      return 150;
     } else {
-      return 0.4*windowHeight
+      return 0.4 * windowHeight;
     }
   }
 }
