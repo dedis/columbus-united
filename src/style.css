@@ -118,6 +118,22 @@ div.block-infos {
     width: 100%;
 }
 
+.uk-open {
+    background-color: rgb(224, 224, 224);
+}
+
+.uk-accordion-title:focus {
+    color: #333 !important;
+}
+
+.clickableDetailBlock>li {
+    padding: 10px;
+}
+
+.clickableDetailBlock .uk-accordion-content p {
+    overflow-x: auto;
+}
+
 .alertContainer {
     position: absolute;
     top: 0%;

@@ -124,6 +124,7 @@ export class DetailBlock {
     const ulTransaction = transactionContainer.append("ul");
     ulTransaction.attr("uk-accordion", "");
     ulTransaction.attr("multiple", "true");
+    ulTransaction.attr("class", "clickableDetailBlock");
     const body = DataBody.decode(block.payload);
 
     // transactions of the block
@@ -132,9 +133,7 @@ export class DetailBlock {
         ? "Accepted"
         : "Not accepted";
       const liTransaction = ulTransaction.append("li");
-      liTransaction
-        .attr("class", "uk-open")
-        .attr("style", "border:2px dashed rgb(133, 133, 133)");
+      liTransaction.attr("class", "uk-open");
       const aTransaction = liTransaction.append("a");
       let totalInstruction = 0;
       transaction.clientTransaction.instructions.forEach((_, __) => {
@@ -147,8 +146,8 @@ export class DetailBlock {
       aTransaction
         .attr("class", "uk-accordion-title")
         .attr("href", "#")
-        .text(
-          `\u22B3 Transaction ${i} ${accepted}, show ${totalInstruction} instruction${s}:`
+        .html(
+          `<b>Transaction</b> ${i} ${accepted}, show ${totalInstruction} instruction${s}:`
         );
       const divTransaction = liTransaction.append("div");
       divTransaction.attr("class", "uk-accordion-content");
@@ -159,25 +158,23 @@ export class DetailBlock {
       transaction.clientTransaction.instructions.forEach((instruction, j) => {
         let args = null;
         const liInstruction = ulInstruction.append("li");
-        liInstruction
-          .attr("style", "padding-left:15px")
-          .attr("class", "uk-open");
+        liInstruction.attr("style", "padding-left:15px");
         const aInstruction = liInstruction.append("a");
         aInstruction.attr("class", "uk-accordion-title").attr("href", "#");
 
         if (instruction.type === Instruction.typeSpawn) {
           aInstruction.text(
-            `\u2022 Spawn instruction ${j}, name of contract: ${instruction.spawn.contractID}`
+            `Spawn instruction ${j}, name of contract: ${instruction.spawn.contractID}`
           );
           args = instruction.spawn.args;
         } else if (instruction.type === Instruction.typeInvoke) {
           aInstruction.text(
-            `\u2022 Invoke instruction ${j}, name of contract: ${instruction.invoke.contractID}`
+            `Invoke instruction ${j}, name of contract: ${instruction.invoke.contractID}`
           );
           args = instruction.invoke.args;
         } else if (instruction.type === Instruction.typeDelete) {
           aInstruction.text(
-            `\u2022 Delete instruction ${j}, name of contract:${instruction.delete.contractID}`
+            `Delete instruction ${j}, name of contract:${instruction.delete.contractID}`
           );
         }
 
@@ -200,7 +197,7 @@ export class DetailBlock {
           const liArgs = ulArgs.append("li");
           const aArgs = liArgs.append("a");
           aArgs.attr("class", "uk-accordion-title").attr("href", "#");
-          aArgs.text(`${i}) ${arg.name}`);
+          aArgs.text(`${i}: ${arg.name}`);
           const divArgs = liArgs.append("div");
           divArgs.attr("class", "uk-accordion-content");
           divArgs.append("p").text(`${arg.value}`);
@@ -257,11 +254,12 @@ export class DetailBlock {
     });
     // Details of the blocks (Verifier, backlinks, forwardlinks)
     const liDetails = ulTransaction.append("li");
+    liDetails.attr("class", "uk-open");
     const aDetails = liDetails.append("a");
     aDetails
       .attr("class", "uk-accordion-title")
       .attr("href", "#")
-      .text("\u22B3 Block details");
+      .html("<b>Block details</b>");
 
     const divDetails = liDetails.append("div");
     divDetails.attr("class", "uk-accordion-content");
@@ -274,7 +272,7 @@ export class DetailBlock {
     aVerifier
       .attr("class", "uk-accordion-title")
       .attr("href", "#")
-      .text(`\u2022 Verifiers: ${block.verifiers.length}`);
+      .text(`Verifiers: ${block.verifiers.length}`);
     const divVerifier = liVerifier.append("div");
     divVerifier.attr("class", "uk-accordion-content");
     block.verifiers.forEach((uid, j) => {
@@ -291,7 +289,7 @@ export class DetailBlock {
     aBackLink
       .attr("class", "uk-accordion-title")
       .attr("href", "#")
-      .text(`\u2022 BackLinks: ${block.backlinks.length}`);
+      .text(`BackLinks: ${block.backlinks.length}`);
     const divBackLink = liBackLink.append("div");
     divBackLink.attr("class", "uk-accordion-content");
     block.backlinks.forEach((value, j) => {
@@ -308,7 +306,7 @@ export class DetailBlock {
     aForwardLink
       .attr("class", "uk-accordion-title")
       .attr("href", "#")
-      .text(`\u2022 ForwardLinks: ${block.forwardLinks.length}`);
+      .text(`ForwardLinks: ${block.forwardLinks.length}`);
     const divForwardLink = liForwardLink.append("div");
     divForwardLink.attr("class", "uk-accordion-content");
     block.forwardLinks.forEach((fl, j) => {
@@ -316,18 +314,7 @@ export class DetailBlock {
       divForwardLink.append("p").text(`Hash: ${fl.hash().toString("hex")}`);
       divForwardLink
         .append("p")
-        .text(
-          `signature: ${fl.signature.sig
-            .toString("hex")
-            .slice(0, fl.hash().toString("hex").length - 6)}`
-        );
-      divForwardLink
-        .append("p")
-        .text(
-          `${fl.signature.sig
-            .toString("hex")
-            .slice(fl.hash().toString("hex").length - 6)}`
-        );
+        .text(`signature: ${fl.signature.sig.toString("hex")}`);
     });
   }
 
@@ -368,19 +355,19 @@ export class DetailBlock {
       if (instruction.type === Instruction.typeSpawn) {
         aInstructionB
           .attr("id", `buttonInstance${i}`)
-          .text(`${i}) Spawn in the block ${blocki.index}`);
+          .text(`${i}: Spawn in the block ${blocki.index}`);
         args = instruction.spawn.args;
         contractID = instruction.spawn.contractID;
       } else if (instruction.type === Instruction.typeInvoke) {
         aInstructionB
           .attr("id", `buttonInstance${i}`)
-          .text(`${i}) Invoke in the block ${blocki.index}`);
+          .text(`${i}: Invoke in the block ${blocki.index}`);
         args = instruction.invoke.args;
         contractID = instruction.invoke.contractID;
       } else if (instruction.type === Instruction.typeDelete) {
         aInstructionB
           .attr("id", `buttonInstance${i}`)
-          .text(`${i}) Delete in the block ${blocki.index}`);
+          .text(`${i}: Delete in the block ${blocki.index}`);
         contractID = instruction.delete.contractID;
       }
       // Add an highlight of the instance which was browsed
@@ -411,7 +398,7 @@ export class DetailBlock {
         aArgsB
           .attr("class", "uk-accordion-title")
           .attr("href", "#")
-          .text(`${i}) ${arg.name}`);
+          .text(`${i}: ${arg.name}`);
         const divArgsB = liArgsB.append("div");
         divArgsB.attr(
           "class",
@@ -440,7 +427,7 @@ export class DetailBlock {
         blockSVG.attr("stroke", "red").attr("stroke-width", 5);
       } // tslint:disable-next-line
       button.on("mouseover", function () {
-        blockSVG.attr("stroke", "green").attr("stroke-width", 15);
+        blockSVG.attr("stroke", "red").attr("stroke-width", 10);
       }); // tslint:disable-next-line
       button.on("mouseout", function () {
         blockSVG.attr("stroke", "red").attr("stroke-width", 5);
