@@ -8,23 +8,53 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import { Observable } from "rxjs";
 
 import { WebSocketConnection } from "@dedis/cothority/network/connection";
-
+/**
+ * Create an observable to get the total number of blocks of the blockchain.
+ * It keeps the last block seen in order to be faster to next time it is
+ * called.
+ * @author Julien von Felten <julien.vonfelten@epfl.ch>
+ * @export
+ * @class TotalBlock
+ */
 export class TotalBlock {
   roster: Roster;
   lastBlockSeenID: string;
+
+  /**
+   * Creates an instance of TotalBlock using the roster,
+   * setting the lastBlockSeen as the first block of the
+   * blockchain
+   *
+   * @param {Roster} roster
+   * @memberof TotalBlock
+   */
   constructor(roster: Roster) {
     this.roster = roster;
     this.lastBlockSeenID =
       "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
   }
 
+  /**
+   * Return the observable with the last block of the blockchain
+   *
+   * @returns {Observable<SkipBlock>}
+   * @memberof TotalBlock
+   */
   getTotalBlock(): Observable<SkipBlock> {
     return this.getLatestBlock(this.lastBlockSeenID, this.roster);
   }
 
-  // getLatestBlock follows the highest possible forward links from the given
-  // block ID (hex hash) until the last known block of the chain and notifies the
-  // observer with the latest block.
+  /**
+   * Follows the highest possible forward links from the given
+   * block ID (hex hash) until the last known block of the chain
+   * and notifies the observer with the latest block.
+   *
+   * @private
+   * @param {string} startID
+   * @param {Roster} roster
+   * @returns {Observable<SkipBlock>}
+   * @memberof TotalBlock
+   */
   private getLatestBlock(
     startID: string,
     roster: Roster

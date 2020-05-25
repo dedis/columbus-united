@@ -1,8 +1,18 @@
 import * as d3 from "d3";
-
+/**
+ * Create flash alerte using flashType, displayed at the top of the page
+ * @author Julien von Felten <julien.vonfelten@epfl.ch>
+ * @export
+ * @class Flash
+ */
 export class Flash {
   containerFlash: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
   flashType: Flash.flashType;
+
+  /**
+   * Creates an instance of Flash, setting the container
+   * @memberof Flash
+   */
   constructor() {
     this.containerFlash = d3
       .select("body")
@@ -10,32 +20,49 @@ export class Flash {
       .attr("class", "alertContainer");
   }
 
+  /**
+   * Public function to display the flash with the errorCode and the text
+   *
+   * @param {Flash.flashType} errorCode: The error code corresponding to the flashType
+   * @param {string} text The text to display
+   * @memberof Flash
+   */
   display(errorCode: Flash.flashType, text: string) {
-    // display the block and the error with colors
     let span;
-    if (errorCode === Flash.flashType.ERROR) {
-      const divAlert = this.containerFlash.append("div").attr("class", "alert");
-      span = divAlert.append("span").attr("class", "closebtn").text(`x`);
-      divAlert.append("text").text(`Error: ${text}`);
-    } else if (errorCode === Flash.flashType.WARNING) {
-      const divAlert = this.containerFlash
-        .append("div")
-        .attr("class", "alert warning");
-      span = divAlert.append("span").attr("class", "closebtn").text(`x`);
-      divAlert.append("text").text(`Warning: ${text}`);
-    } else if (errorCode === Flash.flashType.INFO) {
-      const divAlert = this.containerFlash
-        .append("div")
-        .attr("class", "alert info");
-      span = divAlert.append("span").attr("class", "closebtn").text(`x`);
-      divAlert.append("text").text(`Info: ${text}`);
-    } else {
-      const divAlert = this.containerFlash
-        .append("div")
-        .attr("class", "alert other");
-      span = divAlert.append("span").attr("class", "closebtn").text(`x`);
-      divAlert.append("text").text(`Other error not handled: ${text}`);
-    } // tslint:disable-next-line
+    let divAlert;
+    switch (errorCode) {
+      case Flash.flashType.ERROR:
+        divAlert = this.containerFlash.append("div").attr("class", "alert");
+        span = divAlert.append("span").attr("class", "closebtn").text(`\u2715`);
+        divAlert.append("text").text(`Error: ${text}`);
+        break;
+
+      case Flash.flashType.WARNING:
+        divAlert = this.containerFlash
+          .append("div")
+          .attr("class", "alert warning");
+        span = divAlert.append("span").attr("class", "closebtn").text(`\u2715`);
+        divAlert.append("text").text(`Warning: ${text}`);
+        break;
+
+      case Flash.flashType.INFO:
+        divAlert = this.containerFlash
+          .append("div")
+          .attr("class", "alert info");
+        span = divAlert.append("span").attr("class", "closebtn").text(`\u2715`);
+        divAlert.append("text").text(`Info: ${text}`);
+        break;
+
+      case Flash.flashType.OTHER:
+      default:
+        divAlert = this.containerFlash
+          .append("div")
+          .attr("class", "alert other");
+        span = divAlert.append("span").attr("class", "closebtn").text(`\u2715`);
+        divAlert.append("text").text(`Other error not handled: ${text}`);
+        break;
+    }
+    // on click to remove the flash
     span.on("click", function () {
       const div = this.parentElement;
       div.style.opacity = "0";
@@ -45,7 +72,11 @@ export class Flash {
       }, 200);
     });
   }
-} // tslint:disable-next-line
+}
+
+/**
+ * enumeration to express the different flash types
+ */
 export namespace Flash {
   export enum flashType {
     ERROR,
