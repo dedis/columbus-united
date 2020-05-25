@@ -265,7 +265,6 @@ export class BlocksDiagram {
       .attr("id", block.hash.toString("hex"))
       .attr("width", this.blockWidth)
       .attr("height", this.blockHeight)
-      .attr("y", 25)
       .attr("transform", (d: any) => {
         const translate = [xTranslate, 0];
         return "translate(" + translate + ")";
@@ -294,7 +293,7 @@ export class BlocksDiagram {
     this.svgBlocks
       .append("text")
       .attr("x", xTranslate)
-      .attr("y", 25 + (textIndex.index + 1) * 30)
+      .attr("y", (textIndex.index + 1) * 30)
       .text(text)
       .attr("font-family", "sans-serif")
       .attr("font-size", "18px")
