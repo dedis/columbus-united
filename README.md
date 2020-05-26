@@ -113,3 +113,7 @@ Use:
 
 * Open Command Palette (`Ctrl+Shift+P`)
 * `Rewrap Comment / Text`
+
+## Documentation
+
+To generate the documentation, run: `typedoc --out docs src`
