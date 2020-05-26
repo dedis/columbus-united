@@ -116,4 +116,4 @@ Use:
 
 ## Documentation
 
-To generate the documentation, run: `typedoc --out docs src`
+Generate the documentation: `npm run doc`
