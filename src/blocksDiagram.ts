@@ -182,6 +182,8 @@ export class BlocksDiagram {
                     nbBlocksToLoad = indexLastBlockLeft;
                   }
 
+                  this.loaderAnimation(true);
+
                   self.getNextBlocks(
                     hashNextBlockLeft,
                     nbBlocksToLoad,
@@ -204,6 +206,8 @@ export class BlocksDiagram {
             ) {
               if (!(hashNextBlockRight === hashNextBlockRightBeforeUpdate)) {
                 hashNextBlockRightBeforeUpdate = hashNextBlockRight;
+
+                this.loaderAnimation(false);
 
                 self.getNextBlocks(
                   hashNextBlockRight,
@@ -235,38 +239,40 @@ export class BlocksDiagram {
         }
       },
       next: ([i, skipBlocks]) => {
-        // i is the page number
-        // tslint:disable-next-line
-        if (i == this.nbPages - 1) {
-          // If this is the first series of blocks, set the hash of the left first block
-          const firstBlock = skipBlocks[0];
-          if (firstBlock.index === this.initialBlockIndex) {
-            hashNextBlockLeft = Utils.getLeftBlockHash(firstBlock);
+        setTimeout(() => {
+          // i is the page number
+          // tslint:disable-next-line
+          if (i == this.nbPages - 1) {
+            // If this is the first series of blocks, set the hash of the left first block
+            const firstBlock = skipBlocks[0];
+            if (firstBlock.index === this.initialBlockIndex) {
+              hashNextBlockLeft = Utils.getLeftBlockHash(firstBlock);
+            }
+
+            const lastBlock = skipBlocks[skipBlocks.length - 1];
+            const indexLastBlock = lastBlock.index;
+
+            if (indexLastBlock < this.initialBlockIndex) {
+              // Load blocks to the left
+              indexNextBlockLeft = indexLastBlock - 1;
+              hashNextBlockLeft = Utils.getLeftBlockHash(lastBlock);
+
+              
+
+              this.displayBlocks(skipBlocks, true, this.getBlockColor());
+              //this.setTimeoutDisplayBlocks(skipBlocks, true);
+            } else {
+              // Load blocks to the right
+              indexNextBlockRight = indexLastBlock + 1;
+              hashNextBlockRight = Utils.getRightBlockHash(lastBlock);
+
+              
+
+              this.displayBlocks(skipBlocks, false, this.getBlockColor());
+              //this.setTimeoutDisplayBlocks(skipBlocks, false);
+            }
           }
-
-          const lastBlock = skipBlocks[skipBlocks.length - 1];
-          const indexLastBlock = lastBlock.index;
-
-          if (indexLastBlock < this.initialBlockIndex) {
-            // Load blocks to the left
-            indexNextBlockLeft = indexLastBlock - 1;
-            hashNextBlockLeft = Utils.getLeftBlockHash(lastBlock);
-
-            this.loaderAnimation(true)
-
-            //this.displayBlocks(skipBlocks, true, this.getBlockColor());
-            this.setTimeoutDisplayBlocks(skipBlocks, true);
-          } else {
-            // Load blocks to the right
-            indexNextBlockRight = indexLastBlock + 1;
-            hashNextBlockRight = Utils.getRightBlockHash(lastBlock);
-
-            this.loaderAnimation(false)
-
-            //this.displayBlocks(skipBlocks, false, this.getBlockColor());
-            this.setTimeoutDisplayBlocks(skipBlocks, false);
-          }
-        }
+        }, 4000);
       },
     });
   }
@@ -321,14 +327,14 @@ export class BlocksDiagram {
 
   private createLoader(backwards: boolean) {
     let xTranslateBlock = this.getXTranslateBlock(backwards);
-    const loaderId = this.getLoaderId(backwards)
+    const loaderId = this.getLoaderId(backwards);
 
-    if(backwards) {
+    if (backwards) {
       xTranslateBlock =
-        -1 * this.unitBlockAndPaddingWidth * this.nbBlocksLoadedLeft
+        -1 * this.unitBlockAndPaddingWidth * this.nbBlocksLoadedLeft;
     }
 
-    let initialLoaderWidth = 0
+    let initialLoaderWidth = 0;
     this.svgBlocks
       .append("rect")
       .attr("id", loaderId)
@@ -343,37 +349,33 @@ export class BlocksDiagram {
 
     // Loader position
     let xStart, xEnd;
-    if(backwards) {
+    if (backwards) {
+      xStart = xTranslateBlock;
+      xEnd = xTranslateBlock - this.blockWidth;
 
-      xStart = xTranslateBlock
-      xEnd = xTranslateBlock - this.blockWidth
-      
-     /*
+      /*
      xStart = xTranslateBlock - this.blockWidth
       xEnd = xTranslateBlock
 */
+      console.log("nbblocksloaded " + this.nbBlocksLoadedLeft);
+      console.log("xstart " + xStart);
+      console.log("xend " + xEnd);
+
       d3.select("#" + loaderId)
-      .attr("x", xStart)
-      .transition()
-      .ease(d3.easeSin)
-      .duration(this.loaderAnimationDuration)
-      .attr("width", this.blockWidth)
-      .attr("x", xEnd)
-      
+        .attr("x", xStart)
+        .transition()
+        .ease(d3.easeSin)
+        .duration(this.loaderAnimationDuration)
+        .attr("width", this.blockWidth)
+        .attr("x", xEnd);
     } else {
       /*
       xStart = xTranslateBlock - this.initialBlockMargin
       xEnd = xStart
       */
-      d3.select("#" + loaderId)
-      //.attr("x", xStart)
-      .transition()
-      .ease(d3.easeSin)
-      .duration(this.loaderAnimationDuration)
-      .attr("width", this.blockWidth)
-      //.attr("x", xEnd)
+      repeat();
     }
-/*
+    /*
     d3.select("#" + loaderId)
       //.attr("x", xStart)
       .transition()
@@ -382,14 +384,26 @@ export class BlocksDiagram {
       .attr("width", this.blockWidth)
       //.attr("x", xEnd)
       */
+     let self = this
+     function repeat() {
+      d3.select("#loaderRight")
+      .attr("width", 0)
+      .transition()
+      .ease(d3.easeSin)
+      .duration(2000)
+      .attr("width", 300)
+      .on("end", repeat)
+    }
   }
+
+  
 
   private destroyLoader(backwards: boolean) {
     d3.select("#" + this.getLoaderId(backwards)).remove();
   }
 
   private getLoaderId(backwards: boolean): string {
-    return backwards ? "loaderLeft" : "loaderRight"
+    return backwards ? "loaderLeft" : "loaderRight";
   }
 
   /**
