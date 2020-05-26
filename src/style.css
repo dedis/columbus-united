@@ -2,6 +2,7 @@
 div.block-infos {
     display: flex;
     flex-direction: row;
+    margin-left: 10;
 }
 
 .blockDetailcontainer {
