@@ -270,7 +270,6 @@ export class Browsing {
       );
       return;
     }
-
     try {
       // tslint:disable-next-line
       var conn = new WebSocketConnection(
@@ -288,8 +287,8 @@ export class Browsing {
     if (this.ws !== undefined) {
       const message = new PaginateRequest({
         startid: bid,
-        // tslint:disable-next-line
-        pagesize: pageSizeNB,
+
+        pagesize: pageSizeNB, // tslint:disable-next-line
         numpages: numPagesNB,
         backward: false,
       });
@@ -302,8 +301,8 @@ export class Browsing {
         .sendStream<PaginateResponse>( // fetch next block
           new PaginateRequest({
             startid: bid,
-            // tslint:disable-next-line
-            pagesize: pageSizeNB,
+
+            pagesize: pageSizeNB, // tslint:disable-next-line
             numpages: numPagesNB,
             backward: false,
           }),

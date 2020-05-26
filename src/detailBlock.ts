@@ -13,7 +13,7 @@ import { Flash } from "./flash";
  * the two containers for the details of the clicked block
  * and for the result of the browsing for one instance.
  * It will also highlights some blocks in the blockchain.
- * It also handles the loading screen with the progressbar
+ * It also handles the loading screen with the progress bar
  * to be updated.
  *
  * @author Julien von Felten <julien.vonfelten@epfl.ch>
@@ -114,7 +114,7 @@ export class DetailBlock {
       );
     }
     const self = this;
-    const transactionContainer = d3.select(".blockDetailcontainer");
+    const transactionContainer = d3.select(".block-detail-container");
     transactionContainer
       .attr("id", "transactionContainer")
       .text("")
@@ -124,7 +124,7 @@ export class DetailBlock {
     const ulTransaction = transactionContainer.append("ul");
     ulTransaction.attr("uk-accordion", "");
     ulTransaction.attr("multiple", "true");
-    ulTransaction.attr("class", "clickableDetailBlock");
+    ulTransaction.attr("class", "clickable-detail-block");
     const body = DataBody.decode(block.payload);
 
     // transactions of the block
@@ -193,6 +193,7 @@ export class DetailBlock {
         // Args of the instruction
         const ulArgs = divInstruction.append("ul");
         ulArgs.attr("uk-accordion", "");
+        // tslint:disable-next-line
         args.forEach((arg, i) => {
           const liArgs = ulArgs.append("li");
           const aArgs = liArgs.append("a");
@@ -217,6 +218,7 @@ export class DetailBlock {
             )}"`
           )
           // Confirmation and start browsing on click
+          // tslint:disable-next-line
           .on("click", function () {
             const conf = confirm(
               `Do you really want to browse the whole blockchain with the instance ID: ${instruction.instanceID.toString(
@@ -231,6 +233,7 @@ export class DetailBlock {
               });
               // throttleTime: ignores the values for the 100 first ms
               subjects[1].pipe(throttleTime(100)).subscribe({
+                complete: self.doneLoading,
                 next: ([
                   percentage,
                   seenBlock,
@@ -243,8 +246,7 @@ export class DetailBlock {
                     totalBlock,
                     nbInstanceFound
                   );
-                }, // tslint:disable-next-line
-                complete: self.doneLoading,
+                },
               });
             } else {
               self.flash.display(Flash.flashType.INFO, "Browsing cancelled");
@@ -331,7 +333,7 @@ export class DetailBlock {
     // removes previous highlighted blocks
     this.removeHighlighBlocks(this.hashHighligh);
 
-    const browseContainer = d3.select(".container");
+    const browseContainer = d3.select(".browse-container");
     browseContainer
       .attr("id", "browseContainer")
       .text("")
@@ -342,7 +344,7 @@ export class DetailBlock {
     const ulInstructionB = browseContainer.append("ul");
     ulInstructionB.attr("uk-accordion", "");
     ulInstructionB.attr("multiple", "true");
-
+    ulInstructionB.attr("class", "clickable-detail-block");
     for (let i = 0; i < tuple[1].length; i++) {
       const blocki = tuple[0][i];
       const instruction = tuple[1][i];
@@ -392,6 +394,7 @@ export class DetailBlock {
       divInstructionB.append("p").text("Arguments: ");
       const ulArgsB = divInstructionB.append("ul");
       ulArgsB.attr("uk-accordion", "");
+      // tslint:disable-next-line
       args.forEach((arg, i) => {
         const liArgsB = ulArgsB.append("li");
         const aArgsB = liArgsB.append("a");
@@ -468,32 +471,32 @@ export class DetailBlock {
     this.loadContainer = d3
       .select("body")
       .append("div")
-      .attr("class", "loadContainer");
+      .attr("class", "load-container");
     this.loadContainer
       .append("div")
       .attr("class", "logo") // tslint:disable-next-line
       .on("click", function () {
         window.open("https://www.epfl.ch/labs/dedis/");
       });
-    const divLoad = this.loadContainer.append("div").attr("class", "divLoad");
+    const divLoad = this.loadContainer.append("div").attr("class", "div-load");
     divLoad.append("div").attr("class", "loader");
 
     this.progressBarContainer = this.loadContainer
       .append("div")
-      .attr("id", "progressBarContainer");
+      .attr("id", "progress-bar-container");
 
     this.progressBar = this.progressBarContainer
       .append("div")
-      .attr("id", "progressBar");
+      .attr("id", "progress-bar");
     this.textBar = this.progressBarContainer
       .append("div")
-      .attr("id", "textBar")
+      .attr("id", "text-bar")
       .text(`???% --- block parsed: ??? / ??? and instances found: ???`);
 
     this.loadContainer
       .append("button")
-      .attr("class", "cancelButton")
-      .attr("id", "cancelButton")
+      .attr("class", "cancel-button")
+      .attr("id", "cancel-button")
       .text("Abort research")
       // tslint:disable-next-line
       .on("click", function () {
@@ -502,7 +505,7 @@ export class DetailBlock {
           self.browsing.abort = true;
         }
       });
-    this.progressBarItem = document.getElementById("progressBar");
+    this.progressBarItem = document.getElementById("progress-bar");
   }
 
   /**
@@ -539,6 +542,6 @@ export class DetailBlock {
    * @memberof DetailBlock
    */
   private doneLoading() {
-    d3.select(".loadContainer").remove();
+    d3.select(".load-container").remove();
   }
 }

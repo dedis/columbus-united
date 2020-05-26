@@ -75,8 +75,8 @@ export class TotalBlock {
         .sendStream<PaginateResponse>( // fetch next block
           new PaginateRequest({
             startid: nextID,
-            // tslint:disable-next-line
-            pagesize: 1,
+
+            pagesize: 1, // tslint:disable-next-line
             numpages: 1,
             backward: false,
           }),
@@ -103,8 +103,8 @@ export class TotalBlock {
               nextID = block.forwardLinks[block.forwardLinks.length - 1].to;
               const message = new PaginateRequest({
                 startid: nextID,
-                // tslint:disable-next-line
-                pagesize: 1,
+
+                pagesize: 1, // tslint:disable-next-line
                 numpages: 1,
                 backward: false,
               });

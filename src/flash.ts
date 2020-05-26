@@ -17,7 +17,7 @@ export class Flash {
     this.containerFlash = d3
       .select("body")
       .append("div")
-      .attr("class", "alertContainer");
+      .attr("class", "alert-container");
   }
 
   /**
@@ -33,7 +33,10 @@ export class Flash {
     switch (errorCode) {
       case Flash.flashType.ERROR:
         divAlert = this.containerFlash.append("div").attr("class", "alert");
-        span = divAlert.append("span").attr("class", "closebtn").text(`\u2715`);
+        span = divAlert
+          .append("span")
+          .attr("class", "close-btn")
+          .text(`\u2715`);
         divAlert.append("text").text(`Error: ${text}`);
         break;
 
@@ -41,7 +44,10 @@ export class Flash {
         divAlert = this.containerFlash
           .append("div")
           .attr("class", "alert warning");
-        span = divAlert.append("span").attr("class", "closebtn").text(`\u2715`);
+        span = divAlert
+          .append("span")
+          .attr("class", "close-btn")
+          .text(`\u2715`);
         divAlert.append("text").text(`Warning: ${text}`);
         break;
 
@@ -49,7 +55,10 @@ export class Flash {
         divAlert = this.containerFlash
           .append("div")
           .attr("class", "alert info");
-        span = divAlert.append("span").attr("class", "closebtn").text(`\u2715`);
+        span = divAlert
+          .append("span")
+          .attr("class", "close-btn")
+          .text(`\u2715`);
         divAlert.append("text").text(`Info: ${text}`);
         break;
 
@@ -58,11 +67,15 @@ export class Flash {
         divAlert = this.containerFlash
           .append("div")
           .attr("class", "alert other");
-        span = divAlert.append("span").attr("class", "closebtn").text(`\u2715`);
+        span = divAlert
+          .append("span")
+          .attr("class", "close-btn")
+          .text(`\u2715`);
         divAlert.append("text").text(`Other error not handled: ${text}`);
         break;
     }
     // on click to remove the flash
+    // tslint:disable-next-line
     span.on("click", function () {
       const div = this.parentElement;
       div.style.opacity = "0";
@@ -72,11 +85,12 @@ export class Flash {
       }, 200);
     });
   }
-}
+} // tslint:disable-next-line
 
 /**
  * enumeration to express the different flash types
  */
+// tslint:disable-next-line
 export namespace Flash {
   export enum flashType {
     ERROR,
