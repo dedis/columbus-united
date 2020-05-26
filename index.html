@@ -7,13 +7,32 @@
   </head>
 
   <body>
-    <h1>Columbus</h1>
+    <div class="uk-inline">
+      <button
+        class="uk-button uk-button-default uk-button-large uk-width-1-1"
+        type="button"
+        style="font-size: 50px; border: none;"
+      >
+        Columbus
+      </button>
+      <div uk-dropdown class="description">
+        The project Columbus is a project aiming to facilitate the visualization
+        of the blockchain of ByzCoin. <br />
+        You can navigate throw the different blocks by going right or left. Then
+        you can have more details about one block by clicking on the wanted
+        block and selecting a transaction. You will see all instructions with
+        their type (spawn, invoke or delete) of each instrucions. <br />
+        A button is there to browse the whole blockchain in order to find the
+        evolution of this instance throu the blockchain. The evolution will be
+        displayed on the right bottom.
+      </div>
+    </div>
     <div class="blocks-container">
       <svg class="blocks"></svg>
     </div>
     <div class="block-infos">
-      <div class="blockDetailcontainer"></div>
-      <div class="container"></div>
+      <div class="block-detail-container"></div>
+      <div class="browse-container"></div>
     </div>
 
     <footer

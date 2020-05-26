@@ -113,3 +113,7 @@ Use:
 
 * Open Command Palette (`Ctrl+Shift+P`)
 * `Rewrap Comment / Text`
+
+## Documentation
+
+Generate the documentation: `npm run doc`
