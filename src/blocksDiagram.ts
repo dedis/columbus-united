@@ -345,9 +345,17 @@ export class BlocksDiagram {
     // Loader position
     let xStart, xEnd;
     if(backwards) {
-      xStart = xTranslateBlock - this.initialBlockMargin
-      xEnd = xTranslateBlock
+      /*
+      xStart = -10
+      xEnd = -1 * this.unitBlockAndPaddingWidth * this.nbBlocksLoadedLeft +
+      this.blockPadding -
+      this.unitBlockAndPaddingWidth
+      */
       // TODO fix
+      
+      xStart = -10
+      xEnd = -310
+      
       
       d3.select("#" + loaderId)
       .attr("x", xStart)
