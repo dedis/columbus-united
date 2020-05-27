@@ -9,6 +9,7 @@ import { WebSocketConnection } from "@dedis/cothority/network/connection";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { Subject } from "rxjs";
 import { Flash } from "./flash";
+import { Utils } from "./utils";
 import { TotalBlock } from "./totalBlock";
 /**
  * Create browsing which will browse the blockchain from the
@@ -187,13 +188,14 @@ export class Browsing {
             (instruction, _) => {
               if (instruction.type === Instruction.typeSpawn) {
                 if (
-                  instruction.deriveId("").toString("hex") === this.contractID
+                  Utils.bytes2String(instruction.deriveId("")) ===
+                  this.contractID
                 ) {
                   skipBlocksSubject.push(skipBlock);
                   instructionB.push(instruction);
                 }
               } else if (
-                instruction.instanceID.toString("hex") === this.contractID
+                Utils.bytes2String(instruction.instanceID) === this.contractID
               ) {
                 // get the hashes and instruction corresponding to the input instruction
                 this.nbInstanceFound++;
@@ -209,7 +211,7 @@ export class Browsing {
           if (pageDone === numPagesB) {
             // condition to end the browsing
             if (skipBlock.forwardLinks.length !== 0 && !this.abort) {
-              this.nextIDB = skipBlock.forwardLinks[0].to.toString("hex");
+              this.nextIDB = Utils.bytes2String(skipBlock.forwardLinks[0].to);
               pageDone = 0;
               this.getNextBlocks(
                 this.nextIDB,
@@ -258,7 +260,7 @@ export class Browsing {
   ) {
     let bid: Buffer;
     try {
-      bid = this.hex2Bytes(nextID);
+      bid = Utils.hex2Bytes(nextID);
     } catch (error) {
       this.flash.display(
         Flash.flashType.ERROR,
@@ -400,13 +402,5 @@ export class Browsing {
         this.nbInstanceFound,
       ]);
     }
-  }
-
-  private hex2Bytes(hex: string) {
-    if (!hex) {
-      return Buffer.allocUnsafe(0);
-    }
-
-    return Buffer.from(hex, "hex");
   }
 }

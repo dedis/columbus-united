@@ -10,6 +10,8 @@ import { TotalBlock } from "./totalBlock";
 
 import "uikit";
 import "./style.css";
+import { Utils } from "./utils";
+import { SkipBlock } from "@dedis/cothority/skipchain/skipblock";
 /**
  *
  * Main file that creates the different objects and subjects.
@@ -27,19 +29,42 @@ export function sayHi() {
     flash.display(Flash.flashType.ERROR, "Roster is undefined");
     return;
   }
-  const blocksDiagram = new BlocksDiagram(roster, flash);
-  blocksDiagram.loadInitialBlocks();
 
-  const totalBlock = new TotalBlock(roster);
+  const initialBlockIndex = 100; // Change here the first block to display
+  if (initialBlockIndex < 0) {
+    flash.display(
+      Flash.flashType.ERROR,
+      "index of initial block cannot be negative, specified index is " +
+        initialBlockIndex
+    );
+  }
 
-  const browse = new Browsing(roster, flash, totalBlock);
+  const hashBlock0 =
+    "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
 
-  const mydetailBlock = new DetailBlock(
-    blocksDiagram.getBlockObserver(),
-    browse,
-    flash,
-    blocksDiagram.isUpdatedObserver()
-  );
+  Utils.getBlockFromIndex(hashBlock0, initialBlockIndex, roster).subscribe({
+    error: (err: any) => {
+      flash.display(
+        Flash.flashType.ERROR,
+        "unable to find initial block with index " + initialBlockIndex
+      );
+    },
+    next: (block: SkipBlock) => {
+      const blocksDiagram = new BlocksDiagram(roster, flash, block);
+      blocksDiagram.loadInitialBlocks();
+
+      const totalBlock = new TotalBlock(roster);
+
+      const browse = new Browsing(roster, flash, totalBlock);
+
+      const mydetailBlock = new DetailBlock(
+        blocksDiagram.getBlockObserver(),
+        browse,
+        flash,
+        blocksDiagram.isUpdatedObserver()
+      );
+    },
+  });
 }
 
 const rosterStr = getRosterStr();
