@@ -30,17 +30,18 @@ export function sayHi() {
     return;
   }
 
-  const initialBlockIndex = 0; // Change here the first block to display
-  if(initialBlockIndex < 0) {
+  const initialBlockIndex = 100; // Change here the first block to display
+  if (initialBlockIndex < 0) {
     flash.display(
       Flash.flashType.ERROR,
-      "index of initial block cannot be negative, specified index is " + initialBlockIndex
+      "index of initial block cannot be negative, specified index is " +
+        initialBlockIndex
     );
   }
 
   const hashBlock0 =
     "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
-  
+
   Utils.getBlockFromIndex(hashBlock0, initialBlockIndex, roster).subscribe({
     error: (err: any) => {
       flash.display(

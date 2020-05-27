@@ -67,7 +67,7 @@ export class BlocksDiagram {
     this.textMargin = 5;
 
     // Colors
-    this.randomBlocksColor = true;
+    this.randomBlocksColor = false;
     this.textColor = "black";
     this.blockColor = "#4772D8";
 
@@ -116,7 +116,7 @@ export class BlocksDiagram {
               (self.blockWidth + self.blockPadding) * zoomLevel;
 
             const nbBlocksOnScreen = this.svgWidth / sizeBlockOnScreen;
-            // TODO pb unzoom blocks
+
             let nbLoadsNeeded = Math.ceil(
               nbBlocksOnScreen / this.nbBlocksUpdate
             );
