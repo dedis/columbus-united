@@ -42,10 +42,7 @@ export class BlocksDiagram {
   nbBlocksUpdate: number; // number of blocks fetched in each update
 
   // Blocks navigation properties
-  hashFirstBlock: string;
-  initialBlockIndex: number;
-  initialBlockFound: boolean;
-  initialBlockHash: string;
+  initialBlock: SkipBlock;
   nbBlocksLoadedLeft: number;
   nbBlocksLoadedRight: number;
 
@@ -54,7 +51,7 @@ export class BlocksDiagram {
   updateObserver = new Subject<SkipBlock[]>();
 
   flash: Flash;
-  constructor(roster: Roster, flash: Flash) {
+  constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
     const blocksHeight = this.computeBlocksHeight();
 
     // SVG properties
@@ -85,53 +82,20 @@ export class BlocksDiagram {
     this.subscriberList = [];
     this.flash = flash;
 
-    this.initialBlockIndex = 100; // change the first block here
-    this.initialBlockFound = false;
-    this.hashFirstBlock =
-      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
-    if (this.initialBlockIndex === 0) {
-      this.initialBlockHash = this.hashFirstBlock;
-      this.initialBlockFound = true;
-    } else if (this.initialBlockIndex > 0) {
-      // TODO wait until the block has been found
-      /*
-      Utils.getBlockFromIndex(
-        this.hashFirstBlock,
-        this.initialBlockIndex,
-        this.roster
-      ).subscribe({
-        next: (block: SkipBlock) => {
-          this.initialBlockHash = Utils.bytes2String(block.hash);
-          this.initialBlockFound = true;
-          console.log("hash block found: " + this.initialBlockHash)
-        },
-      });
-      */
-      // Artificially put initial block as block 100 for testing purpose
-
-      const hash100 =
-        "b2592d85855d2a54c0dd9a1752629105ad0848bc8b69d15bc85f5cf0164a7eca";
-      const hash101 =
-        "68760c327d6d8222e85b14af4f4c436b10d91ca4f388e862f4368648bf767139";
-      this.initialBlockHash = hash100;
-      this.initialBlockFound = true;
-    } else {
-      flash.display(
-        Flash.flashType.ERROR,
-        "index of initial block cannot be negative"
-      );
-    }
-
     // Blocks navigation properties
+    this.initialBlock = initialBlock;
     this.nbBlocksLoadedLeft = 0;
     this.nbBlocksLoadedRight = 0;
 
-    let indexNextBlockLeft = this.initialBlockIndex;
-    let hashNextBlockLeft = this.initialBlockHash;
+    const initialBlockIndex = this.initialBlock.index;
+    const initialBlockHash = Utils.bytes2String(this.initialBlock.hash);
+
+    let indexNextBlockLeft = initialBlockIndex;
+    let hashNextBlockLeft = initialBlockHash;
     let hashNextBlockLeftBeforeUpdate = "";
 
-    let indexNextBlockRight = this.initialBlockIndex;
-    let hashNextBlockRight = this.initialBlockHash;
+    let indexNextBlockRight = initialBlockIndex;
+    let hashNextBlockRight = initialBlockHash;
     let hashNextBlockRightBeforeUpdate = "";
 
     // SVG containing the blockchain
@@ -159,7 +123,7 @@ export class BlocksDiagram {
 
             // Load blocks to the left
             const indexLeftBlockOnScreen =
-              self.initialBlockIndex + x / sizeBlockOnScreen;
+              initialBlockIndex + x / sizeBlockOnScreen;
 
             // Check if an update is needed
             if (
@@ -191,7 +155,7 @@ export class BlocksDiagram {
 
             // Load blocks to the right
             const indexRightBlockOnScreen =
-              self.initialBlockIndex + (x + self.svgWidth) / sizeBlockOnScreen;
+              initialBlockIndex + (x + self.svgWidth) / sizeBlockOnScreen;
 
             // Check if an update is needed
             if (
@@ -235,14 +199,14 @@ export class BlocksDiagram {
         if (i == this.nbPages - 1) {
           // If this is the first series of blocks, set the hash of the left first block
           const firstBlock = skipBlocks[0];
-          if (firstBlock.index === this.initialBlockIndex) {
+          if (firstBlock.index === initialBlockIndex) {
             hashNextBlockLeft = Utils.getLeftBlockHash(firstBlock);
           }
 
           const lastBlock = skipBlocks[skipBlocks.length - 1];
           const indexLastBlock = lastBlock.index;
 
-          if (indexLastBlock < this.initialBlockIndex) {
+          if (indexLastBlock < initialBlockIndex) {
             // Load blocks to the left
             indexNextBlockLeft = indexLastBlock - 1;
             hashNextBlockLeft = Utils.getLeftBlockHash(lastBlock);
@@ -262,18 +226,8 @@ export class BlocksDiagram {
    * Load the initial blocks.
    */
   loadInitialBlocks() {
-    if (!this.initialBlockFound) {
-      this.flash.display(
-        Flash.flashType.ERROR,
-        "unable to find initial block " + this.initialBlockIndex
-      );
-      this.initialBlockIndex = 0;
-      this.initialBlockHash = this.hashFirstBlock;
-    }
-
-    // Fetch initial blocks
     this.getNextBlocks(
-      this.initialBlockHash,
+      Utils.bytes2String(this.initialBlock.hash),
       this.pageSize,
       this.nbPages,
       this.subjectBrowse,
@@ -376,7 +330,7 @@ export class BlocksDiagram {
       this.appendTextInBlock(
         xTranslateText,
         textIndex,
-        "hash: " + hash.slice(0, 22) + "...",
+        "hash: " + hash.slice(0, 8) + "...",
         this.textColor
       );
 

@@ -50,12 +50,12 @@ export class Utils {
           // Do something
         },
       });
-   * @param hashfirstBlock 
+   * @param hashBlock0 
    * @param index 
    * @param roster 
    */
   static getBlockFromIndex(
-    hashfirstBlock: string,
+    hashBlock0: string,
     index: number,
     roster: Roster
   ): Observable<SkipBlock> {
@@ -76,7 +76,7 @@ export class Utils {
             backward: false,
             numpages: 1,
             pagesize: 1,
-            startid: this.hex2Bytes(hashfirstBlock),
+            startid: this.hex2Bytes(hashBlock0),
           }),
           PaginateResponse
         )
