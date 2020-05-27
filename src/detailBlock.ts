@@ -528,12 +528,12 @@ export class DetailBlock {
   ) {
     if (totalBlocks > 0) {
       this.textBar.text(
-        `${percentage}% --- block parsed: ${seenBlocks}/ ${totalBlocks} and instances found: ${nbInstanceFound}`
+        `${percentage}% --- blocks parsed: ${seenBlocks}/ ${totalBlocks} and instances found: ${nbInstanceFound}`
       );
       this.progressBarItem.style.width = percentage + "%";
     } else {
       this.textBar.text(
-        `???%  --  Seen blocks: ${seenBlocks}/ Total blocks: ???. Nombre of instances found: ${nbInstanceFound}`
+        `???%  --  Seen blocks: ${seenBlocks}/ Total blocks: ???. Number of instances found: ${nbInstanceFound}`
       );
     }
   }
