@@ -37,7 +37,10 @@ div.block-infos {
     div.block-infos {
         flex-direction: column;
     }
-    div.block-detail-container,
+    div.block-detail-container {
+        border-bottom: solid 10px rgb(230, 230, 230);
+        flex: none;
+    }
     div.browse-container {
         flex: none;
     }

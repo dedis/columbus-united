@@ -162,10 +162,6 @@ export class Browsing {
         if (data.errorcode == 5) {
           // if errorcode is 5: too many blocks requested => rebrowse with less blocks
           this.ws = undefined;
-          this.flash.display(
-            Flash.flashType.INFO,
-            `error code ${data.errorcode} : ${data.errortext}`
-          );
           this.browse(
             1,
             1,

@@ -339,7 +339,9 @@ export class DetailBlock {
       .text("")
       .append("p")
       .text(
-        `Summary of the instance: ${tuple[1][0].instanceID.toString("hex")}`
+        `Summary of the evolution of the instance: ${tuple[1][0].instanceID.toString(
+          "hex"
+        )}`
       );
     const ulInstructionB = browseContainer.append("ul");
     ulInstructionB.attr("uk-accordion", "");
