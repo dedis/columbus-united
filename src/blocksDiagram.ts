@@ -117,7 +117,7 @@ export class BlocksDiagram {
 
             const nbBlocksOnScreen = this.svgWidth / sizeBlockOnScreen;
 
-            let nbLoadsNeeded = Math.ceil(
+            const nbLoadsNeeded = Math.ceil(
               nbBlocksOnScreen / this.nbBlocksUpdate
             );
 
@@ -270,28 +270,10 @@ export class BlocksDiagram {
       blockColor = this.blockColor;
     }
 
-    if (backwards) {
-      // left
-      console.log(
-        "Load left blocks " +
-          listBlocks[listBlocks.length - 1].index +
-          " to " +
-          listBlocks[0].index
-      );
-    } else {
-      // right
-      console.log(
-        "Load right blocks " +
-          listBlocks[0].index +
-          " to " +
-          listBlocks[listBlocks.length - 1].index
-      );
-    }
-
-    let unitBlockAndPaddingWidth = this.blockWidth + this.blockPadding;
+    const unitBlockAndPaddingWidth = this.blockWidth + this.blockPadding;
 
     // Iterate over the blocks to append them
-    for (let i = 0; i < listBlocks.length; ++i) {
+    for (const block of listBlocks) {
       // x position where to start to display blocks
       let xTranslateBlock;
       if (backwards) {
@@ -308,8 +290,6 @@ export class BlocksDiagram {
       }
 
       const xTranslateText = xTranslateBlock + this.textMargin;
-
-      const block = listBlocks[i];
 
       // Append the block inside the svg container
       this.appendBlock(xTranslateBlock, blockColor, block);
