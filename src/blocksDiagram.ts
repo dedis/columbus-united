@@ -55,15 +55,17 @@ export class BlocksDiagram {
 
   flash: Flash;
   constructor(roster: Roster, flash: Flash) {
+    const blocksHeight = this.computeBlocksHeight();
+
     // SVG properties
     this.svgWidth = window.innerWidth;
-    this.svgHeight = 400;
+    this.svgHeight = blocksHeight;
     const self = this;
 
     // Blocks UI properties
     this.blockPadding = 10;
-    this.blockWidth = 300;
-    this.blockHeight = 300;
+    this.blockWidth = blocksHeight;
+    this.blockHeight = blocksHeight;
     this.initialBlockMargin = this.blockPadding;
     this.textMargin = 5;
 
@@ -417,7 +419,6 @@ export class BlocksDiagram {
       .attr("id", block.hash.toString("hex"))
       .attr("width", this.blockWidth)
       .attr("height", this.blockHeight)
-      .attr("y", 25)
       .attr("transform", (d: any) => {
         const translate = [xTranslate, 0];
         return "translate(" + translate + ")";
@@ -446,7 +447,7 @@ export class BlocksDiagram {
     this.svgBlocks
       .append("text")
       .attr("x", xTranslate)
-      .attr("y", 25 + (textIndex.index + 1) * 30)
+      .attr("y", (textIndex.index + 1) * 30)
       .text(text)
       .attr("font-family", "sans-serif")
       .attr("font-size", "18px")
@@ -542,6 +543,14 @@ export class BlocksDiagram {
             return 0;
           },
         });
+    }
+  }
+  private computeBlocksHeight(): number {
+    const windowHeight = window.innerHeight;
+    if (windowHeight < 300) {
+      return 150;
+    } else {
+      return 0.4 * windowHeight;
     }
   }
 }
