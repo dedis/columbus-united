@@ -84,10 +84,11 @@ export class BlocksDiagram {
         d3
           .zoom()
           .on("zoom", () => {
-            self.svgBlocks.attr("transform", d3.event.transform);
-            // Horizontal position of the leftmost block
-            const x = -d3.event.transform.x;
-            const zoomLevel = d3.event.transform.k;
+            const transform = d3.event.transform;
+            self.svgBlocks.attr("transform", transform);
+
+            const x = -transform.x;
+            const zoomLevel = transform.k;
 
             const sizeBlockOnScreen =
               (self.blockWidth + self.blockPadding) * zoomLevel;
