@@ -1,5 +1,5 @@
-import "./style.css";
 import "uikit";
+import "./style.css";
 
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain/skipblock";
