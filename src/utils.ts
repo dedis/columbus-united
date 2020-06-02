@@ -1,12 +1,12 @@
-import { Subject, Observable } from "rxjs";
-import { SkipBlock } from "@dedis/cothority/skipchain";
-import { WebSocketConnection } from "@dedis/cothority/network/connection";
-import { Roster } from "@dedis/cothority/network";
 import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
 import {
-  PaginateResponse,
   PaginateRequest,
+  PaginateResponse,
 } from "@dedis/cothority/byzcoin/proto/stream";
+import { Roster } from "@dedis/cothority/network";
+import { WebSocketConnection } from "@dedis/cothority/network/connection";
+import { SkipBlock } from "@dedis/cothority/skipchain";
+import { Observable } from "rxjs";
 
 export class Utils {
   /**
@@ -42,17 +42,17 @@ export class Utils {
   /**
    * Use:
    * Utils.getBlockFromIndex(
-        hashFirstBlock,
-        initialBlockIndex,
-        roster
-      ).subscribe({
-        next: (block: SkipBlock) => {
-          // Do something
-        },
-      });
-   * @param hashBlock0 
-   * @param index 
-   * @param roster 
+   *    hashFirstBlock,
+   *    initialBlockIndex,
+   *    roster
+   *  ).subscribe({
+   *    next: (block: SkipBlock) => {
+   *      // Do something
+   *    },
+   *  });
+   * @param hashBlock0
+   * @param index
+   * @param roster
    */
   static getBlockFromIndex(
     hashBlock0: string,
@@ -91,11 +91,12 @@ export class Utils {
           next: ([data, ws]) => {
             const block = data.blocks[0];
 
+            // tslint:disable-next-line
             if (data.errorcode != 0) {
               sub.error(data.errortext);
-            } else if (block.index == index) {
+            } else if (block.index === index) {
               sub.next(block);
-            } else if (block.forwardLinks.length == 0) {
+            } else if (block.forwardLinks.length === 0) {
               sub.error("End of blockchain");
             } else {
               const message = new PaginateRequest({

@@ -433,7 +433,7 @@ export class BlocksDiagram {
 
     if (this.ws !== undefined) {
       const message = new PaginateRequest({
-        backward: backward,
+        backward,
         numpages: nbPages,
         pagesize: pageSize,
         startid: bid,
@@ -445,7 +445,7 @@ export class BlocksDiagram {
       conn
         .sendStream<PaginateResponse>( // fetch next block
           new PaginateRequest({
-            backward: backward,
+            backward,
             numpages: nbPages,
             pagesize: pageSize,
             startid: bid,
