@@ -118,7 +118,7 @@ Use:
 
 Generate the documentation: `npm run doc`
 
-## Screen shots
+## screenshots
 
 ### Screenshot of the content of the block index 4
 
