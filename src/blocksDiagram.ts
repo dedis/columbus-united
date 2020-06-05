@@ -141,7 +141,6 @@ export class BlocksDiagram {
               if (hashNextBlockLeft !== hashNextBlockLeftBeforeUpdate) {
                 hashNextBlockLeftBeforeUpdate = hashNextBlockLeft;
 
-                // TODO solve bug
                 if (!(indexNextBlockLeft < 0)) {
                   // Handle the case when we arrive at block 0: do not load
                   // below 0
@@ -236,9 +235,9 @@ export class BlocksDiagram {
             hashNextBlockRight = Utils.getRightBlockHash(lastBlock);
             this.displayBlocks(skipBlocks, false, this.getBlockColor());
           }
-        }, 4000);
-      },
-    });
+        }
+      }, 4000);
+    }});
   }
 
   /**
@@ -294,7 +293,6 @@ export class BlocksDiagram {
       .attr("id", loaderId)
       .attr("width", initialLoaderWidth)
       .attr("height", this.blockHeight)
-      .attr("y", 25)
       .attr("transform", (d: any) => {
         const translate = [xTranslateBlock, 0];
         return "translate(" + translate + ")";
@@ -304,13 +302,15 @@ export class BlocksDiagram {
     // Loader position
     let xStart, xEnd;
     if (backwards) {
+      
       xStart = xTranslateBlock;
       xEnd = xTranslateBlock - this.blockWidth;
 
-      /*
-     xStart = xTranslateBlock - this.blockWidth
-      xEnd = xTranslateBlock
-*/
+      // TODO
+      
+     //xStart = xTranslateBlock - this.blockWidth
+      //xEnd = xTranslateBlock
+
       console.log("nbblocksloaded " + this.nbBlocksLoadedLeft);
       console.log("xstart " + xStart);
       console.log("xend " + xEnd);
@@ -322,35 +322,22 @@ export class BlocksDiagram {
         .duration(this.loaderAnimationDuration)
         .attr("width", this.blockWidth)
         .attr("x", xEnd);
+        
     } else {
-      /*
-      xStart = xTranslateBlock - this.initialBlockMargin
-      xEnd = xStart
-      */
       repeat();
     }
-    /*
-    d3.select("#" + loaderId)
-      //.attr("x", xStart)
-      .transition()
-      .ease(d3.easeSin)
-      .duration(this.loaderAnimationDuration)
-      .attr("width", this.blockWidth)
-      //.attr("x", xEnd)
-      */
-     let self = this
+
+    let aaa = this.blockWidth
      function repeat() {
       d3.select("#loaderRight")
       .attr("width", 0)
       .transition()
       .ease(d3.easeSin)
       .duration(2000)
-      .attr("width", 300)
-      .on("end", repeat)
+      .attr("width", aaa)
+      .on("end", repeat
     }
   }
-
-  
 
   private destroyLoader(backwards: boolean) {
     d3.select("#" + this.getLoaderId(backwards)).remove();
@@ -416,6 +403,8 @@ export class BlocksDiagram {
       let xTranslateBlock = this.getXTranslateBlock(backwards);
 
       const xTranslateText = xTranslateBlock + this.textMargin;
+
+      const block = listBlocks[i]
 
       // Append the block inside the svg container
       this.appendBlock(xTranslateBlock, blockColor, block);
