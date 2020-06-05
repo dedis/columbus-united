@@ -52,8 +52,11 @@ export class BlocksDiagram {
   subscriberList: Array<Subscriber<SkipBlock>>;
   updateObserver = new Subject<SkipBlock[]>();
 
+  // Error management
   flash: Flash;
+
   constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
+    // Height of the blocks (dynamic according to the size of the window)
     const blocksHeight = this.computeBlocksHeight();
 
     // SVG properties
@@ -274,11 +277,23 @@ export class BlocksDiagram {
     return this.updateObserver;
   }
 
+  /**
+   * Destroy the old loader animation (if it exists) and create a new one.
+   * @param backwards true for a left loader, false for a right loader
+   * @param zoomLevel zoom of the blocks (needed to compute the position of
+   *                  the loader)
+   */
   private loaderAnimation(backwards: boolean, zoomLevel: number) {
     this.destroyLoader(backwards);
     this.createLoader(backwards, zoomLevel);
   }
 
+  /**
+   * Create a loader.
+   * @param backwards true for a left loader, false for a right loader
+   * @param zoomLevel zoom of the blocks (needed to compute the position of
+   *                  the loader)
+   */
   private createLoader(backwards: boolean, zoomLevel: number) {
     let xTranslateBlock = this.getXTranslateBlock(backwards);
     const loaderId = this.getLoaderId(backwards);
@@ -302,12 +317,13 @@ export class BlocksDiagram {
       })
       .attr("fill", this.getBlockColor());
 
+    // Remark: the left loader is too buggy so I remove it for now. The position
+    // is wrong because of the zoom.
+
     // Loader position
     // let xStart: number;
     // let xEnd: number;
     if (backwards) {
-      // The left loader is too buggy so I remove it for now. The position
-      // is wrong because of the zoom.
       /*
       xStart = xTranslateBlock;
       xEnd = xTranslateBlock - this.blockWidth;
@@ -340,6 +356,9 @@ export class BlocksDiagram {
         .on("end", repeatLeft)
     }
     */
+    /**
+     * Loop the right loader animation.
+     */
     function repeatRight() {
       d3.select("#loaderRight")
         .attr("width", 0)
@@ -351,17 +370,25 @@ export class BlocksDiagram {
     }
   }
 
+  /**
+   * Destroy a loader.
+   * @param backwards true for a left loader, false for a right loader
+   */
   private destroyLoader(backwards: boolean) {
     d3.select("#" + this.getLoaderId(backwards)).remove();
   }
 
+  /**
+   * Returns the requested loader ID.
+   * @param backwards true for a left loader, false for a right loader
+   */
   private getLoaderId(backwards: boolean): string {
     return backwards ? "loaderLeft" : "loaderRight";
   }
 
   /**
    * x position where to start to display blocks.
-   * @param backwards
+   * @param backwards true for left blocks, false for right blocks
    */
   private getXTranslateBlock(backwards: boolean): number {
     let xTranslateBlock: number;
@@ -384,8 +411,9 @@ export class BlocksDiagram {
   /**
    * Append the given blocks to the blockchain.
    * @param listBlocks list of blocks to append
-   * @param backwards false for loading blocks to the right, true for loading
-   * blocks to the left
+   * @param backwards  false for loading blocks to the right, true for loading
+   *                   blocks to the left
+   * @param blockColor wanted color of the blocks
    */
   private displayBlocks(
     listBlocks: SkipBlock[],
@@ -476,7 +504,7 @@ export class BlocksDiagram {
   }
 
   /**
-   * Helper for displayBlocks: appends a text element in a block
+   * Helper for displayBlocks: appends a text element in a block.
    * @param xTranslate horizontal position where the text should be displayed
    * @param textIndex index of the text in the block
    * @param text text to display
@@ -601,6 +629,9 @@ export class BlocksDiagram {
     }
   }
 
+  /**
+   * Compute the height of the blocks according to the size of the window.
+   */
   private computeBlocksHeight(): number {
     const windowHeight = window.innerHeight;
     if (windowHeight < 300) {

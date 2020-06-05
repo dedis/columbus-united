@@ -40,6 +40,7 @@ export class Utils {
   }
 
   /**
+   * Browse the blockchain to find a specific block
    * Use:
    * Utils.getBlockFromIndex(
    *    hashFirstBlock,
@@ -50,9 +51,9 @@ export class Utils {
    *      // Do something
    *    },
    *  });
-   * @param hashBlock0
-   * @param index
-   * @param roster
+   * @param hashBlock0 hash of the block of index 0 of the blockchain
+   * @param index index of the wanted block
+   * @param roster roster configuration
    */
   static getBlockFromIndex(
     hashBlock0: string,
@@ -116,10 +117,18 @@ export class Utils {
     });
   }
 
+  /**
+   * Get the hash of the previous (left) block.
+   * @param block block of which we want the hash of the left block
+   */
   static getLeftBlockHash(block: SkipBlock): string {
     return this.bytes2String(block.backlinks[0]);
   }
 
+  /**
+   * Get the hash of the next (right) block.
+   * @param block block of which we want the hash of the right block
+   */
   static getRightBlockHash(block: SkipBlock): string {
     return this.bytes2String(block.forwardLinks[0].to);
   }
