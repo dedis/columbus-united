@@ -312,7 +312,7 @@ export class DetailBlock {
     const divForwardLink = liForwardLink.append("div");
     divForwardLink.attr("class", "uk-accordion-content");
     block.forwardLinks.forEach((fl, j) => {
-      divForwardLink.append("p").text(`From: ${fl.from.toString("hex")}`);
+      divForwardLink.append("p").text(`To: ${fl.to.toString("hex")}`);
       divForwardLink.append("p").text(`Hash: ${fl.hash().toString("hex")}`);
       divForwardLink
         .append("p")

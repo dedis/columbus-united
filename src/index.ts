@@ -1,17 +1,17 @@
+import "uikit";
+import "./style.css";
+
 import { Roster } from "@dedis/cothority/network";
+import { SkipBlock } from "@dedis/cothority/skipchain/skipblock";
 
 import { BlocksDiagram } from "./blocksDiagram";
 import { Browsing } from "./browsing";
 import { DetailBlock } from "./detailBlock";
 import { Flash } from "./flash";
-
 import { getRosterStr } from "./roster";
 import { TotalBlock } from "./totalBlock";
-
-import "uikit";
-import "./style.css";
 import { Utils } from "./utils";
-import { SkipBlock } from "@dedis/cothority/skipchain/skipblock";
+
 /**
  *
  * Main file that creates the different objects and subjects.
@@ -30,7 +30,7 @@ export function sayHi() {
     return;
   }
 
-  const initialBlockIndex = 100; // Change here the first block to display
+  const initialBlockIndex = 1; // Change here the first block to display
   if (initialBlockIndex < 0) {
     flash.display(
       Flash.flashType.ERROR,

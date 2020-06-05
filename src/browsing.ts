@@ -8,9 +8,11 @@ import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network/connection";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { Subject } from "rxjs";
+
 import { Flash } from "./flash";
-import { Utils } from "./utils";
 import { TotalBlock } from "./totalBlock";
+import { Utils } from "./utils";
+
 /**
  * Create browsing which will browse the blockchain from the
  * first block to the last and gets the instructions that
