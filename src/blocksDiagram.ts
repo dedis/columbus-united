@@ -502,7 +502,7 @@ export class BlocksDiagram {
     if (windowHeight < 300) {
       return 150;
     } else {
-      return 0.4 * windowHeight;
+      return 0.3 * windowHeight;
     }
   }
 }
