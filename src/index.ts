@@ -53,9 +53,9 @@ export function sayHi() {
       const blocksDiagram = new BlocksDiagram(roster, flash, block);
       blocksDiagram.loadInitialBlocks();
 
-      const totalBlock = new TotalBlock(roster);
+      const totalBlock = new TotalBlock(roster, block);
 
-      const browse = new Browsing(roster, flash, totalBlock);
+      const browse = new Browsing(roster, flash, totalBlock, block);
 
       const mydetailBlock = new DetailBlock(
         blocksDiagram.getBlockObserver(),

@@ -8,6 +8,7 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import { Observable } from "rxjs";
 
 import { WebSocketConnection } from "@dedis/cothority/network/connection";
+import { Utils } from './utils';
 /**
  * Create an observable to get the total number of blocks of the blockchain.
  * It keeps the last block seen in order to be faster to next time it is
@@ -28,10 +29,9 @@ export class TotalBlock {
    * @param {Roster} roster
    * @memberof TotalBlock
    */
-  constructor(roster: Roster) {
+  constructor(roster: Roster, initialBlock: SkipBlock) {
     this.roster = roster;
-    this.lastBlockSeenID =
-      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
+    this.lastBlockSeenID = Utils.bytes2String(initialBlock.hash);
   }
 
   /**

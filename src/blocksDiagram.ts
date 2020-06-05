@@ -270,6 +270,24 @@ export class BlocksDiagram {
       blockColor = this.blockColor;
     }
 
+    if (backwards) {
+      // left
+      console.log(
+        "Load left blocks " +
+          listBlocks[listBlocks.length - 1].index +
+          " to " +
+          listBlocks[0].index
+      );
+    } else {
+      // right
+      console.log(
+        "Load right blocks " +
+          listBlocks[0].index +
+          " to " +
+          listBlocks[listBlocks.length - 1].index
+      );
+    }
+
     const unitBlockAndPaddingWidth = this.blockWidth + this.blockPadding;
 
     // Iterate over the blocks to append them

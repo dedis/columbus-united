@@ -53,7 +53,7 @@ export class Browsing {
    * @param {TotalBlock} totalBlock
    * @memberof Browsing
    */
-  constructor(roster: Roster, flash: Flash, totalBlock: TotalBlock) {
+  constructor(roster: Roster, flash: Flash, totalBlock: TotalBlock, initialBlock: SkipBlock) {
     this.roster = roster;
 
     this.pageSize = 15;
@@ -66,8 +66,7 @@ export class Browsing {
     this.nextIDB = "";
     this.contractID = "";
     this.instanceSearch = null;
-    this.firstBlockIDStart =
-      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
+    this.firstBlockIDStart = Utils.bytes2String(initialBlock.hash);
 
     this.flash = flash;
     this.abort = false;
