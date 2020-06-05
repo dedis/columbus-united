@@ -29,8 +29,8 @@ export function sayHi() {
     flash.display(Flash.flashType.ERROR, "Roster is undefined");
     return;
   }
-  // TODO put back to 0
-  const initialBlockIndex = 30; // Change here the first block to display
+  
+  const initialBlockIndex = 0; // Change here the first block to display
   if (initialBlockIndex < 0) {
     flash.display(
       Flash.flashType.ERROR,

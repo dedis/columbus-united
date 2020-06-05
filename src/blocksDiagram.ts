@@ -29,7 +29,6 @@ export class BlocksDiagram {
   textMargin: number;
   unitBlockAndPaddingWidth: number;
   loaderAnimationDuration: number; // duration of the loader in ms
-  timeoutDisplayBlocksDuration: number;
 
   // Colors
   randomBlocksColor: boolean;
@@ -70,7 +69,6 @@ export class BlocksDiagram {
     this.textMargin = 5;
     this.unitBlockAndPaddingWidth = this.blockWidth + this.blockPadding;
     this.loaderAnimationDuration = 1000;
-    this.timeoutDisplayBlocksDuration = 2000;
 
     // Colors
     this.randomBlocksColor = false;
@@ -152,7 +150,7 @@ export class BlocksDiagram {
                     nbBlocksToLoad = indexLastBlockLeft;
                   }
 
-                  this.loaderAnimation(true);
+                  this.loaderAnimation(true, zoomLevel);
                   
                   if (nbBlocksToLoad > 0) {
                     self.getNextBlocks(
@@ -162,6 +160,10 @@ export class BlocksDiagram {
                       self.subjectBrowse,
                       true
                     );
+                  }
+                  if(nbBlocksToLoad === 0) {
+                    // We arrived at the end of the left side
+                    this.destroyLoader(true);
                   }
                 }
               }
@@ -179,7 +181,7 @@ export class BlocksDiagram {
               if (hashNextBlockRight !== hashNextBlockRightBeforeUpdate) {
                 hashNextBlockRightBeforeUpdate = hashNextBlockRight;
 
-                this.loaderAnimation(false);
+                this.loaderAnimation(false, zoomLevel);
 
                 self.getNextBlocks(
                   hashNextBlockRight,
@@ -211,7 +213,6 @@ export class BlocksDiagram {
         }
       },
       next: ([i, skipBlocks]) => {
-        setTimeout(() => { // TODO remove
         // i is the page number
         // tslint:disable-next-line
         if (i == this.nbPages - 1) {
@@ -236,7 +237,6 @@ export class BlocksDiagram {
             this.displayBlocks(skipBlocks, false, this.getBlockColor());
           }
         }
-      }, 4000);
     }});
   }
 
@@ -273,25 +273,24 @@ export class BlocksDiagram {
     return this.updateObserver;
   }
 
-  private loaderAnimation(backwards: boolean) {
+  private loaderAnimation(backwards: boolean, zoomLevel: number) {
     this.destroyLoader(backwards);
-    this.createLoader(backwards);
+    this.createLoader(backwards, zoomLevel);
   }
 
-  private createLoader(backwards: boolean) {
+  private createLoader(backwards: boolean, zoomLevel: number) {
     let xTranslateBlock = this.getXTranslateBlock(backwards);
     const loaderId = this.getLoaderId(backwards);
 
     if (backwards) {
       xTranslateBlock =
-        -1 * this.unitBlockAndPaddingWidth * this.nbBlocksLoadedLeft;
+        -1 * this.unitBlockAndPaddingWidth * zoomLevel * this.nbBlocksLoadedLeft;
     }
 
-    let initialLoaderWidth = 0;
     this.svgBlocks
       .append("rect")
       .attr("id", loaderId)
-      .attr("width", initialLoaderWidth)
+      .attr("width", 0)
       .attr("height", this.blockHeight)
       .attr("transform", (d: any) => {
         const translate = [xTranslateBlock, 0];
@@ -300,20 +299,16 @@ export class BlocksDiagram {
       .attr("fill", this.getBlockColor());
 
     // Loader position
-    let xStart, xEnd;
+    let xStart: number;
+    let xEnd: number;
     if (backwards) {
-      
+      // The left loader is too buggy so I remove it for now. The position
+      // is wrong because of the zoom.
+      /*
       xStart = xTranslateBlock;
       xEnd = xTranslateBlock - this.blockWidth;
 
-      // TODO
-      
-     //xStart = xTranslateBlock - this.blockWidth
-      //xEnd = xTranslateBlock
-
-      console.log("nbblocksloaded " + this.nbBlocksLoadedLeft);
-      console.log("xstart " + xStart);
-      console.log("xend " + xEnd);
+      //repeatLeft();
 
       d3.select("#" + loaderId)
         .attr("x", xStart)
@@ -322,20 +317,33 @@ export class BlocksDiagram {
         .duration(this.loaderAnimationDuration)
         .attr("width", this.blockWidth)
         .attr("x", xEnd);
-        
+      */
     } else {
-      repeat();
+      repeatRight();
     }
 
-    let blockWidth = this.blockWidth;
-    function repeat() {
+    const blockWidth = this.blockWidth;
+    const loaderAnimationDuration = this.loaderAnimationDuration
+    /*
+    function repeatLeft() {
+      d3.select("#loaderLeft")
+        .attr("x", xStart)
+        .transition()
+        .ease(d3.easeSin)
+        .duration(loaderAnimationDuration)
+        .attr("width", blockWidth)
+        .attr("x", xEnd)
+        .on("end", repeatLeft)
+    }
+    */
+    function repeatRight() {
       d3.select("#loaderRight")
       .attr("width", 0)
       .transition()
       .ease(d3.easeSin)
-      .duration(2000)
+      .duration(loaderAnimationDuration)
       .attr("width", blockWidth)
-      .on("end", repeat)
+      .on("end", repeatRight)
     }
   }
 
@@ -380,24 +388,6 @@ export class BlocksDiagram {
     backwards: boolean,
     blockColor: string
   ) {
-    if (backwards) {
-      // left
-      console.log(
-        "Load left blocks " +
-          listBlocks[listBlocks.length - 1].index +
-          " to " +
-          listBlocks[0].index
-      );
-    } else {
-      // right
-      console.log(
-        "Load right blocks " +
-          listBlocks[0].index +
-          " to " +
-          listBlocks[listBlocks.length - 1].index
-      );
-    }
-
     // Iterate over the blocks to append them
     for (let i = 0; i < listBlocks.length; ++i) {
       let xTranslateBlock = this.getXTranslateBlock(backwards);
@@ -604,12 +594,6 @@ export class BlocksDiagram {
     } else {
       return this.blockColor;
     }
-  }
-
-  private setTimeoutDisplayBlocks(skipBlocks: SkipBlock[], backwards: boolean) {
-    setTimeout(() => {
-      this.displayBlocks(skipBlocks, backwards, this.getBlockColor());
-    }, this.timeoutDisplayBlocksDuration);
   }
   
   private computeBlocksHeight(): number {
