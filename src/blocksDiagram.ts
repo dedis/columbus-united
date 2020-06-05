@@ -139,13 +139,13 @@ export class BlocksDiagram {
                   // below 0
                   let nbBlocksToLoad = self.pageSize;
                   const indexLastBlockLeft = indexNextBlockLeft + 1;
-                  if(initialBlockIndex < self.pageSize) {
-                    nbBlocksToLoad = initialBlockIndex
+                  if (initialBlockIndex < self.pageSize) {
+                    nbBlocksToLoad = initialBlockIndex;
                   } else if (indexLastBlockLeft - this.nbBlocksUpdate < 0) {
                     nbBlocksToLoad = indexLastBlockLeft;
                   }
 
-                  if(nbBlocksToLoad > 0) {
+                  if (nbBlocksToLoad > 0) {
                     self.getNextBlocks(
                       hashNextBlockLeft,
                       nbBlocksToLoad,
@@ -273,24 +273,6 @@ export class BlocksDiagram {
       blockColor = Utils.getRandomColor();
     } else {
       blockColor = this.blockColor;
-    }
-
-    if (backwards) {
-      // left
-      console.log(
-        "Load left blocks " +
-          listBlocks[listBlocks.length - 1].index +
-          " to " +
-          listBlocks[0].index
-      );
-    } else {
-      // right
-      console.log(
-        "Load right blocks " +
-          listBlocks[0].index +
-          " to " +
-          listBlocks[listBlocks.length - 1].index
-      );
     }
 
     const unitBlockAndPaddingWidth = this.blockWidth + this.blockPadding;

@@ -53,7 +53,12 @@ export class Browsing {
    * @param {TotalBlock} totalBlock
    * @memberof Browsing
    */
-  constructor(roster: Roster, flash: Flash, totalBlock: TotalBlock, initialBlock: SkipBlock) {
+  constructor(
+    roster: Roster,
+    flash: Flash,
+    totalBlock: TotalBlock,
+    initialBlock: SkipBlock
+  ) {
     this.roster = roster;
 
     this.pageSize = 15;

@@ -8,7 +8,7 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import { Observable } from "rxjs";
 
 import { WebSocketConnection } from "@dedis/cothority/network/connection";
-import { Utils } from './utils';
+import { Utils } from "./utils";
 /**
  * Create an observable to get the total number of blocks of the blockchain.
  * It keeps the last block seen in order to be faster to next time it is
