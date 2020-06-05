@@ -1,5 +1,6 @@
 .vscode/
 node_modules/
 dist/
-
+docs/
+doc/
 src/roster.ts

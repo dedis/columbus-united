@@ -8,23 +8,53 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import { Observable } from "rxjs";
 
 import { WebSocketConnection } from "@dedis/cothority/network/connection";
-
+import { Utils } from "./utils";
+/**
+ * Create an observable to get the total number of blocks of the blockchain.
+ * It keeps the last block seen in order to be faster to next time it is
+ * called.
+ * @author Julien von Felten <julien.vonfelten@epfl.ch>
+ * @export
+ * @class TotalBlock
+ */
 export class TotalBlock {
   roster: Roster;
   lastBlockSeenID: string;
-  constructor(roster: Roster) {
+
+  /**
+   * Creates an instance of TotalBlock using the roster,
+   * setting the lastBlockSeen as the first block of the
+   * blockchain
+   *
+   * @param {Roster} roster
+   * @memberof TotalBlock
+   */
+  constructor(roster: Roster, initialBlock: SkipBlock) {
     this.roster = roster;
-    this.lastBlockSeenID =
-      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
+    this.lastBlockSeenID = Utils.bytes2String(initialBlock.hash);
   }
 
+  /**
+   * Return the observable with the last block of the blockchain
+   *
+   * @returns {Observable<SkipBlock>}
+   * @memberof TotalBlock
+   */
   getTotalBlock(): Observable<SkipBlock> {
     return this.getLatestBlock(this.lastBlockSeenID, this.roster);
   }
 
-  // getLatestBlock follows the highest possible forward links from the given
-  // block ID (hex hash) until the last known block of the chain and notifies the
-  // observer with the latest block.
+  /**
+   * Follows the highest possible forward links from the given
+   * block ID (hex hash) until the last known block of the chain
+   * and notifies the observer with the latest block.
+   *
+   * @private
+   * @param {string} startID
+   * @param {Roster} roster
+   * @returns {Observable<SkipBlock>}
+   * @memberof TotalBlock
+   */
   private getLatestBlock(
     startID: string,
     roster: Roster
@@ -45,8 +75,8 @@ export class TotalBlock {
         .sendStream<PaginateResponse>( // fetch next block
           new PaginateRequest({
             startid: nextID,
-            // tslint:disable-next-line
-            pagesize: 1,
+
+            pagesize: 1, // tslint:disable-next-line
             numpages: 1,
             backward: false,
           }),
@@ -73,8 +103,8 @@ export class TotalBlock {
               nextID = block.forwardLinks[block.forwardLinks.length - 1].to;
               const message = new PaginateRequest({
                 startid: nextID,
-                // tslint:disable-next-line
-                pagesize: 1,
+
+                pagesize: 1, // tslint:disable-next-line
                 numpages: 1,
                 backward: false,
               });

@@ -45,10 +45,7 @@ export class BlocksDiagram {
   nbBlocksUpdate: number; // number of blocks fetched in each update
 
   // Blocks navigation properties
-  hashFirstBlock: string;
-  initialBlockIndex: number;
-  initialBlockFound: boolean;
-  initialBlockHash: string;
+  initialBlock: SkipBlock;
   nbBlocksLoadedLeft: number;
   nbBlocksLoadedRight: number;
 
@@ -57,16 +54,18 @@ export class BlocksDiagram {
   updateObserver = new Subject<SkipBlock[]>();
 
   flash: Flash;
-  constructor(roster: Roster, flash: Flash) {
+  constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
+    const blocksHeight = this.computeBlocksHeight();
+
     // SVG properties
     this.svgWidth = window.innerWidth;
-    this.svgHeight = 400;
+    this.svgHeight = blocksHeight;
     const self = this;
 
     // Blocks UI properties
     this.blockPadding = 10;
-    this.blockWidth = 300;
-    this.blockHeight = 300;
+    this.blockWidth = blocksHeight;
+    this.blockHeight = blocksHeight;
     this.initialBlockMargin = this.blockPadding;
     this.textMargin = 5;
     this.unitBlockAndPaddingWidth = this.blockWidth + this.blockPadding;
@@ -89,53 +88,20 @@ export class BlocksDiagram {
     this.subscriberList = [];
     this.flash = flash;
 
-    this.initialBlockIndex = 100; // change the first block here
-    this.initialBlockFound = false;
-    this.hashFirstBlock =
-      "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
-    if (this.initialBlockIndex === 0) {
-      this.initialBlockHash = this.hashFirstBlock;
-      this.initialBlockFound = true;
-    } else if (this.initialBlockIndex > 0) {
-      // TODO wait until the block has been found
-      /*
-      Utils.getBlockFromIndex(
-        this.hashFirstBlock,
-        this.initialBlockIndex,
-        this.roster
-      ).subscribe({
-        next: (block: SkipBlock) => {
-          this.initialBlockHash = Utils.bytes2String(block.hash);
-          this.initialBlockFound = true;
-          console.log("hash block found: " + this.initialBlockHash)
-        },
-      });
-      */
-      // Artificially put initial block as block 100 for testing purpose
-
-      const hash100 =
-        "b2592d85855d2a54c0dd9a1752629105ad0848bc8b69d15bc85f5cf0164a7eca";
-      const hash101 =
-        "68760c327d6d8222e85b14af4f4c436b10d91ca4f388e862f4368648bf767139";
-      this.initialBlockHash = hash100;
-      this.initialBlockFound = true;
-    } else {
-      flash.display(
-        Flash.flashType.ERROR,
-        "index of initial block cannot be negative"
-      );
-    }
-
     // Blocks navigation properties
+    this.initialBlock = initialBlock;
     this.nbBlocksLoadedLeft = 0;
     this.nbBlocksLoadedRight = 0;
 
-    let indexNextBlockLeft = this.initialBlockIndex;
-    let hashNextBlockLeft = this.initialBlockHash;
+    const initialBlockIndex = this.initialBlock.index;
+    const initialBlockHash = Utils.bytes2String(this.initialBlock.hash);
+
+    let indexNextBlockLeft = initialBlockIndex;
+    let hashNextBlockLeft = initialBlockHash;
     let hashNextBlockLeftBeforeUpdate = "";
 
-    let indexNextBlockRight = this.initialBlockIndex;
-    let hashNextBlockRight = this.initialBlockHash;
+    let indexNextBlockRight = initialBlockIndex;
+    let hashNextBlockRight = initialBlockHash;
     let hashNextBlockRightBeforeUpdate = "";
 
     // SVG containing the blockchain
@@ -147,23 +113,25 @@ export class BlocksDiagram {
         d3
           .zoom()
           .on("zoom", () => {
-            self.svgBlocks.attr("transform", d3.event.transform);
+            const transform = d3.event.transform;
+            self.svgBlocks.attr("transform", transform);
+
             // Horizontal position of the leftmost block
-            const x = -d3.event.transform.x;
-            const zoomLevel = d3.event.transform.k;
+            const x = -transform.x;
+            const zoomLevel = transform.k;
 
             const sizeBlockOnScreen =
               (self.blockWidth + self.blockPadding) * zoomLevel;
 
             const nbBlocksOnScreen = this.svgWidth / sizeBlockOnScreen;
-            // TODO pb unzoom blocks
-            let nbLoadsNeeded = Math.ceil(
+
+            const nbLoadsNeeded = Math.ceil(
               nbBlocksOnScreen / this.nbBlocksUpdate
             );
 
             // Load blocks to the left
             const indexLeftBlockOnScreen =
-              self.initialBlockIndex + x / sizeBlockOnScreen;
+              initialBlockIndex + x / sizeBlockOnScreen;
 
             // Check if an update is needed
             if (
@@ -173,38 +141,43 @@ export class BlocksDiagram {
               if (hashNextBlockLeft !== hashNextBlockLeftBeforeUpdate) {
                 hashNextBlockLeftBeforeUpdate = hashNextBlockLeft;
 
+                // TODO solve bug
                 if (!(indexNextBlockLeft < 0)) {
                   // Handle the case when we arrive at block 0: do not load
                   // below 0
                   let nbBlocksToLoad = self.pageSize;
                   const indexLastBlockLeft = indexNextBlockLeft + 1;
-                  if (indexLastBlockLeft - this.nbBlocksUpdate < 0) {
+                  if (initialBlockIndex < self.pageSize) {
+                    nbBlocksToLoad = initialBlockIndex;
+                  } else if (indexLastBlockLeft - this.nbBlocksUpdate < 0) {
                     nbBlocksToLoad = indexLastBlockLeft;
                   }
 
                   this.loaderAnimation(true);
-
-                  self.getNextBlocks(
-                    hashNextBlockLeft,
-                    nbBlocksToLoad,
-                    self.nbPages,
-                    self.subjectBrowse,
-                    true
-                  );
+                  
+                  if (nbBlocksToLoad > 0) {
+                    self.getNextBlocks(
+                      hashNextBlockLeft,
+                      nbBlocksToLoad,
+                      self.nbPages,
+                      self.subjectBrowse,
+                      true
+                    );
+                  }
                 }
               }
             }
 
             // Load blocks to the right
             const indexRightBlockOnScreen =
-              self.initialBlockIndex + (x + self.svgWidth) / sizeBlockOnScreen;
+              initialBlockIndex + (x + self.svgWidth) / sizeBlockOnScreen;
 
             // Check if an update is needed
             if (
               indexRightBlockOnScreen >
               indexNextBlockRight - nbBlocksOnScreen
             ) {
-              if (!(hashNextBlockRight === hashNextBlockRightBeforeUpdate)) {
+              if (hashNextBlockRight !== hashNextBlockRightBeforeUpdate) {
                 hashNextBlockRightBeforeUpdate = hashNextBlockRight;
 
                 this.loaderAnimation(false);
@@ -239,38 +212,29 @@ export class BlocksDiagram {
         }
       },
       next: ([i, skipBlocks]) => {
-        setTimeout(() => {
-          // i is the page number
-          // tslint:disable-next-line
-          if (i == this.nbPages - 1) {
-            // If this is the first series of blocks, set the hash of the left first block
-            const firstBlock = skipBlocks[0];
-            if (firstBlock.index === this.initialBlockIndex) {
-              hashNextBlockLeft = Utils.getLeftBlockHash(firstBlock);
-            }
+        setTimeout(() => { // TODO remove
+        // i is the page number
+        // tslint:disable-next-line
+        if (i == this.nbPages - 1) {
+          // If this is the first series of blocks, set the hash of the left first block
+          const firstBlock = skipBlocks[0];
+          if (firstBlock.index === initialBlockIndex) {
+            hashNextBlockLeft = Utils.getLeftBlockHash(firstBlock);
+          }
 
             const lastBlock = skipBlocks[skipBlocks.length - 1];
             const indexLastBlock = lastBlock.index;
 
-            if (indexLastBlock < this.initialBlockIndex) {
-              // Load blocks to the left
-              indexNextBlockLeft = indexLastBlock - 1;
-              hashNextBlockLeft = Utils.getLeftBlockHash(lastBlock);
-
-              
-
-              this.displayBlocks(skipBlocks, true, this.getBlockColor());
-              //this.setTimeoutDisplayBlocks(skipBlocks, true);
-            } else {
-              // Load blocks to the right
-              indexNextBlockRight = indexLastBlock + 1;
-              hashNextBlockRight = Utils.getRightBlockHash(lastBlock);
-
-              
-
-              this.displayBlocks(skipBlocks, false, this.getBlockColor());
-              //this.setTimeoutDisplayBlocks(skipBlocks, false);
-            }
+          if (indexLastBlock < initialBlockIndex) {
+            // Load blocks to the left
+            indexNextBlockLeft = indexLastBlock - 1;
+            hashNextBlockLeft = Utils.getLeftBlockHash(lastBlock);
+            this.displayBlocks(skipBlocks, true, this.getBlockColor());
+          } else {
+            // Load blocks to the right
+            indexNextBlockRight = indexLastBlock + 1;
+            hashNextBlockRight = Utils.getRightBlockHash(lastBlock);
+            this.displayBlocks(skipBlocks, false, this.getBlockColor());
           }
         }, 4000);
       },
@@ -281,18 +245,8 @@ export class BlocksDiagram {
    * Load the initial blocks.
    */
   loadInitialBlocks() {
-    if (!this.initialBlockFound) {
-      this.flash.display(
-        Flash.flashType.ERROR,
-        "unable to find initial block " + this.initialBlockIndex
-      );
-      this.initialBlockIndex = 0;
-      this.initialBlockHash = this.hashFirstBlock;
-    }
-
-    // Fetch initial blocks
     this.getNextBlocks(
-      this.initialBlockHash,
+      Utils.bytes2String(this.initialBlock.hash),
       this.pageSize,
       this.nbPages,
       this.subjectBrowse,
@@ -463,8 +417,6 @@ export class BlocksDiagram {
 
       const xTranslateText = xTranslateBlock + this.textMargin;
 
-      const block = listBlocks[i];
-
       // Append the block inside the svg container
       this.appendBlock(xTranslateBlock, blockColor, block);
 
@@ -484,7 +436,7 @@ export class BlocksDiagram {
       this.appendTextInBlock(
         xTranslateText,
         textIndex,
-        "hash: " + hash.slice(0, 22) + "...",
+        "hash: " + hash.slice(0, 8) + "...",
         this.textColor
       );
 
@@ -527,7 +479,6 @@ export class BlocksDiagram {
       .attr("id", block.hash.toString("hex"))
       .attr("width", this.blockWidth)
       .attr("height", this.blockHeight)
-      .attr("y", 25)
       .attr("transform", (d: any) => {
         const translate = [xTranslate, 0];
         return "translate(" + translate + ")";
@@ -556,7 +507,7 @@ export class BlocksDiagram {
     this.svgBlocks
       .append("text")
       .attr("x", xTranslate)
-      .attr("y", 25 + (textIndex.index + 1) * 30)
+      .attr("y", (textIndex.index + 1) * 30)
       .text(text)
       .attr("font-family", "sans-serif")
       .attr("font-size", "18px")
@@ -608,7 +559,7 @@ export class BlocksDiagram {
 
     if (this.ws !== undefined) {
       const message = new PaginateRequest({
-        backward: backward,
+        backward,
         numpages: nbPages,
         pagesize: pageSize,
         startid: bid,
@@ -620,7 +571,7 @@ export class BlocksDiagram {
       conn
         .sendStream<PaginateResponse>( // fetch next block
           new PaginateRequest({
-            backward: backward,
+            backward,
             numpages: nbPages,
             pagesize: pageSize,
             startid: bid,
@@ -670,5 +621,14 @@ export class BlocksDiagram {
     setTimeout(() => {
       this.displayBlocks(skipBlocks, backwards, this.getBlockColor());
     }, this.timeoutDisplayBlocksDuration);
+  }
+  
+  private computeBlocksHeight(): number {
+    const windowHeight = window.innerHeight;
+    if (windowHeight < 300) {
+      return 150;
+    } else {
+      return 0.3 * windowHeight;
+    }
   }
 }
