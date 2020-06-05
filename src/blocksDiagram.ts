@@ -133,22 +133,27 @@ export class BlocksDiagram {
               if (hashNextBlockLeft !== hashNextBlockLeftBeforeUpdate) {
                 hashNextBlockLeftBeforeUpdate = hashNextBlockLeft;
 
+                // TODO solve bug
                 if (!(indexNextBlockLeft < 0)) {
                   // Handle the case when we arrive at block 0: do not load
                   // below 0
                   let nbBlocksToLoad = self.pageSize;
                   const indexLastBlockLeft = indexNextBlockLeft + 1;
-                  if (indexLastBlockLeft - this.nbBlocksUpdate < 0) {
+                  if (initialBlockIndex < self.pageSize) {
+                    nbBlocksToLoad = initialBlockIndex;
+                  } else if (indexLastBlockLeft - this.nbBlocksUpdate < 0) {
                     nbBlocksToLoad = indexLastBlockLeft;
                   }
 
-                  self.getNextBlocks(
-                    hashNextBlockLeft,
-                    nbBlocksToLoad,
-                    self.nbPages,
-                    self.subjectBrowse,
-                    true
-                  );
+                  if (nbBlocksToLoad > 0) {
+                    self.getNextBlocks(
+                      hashNextBlockLeft,
+                      nbBlocksToLoad,
+                      self.nbPages,
+                      self.subjectBrowse,
+                      true
+                    );
+                  }
                 }
               }
             }
@@ -162,7 +167,7 @@ export class BlocksDiagram {
               indexRightBlockOnScreen >
               indexNextBlockRight - nbBlocksOnScreen
             ) {
-              if (!(hashNextBlockRight === hashNextBlockRightBeforeUpdate)) {
+              if (hashNextBlockRight !== hashNextBlockRightBeforeUpdate) {
                 hashNextBlockRightBeforeUpdate = hashNextBlockRight;
                 self.getNextBlocks(
                   hashNextBlockRight,
@@ -484,7 +489,7 @@ export class BlocksDiagram {
     if (windowHeight < 300) {
       return 150;
     } else {
-      return 0.4 * windowHeight;
+      return 0.3 * windowHeight;
     }
   }
 }
