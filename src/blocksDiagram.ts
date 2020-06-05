@@ -151,7 +151,7 @@ export class BlocksDiagram {
                   }
 
                   this.loaderAnimation(true, zoomLevel);
-                  
+
                   if (nbBlocksToLoad > 0) {
                     self.getNextBlocks(
                       hashNextBlockLeft,
@@ -161,7 +161,7 @@ export class BlocksDiagram {
                       true
                     );
                   }
-                  if(nbBlocksToLoad === 0) {
+                  if (nbBlocksToLoad === 0) {
                     // We arrived at the end of the left side
                     this.destroyLoader(true);
                   }
@@ -222,8 +222,8 @@ export class BlocksDiagram {
             hashNextBlockLeft = Utils.getLeftBlockHash(firstBlock);
           }
 
-            const lastBlock = skipBlocks[skipBlocks.length - 1];
-            const indexLastBlock = lastBlock.index;
+          const lastBlock = skipBlocks[skipBlocks.length - 1];
+          const indexLastBlock = lastBlock.index;
 
           if (indexLastBlock < initialBlockIndex) {
             // Load blocks to the left
@@ -237,7 +237,8 @@ export class BlocksDiagram {
             this.displayBlocks(skipBlocks, false, this.getBlockColor());
           }
         }
-    }});
+      },
+    });
   }
 
   /**
@@ -284,7 +285,10 @@ export class BlocksDiagram {
 
     if (backwards) {
       xTranslateBlock =
-        -1 * this.unitBlockAndPaddingWidth * zoomLevel * this.nbBlocksLoadedLeft;
+        -1 *
+        this.unitBlockAndPaddingWidth *
+        zoomLevel *
+        this.nbBlocksLoadedLeft;
     }
 
     this.svgBlocks
@@ -299,8 +303,8 @@ export class BlocksDiagram {
       .attr("fill", this.getBlockColor());
 
     // Loader position
-    let xStart: number;
-    let xEnd: number;
+    // let xStart: number;
+    // let xEnd: number;
     if (backwards) {
       // The left loader is too buggy so I remove it for now. The position
       // is wrong because of the zoom.
@@ -323,7 +327,7 @@ export class BlocksDiagram {
     }
 
     const blockWidth = this.blockWidth;
-    const loaderAnimationDuration = this.loaderAnimationDuration
+    const loaderAnimationDuration = this.loaderAnimationDuration;
     /*
     function repeatLeft() {
       d3.select("#loaderLeft")
@@ -338,12 +342,12 @@ export class BlocksDiagram {
     */
     function repeatRight() {
       d3.select("#loaderRight")
-      .attr("width", 0)
-      .transition()
-      .ease(d3.easeSin)
-      .duration(loaderAnimationDuration)
-      .attr("width", blockWidth)
-      .on("end", repeatRight)
+        .attr("width", 0)
+        .transition()
+        .ease(d3.easeSin)
+        .duration(loaderAnimationDuration)
+        .attr("width", blockWidth)
+        .on("end", repeatRight);
     }
   }
 
@@ -389,12 +393,13 @@ export class BlocksDiagram {
     blockColor: string
   ) {
     // Iterate over the blocks to append them
+    // tslint:disable-next-line
     for (let i = 0; i < listBlocks.length; ++i) {
-      let xTranslateBlock = this.getXTranslateBlock(backwards);
+      const block = listBlocks[i];
+
+      const xTranslateBlock = this.getXTranslateBlock(backwards);
 
       const xTranslateText = xTranslateBlock + this.textMargin;
-
-      const block = listBlocks[i]
 
       // Append the block inside the svg container
       this.appendBlock(xTranslateBlock, blockColor, block);
@@ -595,7 +600,7 @@ export class BlocksDiagram {
       return this.blockColor;
     }
   }
-  
+
   private computeBlocksHeight(): number {
     const windowHeight = window.innerHeight;
     if (windowHeight < 300) {

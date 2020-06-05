@@ -29,7 +29,7 @@ export function sayHi() {
     flash.display(Flash.flashType.ERROR, "Roster is undefined");
     return;
   }
-  
+
   const initialBlockIndex = 0; // Change here the first block to display
   if (initialBlockIndex < 0) {
     flash.display(
