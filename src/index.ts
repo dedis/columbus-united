@@ -30,7 +30,7 @@ export function sayHi() {
     return;
   }
 
-  const initialBlockIndex = 1; // Change here the first block to display
+  const initialBlockIndex = 0; // Change here the first block to display
   if (initialBlockIndex < 0) {
     flash.display(
       Flash.flashType.ERROR,
