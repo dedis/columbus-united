@@ -327,15 +327,15 @@ export class BlocksDiagram {
       repeat();
     }
 
-    let aaa = this.blockWidth
-     function repeat() {
+    let blockWidth = this.blockWidth;
+    function repeat() {
       d3.select("#loaderRight")
       .attr("width", 0)
       .transition()
       .ease(d3.easeSin)
       .duration(2000)
-      .attr("width", aaa)
-      .on("end", repeat
+      .attr("width", blockWidth)
+      .on("end", repeat)
     }
   }
 
