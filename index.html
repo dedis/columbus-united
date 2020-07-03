@@ -7,13 +7,10 @@
   </head>
 
   <body>
-    <div class="uk-inline">
-      <button
-        class="uk-button uk-button-default uk-button-large uk-width-1-1"
-        type="button"
-        style="font-size: 50px; border: none;"
-      >
-        Columbus
+    <div class="header">
+      <h1>Columbus</h1>
+      <button class="uk-button uk-button-default" type="button">
+        About
       </button>
       <div uk-dropdown class="description">
         The project Columbus is a project aiming to facilitate the visualization
@@ -26,9 +23,20 @@
         evolution of this instance throughout the blockchain. The evolution will
         be displayed on the bottom right.
       </div>
+      <!--<div id="status-info">
+
+        <div class="info">
+          <div class="loader-wrapper">
+            <svg class="spinner" viewBox="0 0 50 50">
+              <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+            </svg>
+          </div>
+          <div class="info-message">This is a message</div>
+        </div>
+      </div>-->
     </div>
     <div class="blocks-container">
-      <svg class="blocks"></svg>
+      <svg id="svg-container"></svg>
     </div>
     <div class="block-infos">
       <div class="block-detail-container"></div>

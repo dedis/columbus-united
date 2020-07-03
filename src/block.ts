@@ -1,11 +1,11 @@
 import { Instruction } from "@dedis/cothority/byzcoin";
-import { DataBody } from "@dedis/cothority/byzcoin/proto";
+import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable } from "rxjs";
 import { throttleTime } from "rxjs/operators";
 
-import { Browsing } from "./browsing";
+import { Lifecycle } from "./lifecycle";
 import { Flash } from "./flash";
 
 /**
@@ -19,9 +19,9 @@ import { Flash } from "./flash";
  * @author Julien von Felten <julien.vonfelten@epfl.ch>
  *
  * @export
- * @class DetailBlock
+ * @class Block
  */
-export class DetailBlock {
+export class Block {
   // Observable for the clicked block
   skipBclickedObs: Observable<SkipBlock>;
   clickedBlock: SkipBlock;
@@ -32,7 +32,7 @@ export class DetailBlock {
   loadedSkipBObs: Observable<SkipBlock[]>;
 
   flash: Flash;
-  browsing: Browsing;
+  lifecycle: Lifecycle;
   hashHighligh: SkipBlock[];
 
   // progress bar
@@ -44,16 +44,20 @@ export class DetailBlock {
 
   /**
    * Creates an instance of DetailBlock.
-   * @param {Observable<SkipBlock>} skipBclickedObs : Observable for the clicked block
+   * @param {Observable<SkipBlock>} skipBclickedObs : Observable for the clicked
+   * block. We need this observable to know when a user has clicked on a block,
+   * and then display the details of that block.
    * @param {Browsing} browsing
    * @param {Flash} flash
-   * @param {Observable<SkipBlock[]>} loadedSkipBObs : Observable that notifies
-   *                              the updated blocks of blocksDiagram
+   * @param {Observable<SkipBlock[]>} loadedSkipBObs : Observable that is
+   * notified when new blocks are loaded. This is necessary when we highlights
+   * the blocks of an instance lifecycle, because if new blocks are added, some
+   * may need to be highlighted.
    * @memberof DetailBlock
    */
   constructor(
     skipBclickedObs: Observable<SkipBlock>,
-    browsing: Browsing,
+    lifecycle: Lifecycle,
     flash: Flash,
     loadedSkipBObs: Observable<SkipBlock[]>
   ) {
@@ -68,14 +72,9 @@ export class DetailBlock {
     this.colorClickedBlock = "#0040D4"; // must be set differently when we will choose the colors
 
     this.loadedSkipBObs = loadedSkipBObs;
-    this.loadedSkipBObs.subscribe({
-      next: (value) => {
-        self.highlightBlocks(this.hashHighligh);
-      },
-    });
 
     this.flash = flash;
-    this.browsing = browsing;
+    this.lifecycle = lifecycle;
     this.hashHighligh = [];
 
     this.progressBarContainer = undefined;
@@ -83,6 +82,20 @@ export class DetailBlock {
     this.textBar = undefined;
     this.loadContainer = undefined;
     this.progressBarItem = undefined;
+  }
+
+  /**
+   * This function should be called once. It listens on new block clicks and
+   * update the view accordingly, ie. by displaying the block info.
+   */
+  public startListen() {
+    const self = this;
+
+    this.loadedSkipBObs.subscribe({
+      next: (value) => {
+        self.highlightBlocks(this.hashHighligh);
+      },
+    });
   }
 
   /**
@@ -227,7 +240,9 @@ export class DetailBlock {
             );
             if (conf) {
               self.createLoadingScreen();
-              const subjects = self.browsing.getInstructionSubject(instruction);
+              const subjects = self.lifecycle.getInstructionSubject(
+                instruction
+              );
               subjects[0].subscribe({
                 next: self.printDataBrowsing.bind(self),
               });
@@ -504,7 +519,7 @@ export class DetailBlock {
       .on("click", function () {
         const conf = confirm("Are you sure you want to abort the browse?");
         if (conf) {
-          self.browsing.abort = true;
+          self.lifecycle.abort = true;
         }
       });
     this.progressBarItem = document.getElementById("progress-bar");

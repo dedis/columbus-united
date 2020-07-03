@@ -25,9 +25,9 @@ import { Utils } from "./utils";
  *
  * @author Julien von Felten <julien.vonfelten@epfl.ch>
  * @export
- * @class Browsing
+ * @class Lifecycle
  */
-export class Browsing {
+export class Lifecycle {
   roster: Roster;
   ws: WebSocketAdapter;
 

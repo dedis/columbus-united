@@ -1,4 +1,5 @@
 @import "~uikit/dist/css/uikit.min.css";
+
 body {
     display: flex;
     flex-direction: column;
@@ -115,7 +116,7 @@ div.block-infos {
     margin-bottom: 10;
 }
 
-.blocks {
+#svg-container {
     display: block;
 }
 
@@ -293,3 +294,69 @@ List of classes for the new transaction container
     color: black;
     font-size: 17px;
 }
+
+.spinner {
+    animation: rotate 2s linear infinite;
+    transform-origin: 50% 50%;
+    z-index: 2;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -25px 0 0 -25px;
+    width: 50px;
+    height: 50px;
+  }
+
+ .spinner circle {
+    stroke: rgb(140, 182, 224);
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes rotate {
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  
+  @keyframes dash {
+    0% {
+      stroke-dasharray: 1, 150;
+      stroke-dashoffset: 0;
+    }
+    50% {
+      stroke-dasharray: 90, 150;
+      stroke-dashoffset: -35;
+    }
+    100% {
+      stroke-dasharray: 90, 150;
+      stroke-dashoffset: -124;
+    }
+  }
+
+  .header {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-start;
+
+      #status-info {
+        .info {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+
+            .loader-wrapper {
+                width: 50px;
+                height: 50px;
+                position: relative;
+            }
+  
+            .info-message {
+                padding: 20px;
+            }
+        }
+
+      }
+  }

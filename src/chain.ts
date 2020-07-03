@@ -1,5 +1,5 @@
 import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
-import { DataBody } from "@dedis/cothority/byzcoin/proto";
+import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
 import {
   PaginateRequest,
   PaginateResponse,
@@ -8,16 +8,16 @@ import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network/connection";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
-import { Observable, Subject, Subscriber } from "rxjs";
+import { Subject } from "rxjs";
+import { throttleTime } from "rxjs/operators";
 
 import { Flash } from "./flash";
 import { Utils } from "./utils";
 
-export class BlocksDiagram {
+export class Chain {
   // SVG properties
   svgWidth: number;
   svgHeight: number;
-  svgBlocks: any;
 
   // Blocks UI properties
   blockPadding: number; // size of the space between blocks
@@ -38,19 +38,20 @@ export class BlocksDiagram {
   // Blockchain properties
   roster: Roster;
   ws: WebSocketAdapter;
-  subjectBrowse: Subject<[number, SkipBlock[]]>;
+  subjectBrowse = new Subject<[number, SkipBlock[], boolean]>();
   pageSize: number; // number of blocks in a page
   nbPages: number; // number of pages
-  nbBlocksUpdate: number; // number of blocks fetched in each update
 
   // Blocks navigation properties
-  initialBlock: SkipBlock;
   nbBlocksLoadedLeft: number;
   nbBlocksLoadedRight: number;
 
-  // Blocks observation
-  subscriberList: Array<Subscriber<SkipBlock>>;
-  updateObserver = new Subject<SkipBlock[]>();
+  // This subject is notified each time a block is clicked
+  blockClickedSubject = new Subject<SkipBlock>();
+
+  // This subject is notified when a new series of block has been added to the
+  // view
+  newblocksSubject = new Subject<SkipBlock[]>();
 
   // Error management
   flash: Flash;
@@ -80,125 +81,134 @@ export class BlocksDiagram {
 
     // Blockchain properties
     this.roster = roster;
-    this.subjectBrowse = new Subject<[number, SkipBlock[]]>();
     this.pageSize = 15;
     this.nbPages = 1;
-    this.nbBlocksUpdate = this.nbPages * this.pageSize;
 
     // Blocks observation
-    this.subscriberList = [];
     this.flash = flash;
 
     // Blocks navigation properties
-    this.initialBlock = initialBlock;
     this.nbBlocksLoadedLeft = 0;
     this.nbBlocksLoadedRight = 0;
 
-    const initialBlockIndex = this.initialBlock.index;
-    const initialBlockHash = Utils.bytes2String(this.initialBlock.hash);
+    const initialBlockIndex = initialBlock.index;
+    const initialBlockHash = Utils.bytes2String(initialBlock.hash);
 
-    let indexNextBlockLeft = initialBlockIndex;
     let hashNextBlockLeft = initialBlockHash;
-    let hashNextBlockLeftBeforeUpdate = "";
-
-    let indexNextBlockRight = initialBlockIndex;
     let hashNextBlockRight = initialBlockHash;
-    let hashNextBlockRightBeforeUpdate = "";
 
-    // SVG containing the blockchain
-    this.svgBlocks = d3
-      .select(".blocks")
-      .attr("width", this.svgWidth)
-      .attr("height", this.svgHeight)
-      .call(
-        d3
-          .zoom()
-          .on("zoom", () => {
-            const transform = d3.event.transform;
-            self.svgBlocks.attr("transform", transform);
+    // to keep track of current requested operations. If we are already loading
+    // blocks on the left, then we shouldn't make another same request.
+    let isLoadingLeft = false;
+    let isLoadingRight = false;
 
-            // Horizontal position of the leftmost block
-            const x = -transform.x;
-            const zoomLevel = transform.k;
+    // Main SVG caneva that contains the chain
+    const svg = d3
+      .select("#svg-container")
+      .attr("viewBox", `0, 0, ${this.svgWidth}, ${this.svgHeight}`);
 
-            const sizeBlockOnScreen =
-              (self.blockWidth + self.blockPadding) * zoomLevel;
+    // this group will contain the blocks
+    const gblocks = svg.append("g");
 
-            const nbBlocksOnScreen = this.svgWidth / sizeBlockOnScreen;
+    // this group will contain the text. We need two separate groups because the
+    // transform on the text group should not change the scale to keep the text readable
+    const gtext = svg.append("g");
 
-            const nbLoadsNeeded = Math.ceil(
-              nbBlocksOnScreen / this.nbBlocksUpdate
-            );
+    // this subject will be notified when the main SVG caneva in moved by the
+    // user
+    const subject = new Subject();
 
-            // Load blocks to the left
-            const indexLeftBlockOnScreen =
-              initialBlockIndex + x / sizeBlockOnScreen;
+    // the number of block the window can display at normal scale. Used to
+    // define the domain the xScale
+    var numblocks = this.svgWidth / (this.blockWidth + this.blockPadding);
 
-            // Check if an update is needed
-            if (
-              indexLeftBlockOnScreen <
-              indexNextBlockLeft + nbBlocksOnScreen
-            ) {
-              if (hashNextBlockLeft !== hashNextBlockLeftBeforeUpdate) {
-                hashNextBlockLeftBeforeUpdate = hashNextBlockLeft;
+    // the xScale displays the block index and allows the user to quickly see
+    // where he is in the chain
+    var xScale = d3
+      .scaleLinear()
+      .domain([initialBlock.index, initialBlock.index + numblocks])
+      .range([0, this.svgWidth]);
 
-                if (!(indexNextBlockLeft < 0)) {
-                  // Handle the case when we arrive at block 0: do not load
-                  // below 0
-                  let nbBlocksToLoad = self.pageSize;
-                  const indexLastBlockLeft = indexNextBlockLeft + 1;
-                  if (initialBlockIndex < self.pageSize) {
-                    nbBlocksToLoad = initialBlockIndex;
-                  } else if (indexLastBlockLeft - this.nbBlocksUpdate < 0) {
-                    nbBlocksToLoad = indexLastBlockLeft;
-                  }
+    var xAxis = d3
+      .axisBottom(xScale)
+      .ticks(numblocks)
+      .tickFormat(d3.format("d"));
 
-                  this.loaderAnimation(true, zoomLevel);
+    var xAxisDraw = svg
+      .insert("g", ":first-child")
+      .attr("class", "x axis")
+      .call(xAxis);
 
-                  if (nbBlocksToLoad > 0) {
-                    self.getNextBlocks(
-                      hashNextBlockLeft,
-                      nbBlocksToLoad,
-                      self.nbPages,
-                      self.subjectBrowse,
-                      true
-                    );
-                  }
-                  if (nbBlocksToLoad === 0) {
-                    // We arrived at the end of the left side
-                    this.destroyLoader(true);
-                  }
-                }
-              }
-            }
+    // Update the subject when the view is dragged and zoomed in-out
+    const zoom = d3
+      .zoom()
+      .extent([
+        [0, 0],
+        [this.svgWidth, this.svgHeight],
+      ])
+      .scaleExtent([0.001, 8])
+      .on("zoom", () => {
+        subject.next(d3.event.transform);
+      });
+    svg.call(zoom);
 
-            // Load blocks to the right
-            const indexRightBlockOnScreen =
-              initialBlockIndex + (x + self.svgWidth) / sizeBlockOnScreen;
+    // Handler to update the view (drag the view, zoom in-out)
+    subject.subscribe({
+      next: (transform: any) => {
+        // This line disables translate to the left
+        // transform.x = Math.min(0, transform.x);
 
-            // Check if an update is needed
-            if (
-              indexRightBlockOnScreen >
-              indexNextBlockRight - nbBlocksOnScreen
-            ) {
-              if (hashNextBlockRight !== hashNextBlockRightBeforeUpdate) {
-                hashNextBlockRightBeforeUpdate = hashNextBlockRight;
+        // Disable translation up/down
+        transform.y = 0;
 
-                this.loaderAnimation(false, zoomLevel);
+        // Update the scale
+        var xScaleNew = transform.rescaleX(xScale);
+        xAxis.scale(xScaleNew);
+        xAxisDraw.call(xAxis);
 
-                self.getNextBlocks(
-                  hashNextBlockRight,
-                  self.pageSize,
-                  self.nbPages,
-                  self.subjectBrowse,
-                  false
-                );
-              }
-            }
-          })
-          .scaleExtent([0.03, 3]) // Constraint the zoom
-      )
-      .append("g");
+        // Horizontal only transformation on the blocks
+        var transformString =
+          "translate(" + transform.x + "," + "0) scale(" + transform.k + ",1)";
+        gblocks.attr("transform", transformString);
+
+        // Standard transformation on the text since we need to keep the
+        // original scale
+        gtext.attr("transform", transform);
+        // Update the text size
+        if (transform.k < 1) {
+          gtext.selectAll("text").attr("font-size", 1 + transform.k + "em");
+        }
+      },
+    });
+
+    // Handler to check if new blocks need to be leaded. We check every 500ms.
+    subject.pipe(throttleTime(500)).subscribe({
+      next: (transform: any) => {
+        if (!isLoadingLeft) {
+          const isLoading = this.checkAndLoadLeft(
+            transform,
+            hashNextBlockLeft,
+            initialBlockIndex,
+            gtext
+          );
+          if (isLoading) {
+            isLoadingLeft = true;
+          }
+        }
+
+        if (!isLoadingRight) {
+          const isLoading = this.checkAndLoadRight(
+            transform,
+            hashNextBlockRight,
+            initialBlockIndex,
+            gtext
+          );
+          if (isLoading) {
+            isLoadingRight = true;
+          }
+        }
+      },
+    });
 
     // Subscriber to the blockchain server
     this.subjectBrowse.subscribe({
@@ -214,8 +224,10 @@ export class BlocksDiagram {
         } else {
           this.flash.display(Flash.flashType.ERROR, `Error: ${err}`);
         }
+        isLoadingLeft = false;
+        isLoadingRight = false;
       },
-      next: ([i, skipBlocks]) => {
+      next: ([i, skipBlocks, backward]) => {
         // i is the page number
         // tslint:disable-next-line
         if (i == this.nbPages - 1) {
@@ -226,18 +238,31 @@ export class BlocksDiagram {
           }
 
           const lastBlock = skipBlocks[skipBlocks.length - 1];
-          const indexLastBlock = lastBlock.index;
 
-          if (indexLastBlock < initialBlockIndex) {
+          if (backward) {
             // Load blocks to the left
-            indexNextBlockLeft = indexLastBlock - 1;
             hashNextBlockLeft = Utils.getLeftBlockHash(lastBlock);
-            this.displayBlocks(skipBlocks, true, this.getBlockColor());
+            this.displayBlocks(
+              skipBlocks,
+              true,
+              this.getBlockColor(),
+              gblocks,
+              gtext
+            );
+            d3.selectAll(".left-loader").remove();
+            isLoadingLeft = false;
           } else {
             // Load blocks to the right
-            indexNextBlockRight = indexLastBlock + 1;
             hashNextBlockRight = Utils.getRightBlockHash(lastBlock);
-            this.displayBlocks(skipBlocks, false, this.getBlockColor());
+            this.displayBlocks(
+              skipBlocks,
+              false,
+              this.getBlockColor(),
+              gblocks,
+              gtext
+            );
+            d3.selectAll(".right-loader").remove();
+            isLoadingRight = false;
           }
         }
       },
@@ -247,9 +272,9 @@ export class BlocksDiagram {
   /**
    * Load the initial blocks.
    */
-  loadInitialBlocks() {
+  loadInitialBlocks(initialBlockHash: Buffer) {
     this.getNextBlocks(
-      Utils.bytes2String(this.initialBlock.hash),
+      Utils.bytes2String(initialBlockHash),
       this.pageSize,
       this.nbPages,
       this.subjectBrowse,
@@ -257,24 +282,120 @@ export class BlocksDiagram {
     );
   }
 
+  checkAndLoadLeft(
+    transform: any,
+    hashNextBlockLeft: string,
+    initialBlockIndex: number,
+    gtext: any
+  ): boolean {
+    const self = this;
+
+    // x represents to x-axis translation of the caneva. If the block width
+    // is 100 and x = -100, then it means the user dragged one block from
+    // the initial block on the left.
+    const x = -transform.x;
+    const zoomLevel = transform.k;
+
+    const leftBlockX =
+      this.nbBlocksLoadedLeft *
+      (this.blockWidth + this.blockPadding) *
+      -1 *
+      zoomLevel;
+
+    // Check if we need to load blocks on the left. We check that we haven't
+    // yet loaded all the possible blocks from the left and that the user
+    // has moved enought to the left. The -50 is to give a small margin
+    // because we want to let the user drag a bit before we trigger the
+    // load.
+    if (
+      initialBlockIndex - this.nbBlocksLoadedLeft > 0 &&
+      x < leftBlockX - 50
+    ) {
+      let nbBlocksToLoad = self.pageSize;
+      // In the case there are less remaining blocks than the page size we
+      // load all the remaining blocks. If we are currently at block 3 and
+      // the page size is 10, we must then load only 3 blocks: [0, 1, 2]
+      nbBlocksToLoad = Math.min(
+        nbBlocksToLoad,
+        initialBlockIndex - this.nbBlocksLoadedLeft
+      );
+
+      this.loaderAnimation(true, zoomLevel, gtext);
+
+      setTimeout(function () {
+        self.getNextBlocks(
+          hashNextBlockLeft,
+          nbBlocksToLoad,
+          self.nbPages,
+          self.subjectBrowse,
+          true
+        );
+      }, 2000);
+
+      return true;
+    }
+
+    return false;
+  }
+
+  checkAndLoadRight(
+    transform: any,
+    hashNextBlockRight: string,
+    initialBlockIndex: number,
+    gtext: any
+  ): boolean {
+    const self = this;
+
+    // x represents to x-axis translation of the caneva. If the block width
+    // is 100 and x = -100, then it means the user dragged one block from
+    // the initial block on the left.
+    const x = -transform.x;
+    const zoomLevel = transform.k;
+
+    const rightBlockX =
+      this.nbBlocksLoadedRight *
+      (this.blockWidth + this.blockPadding) *
+      zoomLevel;
+
+    // Check if we need to load blocks on the right. (x + this.svgWidth)
+    // represents the actual rightmost x coordinate on the svg caneva. +50
+    // is to allow a margin before loading a new block, because we want to
+    // allow a bit of blank space before triggering the load.
+    if (x + this.svgWidth > rightBlockX + 50) {
+      // This is a poor exclusion mechanism
+
+      this.loaderAnimation(false, zoomLevel, gtext);
+      setTimeout(function () {
+        self.getNextBlocks(
+          hashNextBlockRight,
+          self.pageSize,
+          self.nbPages,
+          self.subjectBrowse,
+          false
+        );
+      }, 2000);
+
+      return true;
+    }
+
+    return false;
+  }
+
   /**
    * Returns an observable to observe the blocks.
    * Example use:
-   * const blocksDiagram = new BlocksDiagram(roster);
-   * blocksDiagram.getBlockObserver().subscribe({
+   * getBlockClickedSubject().subscribe({
    *   next: (skipBlock) => {
    *     // do things
    *   }
    * })
    */
-  getBlockObserver(): Observable<SkipBlock> {
-    return new Observable((sub) => {
-      this.subscriberList.push(sub);
-    });
+  getBlockClickedSubject(): Subject<SkipBlock> {
+    return this.blockClickedSubject;
   }
 
-  isUpdatedObserver(): Subject<SkipBlock[]> {
-    return this.updateObserver;
+  getNewblocksSubject(): Subject<SkipBlock[]> {
+    return this.newblocksSubject;
   }
 
   /**
@@ -283,9 +404,9 @@ export class BlocksDiagram {
    * @param zoomLevel zoom of the blocks (needed to compute the position of
    *                  the loader)
    */
-  private loaderAnimation(backwards: boolean, zoomLevel: number) {
+  private loaderAnimation(backwards: boolean, zoomLevel: number, gtext: any) {
     this.destroyLoader(backwards);
-    this.createLoader(backwards, zoomLevel);
+    this.createLoader(backwards, zoomLevel, gtext);
   }
 
   /**
@@ -294,80 +415,31 @@ export class BlocksDiagram {
    * @param zoomLevel zoom of the blocks (needed to compute the position of
    *                  the loader)
    */
-  private createLoader(backwards: boolean, zoomLevel: number) {
+  private createLoader(backwards: boolean, zoomLevel: number, gtext: any) {
     let xTranslateBlock = this.getXTranslateBlock(backwards);
     const loaderId = this.getLoaderId(backwards);
 
+    let className = "right-loader";
+    let offset = -400;
+
     if (backwards) {
-      xTranslateBlock =
-        -1 *
-        this.unitBlockAndPaddingWidth *
-        zoomLevel *
-        this.nbBlocksLoadedLeft;
+      className = "left-loader";
+      offset = -400;
     }
 
-    this.svgBlocks
-      .append("rect")
-      .attr("id", loaderId)
-      .attr("width", 0)
-      .attr("height", this.blockHeight)
-      .attr("transform", (d: any) => {
-        const translate = [xTranslateBlock, 0];
-        return "translate(" + translate + ")";
-      })
-      .attr("fill", this.getBlockColor());
-
-    // Remark: the left loader is too buggy so I remove it for now. The position
-    // is wrong because of the zoom.
-
-    // Loader position
-    // let xStart: number;
-    // let xEnd: number;
-    if (backwards) {
-      /*
-      xStart = xTranslateBlock;
-      xEnd = xTranslateBlock - this.blockWidth;
-
-      //repeatLeft();
-
-      d3.select("#" + loaderId)
-        .attr("x", xStart)
-        .transition()
-        .ease(d3.easeSin)
-        .duration(this.loaderAnimationDuration)
-        .attr("width", this.blockWidth)
-        .attr("x", xEnd);
-      */
-    } else {
-      repeatRight();
-    }
-
-    const blockWidth = this.blockWidth;
-    const loaderAnimationDuration = this.loaderAnimationDuration;
-    /*
-    function repeatLeft() {
-      d3.select("#loaderLeft")
-        .attr("x", xStart)
-        .transition()
-        .ease(d3.easeSin)
-        .duration(loaderAnimationDuration)
-        .attr("width", blockWidth)
-        .attr("x", xEnd)
-        .on("end", repeatLeft)
-    }
-    */
-    /**
-     * Loop the right loader animation.
-     */
-    function repeatRight() {
-      d3.select("#loaderRight")
-        .attr("width", 0)
-        .transition()
-        .ease(d3.easeSin)
-        .duration(loaderAnimationDuration)
-        .attr("width", blockWidth)
-        .on("end", repeatRight);
-    }
+    gtext
+      .append("g")
+      .attr("transform", `translate(${xTranslateBlock + offset}, 100)`)
+      .attr("class", className)
+      .append("svg")
+      .attr("class", "spinner")
+      .attr("viewBox", "0, 0, 50, 50")
+      .append("circle")
+      .attr("cx", 25)
+      .attr("cy", 25)
+      .attr("r", 20)
+      .attr("fill", "none")
+      .attr("stroke-width", "5");
   }
 
   /**
@@ -418,7 +490,9 @@ export class BlocksDiagram {
   private displayBlocks(
     listBlocks: SkipBlock[],
     backwards: boolean,
-    blockColor: string
+    blockColor: string,
+    gblocks: any,
+    gtext: any
   ) {
     // Iterate over the blocks to append them
     // tslint:disable-next-line
@@ -430,7 +504,7 @@ export class BlocksDiagram {
       const xTranslateText = xTranslateBlock + this.textMargin;
 
       // Append the block inside the svg container
-      this.appendBlock(xTranslateBlock, blockColor, block);
+      this.appendBlock(xTranslateBlock, blockColor, block, gblocks);
 
       // Box the text index in an object to pass it by reference
       const textIndex = { index: 0 };
@@ -440,7 +514,8 @@ export class BlocksDiagram {
         xTranslateText,
         textIndex,
         "index: " + block.index,
-        this.textColor
+        this.textColor,
+        gtext
       );
 
       // Hash
@@ -449,7 +524,8 @@ export class BlocksDiagram {
         xTranslateText,
         textIndex,
         "hash: " + hash.slice(0, 8) + "...",
-        this.textColor
+        this.textColor,
+        gtext
       );
 
       // Number of transactions
@@ -459,7 +535,18 @@ export class BlocksDiagram {
         xTranslateText,
         textIndex,
         "#transactions: " + nbTransactions,
-        this.textColor
+        this.textColor,
+        gtext
+      );
+
+      const header = DataHeader.decode(block.data);
+      // console.log(">>>>>>>> timestamp:", header.timestamp.toNumber());
+      this.appendTextInBlock(
+        xTranslateText,
+        textIndex,
+        "T: " + header.timestamp.toString(),
+        this.textColor,
+        gtext
       );
 
       if (backwards) {
@@ -470,7 +557,7 @@ export class BlocksDiagram {
         ++this.nbBlocksLoadedRight;
       }
     }
-    this.updateObserver.next(listBlocks);
+    this.newblocksSubject.next(listBlocks);
   }
 
   /**
@@ -483,23 +570,20 @@ export class BlocksDiagram {
   private appendBlock(
     xTranslate: number,
     blockColor: string,
-    block: SkipBlock
+    block: SkipBlock,
+    svgBlocks: any
   ) {
     const self = this;
-    this.svgBlocks
+    svgBlocks
       .append("rect")
       .attr("id", block.hash.toString("hex"))
       .attr("width", this.blockWidth)
       .attr("height", this.blockHeight)
-      .attr("transform", (d: any) => {
-        const translate = [xTranslate, 0];
-        return "translate(" + translate + ")";
-      })
+      .attr("x", xTranslate)
+      .attr("y", 20)
       .attr("fill", blockColor)
       .on("click", () => {
-        self.subscriberList.forEach((sub) => {
-          sub.next(block);
-        });
+        this.blockClickedSubject.next(block);
       });
   }
 
@@ -514,9 +598,10 @@ export class BlocksDiagram {
     xTranslate: number,
     textIndex: { index: number },
     text: string,
-    textColor: string
+    textColor: string,
+    gtext: any
   ) {
-    this.svgBlocks
+    gtext
       .append("text")
       .attr("x", xTranslate)
       .attr("y", (textIndex.index + 1) * 30)
@@ -540,7 +625,7 @@ export class BlocksDiagram {
     nextBlockID: string,
     pageSize: number,
     nbPages: number,
-    subjectBrowse: Subject<[number, SkipBlock[]]>,
+    subjectBrowse: Subject<[number, SkipBlock[], boolean]>,
     backward: boolean
   ) {
     let bid: Buffer;
@@ -611,7 +696,7 @@ export class BlocksDiagram {
             if (ws !== undefined) {
               this.ws = ws;
             }
-            subjectBrowse.next([data.pagenumber, data.blocks]);
+            subjectBrowse.next([data.pagenumber, data.blocks, data.backward]);
             return 0;
           },
         });
