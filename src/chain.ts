@@ -9,7 +9,7 @@ import { WebSocketConnection } from "@dedis/cothority/network/connection";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
-import { throttleTime } from "rxjs/operators";
+import { throttleTime, last } from "rxjs/operators";
 
 import { Flash } from "./flash";
 import { Utils } from "./utils";
@@ -42,9 +42,6 @@ export class Chain {
   pageSize: number; // number of blocks in a page
   nbPages: number; // number of pages
 
-  // Blocks navigation properties
-  nbBlocksLoadedLeft: number;
-  nbBlocksLoadedRight: number;
 
   // This subject is notified each time a block is clicked
   blockClickedSubject = new Subject<SkipBlock>();
@@ -55,6 +52,8 @@ export class Chain {
 
   // Error management
   flash: Flash;
+
+  initialBlockIndex: number;
 
   constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
     // Height of the blocks (dynamic according to the size of the window)
@@ -87,15 +86,10 @@ export class Chain {
     // Blocks observation
     this.flash = flash;
 
-    // Blocks navigation properties
-    this.nbBlocksLoadedLeft = 0;
-    this.nbBlocksLoadedRight = 0;
+    this.initialBlockIndex = initialBlock.index;
 
-    const initialBlockIndex = initialBlock.index;
-    const initialBlockHash = Utils.bytes2String(initialBlock.hash);
-
-    let hashNextBlockLeft = initialBlockHash;
-    let hashNextBlockRight = initialBlockHash;
+    let lastBlockLeft = initialBlock;
+    let lastBlockRight = initialBlock;
 
     // to keep track of current requested operations. If we are already loading
     // blocks on the left, then we shouldn't make another same request.
@@ -121,6 +115,8 @@ export class Chain {
     // the number of block the window can display at normal scale. Used to
     // define the domain the xScale
     var numblocks = this.svgWidth / (this.blockWidth + this.blockPadding);
+
+    var lastTransform = {x: 0, y: 0, k: 1}
 
     // the xScale displays the block index and allows the user to quickly see
     // where he is in the chain
@@ -155,6 +151,7 @@ export class Chain {
     // Handler to update the view (drag the view, zoom in-out)
     subject.subscribe({
       next: (transform: any) => {
+        lastTransform = transform
         // This line disables translate to the left
         // transform.x = Math.min(0, transform.x);
 
@@ -187,8 +184,7 @@ export class Chain {
         if (!isLoadingLeft) {
           const isLoading = this.checkAndLoadLeft(
             transform,
-            hashNextBlockLeft,
-            initialBlockIndex,
+            lastBlockLeft,
             gtext
           );
           if (isLoading) {
@@ -199,8 +195,7 @@ export class Chain {
         if (!isLoadingRight) {
           const isLoading = this.checkAndLoadRight(
             transform,
-            hashNextBlockRight,
-            initialBlockIndex,
+            lastBlockRight,
             gtext
           );
           if (isLoading) {
@@ -228,41 +223,55 @@ export class Chain {
         isLoadingRight = false;
       },
       next: ([i, skipBlocks, backward]) => {
+        console.log("subject browse activated", backward, i == this.nbPages -1, skipBlocks.length)
         // i is the page number
         // tslint:disable-next-line
         if (i == this.nbPages - 1) {
           // If this is the first series of blocks, set the hash of the left first block
           const firstBlock = skipBlocks[0];
-          if (firstBlock.index === initialBlockIndex) {
-            hashNextBlockLeft = Utils.getLeftBlockHash(firstBlock);
+          if (firstBlock.index === this.initialBlockIndex) {
+            lastBlockLeft = firstBlock;
           }
 
           const lastBlock = skipBlocks[skipBlocks.length - 1];
 
           if (backward) {
+            console.log("calling display:", this.initialBlockIndex - lastBlockLeft.index)
             // Load blocks to the left
-            hashNextBlockLeft = Utils.getLeftBlockHash(lastBlock);
             this.displayBlocks(
               skipBlocks,
               true,
               this.getBlockColor(),
               gblocks,
-              gtext
+              gtext,
+              lastBlockLeft.index - this.initialBlockIndex
             );
+
+            lastBlockLeft = lastBlock
+            
             d3.selectAll(".left-loader").remove();
-            isLoadingLeft = false;
+            const loadMore = this.checkAndLoadLeft(lastTransform, lastBlockLeft, gtext)
+            if (!loadMore) {
+              isLoadingLeft = false;
+            }
           } else {
             // Load blocks to the right
-            hashNextBlockRight = Utils.getRightBlockHash(lastBlock);
             this.displayBlocks(
               skipBlocks,
               false,
               this.getBlockColor(),
               gblocks,
-              gtext
+              gtext,
+              lastBlockRight.index - this.initialBlockIndex
             );
+
+            lastBlockRight = lastBlock
+
             d3.selectAll(".right-loader").remove();
-            isLoadingRight = false;
+            const loadMore = this.checkAndLoadRight(lastTransform, lastBlockRight, gtext)
+            if (!loadMore) {
+              isLoadingRight = false;
+            }
           }
         }
       },
@@ -284,8 +293,7 @@ export class Chain {
 
   checkAndLoadLeft(
     transform: any,
-    hashNextBlockLeft: string,
-    initialBlockIndex: number,
+    lastBlockLeft: SkipBlock,
     gtext: any
   ): boolean {
     const self = this;
@@ -296,8 +304,10 @@ export class Chain {
     const x = -transform.x;
     const zoomLevel = transform.k;
 
+    const nbBlocksLoadedLeft = this.initialBlockIndex - lastBlockLeft.index
+
     const leftBlockX =
-      this.nbBlocksLoadedLeft *
+      nbBlocksLoadedLeft *
       (this.blockWidth + this.blockPadding) *
       -1 *
       zoomLevel;
@@ -307,8 +317,9 @@ export class Chain {
     // has moved enought to the left. The -50 is to give a small margin
     // because we want to let the user drag a bit before we trigger the
     // load.
+    console.log("this.initialBlockIndex - nbBlocksLoadedLeft", this.initialBlockIndex - nbBlocksLoadedLeft)
     if (
-      initialBlockIndex - this.nbBlocksLoadedLeft > 0 &&
+      this.initialBlockIndex - nbBlocksLoadedLeft > 0 &&
       x < leftBlockX - 50
     ) {
       let nbBlocksToLoad = self.pageSize;
@@ -317,11 +328,14 @@ export class Chain {
       // the page size is 10, we must then load only 3 blocks: [0, 1, 2]
       nbBlocksToLoad = Math.min(
         nbBlocksToLoad,
-        initialBlockIndex - this.nbBlocksLoadedLeft
+        this.initialBlockIndex - nbBlocksLoadedLeft
       );
 
-      this.loaderAnimation(true, zoomLevel, gtext);
+      this.addLoader(true, zoomLevel, gtext, -nbBlocksLoadedLeft);
 
+      const hashNextBlockLeft = Utils.getLeftBlockHash(lastBlockLeft)
+
+      console.log("getting next blocks on the left", nbBlocksToLoad, hashNextBlockLeft)
       setTimeout(function () {
         self.getNextBlocks(
           hashNextBlockLeft,
@@ -340,8 +354,7 @@ export class Chain {
 
   checkAndLoadRight(
     transform: any,
-    hashNextBlockRight: string,
-    initialBlockIndex: number,
+    lastBlockRight: SkipBlock,
     gtext: any
   ): boolean {
     const self = this;
@@ -352,8 +365,10 @@ export class Chain {
     const x = -transform.x;
     const zoomLevel = transform.k;
 
+    const nbBlocksLoadedRight = lastBlockRight.index - this.initialBlockIndex
+
     const rightBlockX =
-      this.nbBlocksLoadedRight *
+      nbBlocksLoadedRight *
       (this.blockWidth + this.blockPadding) *
       zoomLevel;
 
@@ -362,9 +377,12 @@ export class Chain {
     // is to allow a margin before loading a new block, because we want to
     // allow a bit of blank space before triggering the load.
     if (x + this.svgWidth > rightBlockX + 50) {
-      // This is a poor exclusion mechanism
 
-      this.loaderAnimation(false, zoomLevel, gtext);
+      const hashNextBlockRight = Utils.getRightBlockHash(lastBlockRight)
+
+      console.log("getting next blocks on the right", hashNextBlockRight)
+
+      this.addLoader(false, zoomLevel, gtext, nbBlocksLoadedRight);
       setTimeout(function () {
         self.getNextBlocks(
           hashNextBlockRight,
@@ -399,25 +417,19 @@ export class Chain {
   }
 
   /**
-   * Destroy the old loader animation (if it exists) and create a new one.
-   * @param backwards true for a left loader, false for a right loader
-   * @param zoomLevel zoom of the blocks (needed to compute the position of
-   *                  the loader)
-   */
-  private loaderAnimation(backwards: boolean, zoomLevel: number, gtext: any) {
-    this.destroyLoader(backwards);
-    this.createLoader(backwards, zoomLevel, gtext);
-  }
-
-  /**
    * Create a loader.
    * @param backwards true for a left loader, false for a right loader
    * @param zoomLevel zoom of the blocks (needed to compute the position of
    *                  the loader)
    */
-  private createLoader(backwards: boolean, zoomLevel: number, gtext: any) {
-    let xTranslateBlock = this.getXTranslateBlock(backwards);
-    const loaderId = this.getLoaderId(backwards);
+  private addLoader(backwards: boolean, zoomLevel: number, gtext: any, numblocks: number) {
+
+    let xTranslateBlock: number
+    if(backwards) {
+      xTranslateBlock = (numblocks - 1) * (this.unitBlockAndPaddingWidth) + this.blockPadding
+    } else {
+      xTranslateBlock = (numblocks) * (this.unitBlockAndPaddingWidth) + this.blockPadding
+    }
 
     let className = "right-loader";
     let offset = -400;
@@ -443,63 +455,34 @@ export class Chain {
   }
 
   /**
-   * Destroy a loader.
-   * @param backwards true for a left loader, false for a right loader
-   */
-  private destroyLoader(backwards: boolean) {
-    d3.select("#" + this.getLoaderId(backwards)).remove();
-  }
-
-  /**
-   * Returns the requested loader ID.
-   * @param backwards true for a left loader, false for a right loader
-   */
-  private getLoaderId(backwards: boolean): string {
-    return backwards ? "loaderLeft" : "loaderRight";
-  }
-
-  /**
-   * x position where to start to display blocks.
-   * @param backwards true for left blocks, false for right blocks
-   */
-  private getXTranslateBlock(backwards: boolean): number {
-    let xTranslateBlock: number;
-    if (backwards) {
-      // left
-      xTranslateBlock =
-        -1 * this.unitBlockAndPaddingWidth * this.nbBlocksLoadedLeft +
-        this.blockPadding -
-        this.unitBlockAndPaddingWidth;
-    } else {
-      // right
-      xTranslateBlock =
-        this.unitBlockAndPaddingWidth * this.nbBlocksLoadedRight +
-        this.blockPadding;
-    }
-
-    return xTranslateBlock;
-  }
-
-  /**
    * Append the given blocks to the blockchain.
    * @param listBlocks list of blocks to append
    * @param backwards  false for loading blocks to the right, true for loading
    *                   blocks to the left
    * @param blockColor wanted color of the blocks
+   * @param numblocks the number of blocks loaded from the initial block. In the
+   * case of a backward loading, this number should be negative. -10 means we
+   * already loaded 10 blocks on the left from the initial block.
    */
   private displayBlocks(
     listBlocks: SkipBlock[],
     backwards: boolean,
     blockColor: string,
     gblocks: any,
-    gtext: any
+    gtext: any,
+    numblocks: number
   ) {
     // Iterate over the blocks to append them
     // tslint:disable-next-line
     for (let i = 0; i < listBlocks.length; ++i) {
       const block = listBlocks[i];
 
-      const xTranslateBlock = this.getXTranslateBlock(backwards);
+      let xTranslateBlock: number
+      if(backwards) {
+        xTranslateBlock = (numblocks - 1 - i) * (this.unitBlockAndPaddingWidth) + this.blockPadding
+      } else {
+        xTranslateBlock = (numblocks + i) * (this.unitBlockAndPaddingWidth) + this.blockPadding
+      }
 
       const xTranslateText = xTranslateBlock + this.textMargin;
 
@@ -548,14 +531,6 @@ export class Chain {
         this.textColor,
         gtext
       );
-
-      if (backwards) {
-        // left
-        ++this.nbBlocksLoadedLeft;
-      } else {
-        // right
-        ++this.nbBlocksLoadedRight;
-      }
     }
     this.newblocksSubject.next(listBlocks);
   }
