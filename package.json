@@ -8,8 +8,8 @@
         "bundle": "webpack",
         "watch": "webpack --watch",
         "lint": "tslint 'src/{,**/}*.ts' 'spec/{,**/}*.ts'",
-        "makePretty": "prettier --config package.json --write \"src/**/*{.ts,.js}\" \"*.html\"",
-        "isPretty": "prettier --config package.json --check \"src/**/*{.ts,.js}\" \"*.html\"",
+        "makePretty": "prettier --config .prettierrc --write \"src/**/*{.ts,.js}\" \"*.html\"",
+        "isPretty": "prettier --config .prettierrc --check \"src/**/*{.ts,.js}\" \"*.html\"",
         "doc": "typedoc --out doc/ src/"
     },
     "author": "",
