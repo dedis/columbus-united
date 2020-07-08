@@ -15,6 +15,22 @@ import { Flash } from "./flash";
 import { Utils } from "./utils";
 
 export class Chain {
+    // Go to https://color.adobe.com/create/color-wheel with this base color to
+    // find the palet of colors.
+    static readonly blockColor = { r: 217, v: 186, b: 130 }; // #D9BA82
+
+    /**
+     * Determine the color of the blocks.
+     */
+    static getBlockColor(block: SkipBlock): string {
+        const body = DataBody.decode(block.payload);
+        const nbTransactions = body.txResults.length;
+        const factor = 1 - nbTransactions * 0.004;
+        return `rgb(${Chain.blockColor.r * factor}, ${
+            Chain.blockColor.v * factor
+        }, ${Chain.blockColor.b * factor})`;
+    }
+
     readonly blockPadding = 10;
     readonly textMargin = 5;
     readonly blockHeight = 200;
@@ -28,9 +44,6 @@ export class Chain {
     readonly nbPages = 1;
 
     readonly textColor = "black";
-    // Go to https://color.adobe.com/create/color-wheel with this base color to
-    // find the palet of colors.
-    static readonly blockColor = {r: 217, v: 186, b: 130}; // #D9BA82
     readonly loadedInfo = document.getElementById("loaded-blocks");
     totalLoaded = 0;
 
@@ -287,13 +300,7 @@ export class Chain {
                         nb = lastBlockRight.index - this.initialBlockIndex + 1;
                     }
 
-                    this.displayBlocks(
-                        skipBlocks,
-                        false,
-                        gblocks,
-                        gtext,
-                        nb
-                    );
+                    this.displayBlocks(skipBlocks, false, gblocks, gtext, nb);
 
                     lastBlockRight = lastBlock;
 
@@ -626,12 +633,7 @@ export class Chain {
      * @param xTranslate horizontal position where the block should be appended
      * @param block the block to append
      */
-    private appendBlock(
-        xTranslate: number,
-        block: SkipBlock,
-        svgBlocks: any
-    ) {
-
+    private appendBlock(xTranslate: number, block: SkipBlock, svgBlocks: any) {
         svgBlocks
             .append("rect")
             .attr("id", block.hash.toString("hex"))
@@ -763,15 +765,5 @@ export class Chain {
                 },
             });
         }
-    }
-
-    /**
-     * Determine the color of the blocks.
-     */
-    static getBlockColor(block: SkipBlock): string {
-        const body = DataBody.decode(block.payload);
-        const nbTransactions = body.txResults.length;
-        const factor = 1 - nbTransactions*0.004;
-        return `rgb(${Chain.blockColor.r*factor}, ${Chain.blockColor.v*factor}, ${Chain.blockColor.b*factor})`
     }
 }

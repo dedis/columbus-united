@@ -5,9 +5,9 @@ import * as d3 from "d3";
 import { Observable } from "rxjs";
 import { throttleTime } from "rxjs/operators";
 
+import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
-import { Chain } from './chain';
 
 /**
  * Create the interface under the blockchain. It displays
