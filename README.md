@@ -6,7 +6,7 @@ Implementation of an intuitive and insightful blockchain explorer - by Julien
 von Felten and Anthony Iozzia
 
 <div align="center">
-    <img src="docs/assets/home.png">
+    <img src="home.png">
 </div>
 
 
