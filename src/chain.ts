@@ -23,11 +23,16 @@ export class Chain {
     readonly svgHeight = 200;
     readonly unitBlockAndPaddingWidth = this.blockPadding + this.blockWidth;
 
+    // Recomended pageSize / nbPages: 80 / 50
     readonly pageSize = 50;
     readonly nbPages = 1;
 
     readonly textColor = "black";
-    readonly blockColor = "#4772D8";
+    // Go to https://color.adobe.com/create/color-wheel with this base color to
+    // find the palet of colors.
+    static readonly blockColor = {r: 217, v: 186, b: 130}; // #D9BA82
+    readonly loadedInfo = document.getElementById("loaded-blocks");
+    totalLoaded = 0;
 
     // The roster defines the blockchain nodes
     roster: Roster;
@@ -115,7 +120,9 @@ export class Chain {
 
         const xAxisDraw = svg
             .insert("g", ":first-child")
-            .attr("class", "x axis")
+            .attr("class", "x-axis")
+            .attr("transform", `translate(${this.blockPadding}, 0)`)
+            .attr("fill", "#8C764A")
             .call(xAxis);
 
         // Update the subject when the view is dragged and zoomed in-out
@@ -125,7 +132,7 @@ export class Chain {
                 [0, 0],
                 [this.svgWidth, this.svgHeight],
             ])
-            .scaleExtent([0.001, 8])
+            .scaleExtent([0.0001, 4])
             .on("zoom", () => {
                 subject.next(d3.event.transform);
             });
@@ -233,6 +240,9 @@ export class Chain {
                     isLastPage = true;
                 }
 
+                this.totalLoaded += skipBlocks.length;
+                this.loadedInfo.innerText = `${this.totalLoaded}`;
+
                 // If this is the first series of blocks, set the hash of the left first block
                 const firstBlock = skipBlocks[0];
                 if (firstBlock.index === this.initialBlockIndex) {
@@ -246,7 +256,6 @@ export class Chain {
                     this.displayBlocks(
                         skipBlocks,
                         true,
-                        this.getBlockColor(),
                         gblocks,
                         gtext,
                         lastBlockLeft.index - this.initialBlockIndex
@@ -281,7 +290,6 @@ export class Chain {
                     this.displayBlocks(
                         skipBlocks,
                         false,
-                        this.getBlockColor(),
                         gblocks,
                         gtext,
                         nb
@@ -486,6 +494,7 @@ export class Chain {
             className = "left-loader";
         }
 
+        // Some loaders: https://codepen.io/aurer/pen/jEGbA
         gloader
             .append("svg")
             .attr("class", `${className}`)
@@ -529,7 +538,6 @@ export class Chain {
      * @param listBlocks list of blocks to append
      * @param backwards  false for loading blocks to the right, true for loading
      *                   blocks to the left
-     * @param blockColor wanted color of the blocks
      * @param numblocks the number of blocks loaded from the initial block. In the
      * case of a backward loading, this number should be negative. -10 means we
      * already loaded 10 blocks on the left from the initial block.
@@ -537,7 +545,6 @@ export class Chain {
     private displayBlocks(
         listBlocks: SkipBlock[],
         backwards: boolean,
-        blockColor: string,
         gblocks: any,
         gtext: any,
         numblocks: number
@@ -561,50 +568,54 @@ export class Chain {
             const xTranslateText = xTranslateBlock + this.textMargin;
 
             // Append the block inside the svg container
-            this.appendBlock(xTranslateBlock, blockColor, block, gblocks);
+            this.appendBlock(xTranslateBlock, block, gblocks);
 
-            // Box the text index in an object to pass it by reference
-            const textIndex = { index: 0 };
+            // Displaying text has a lot of impact on performances. We need to
+            // think either how to optimze it or drop the display of text on
+            // each block. For now we drop it.
 
-            // Index
-            this.appendTextInBlock(
-                xTranslateText,
-                textIndex,
-                "index: " + block.index,
-                this.textColor,
-                gtext
-            );
+            // // Box the text index in an object to pass it by reference
+            // const textIndex = { index: 0 };
 
-            // Hash
-            const hash = Utils.bytes2String(block.hash);
-            this.appendTextInBlock(
-                xTranslateText,
-                textIndex,
-                "hash: " + hash.slice(0, 8) + "...",
-                this.textColor,
-                gtext
-            );
+            // // Index
+            // this.appendTextInBlock(
+            //     xTranslateText,
+            //     textIndex,
+            //     "index: " + block.index,
+            //     this.textColor,
+            //     gtext
+            // );
 
-            // Number of transactions
-            const body = DataBody.decode(block.payload);
-            const nbTransactions = body.txResults.length;
-            this.appendTextInBlock(
-                xTranslateText,
-                textIndex,
-                "#transactions: " + nbTransactions,
-                this.textColor,
-                gtext
-            );
+            // // Hash
+            // const hash = Utils.bytes2String(block.hash);
+            // this.appendTextInBlock(
+            //     xTranslateText,
+            //     textIndex,
+            //     "hash: " + hash.slice(0, 8) + "...",
+            //     this.textColor,
+            //     gtext
+            // );
 
-            const header = DataHeader.decode(block.data);
-            // console.log(">>>>>>>> timestamp:", header.timestamp.toNumber());
-            this.appendTextInBlock(
-                xTranslateText,
-                textIndex,
-                "T: " + header.timestamp.toString(),
-                this.textColor,
-                gtext
-            );
+            // // Number of transactions
+            // const body = DataBody.decode(block.payload);
+            // const nbTransactions = body.txResults.length;
+            // this.appendTextInBlock(
+            //     xTranslateText,
+            //     textIndex,
+            //     "#transactions: " + nbTransactions,
+            //     this.textColor,
+            //     gtext
+            // );
+
+            // const header = DataHeader.decode(block.data);
+            // // console.log(">>>>>>>> timestamp:", header.timestamp.toNumber());
+            // this.appendTextInBlock(
+            //     xTranslateText,
+            //     textIndex,
+            //     "T: " + header.timestamp.toString(),
+            //     this.textColor,
+            //     gtext
+            // );
         }
         this.newblocksSubject.next(listBlocks);
     }
@@ -613,16 +624,14 @@ export class Chain {
      * Helper for displayBlocks: appends a block to the blockchain and adds it to
      * the subscriber list.
      * @param xTranslate horizontal position where the block should be appended
-     * @param blockColor color of the blocks
      * @param block the block to append
      */
     private appendBlock(
         xTranslate: number,
-        blockColor: string,
         block: SkipBlock,
         svgBlocks: any
     ) {
-        const self = this;
+
         svgBlocks
             .append("rect")
             .attr("id", block.hash.toString("hex"))
@@ -630,7 +639,7 @@ export class Chain {
             .attr("height", this.blockHeight)
             .attr("x", xTranslate)
             .attr("y", 20)
-            .attr("fill", blockColor)
+            .attr("fill", Chain.getBlockColor(block))
             .on("click", () => {
                 this.blockClickedSubject.next(block);
             });
@@ -759,7 +768,10 @@ export class Chain {
     /**
      * Determine the color of the blocks.
      */
-    private getBlockColor(): string {
-        return this.blockColor;
+    static getBlockColor(block: SkipBlock): string {
+        const body = DataBody.decode(block.payload);
+        const nbTransactions = body.txResults.length;
+        const factor = 1 - nbTransactions*0.004;
+        return `rgb(${Chain.blockColor.r*factor}, ${Chain.blockColor.v*factor}, ${Chain.blockColor.b*factor})`
     }
 }

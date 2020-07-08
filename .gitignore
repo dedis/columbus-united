@@ -4,3 +4,4 @@ dist/
 docs/
 doc/
 src/roster.ts
+.DS_Store

@@ -5,6 +5,11 @@
 Implementation of an intuitive and insightful blockchain explorer - by Julien
 von Felten and Anthony Iozzia
 
+<div align="center">
+    <img src="docs/assets/home.png">
+</div>
+
+
 ## Ubuntu
 
 ### Setup
@@ -117,23 +122,3 @@ Use:
 ## Documentation
 
 Generate the documentation: `npm run doc`
-
-## screenshots
-
-### Screenshot of the content of the block index 4
-
-<div align="center">
-    <img src="img/Screen1.png">
-</div>
-
-### Screenshot of the loading screen of the research for the evolution of an instance
-
-<div align="center">
-    <img src="img/Screen2.png">
-</div>
-
-### Screen of the content of a block and the evolution of the researched instance with the ID 000[..]000
-
-<div align="center">
-    <img src="img/Screen3.png">
-</div>

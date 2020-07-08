@@ -7,6 +7,7 @@ import { throttleTime } from "rxjs/operators";
 
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
+import { Chain } from './chain';
 
 /**
  * Create the interface under the blockchain. It displays
@@ -25,7 +26,6 @@ export class Block {
     // Observable for the clicked block
     skipBclickedObs: Observable<SkipBlock>;
     clickedBlock: SkipBlock;
-    colorBlock: string;
     colorClickedBlock: string;
 
     // Observable that notifies the updated blocks of blocksDiagram
@@ -72,9 +72,9 @@ export class Block {
         this.skipBclickedObs.subscribe({
             next: this.listTransaction.bind(this),
         });
+
         this.clickedBlock = null;
-        this.colorBlock = "#4772D8"; // must be set differently when we will choose the colors
-        this.colorClickedBlock = "#0040D4"; // must be set differently when we will choose the colors
+        this.colorClickedBlock = "#6589BF";
 
         this.loadedSkipBObs = loadedSkipBObs;
 
@@ -122,7 +122,7 @@ export class Block {
                 const blockSVG = d3.select(
                     `[id = "${this.clickedBlock.hash.toString("hex")}"]`
                 );
-                blockSVG.attr("fill", this.colorBlock);
+                blockSVG.attr("fill", Chain.getBlockColor(this.clickedBlock));
             }
 
             this.clickedBlock = block;

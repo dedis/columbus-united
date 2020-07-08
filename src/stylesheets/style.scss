@@ -5,7 +5,6 @@ body {
     flex-direction: column;
     height: 100vh;
     overflow-y: hidden;
-    background-color: rgb(230, 230, 230)
 }
 
 div.block-infos {
@@ -15,21 +14,19 @@ div.block-infos {
     flex: 1;
     min-height: 200px;
     margin-bottom: 36px;
-    border: 1px solid rgb(100, 100, 100);
     margin-left: 10;
     margin-right: 10;
+    background-color: #CABEA8;
 }
 
 .block-detail-container {
     overflow-y: scroll;
-    background-color: rgb(199, 199, 199);
     padding: 8px;
     flex: 1;
 }
 
 .browse-container {
     overflow-y: scroll;
-    background-color: rgb(199, 199, 199);
     padding: 8px;
     flex: 1;
 }
@@ -39,7 +36,6 @@ div.block-infos {
         flex-direction: column;
     }
     div.block-detail-container {
-        border-bottom: solid 10px rgb(230, 230, 230);
         flex: none;
     }
     div.browse-container {
@@ -50,7 +46,6 @@ div.block-infos {
 #progress-bar-container {
     width: 80%;
     position: absolute;
-    background-color: rgb(199, 199, 199);
     top: 52%;
     left: 10%;
 }
@@ -112,8 +107,8 @@ div.block-infos {
 }
 
 .blocks-container {
-    border: 0px solid #000;
     margin-bottom: 10;
+    padding: 0 10px;
 }
 
 #svg-container {
@@ -232,49 +227,15 @@ div.block-infos {
 footer from status.dedis.ch
 */
 
-.theme--light.v-footer {
-    background: #f5f5f5;
-    color: rgba(0, 0, 0, .87);
-}
-
-.theme--dark.v-footer {
-    background: #212121;
-    color: #fff
-}
-
-.v-footer {
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-    align-items: center;
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-box-flex: 0!important;
-    -ms-flex: 0 1 auto!important;
-    flex: 0 1 auto!important;
-    min-height: 36px;
-    -webkit-transition: .2s cubic-bezier(.4, 0, .2, 1);
-    transition: .2s cubic-bezier(.4, 0, .2, 1)
-}
-
-.v-footer--absolute,
-.v-footer--fixed {
+footer {
     bottom: 0;
     left: 0;
     width: 100%;
-    z-index: 3
-}
-
-.v-footer--inset {
-    z-index: 2
-}
-
-.v-footer--absolute {
-    position: absolute
-}
-
-.v-footer--fixed {
+    z-index: 3;
     position: fixed;
+    padding: 5px;
+    font-size: 10px;
+    text-align: center;
 }
 
 
@@ -332,7 +293,12 @@ List of classes for the new transaction container
       display: flex;
       flex-direction: row;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
+      padding: 0 20px;
+
+      h1 {
+          color: #264473;
+      }
 
       #status-info {
         .info {
@@ -354,3 +320,18 @@ List of classes for the new transaction container
 
       }
   }
+
+.x-axis{
+
+    line{
+        stroke: #8C764A;
+    }
+
+    path{
+        stroke: #8C764A;
+    }
+    
+    text{
+        fill: #8C764A;
+    } 
+}
