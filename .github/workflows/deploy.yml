@@ -20,13 +20,14 @@ jobs:
         npm install
 
     - name: Build
-      run: npm run bundle
+      run: |
+        echo "${{secrets.ROSTER}}" > src/roster.ts
+        npm run bundle
     
     - name: Sync
       env:
         dest: 'jstech@${{secrets.DEPLOY_ADDR}}:/var/www/wookiee.ch/public_html/columbus'
       run: |
-        echo "${{secrets.ROSTER}}" > src/roster.ts
         echo "${{secrets.DEPLOY_KEY}}" > deploy_key
         chmod 600 ./deploy_key
         rsync -chav --delete \
