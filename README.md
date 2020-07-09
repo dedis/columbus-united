@@ -1,29 +1,29 @@
 # columbus-united
 
 ![Wookiee deployment](https://github.com/dedis/columbus-united/workflows/Wookiee%20deployment/badge.svg?branch=production)
-
 ![Prettier](https://github.com/dedis/columbus-united/workflows/Prettier/badge.svg)
 
-Implementation of an intuitive and insightful blockchain explorer - by Julien
-von Felten and Anthony Iozzia
+Implementation of an intuitive and insightful blockchain explorer. The Columbus project is a project aiming to facilitate the visualization of the [Byzcoin](https://github.com/dedis/cothority/tree/master/byzcoin) blockchain by providing a unified and interactive visualization tool.
+
+This tool is a web based application written in typescript, bundled with webpack, and using the d3 and rxjs librairies.
+
+Run with `npm install && npm bundle`
+
+[Play with it](https://wookiee.ch/columbus/)
 
 <div align="center">
     <img src="home.png">
 </div>
 
-# Deploy
+### Some useful commands
 
-A change on the production branch automatically triggers a deployment on
-[https://wookiee.ch/columbus](https://wookiee.ch/columbus)
+Bundle the project (from the root): `npm run bundle`  
+Watch for source code changes and automatically bundle: `npm run watch`  
+Check TypeScript code formatting: `npm run lint`  
+Check if the code is well formatted: `npm run isPretty`  
+Format the code: `npm run makePretty`  
 
-```bash
-# Trigger a deployment:
-git push origin master:production
-```
-
-## Ubuntu
-
-### Setup
+## Setup (ubuntu)
 
 Install nodejs and npm:
 
@@ -66,7 +66,7 @@ Download and extract the conode binary (`conode-v<x.y.z>.tar.gz`) from the
 Execute `./conode.Linux.x86_64 setup` in this folder. When prompted, enter the
 address `127.0.0.1:7770`, then finish the setup with your preferences.
 
-Start the server with: `./conode.Linux.x86_64 server`. You can stop it with
+Start the server with: `./conode.Linux.x86_64 -d 2 server`. You can stop it with
 <kbd>ctrl</kbd> + <kbd>C</kbd>.
 
 To use an existing database, replace it in `~/.local/share/conode` by keeping
@@ -74,16 +74,6 @@ the same name and reload your conode.
 
 Your can fetch your roster configuration with `cat
 ~/.config/conode/public.toml`.
-
-### Run
-
-Start server in conode folder: `./conode.Linux.x86_64 server`  
-To view debug messages: `./conode.Linux.x86_64 -d 2 server`  
-Compile in root of this project: `npm run bundle`  
-For automatic compilation upon changes: `npm run watch`  
-Check TypeScript code formatting: `npm run lint`  
-Check if the code is well formatted: `npm run isPretty`  
-Format the code: `npm run makePretty`  
 
 ## Recommendations for Visual Studio Code
 
@@ -130,6 +120,27 @@ Use:
 * Open Command Palette (`Ctrl+Shift+P`)
 * `Rewrap Comment / Text`
 
+## Production deployment
+
+A change on the production branch automatically triggers a deployment on
+[https://wookiee.ch/columbus](https://wookiee.ch/columbus)
+
+```bash
+# Trigger a deployment:
+git push origin master:production
+```
+
 ## Documentation
 
 Generate the documentation: `npm run doc`
+
+## Contributors
+
+Supervision and integration
+
+- Noémien Kocher
+
+Student project, spring 2020:
+
+- Anthony Iozzia
+- Julien von Felten 
