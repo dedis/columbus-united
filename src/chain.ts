@@ -395,7 +395,7 @@ export class Chain {
 
             const hashNextBlockLeft = Utils.getLeftBlockHash(lastBlockLeft);
 
-            setTimeout( () => {
+            setTimeout(() => {
                 self.getNextBlocks(
                     hashNextBlockLeft,
                     nbBlocksToLoad,
@@ -403,7 +403,7 @@ export class Chain {
                     self.subjectBrowse,
                     true
                 );
-            }, 2000)
+            }, 2000);
 
             return true;
         }
@@ -456,7 +456,7 @@ export class Chain {
                     this.blockWidth / 2,
                 transform.k
             );
-            setTimeout( () => {
+            setTimeout(() => {
                 self.getNextBlocks(
                     hashNextBlockRight,
                     self.pageSize,
@@ -464,7 +464,7 @@ export class Chain {
                     self.subjectBrowse,
                     false
                 );
-            }, 2000)
+            }, 2000);
 
             return true;
         }

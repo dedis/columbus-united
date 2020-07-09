@@ -1,5 +1,7 @@
 # columbus-united
 
+![Wookiee deployment](https://github.com/dedis/columbus-united/workflows/Wookiee%20deployment/badge.svg?branch=production)
+
 ![Prettier](https://github.com/dedis/columbus-united/workflows/Prettier/badge.svg)
 
 Implementation of an intuitive and insightful blockchain explorer - by Julien
@@ -9,6 +11,15 @@ von Felten and Anthony Iozzia
     <img src="home.png">
 </div>
 
+# Deploy
+
+A change on the production branch automatically triggers a deployment on
+[https://wookiee.ch/columbus](https://wookiee.ch/columbus)
+
+```bash
+# Trigger a deployment:
+git push origin master:production
+```
 
 ## Ubuntu
 
