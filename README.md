@@ -32,10 +32,10 @@ sudo apt-get install nodejs
 sudo apt-get install npm
 ```
 
-Rename `src/roster.ts.template` to `src/roster.ts` and replace the `<content>`
+Rename `src/roster.ts.template` to `src/roster.ts` and replace the return
 section with your roster configuration. You can connect to an existing conode
-runing from the DEDIS production blockchain, for example by connecting to the
-following node:
+runing the DEDIS production blockchain, for example by connecting to the
+following node (which is already configured by default in the template file):
 
 ```toml
 [[servers]]
