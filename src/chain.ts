@@ -202,24 +202,26 @@ export class Chain {
         subject.pipe(throttleTime(300)).subscribe({
             next: (transform: any) => {
                 if (!isLoadingLeft) {
+                    isLoadingLeft = true;
                     const isLoading = this.checkAndLoadLeft(
                         transform,
                         lastBlockLeft,
                         gloader
                     );
-                    if (isLoading) {
-                        isLoadingLeft = true;
+                    if (!isLoading) {
+                        isLoadingLeft = false;
                     }
                 }
 
                 if (!isLoadingRight) {
+                    isLoadingRight = true;
                     const isLoading = this.checkAndLoadRight(
                         transform,
                         lastBlockRight,
                         gloader
                     );
-                    if (isLoading) {
-                        isLoadingRight = true;
+                    if (!isLoading) {
+                        isLoadingRight = false;
                     }
                 }
             },
@@ -393,13 +395,15 @@ export class Chain {
 
             const hashNextBlockLeft = Utils.getLeftBlockHash(lastBlockLeft);
 
-            self.getNextBlocks(
-                hashNextBlockLeft,
-                nbBlocksToLoad,
-                self.nbPages,
-                self.subjectBrowse,
-                true
-            );
+            setTimeout( () => {
+                self.getNextBlocks(
+                    hashNextBlockLeft,
+                    nbBlocksToLoad,
+                    self.nbPages,
+                    self.subjectBrowse,
+                    true
+                );
+            }, 2000)
 
             return true;
         }
@@ -452,13 +456,15 @@ export class Chain {
                     this.blockWidth / 2,
                 transform.k
             );
-            self.getNextBlocks(
-                hashNextBlockRight,
-                self.pageSize,
-                self.nbPages,
-                self.subjectBrowse,
-                false
-            );
+            setTimeout( () => {
+                self.getNextBlocks(
+                    hashNextBlockRight,
+                    self.pageSize,
+                    self.nbPages,
+                    self.subjectBrowse,
+                    false
+                );
+            }, 2000)
 
             return true;
         }
