@@ -7,7 +7,12 @@ Implementation of an intuitive and insightful blockchain explorer. The Columbus 
 
 This tool is a web based application written in typescript, bundled with webpack, and using the d3 and rxjs librairies.
 
-Run with `npm install && npm bundle`
+👌 **Quick TL;DR setup**:
+
+1) Rename `src/roster.ts.template` to `src/roster.ts`
+2) Install dependencies with `npm install`
+3) Bundle the app with `npm run bundle`
+4) You are ready to go, open `index.html`
 
 [Play with it](https://wookiee.ch/columbus/)
 
@@ -58,7 +63,13 @@ a local roster configuration.
 
 Finally, install dependencies with `npm install`.  
 
+You are ready to use the app: bundle it with `npm run bundle` and open
+`index.html`.
+
 #### If you need to run a local blockchain
+
+If you are developping on Columbus you will need to use a local blockchain in
+order to avoid over-loading a node running the production blockchain.
 
 Download and extract the conode binary (`conode-v<x.y.z>.tar.gz`) from the
 [cothority releases](https://github.com/dedis/cothority/releases).
@@ -120,10 +131,21 @@ Use:
 * Open Command Palette (`Ctrl+Shift+P`)
 * `Rewrap Comment / Text`
 
+## Stack
+
+- Typescript, as the frontend language
+- NPM, as the package manager
+- Webpack, as the bundler
+- d3, as the visualization library
+- RxJS, as the reactive programming library
+- UIkit, as the CSS framework
+
 ## Production deployment
 
 A change on the production branch automatically triggers a deployment on
-[https://wookiee.ch/columbus](https://wookiee.ch/columbus)
+[https://wookiee.ch/columbus](https://wookiee.ch/columbus).
+
+The production branch must only be used that way:
 
 ```bash
 # Trigger a deployment:
@@ -142,5 +164,5 @@ Supervision and integration
 
 Student project, spring 2020:
 
-- Anthony Iozzia
-- Julien von Felten 
+- Anthony Iozzia ([report](https://www.epfl.ch/labs/dedis/wp-content/uploads/2020/06/report-2020-1-Anthony-Iozzia-Columbus-II.pdf))
+- Julien von Felten ([report](https://www.epfl.ch/labs/dedis/wp-content/uploads/2020/06/report-2020-1-Julien-von-Felten-Columbus-I.pdf))
