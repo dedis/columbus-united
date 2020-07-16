@@ -83,6 +83,10 @@ Start the server with: `./conode.Linux.x86_64 -d 2 server`. You can stop it with
 To use an existing database, replace it in `~/.local/share/conode` by keeping
 the same name and reload your conode. 
 
+You can download a cached database reflecting the production data at
+[https://demo.c4dt.org/omniledger/cached.db](https://demo.c4dt.org/omniledger/cached.db).
+This is the database that should replace the one in `~/.local/share/conode`.
+
 Your can fetch your roster configuration with `cat
 ~/.config/conode/public.toml`.
 
