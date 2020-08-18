@@ -5,7 +5,7 @@ import {
     PaginateResponse,
 } from "@dedis/cothority/byzcoin/proto/stream";
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
-import { WebSocketConnection } from "@dedis/cothority/network/connection";
+import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { Subject } from "rxjs";
 

@@ -5,11 +5,11 @@ import {
     PaginateResponse,
 } from "@dedis/cothority/byzcoin/proto/stream";
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
-import { WebSocketConnection } from "@dedis/cothority/network/connection";
+import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
-import { Subject } from "rxjs";
-import { throttleTime } from "rxjs/operators";
+import { merge, Subject } from "rxjs";
+import { buffer, throttleTime } from "rxjs/operators";
 
 import { Flash } from "./flash";
 import { Utils } from "./utils";
@@ -168,7 +168,8 @@ export class Chain {
                 xAxis.scale(xScaleNew);
                 xAxisDraw.call(xAxis);
 
-                // Horizontal only transformation on the blocks (sets scale Y to 1)
+                // Horizontal only transformation on the blocks (sets scale Y to
+                // 1)
                 const transformString =
                     "translate(" +
                     transform.x +
@@ -188,8 +189,8 @@ export class Chain {
                         .attr("font-size", 1 + transform.k + "em");
                 }
 
-                // Update the loader. We want to keep them at their original scale so we
-                // only translate them
+                // Update the loader. We want to keep them at their original
+                // scale so we only translate them
                 gloader.attr("transform", transform);
                 // resize the loaders to always have a relative scale of 1
                 gloader
@@ -229,7 +230,6 @@ export class Chain {
 
         // Subscriber to the blockchain server
         this.subjectBrowse.subscribe({
-            // i is the page number
             complete: () => {
                 this.flash.display(
                     Flash.flashType.INFO,
