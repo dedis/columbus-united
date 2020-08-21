@@ -1,7 +1,13 @@
 # columbus-united
 
-![Wookiee deployment](https://github.com/dedis/columbus-united/workflows/Wookiee%20deployment/badge.svg?branch=production)
-![Prettier](https://github.com/dedis/columbus-united/workflows/Prettier/badge.svg)
+<div align="center">
+    <img src="assets/logo color small.png">
+</div>
+
+<div align="center">
+  <img src="https://github.com/dedis/columbus-united/workflows/Wookiee%20deployment/badge.svg?branch=production">
+  <img src="https://github.com/dedis/columbus-united/workflows/Prettier/badge.svg">
+</div>
 
 Implementation of an intuitive and insightful blockchain explorer. The Columbus project is a project aiming to facilitate the visualization of the [Byzcoin](https://github.com/dedis/cothority/tree/master/byzcoin) blockchain by providing a unified and interactive visualization tool.
 
@@ -17,7 +23,7 @@ This tool is a web based application written in typescript, bundled with webpack
 [Play with it](https://wookiee.ch/columbus/)
 
 <div align="center">
-    <img src="home.png">
+    <img src="assets/home.png">
 </div>
 
 ### Some useful commands
