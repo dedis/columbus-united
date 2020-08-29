@@ -1,23 +1,19 @@
-import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
-import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
-import {
-    PaginateRequest,
-    PaginateResponse,
-} from "@dedis/cothority/byzcoin/proto/stream";
-import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
-import { WebSocketConnection } from "@dedis/cothority/network";
-import { SkipBlock } from "@dedis/cothority/skipchain";
-import * as d3 from "d3";
-import { merge, Subject } from "rxjs";
-import { buffer, throttleTime } from "rxjs/operators";
+import { ByzCoinRPC } from '@dedis/cothority/byzcoin';
+import { DataBody } from '@dedis/cothority/byzcoin/proto';
+import { PaginateRequest, PaginateResponse } from '@dedis/cothority/byzcoin/proto/stream';
+import { Roster, WebSocketAdapter, WebSocketConnection } from '@dedis/cothority/network';
+import { SkipBlock } from '@dedis/cothority/skipchain';
+import * as d3 from 'd3';
+import { merge, Subject } from 'rxjs';
+import { count, filter, repeat, takeWhile, throttleTime } from 'rxjs/operators';
 
-import { Flash } from "./flash";
-import { Utils } from "./utils";
+import { Flash } from './flash';
+import { Utils } from './utils';
 
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
     // find the palet of colors.
-    static readonly blockColor = { r: 217, v: 186, b: 130 }; // #D9BA82
+    static readonly blockColor = { r: 217, v: 186, b: 130 }; // #D9BA82 //TODO Find nicer color palette
 
     /**
      * Determine the color of the blocks.
@@ -40,8 +36,8 @@ export class Chain {
     readonly unitBlockAndPaddingWidth = this.blockPadding + this.blockWidth;
 
     // Recomended pageSize / nbPages: 80 / 50
-    readonly pageSize = 50;
-    readonly nbPages = 1;
+    readonly pageSize = 20;
+    readonly nbPages = 1; //FIXME Only works for 1 page. Overflow not verified if multiple pages...
 
     readonly textColor = "black";
     readonly loadedInfo = document.getElementById("loaded-blocks");
@@ -85,6 +81,7 @@ export class Chain {
 
         let lastBlockLeft = initialBlock;
         let lastBlockRight = initialBlock;
+        let transformCounter = 0;
 
         // to keep track of current requested operations. If we are already loading
         // blocks on the left, then we shouldn't make another same request. Note
@@ -113,12 +110,20 @@ export class Chain {
         // user
         const subject = new Subject();
 
+        //ASSIGNMENT 3 : Observable notified each time any subject is notified
+        const notifications = merge(
+            subject,
+            this.newblocksSubject,
+            this.blockClickedSubject,
+            this.subjectBrowse
+        );
+        notifications.subscribe((x) => console.log("Subject updated"));
+
         // the number of block the window can display at normal scale. Used to
         // define the domain the xScale
         const numblocks = this.svgWidth / (this.blockWidth + this.blockPadding);
 
         let lastTransform = { x: 0, y: 0, k: 1 };
-
         // the xScale displays the block index and allows the user to quickly see
         // where he is in the chain
         const xScale = d3
@@ -151,9 +156,22 @@ export class Chain {
             });
         svg.call(zoom);
 
+        ///ASSIGNEMNT 3 : counting number of transforms during loading
+
+        const transformWhileLoading = subject.pipe(
+            takeWhile((x) => isLoadingLeft || isLoadingRight),
+            count(),
+            repeat(),
+            filter((x) => x != 0)
+        );
+        transformWhileLoading.subscribe((x) =>
+            console.log("Times updated while loading " + x)
+        );
+
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
         // zommed in-out by the user.
+
         subject.subscribe({
             next: (transform: any) => {
                 lastTransform = transform;
@@ -170,13 +188,16 @@ export class Chain {
 
                 // Horizontal only transformation on the blocks (sets scale Y to
                 // 1)
+                //ASSIGNMENT 1
                 const transformString =
                     "translate(" +
                     transform.x +
                     "," +
                     "0) scale(" +
                     transform.k +
-                    ",1)";
+                    "," +
+                    transform.k +
+                    ")";
                 gblocks.attr("transform", transformString);
 
                 // Standard transformation on the text since we need to keep the
@@ -196,10 +217,26 @@ export class Chain {
                 gloader
                     .selectAll("svg")
                     .attr("transform", `scale(${1 / transform.k})`);
+
+                //ASSIGNMENT 3 : counting number of transform while loading (), witness testing
+                //TODO : Determine wether this version or the other one is the correct one
+                if (isLoadingLeft || isLoadingRight) {
+                    transformCounter++;
+                } else {
+                    if (transformCounter != 0) {
+                        console.log(
+                            "Number of transform during update : " +
+                                transformCounter
+                        );
+                    }
+                    transformCounter = 0;
+                }
             },
         });
 
-        // Handler to check if new blocks need to be leaded. We check every 300ms.
+        // Handler to check if new blocks need to be loaded. We check every 300ms.
+        //TODO Lower timer
+        //REVIEW Seems really cumbersome...
         subject.pipe(throttleTime(300)).subscribe({
             next: (transform: any) => {
                 if (!isLoadingLeft) {
@@ -240,7 +277,7 @@ export class Chain {
                 if (err === 1) {
                     // To reset the websocket, create a new handler for the next function
                     // (of getnextblock)
-                    this.ws = undefined;
+                    this.ws = undefined; //REVIEW Is it still WIP ?
                 } else {
                     this.flash.display(Flash.flashType.ERROR, `Error: ${err}`);
                 }
@@ -248,10 +285,12 @@ export class Chain {
                 isLoadingRight = false;
             },
             next: ([i, skipBlocks, backward]) => {
+                //REVIEW where is all this coming from
                 // i is the page number
                 let isLastPage = false;
                 // tslint:disable-next-line
                 if (i == this.nbPages - 1) {
+                    //FIXME Something ain't right here... nb page is init at 1...
                     isLastPage = true;
                 }
 
@@ -259,6 +298,7 @@ export class Chain {
                 this.loadedInfo.innerText = `${this.totalLoaded}`;
 
                 // If this is the first series of blocks, set the hash of the left first block
+                //FIXME Cumbersome init...
                 const firstBlock = skipBlocks[0];
                 if (firstBlock.index === this.initialBlockIndex) {
                     lastBlockLeft = firstBlock;
@@ -352,7 +392,7 @@ export class Chain {
     ): boolean {
         const self = this;
 
-        // x represents to x-axis translation of the caneva. If the block width
+        // x represents the x-axis translation of the caneva. If the block width
         // is 100 and x = -100, then it means the user dragged one block from
         // the initial block on the left.
         const x = -transform.x;
@@ -403,7 +443,7 @@ export class Chain {
                     self.subjectBrowse,
                     true
                 );
-            }, 2000);
+            }, 2000); //FIXME reduce me
 
             return true;
         }
@@ -464,7 +504,7 @@ export class Chain {
                     self.subjectBrowse,
                     false
                 );
-            }, 2000);
+            }, 2000); //FIXME Reduce loading time
 
             return true;
         }
