@@ -9,9 +9,10 @@ import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { merge, Subject } from "rxjs";
-import { buffer, throttleTime } from "rxjs/operators";
+import { buffer, last, map, takeLast, throttleTime,count, tap, mapTo,flatMap } from "rxjs/operators";
 
 import { Flash } from "./flash";
+import { TotalBlock } from './totalBlock';
 import { Utils } from "./utils";
 
 export class Chain {
@@ -33,8 +34,8 @@ export class Chain {
 
     readonly blockPadding = 10;
     readonly textMargin = 5;
-    readonly blockHeight = 200;
-    readonly blockWidth = 200;
+    readonly blockHeight = 300; //twas 200
+    readonly blockWidth = 300;
     readonly svgWidth = window.innerWidth;
     readonly svgHeight = 200;
     readonly unitBlockAndPaddingWidth = this.blockPadding + this.blockWidth;
@@ -65,14 +66,18 @@ export class Chain {
     // view.
     newblocksSubject = new Subject<SkipBlock[]>();
 
+    lastSubject = new Subject<SkipBlock>();
+
     // Flash is a utiliy class to display flash messages in the view.
     flash: Flash;
+
 
     // initialBlockIndex is the initial block index, which is used to compute the
     // number of blocks loaded to the left and to the right.
     initialBlockIndex: number;
 
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
+      
         const self = this;
 
         // Blockchain properties
@@ -86,11 +91,18 @@ export class Chain {
         let lastBlockLeft = initialBlock;
         let lastBlockRight = initialBlock;
 
+    
+
         // to keep track of current requested operations. If we are already loading
         // blocks on the left, then we shouldn't make another same request. Note
         // that this is a very poor exclusion mechanism.
         let isLoadingLeft = false;
         let isLoadingRight = false;
+
+        //Main SVG caneva that contains the last added block
+        const last = d3
+        .select("#last-container")
+        .attr("height", this.blockHeight);
 
         // Main SVG caneva that contains the chain
         const svg = d3
@@ -321,7 +333,16 @@ export class Chain {
                 }
             },
         });
+
+        //create 
+
+        let lastBlock = new TotalBlock(this.roster, initialBlock);
+        lastBlock.getTotalBlock().pipe(map((s:SkipBlock) => this.displayLast(s,last,s.hash))).subscribe();
+         
     }
+
+
+
 
     /**
      * Load the initial blocks.
@@ -334,7 +355,37 @@ export class Chain {
             this.subjectBrowse,
             false
         );
+        
+    
     }
+      /**
+     * Display the last added block of the chain 
+     * @param last the last added block of the blockchain
+     * @param svgLast the svg container that should welcome the block
+     * @param hashLast the hash of the last added block
+     */
+    private displayLast(
+        last: SkipBlock,
+        svgLast: any,
+        hashLast: Buffer
+
+    ) {
+        svgLast
+        .append("rect")
+        .attr("id", hashLast.toString("hex"))
+        .attr("width", this.blockWidth)
+        .attr("height", this.blockHeight)
+        .attr("x", 0)
+        .attr("y", 20)
+        .attr("fill", Chain.getBlockColor(last))
+        .on("click", () => {
+            this.blockClickedSubject.next(last);
+        });
+        
+    
+    }
+    
+    
 
     /**
      * Check if new blocks need to be loaded to the left and load them if
@@ -545,7 +596,8 @@ export class Chain {
          </rect>
       `);
     }
-
+   
+    
     /**
      * Append the given blocks to the blockchain.
      * @param listBlocks list of blocks to append
@@ -583,56 +635,11 @@ export class Chain {
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
 
-            // Displaying text has a lot of impact on performances. We need to
-            // think either how to optimze it or drop the display of text on
-            // each block. For now we drop it.
-
-            // // Box the text index in an object to pass it by reference
-            // const textIndex = { index: 0 };
-
-            // // Index
-            // this.appendTextInBlock(
-            //     xTranslateText,
-            //     textIndex,
-            //     "index: " + block.index,
-            //     this.textColor,
-            //     gtext
-            // );
-
-            // // Hash
-            // const hash = Utils.bytes2String(block.hash);
-            // this.appendTextInBlock(
-            //     xTranslateText,
-            //     textIndex,
-            //     "hash: " + hash.slice(0, 8) + "...",
-            //     this.textColor,
-            //     gtext
-            // );
-
-            // // Number of transactions
-            // const body = DataBody.decode(block.payload);
-            // const nbTransactions = body.txResults.length;
-            // this.appendTextInBlock(
-            //     xTranslateText,
-            //     textIndex,
-            //     "#transactions: " + nbTransactions,
-            //     this.textColor,
-            //     gtext
-            // );
-
-            // const header = DataHeader.decode(block.data);
-            // // console.log(">>>>>>>> timestamp:", header.timestamp.toNumber());
-            // this.appendTextInBlock(
-            //     xTranslateText,
-            //     textIndex,
-            //     "T: " + header.timestamp.toString(),
-            //     this.textColor,
-            //     gtext
-            // );
         }
+        
         this.newblocksSubject.next(listBlocks);
     }
-
+    
     /**
      * Helper for displayBlocks: appends a block to the blockchain and adds it to
      * the subscriber list.
