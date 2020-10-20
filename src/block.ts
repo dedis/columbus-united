@@ -74,7 +74,7 @@ export class Block {
         });
 
         this.clickedBlock = null;
-        this.colorClickedBlock = "#6589BF";
+        this.colorClickedBlock = "#006fff";
 
         this.loadedSkipBObs = loadedSkipBObs;
 
@@ -132,25 +132,34 @@ export class Block {
             );
         }
         const self = this;
-        const transactionContainer = d3.select(".block-detail-container");
-        transactionContainer
-            .attr("id", "transactionContainer")
+        //This is the field that appears just below the skipchain when clicking a block !
+        const block_detail_container = d3.select(".block-detail-container");
+        const transaction_detail_container = d3.select(".browse-container")
+        block_detail_container
+            .attr("id", "block_detail_container")
             .text("")
             .append("p")
             .text(`Block ${block.index}, Hash: ${block.hash.toString("hex")}`);
+        
 
-        const ulTransaction = transactionContainer.append("ul");
+
+
+
+        const ulTransaction = transaction_detail_container.append("ul");
         ulTransaction.attr("uk-accordion", "");
+        ulTransaction.attr("background-color = #006fff");
         ulTransaction.attr("multiple", "true");
         ulTransaction.attr("class", "clickable-detail-block");
         const body = DataBody.decode(block.payload);
 
+        //TODO Add a title to this section and put it on the right side
         // transactions of the block
         body.txResults.forEach((transaction, i) => {
             const accepted: string = transaction.accepted
                 ? "Accepted"
                 : "Not accepted";
             const liTransaction = ulTransaction.append("li");
+            liTransaction.attr("id", "detail-window");
             liTransaction.attr("class", "uk-open");
             const aTransaction = liTransaction.append("a");
             let totalInstruction = 0;
@@ -165,8 +174,10 @@ export class Block {
                 .attr("class", "uk-accordion-title")
                 .attr("href", "#")
                 .html(
-                    `<b>Transaction</b> ${i} ${accepted}, show ${totalInstruction} instruction${s}:`
+                    `<b>Transaction ${i}</b> ${accepted}, show ${totalInstruction} instruction${s}:`
                 );
+
+
             const divTransaction = liTransaction.append("div");
             divTransaction.attr("class", "uk-accordion-content");
 
@@ -181,6 +192,8 @@ export class Block {
                     const aInstruction = liInstruction.append("a");
                     aInstruction
                         .attr("class", "uk-accordion-title")
+                        .attr("id", "block-detail-field")
+
                         .attr("href", "#");
 
                     if (instruction.type === Instruction.typeSpawn) {
@@ -224,6 +237,7 @@ export class Block {
                         const aArgs = liArgs.append("a");
                         aArgs
                             .attr("class", "uk-accordion-title")
+
                             .attr("href", "#");
                         aArgs.text(`${i}: ${arg.name}`);
                         const divArgs = liArgs.append("div");
@@ -287,13 +301,21 @@ export class Block {
                 }
             );
         });
+
+
+        const ulBlockDetail = block_detail_container.append("ul");
+        ulBlockDetail.attr("uk-accordion", "");
+        ulBlockDetail.attr("background-color", "#006fff");
+        ulBlockDetail.attr("multiple", "true");
+        ulBlockDetail.attr("class", "clickable-detail-block");
+
         // Details of the blocks (Verifier, backlinks, forwardlinks)
-        const liDetails = ulTransaction.append("li");
+        const liDetails = ulBlockDetail.append("li");
         liDetails.attr("class", "uk-open");
+        liDetails.attr("id", "detail-window")
         const aDetails = liDetails.append("a");
         aDetails
-            .attr("class", "uk-accordion-title")
-            .attr("href", "#")
+            .attr("class", "uk-card uk-card-small")
             .html("<b>Block details</b>");
 
         const divDetails = liDetails.append("div");
@@ -306,6 +328,7 @@ export class Block {
         const aVerifier = liVerifier.append("a");
         aVerifier
             .attr("class", "uk-accordion-title")
+            .attr("id", "block-detail-field")
             .attr("href", "#")
             .text(`Verifiers: ${block.verifiers.length}`);
         const divVerifier = liVerifier.append("div");
@@ -323,6 +346,7 @@ export class Block {
         const aBackLink = liBackLink.append("a");
         aBackLink
             .attr("class", "uk-accordion-title")
+            .attr("id", "block-detail-field")
             .attr("href", "#")
             .text(`BackLinks: ${block.backlinks.length}`);
         const divBackLink = liBackLink.append("div");
@@ -340,6 +364,8 @@ export class Block {
         const aForwardLink = liForwardLink.append("a");
         aForwardLink
             .attr("class", "uk-accordion-title")
+            .attr("id", "block-detail-field")
+
             .attr("href", "#")
             .text(`ForwardLinks: ${block.forwardLinks.length}`);
         const divForwardLink = liForwardLink.append("div");

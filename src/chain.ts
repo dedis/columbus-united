@@ -13,7 +13,7 @@ import { Utils } from './utils';
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
     // find the palet of colors.
-    static readonly blockColor = { r: 217, v: 186, b: 130 }; // #D9BA82 //TODO Find nicer color palette
+    static readonly blockColor = { r: 23, v: 73, b: 179 }; // #D9BA82 //TODO Find nicer color palette
 
     /**
      * Determine the color of the blocks.
@@ -237,7 +237,7 @@ export class Chain {
         // Handler to check if new blocks need to be loaded. We check every 300ms.
         //TODO Lower timer
         //REVIEW Seems really cumbersome...
-        subject.pipe(throttleTime(300)).subscribe({
+        subject.pipe(throttleTime(200)).subscribe({
             next: (transform: any) => {
                 if (!isLoadingLeft) {
                     isLoadingLeft = true;
@@ -443,7 +443,7 @@ export class Chain {
                     self.subjectBrowse,
                     true
                 );
-            }, 2000); //FIXME reduce me
+            }, 250); //FIXME reduce me
 
             return true;
         }
@@ -504,7 +504,7 @@ export class Chain {
                     self.subjectBrowse,
                     false
                 );
-            }, 2000); //FIXME Reduce loading time
+            }, 250); //FIXME Reduce loading time
 
             return true;
         }
