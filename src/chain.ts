@@ -34,8 +34,10 @@ export class Chain {
 
     readonly blockPadding = 10;
     readonly textMargin = 5;
-    readonly blockHeight = 200; //twas 200
-    readonly blockWidth = 200;
+    readonly blockHeight = 50; 
+    readonly blockWidth = 100;
+    readonly lastHeight = 200; 
+    readonly lastWidth = 200;
     readonly svgWidth = window.innerWidth;
     readonly svgHeight = 200;
     readonly unitBlockAndPaddingWidth = this.blockPadding + this.blockWidth;
@@ -102,7 +104,7 @@ export class Chain {
         //Main SVG caneva that contains the last added block
         const last = d3
         .select("#last-container")
-        .attr("height", this.blockHeight)
+        .attr("height", this.svgHeight);
         
 
         
@@ -112,7 +114,7 @@ export class Chain {
         // Main SVG caneva that contains the chain
         const svg = d3
             .select("#svg-container")
-            .attr("height", this.blockHeight);
+            .attr("height", this.svgHeight);
 
         // this group will contain the blocks
         const gblocks = svg.append("g").attr("class", "gblocks");
@@ -378,8 +380,8 @@ export class Chain {
         svgLast
         .append("rect")
         .attr("id", hashLast.toString("hex"))
-        .attr("width", this.blockWidth)
-        .attr("height", this.blockHeight)
+        .attr("width", this.lastWidth)
+        .attr("height", this.lastHeight)
         .attr("x", 20)
         .attr("y",20 )
         .attr("fill", Chain.getBlockColor(last))
@@ -656,7 +658,7 @@ export class Chain {
             .append("rect")
             .attr("id", block.hash.toString("hex"))
             .attr("width", this.blockWidth)
-            .attr("height", this.blockHeight)
+            .attr("height",this.blockHeight+((block.height)*30))
             .attr("x", xTranslate)
             .attr("y", 20)
             .attr("fill", Chain.getBlockColor(block))
