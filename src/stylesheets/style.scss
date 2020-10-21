@@ -120,8 +120,6 @@ div.block-infos {
     background-color: #ffffff;
 }
 
-
-
 .description {
     width: 30%;
     left: 50% !important;
@@ -239,26 +237,43 @@ footer {
 List of classes for the new transaction container
 */
 
-#detail-window {
-    outline: 2px solid #0004e2;
+
+#block-detail-container{
+    outline:  2px solid  #006fff;
 }
 
-#block-detail-field {
-    font-family: "Space Mono",monospace;
+
+// #block-detail-field {
+//     font-family: "Space Mono", monospace;
+//     color: #ffffff;
+// }
+.uk-accordion > .uk-open {
+    background-color: #006fff;
+    font-family: "Space Mono", monospace;
+}
+
+.uk-accordion-title:focus{
     color: #ffffff;
-}
-#detail-window > .uk-accordion-content > .uk-accordion > .uk-open {
-    background-color: #006fff;
-    color : #ffffff;
-    font-family: "Space Mono",monospace;
-}
-#detail-window > .uk-accordion-content > .uk-accordion{
-    color : #ffffff;
-    font-family: "Space Mono",monospace;
-    background-color: #006fff;
 
 }
 
+.uk-accordion {
+    color: #ffffff;
+    font-family: "Space Mono", monospace;
+    background-color: #006fff;
+    padding: 8px;
+}
+
+.uk-accordion * {
+    color: #ffffff;
+    font-family: "Space Mono", monospace;
+
+}
+
+
+.uk-accordion-content > p {
+    margin-left: 10px;
+}
 
 .active {
     background-color: rgb(255, 255, 255);
@@ -270,7 +285,6 @@ List of classes for the new transaction container
 }
 
 .browse-container p {
-    color: black;
     font-size: 17px;
 }
 

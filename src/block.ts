@@ -134,22 +134,138 @@ export class Block {
         const self = this;
         //This is the field that appears just below the skipchain when clicking a block !
         const block_detail_container = d3.select(".block-detail-container");
-        const transaction_detail_container = d3.select(".browse-container")
+
         block_detail_container
             .attr("id", "block_detail_container")
             .text("")
-            .append("p")
-            .text(`Block ${block.index}, Hash: ${block.hash.toString("hex")}`);
-        
+            .append("p");
 
+        const transaction_detail_container = d3.select(".browse-container");
+        transaction_detail_container
+            .attr("id", "block_detail_container")
+            .text("")
+            .append("p");
 
+        //Big wrapper for all of the Block details
+        const ulBlockDetail = block_detail_container.append("ul");
+        //ulBlockDetail.attr("uk-accordion", "");
+        ulBlockDetail.attr("background-color", "#006fff");
+        ulBlockDetail.attr("multiple", "true");
+        ulBlockDetail.attr("class", "clickable-detail-block");
 
+        // Details of the blocks (Verifier, backlinks, forwardlinks)
+
+        const blockCard = ulBlockDetail.append("div");
+        blockCard
+            .attr("class", "uk-card uk-card-default")
+            .attr("id", "detail-window");
+        const blockCardHeader = blockCard.append("div");
+        blockCardHeader.attr("class", "uk-card-header  uk-padding-small");
+
+        const blockCardHeaderTitle = blockCardHeader.append("h3");
+        blockCardHeaderTitle
+            .style("font-weight", "700")
+            .attr("margin-top", "5px")
+            .text(`Block ${block.index}`)
+            .style("color", "#666");
+        const blockCardHeaderHash = blockCardHeader.append("p");
+        blockCardHeaderHash.text(`Hash: ${block.hash.toString("hex")}`);
+
+        const blockCardBody = blockCard.append("div");
+        blockCardBody.attr("class", "uk-card-body uk-padding-small");
+
+        const blockCardBodyTitle = blockCardBody.append("h3");
+        blockCardBodyTitle
+            .text("Block details")
+            .style("font-weight", "700")
+            .style("color", "#666")
+            .style("font-size", "1.3em");
+
+        const divDetails = blockCardBody.append("div");
+        divDetails.attr("class", "uk-accordion-content");
+
+        // Verifier details
+        const ulVerifier = divDetails.append("ul");
+        ulVerifier.attr("uk-accordion", "");
+        const liVerifier = ulVerifier.append("li");
+        const aVerifier = liVerifier.append("a");
+        aVerifier
+            .attr("class", "uk-accordion-title")
+            .attr("id", "block-detail-field")
+            .attr("href", "#")
+            .text(`Verifiers: ${block.verifiers.length}`);
+        const divVerifier = liVerifier.append("div");
+        divVerifier.attr("class", "uk-accordion-content");
+        block.verifiers.forEach((uid, j) => {
+            divVerifier
+                .append("p")
+                .text(` Verifier: ${j} , ID: ${uid.toString("hex")}`);
+        });
+
+        // BackLink details
+        const ulBackLink = divDetails.append("ul");
+        ulBackLink.attr("uk-accordion", "");
+        const liBackLink = ulBackLink.append("li");
+        const aBackLink = liBackLink.append("a");
+        aBackLink
+            .attr("class", "uk-accordion-title")
+            .attr("id", "block-detail-field")
+            .attr("href", "#")
+            .text(`BackLinks: ${block.backlinks.length}`);
+        const divBackLink = liBackLink.append("div");
+        divBackLink.attr("class", "uk-accordion-content");
+        block.backlinks.forEach((value, j) => {
+            divBackLink
+                .append("p")
+                .text(`Backlink: ${j}, Value: ${value.toString("hex")}`);
+        });
+
+        // ForwardLink
+        const ulForwardLink = divDetails.append("ul");
+        ulForwardLink.attr("uk-accordion", "");
+        const liForwardLink = ulForwardLink.append("li");
+        const aForwardLink = liForwardLink.append("a");
+        aForwardLink
+            .attr("class", "uk-accordion-title")
+            .attr("id", "block-detail-field")
+
+            .attr("href", "#")
+            .text(`ForwardLinks: ${block.forwardLinks.length}`);
+        const divForwardLink = liForwardLink.append("div");
+        divForwardLink.attr("class", "uk-accordion-content");
+        block.forwardLinks.forEach((fl, j) => {
+            divForwardLink.append("p").text(`To: ${fl.to.toString("hex")}`);
+            divForwardLink
+                .append("p")
+                .text(`Hash: ${fl.hash().toString("hex")}`);
+            divForwardLink
+                .append("p")
+                .text(`signature: ${fl.signature.sig.toString("hex")}`);
+        });
 
         const ulTransaction = transaction_detail_container.append("ul");
-        ulTransaction.attr("uk-accordion", "");
-        ulTransaction.attr("background-color = #006fff");
-        ulTransaction.attr("multiple", "true");
-        ulTransaction.attr("class", "clickable-detail-block");
+
+        const transactionCard = ulTransaction.append("div");
+        transactionCard
+            .attr("class", "uk-card uk-card-default")
+            .attr("id", "detail-window");
+
+        const transactionCardHeader = transactionCard.append("div");
+        transactionCardHeader.attr("class", "uk-card-header uk-padding-small");
+        const transactionCardHeaderTitle = transactionCardHeader.append("h3");
+        transactionCardHeaderTitle
+            .style("font-weight", "700")
+            .attr("margin-top", "5px")
+            .text(`Transaction details`)
+            .style("color", "#666");
+
+        const transactionCardBody = transactionCard.append("div");
+        transactionCardBody.attr("class", "uk-card-body uk-padding-small");
+
+        // ulTransaction.attr("uk-accordion", "");
+        // ulTransaction.attr("background-color = #006fff");
+        // ulTransaction.attr("multiple", "true");
+        // ulTransaction.attr("class", "clickable-detail-block");
         const body = DataBody.decode(block.payload);
 
         //TODO Add a title to this section and put it on the right side
@@ -158,10 +274,10 @@ export class Block {
             const accepted: string = transaction.accepted
                 ? "Accepted"
                 : "Not accepted";
-            const liTransaction = ulTransaction.append("li");
+            const liTransaction = transactionCardBody.append("ul");
             liTransaction.attr("id", "detail-window");
             liTransaction.attr("class", "uk-open");
-            const aTransaction = liTransaction.append("a");
+            const transactionTitle = liTransaction.append("h3");
             let totalInstruction = 0;
             transaction.clientTransaction.instructions.forEach((_, __) => {
                 totalInstruction++;
@@ -170,13 +286,13 @@ export class Block {
             if (totalInstruction > 2) {
                 s = "s";
             }
-            aTransaction
-                .attr("class", "uk-accordion-title")
-                .attr("href", "#")
+            transactionTitle
                 .html(
                     `<b>Transaction ${i}</b> ${accepted}, show ${totalInstruction} instruction${s}:`
-                );
-
+                )
+                .style("font", "Monospace")
+                .style("color", "#666")
+                .style("font-size", "1.3em");
 
             const divTransaction = liTransaction.append("div");
             divTransaction.attr("class", "uk-accordion-content");
@@ -300,84 +416,6 @@ export class Block {
                         });
                 }
             );
-        });
-
-
-        const ulBlockDetail = block_detail_container.append("ul");
-        ulBlockDetail.attr("uk-accordion", "");
-        ulBlockDetail.attr("background-color", "#006fff");
-        ulBlockDetail.attr("multiple", "true");
-        ulBlockDetail.attr("class", "clickable-detail-block");
-
-        // Details of the blocks (Verifier, backlinks, forwardlinks)
-        const liDetails = ulBlockDetail.append("li");
-        liDetails.attr("class", "uk-open");
-        liDetails.attr("id", "detail-window")
-        const aDetails = liDetails.append("a");
-        aDetails
-            .attr("class", "uk-card uk-card-small")
-            .html("<b>Block details</b>");
-
-        const divDetails = liDetails.append("div");
-        divDetails.attr("class", "uk-accordion-content");
-
-        // Verifier details
-        const ulVerifier = divDetails.append("ul");
-        ulVerifier.attr("uk-accordion", "");
-        const liVerifier = ulVerifier.append("li");
-        const aVerifier = liVerifier.append("a");
-        aVerifier
-            .attr("class", "uk-accordion-title")
-            .attr("id", "block-detail-field")
-            .attr("href", "#")
-            .text(`Verifiers: ${block.verifiers.length}`);
-        const divVerifier = liVerifier.append("div");
-        divVerifier.attr("class", "uk-accordion-content");
-        block.verifiers.forEach((uid, j) => {
-            divVerifier
-                .append("p")
-                .text(` Verifier: ${j} , ID: ${uid.toString("hex")}`);
-        });
-
-        // BackLink details
-        const ulBackLink = divDetails.append("ul");
-        ulBackLink.attr("uk-accordion", "");
-        const liBackLink = ulBackLink.append("li");
-        const aBackLink = liBackLink.append("a");
-        aBackLink
-            .attr("class", "uk-accordion-title")
-            .attr("id", "block-detail-field")
-            .attr("href", "#")
-            .text(`BackLinks: ${block.backlinks.length}`);
-        const divBackLink = liBackLink.append("div");
-        divBackLink.attr("class", "uk-accordion-content");
-        block.backlinks.forEach((value, j) => {
-            divBackLink
-                .append("p")
-                .text(`Backlink: ${j}, Value: ${value.toString("hex")}`);
-        });
-
-        // ForwardLink
-        const ulForwardLink = divDetails.append("ul");
-        ulForwardLink.attr("uk-accordion", "");
-        const liForwardLink = ulForwardLink.append("li");
-        const aForwardLink = liForwardLink.append("a");
-        aForwardLink
-            .attr("class", "uk-accordion-title")
-            .attr("id", "block-detail-field")
-
-            .attr("href", "#")
-            .text(`ForwardLinks: ${block.forwardLinks.length}`);
-        const divForwardLink = liForwardLink.append("div");
-        divForwardLink.attr("class", "uk-accordion-content");
-        block.forwardLinks.forEach((fl, j) => {
-            divForwardLink.append("p").text(`To: ${fl.to.toString("hex")}`);
-            divForwardLink
-                .append("p")
-                .text(`Hash: ${fl.hash().toString("hex")}`);
-            divForwardLink
-                .append("p")
-                .text(`signature: ${fl.signature.sig.toString("hex")}`);
         });
     }
 
