@@ -384,7 +384,12 @@ export class Chain {
         .attr("height", this.lastHeight)
         .attr("x", 20)
         .attr("y",20 )
-        .attr("fill", Chain.getBlockColor(last))
+       // .attr("animation-name", "slideInFromLeft")
+       // .attr("animation-duration", 1)
+        //.attr("animation-timing-function", "ease-out")
+       // .attr("animation-delay", 0) /* how long to delay the animation from starting */
+       // .attr("animation-iteration-count", 1) /* how many times the animation will play */
+       .attr("fill", Chain.getBlockColor(last))
         .on("click", () => {
             this.blockClickedSubject.next(last);
         });

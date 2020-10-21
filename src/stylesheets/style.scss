@@ -8,24 +8,16 @@ body {
 }
 .topnav {
     display: flex;
-    background-color: #f0eeeece;
-    border: 50px black;
-    margin-bottom: 10px;
+    background: #f0eeeece;
     
+    margin-bottom: 10px;
   }
-  
   
   /* Change the color of links on hover */
   .topnav a:hover {
     background-color: rgb(139, 9, 9);
     border-radius: 15px;
     color: black;
-  }
-  
-  /* Style the "active" element to highlight the current page */
-  .topnav a.active {
-    background-color: #2196F3;
-    color: white;
   }
   
   /* Style the search box inside the navigation bar */
@@ -155,12 +147,25 @@ body {
 #last-container{
     display: flex;
     margin-right: 35px;
-  
 
     background-color: white;
-    
+    animation: 2s ease-out 2s 1 slideInFromLeft;
+    background: white;
+    animation-fill-mode: backwards;
+   
     border-right: 1px solid gray;
 }
+
+@keyframes slideInFromLeft {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+
+  
 
 #svg-container {
     display: flex;
