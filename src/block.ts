@@ -116,6 +116,7 @@ export class Block {
      * @memberof DetailBlock
      */
     private listTransaction(block: SkipBlock) {
+        //SECTION Reseting and init
         // (re)set the color of the clickedBlock
         if (this.clickedBlock !== block) {
             if (this.clickedBlock != null) {
@@ -132,36 +133,43 @@ export class Block {
             );
         }
         const self = this;
-        //This is the field that appears just below the skipchain when clicking a block !
-        const block_detail_container = d3.select(".block-detail-container");
 
+        //Left column of the UI, displays all the block details
+        const block_detail_container = d3.select(".block-detail-container");
         block_detail_container
             .attr("id", "block_detail_container")
             .text("")
             .append("p");
-
+        //Right column of the UI, displays all the transactions of a block and their details
         const transaction_detail_container = d3.select(".browse-container");
         transaction_detail_container
             .attr("id", "block_detail_container")
             .text("")
             .append("p");
 
+
+        //!SECTION
+
+        //SECTION Block details
         //Big wrapper for all of the Block details
         const ulBlockDetail = block_detail_container.append("ul");
         //ulBlockDetail.attr("uk-accordion", "");
-        ulBlockDetail.attr("background-color", "#006fff");
+        //ulBlockDetail.attr("background-color", "#006fff");
         ulBlockDetail.attr("multiple", "true");
         ulBlockDetail.attr("class", "clickable-detail-block");
 
-        // Details of the blocks (Verifier, backlinks, forwardlinks)
-
+        // Details of the blocks (Verifier, backlinks, forwardlinks) are wrapped in this card
         const blockCard = ulBlockDetail.append("div");
         blockCard
             .attr("class", "uk-card uk-card-default")
             .attr("id", "detail-window");
+
+        //The header of the card is used to display the block index and it's hash
         const blockCardHeader = blockCard.append("div");
         blockCardHeader.attr("class", "uk-card-header  uk-padding-small");
 
+
+        //TODO Give titles like this an ID and handle the styling in the css
         const blockCardHeaderTitle = blockCardHeader.append("h3");
         blockCardHeaderTitle
             .style("font-weight", "700")
@@ -171,28 +179,27 @@ export class Block {
         const blockCardHeaderHash = blockCardHeader.append("p");
         blockCardHeaderHash.text(`Hash: ${block.hash.toString("hex")}`);
 
+        //The Body of the card is wrapping all of the Accordions
         const blockCardBody = blockCard.append("div");
         blockCardBody.attr("class", "uk-card-body uk-padding-small");
 
+        //TODO Give titles like this an ID and handle the styling in the css
         const blockCardBodyTitle = blockCardBody.append("h3");
         blockCardBodyTitle
             .text("Block details")
             .style("font-weight", "700")
             .style("color", "#666")
             .style("font-size", "1.3em");
-
         const divDetails = blockCardBody.append("div");
         divDetails.attr("class", "uk-accordion-content");
 
-        // Verifier details
+        //ANCHOR Verifier details
         const ulVerifier = divDetails.append("ul");
         ulVerifier.attr("uk-accordion", "");
         const liVerifier = ulVerifier.append("li");
         const aVerifier = liVerifier.append("a");
         aVerifier
             .attr("class", "uk-accordion-title")
-            .attr("id", "block-detail-field")
-            .attr("href", "#")
             .text(`Verifiers: ${block.verifiers.length}`);
         const divVerifier = liVerifier.append("div");
         divVerifier.attr("class", "uk-accordion-content");
@@ -202,15 +209,13 @@ export class Block {
                 .text(` Verifier ${j} , ID: ${uid.toString("hex")}`);
         });
 
-        // BackLink details
+        //ANCHOR BackLink details
         const ulBackLink = divDetails.append("ul");
         ulBackLink.attr("uk-accordion", "");
         const liBackLink = ulBackLink.append("li");
         const aBackLink = liBackLink.append("a");
         aBackLink
             .attr("class", "uk-accordion-title")
-            .attr("id", "block-detail-field")
-            .attr("href", "#")
             .text(`BackLinks: ${block.backlinks.length}`);
         const divBackLink = liBackLink.append("div");
         divBackLink.attr("class", "uk-accordion-content");
@@ -220,17 +225,15 @@ export class Block {
                 .text(`Backlink ${j} Value: ${value.toString("hex")}`);
         });
 
-        // ForwardLink
+        //ANCHOR ForwardLink
         const ulForwardLink = divDetails.append("ul");
         ulForwardLink.attr("uk-accordion", "");
         const liForwardLink = ulForwardLink.append("li");
         const aForwardLink = liForwardLink.append("a");
         aForwardLink
             .attr("class", "uk-accordion-title")
-            .attr("id", "block-detail-field")
-
-            .attr("href", "#")
             .text(`ForwardLinks: ${block.forwardLinks.length}`);
+
         const divForwardLink = liForwardLink.append("div");
         divForwardLink.attr("class", "uk-accordion-content");
         block.forwardLinks.forEach((fl, j) => {
@@ -242,9 +245,13 @@ export class Block {
                 .append("p")
                 .text(`signature: ${fl.signature.sig.toString("hex")}`);
         });
-
+        //!SECTION
+        //SECTION Transaction details
         const ulTransaction = transaction_detail_container.append("ul");
 
+
+        //This card simply hold the title of the section in its header, and lists all transactions
+        //in its body
         const transactionCard = ulTransaction.append("div");
         transactionCard
             .attr("class", "uk-card uk-card-default")
@@ -268,8 +275,7 @@ export class Block {
         // ulTransaction.attr("class", "clickable-detail-block");
         const body = DataBody.decode(block.payload);
 
-        //TODO Add a title to this section and put it on the right side
-        // transactions of the block
+        
         body.txResults.forEach((transaction, i) => {
             const accepted: string = transaction.accepted
                 ? "Accepted"
@@ -286,6 +292,7 @@ export class Block {
             if (totalInstruction > 2) {
                 s = "s";
             }
+            //TODO Give titles like this an ID and handle the styling in the css
             transactionTitle
                 .html(
                     `<b>Transaction ${i}</b> ${accepted}, show ${totalInstruction} instruction${s}:`
@@ -308,10 +315,8 @@ export class Block {
                     const aInstruction = liInstruction.append("a");
                     aInstruction
                         .attr("class", "uk-accordion-title")
-                        .attr("id", "block-detail-field")
 
-                        .attr("href", "#");
-
+                    //TODO Maybe modularize this as it's gonna be very heavy
                     if (instruction.type === Instruction.typeSpawn) {
                         aInstruction.text(
                             `Spawn instruction ${j}, name of contract: ${instruction.spawn.contractID}`
@@ -415,7 +420,8 @@ export class Block {
                             }
                         });
                 }
-            );
+            );//!SECTION
+
         });
     }
 
