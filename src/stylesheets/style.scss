@@ -249,16 +249,17 @@ List of classes for the new transaction container
 // }
 .uk-accordion > .uk-open {
     background-color: #006fff;
-    font-family: "Space Mono", monospace;
 }
 
 .uk-accordion-title:focus{
     color: #ffffff;
+}
 
+.uk-accordion-title::before{
+    background-color : white
 }
 
 .uk-accordion {
-    color: #ffffff;
     font-family: "Space Mono", monospace;
     background-color: #006fff;
     padding: 8px;
@@ -266,7 +267,6 @@ List of classes for the new transaction container
 
 .uk-accordion * {
     color: #ffffff;
-    font-family: "Space Mono", monospace;
 
 }
 

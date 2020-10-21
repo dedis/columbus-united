@@ -199,7 +199,7 @@ export class Block {
         block.verifiers.forEach((uid, j) => {
             divVerifier
                 .append("p")
-                .text(` Verifier: ${j} , ID: ${uid.toString("hex")}`);
+                .text(` Verifier ${j} , ID: ${uid.toString("hex")}`);
         });
 
         // BackLink details
@@ -217,7 +217,7 @@ export class Block {
         block.backlinks.forEach((value, j) => {
             divBackLink
                 .append("p")
-                .text(`Backlink: ${j}, Value: ${value.toString("hex")}`);
+                .text(`Backlink ${j} Value: ${value.toString("hex")}`);
         });
 
         // ForwardLink
