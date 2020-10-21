@@ -34,8 +34,8 @@ export class Chain {
 
     readonly blockPadding = 10;
     readonly textMargin = 5;
-    readonly blockHeight = 300; //twas 200
-    readonly blockWidth = 300;
+    readonly blockHeight = 200; //twas 200
+    readonly blockWidth = 200;
     readonly svgWidth = window.innerWidth;
     readonly svgHeight = 200;
     readonly unitBlockAndPaddingWidth = this.blockPadding + this.blockWidth;
@@ -102,7 +102,12 @@ export class Chain {
         //Main SVG caneva that contains the last added block
         const last = d3
         .select("#last-container")
-        .attr("height", this.blockHeight);
+        .attr("height", this.blockHeight)
+        
+
+        
+
+
 
         // Main SVG caneva that contains the chain
         const svg = d3
@@ -375,8 +380,8 @@ export class Chain {
         .attr("id", hashLast.toString("hex"))
         .attr("width", this.blockWidth)
         .attr("height", this.blockHeight)
-        .attr("x", 0)
-        .attr("y", 20)
+        .attr("x", 20)
+        .attr("y",20 )
         .attr("fill", Chain.getBlockColor(last))
         .on("click", () => {
             this.blockClickedSubject.next(last);
