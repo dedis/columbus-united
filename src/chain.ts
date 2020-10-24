@@ -210,7 +210,7 @@ export class Chain {
                     "0) scale(" +
                     transform.k +
                     "," +
-                    transform.k +
+                    "1" +
                     ")";
                 gblocks.attr("transform", transformString);
 
