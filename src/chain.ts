@@ -135,15 +135,7 @@ export class Chain {
         // user
         const subject = new Subject();
 
-        //ASSIGNMENT 3 : Observable notified each time any subject is notified
-        const notifications = merge(
-            subject,
-            this.newblocksSubject,
-            this.blockClickedSubject,
-            this.subjectBrowse
-        );
-        notifications.subscribe((x) => console.log("Subject updated"));
-
+  
         // the number of block the window can display at normal scale. Used to
         // define the domain the xScale
         const numblocks = this.svgWidth / (this.blockWidth + this.blockPadding);
@@ -202,16 +194,13 @@ export class Chain {
 
                 // Horizontal only transformation on the blocks (sets scale Y to
                 // 1)
-                //ASSIGNMENT 1
                 const transformString =
                     "translate(" +
                     transform.x +
                     "," +
                     "0) scale(" +
                     transform.k +
-                    "," +
-                    transform.k +
-                    ")";
+                    ",1)";
                 gblocks.attr("transform", transformString);
 
                 // Standard transformation on the text since we need to keep the
