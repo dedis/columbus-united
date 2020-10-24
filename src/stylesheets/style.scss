@@ -60,7 +60,10 @@ body {
     overflow-y: scroll;
     padding: 8px;
     flex: 1;
+    
 }
+
+
 
 @media only screen and (max-width: 1000px) {
     div.block-infos {
@@ -144,6 +147,7 @@ body {
     padding: 0 10px;
 }
 
+    
 #last-container{
     display: flex;
     margin-right: 35px;
@@ -152,9 +156,10 @@ body {
     animation: 2s ease-out 2s 1 slideInFromLeft;
     background: white;
     animation-fill-mode: backwards;
-   
     border-right: 1px solid gray;
 }
+
+
 
 @keyframes slideInFromLeft {
     0% {
@@ -165,12 +170,24 @@ body {
     }
   }
 
-  
 
 #svg-container {
     display: flex;
     flex-direction: row;
     width: 90%;
+}
+::-webkit-scrollbar{
+    widows: 25px;
+}
+::-webkit-scrollbar-track{
+
+    border: 7px solid #232943;
+    box-shadow:  inset 0 0 2.5px 2px rgba(0, 0, 0, 0.35);
+}
+
+::-webkit-scrollbar-thumb{
+    background: pink;
+    border-radius: 3px;
 }
 
 .uk-open {

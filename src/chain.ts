@@ -341,8 +341,7 @@ export class Chain {
             },
         });
 
-        //create 
-
+        //Get last added block of the chain
         let lastBlock = new TotalBlock(this.roster, initialBlock);
         lastBlock.getTotalBlock().pipe(map((s:SkipBlock) => this.displayLast(s,last,s.hash))).subscribe();
          
