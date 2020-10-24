@@ -1,19 +1,26 @@
-import { ByzCoinRPC } from '@dedis/cothority/byzcoin';
-import { DataBody } from '@dedis/cothority/byzcoin/proto';
-import { PaginateRequest, PaginateResponse } from '@dedis/cothority/byzcoin/proto/stream';
-import { Roster, WebSocketAdapter, WebSocketConnection } from '@dedis/cothority/network';
-import { SkipBlock } from '@dedis/cothority/skipchain';
-import * as d3 from 'd3';
-import { merge, Subject } from 'rxjs';
-import { count, filter, repeat, takeWhile, throttleTime } from 'rxjs/operators';
 
-import { Flash } from './flash';
-import { Utils } from './utils';
+import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
+import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
+import {
+    PaginateRequest,
+    PaginateResponse,
+} from "@dedis/cothority/byzcoin/proto/stream";
+import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
+import { WebSocketConnection } from "@dedis/cothority/network";
+import { SkipBlock } from "@dedis/cothority/skipchain";
+import * as d3 from "d3";
+import { merge, Subject } from "rxjs";
+import { buffer, last, map, takeLast, throttleTime,count, tap, mapTo,flatMap } from "rxjs/operators";
+
+import { Flash } from "./flash";
+import { TotalBlock } from './totalBlock';
+import { Utils } from "./utils";
+
 
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
     // find the palet of colors.
-    static readonly blockColor = { r: 23, v: 73, b: 179 }; // #D9BA82 //TODO Find nicer color palette
+    static readonly blockColor = { r: 23, v: 73, b: 179 }; // #D9BA82 
 
     /**
      * Determine the color of the blocks.
@@ -29,8 +36,10 @@ export class Chain {
 
     readonly blockPadding = 10;
     readonly textMargin = 5;
-    readonly blockHeight = 200;
-    readonly blockWidth = 200;
+    readonly blockHeight = 50; 
+    readonly blockWidth = 100;
+    readonly lastHeight = 200; 
+    readonly lastWidth = 200;
     readonly svgWidth = window.innerWidth;
     readonly svgHeight = 200;
     readonly unitBlockAndPaddingWidth = this.blockPadding + this.blockWidth;
@@ -61,14 +70,18 @@ export class Chain {
     // view.
     newblocksSubject = new Subject<SkipBlock[]>();
 
+    lastSubject = new Subject<SkipBlock>();
+
     // Flash is a utiliy class to display flash messages in the view.
     flash: Flash;
+
 
     // initialBlockIndex is the initial block index, which is used to compute the
     // number of blocks loaded to the left and to the right.
     initialBlockIndex: number;
 
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
+      
         const self = this;
 
         // Blockchain properties
@@ -83,16 +96,28 @@ export class Chain {
         let lastBlockRight = initialBlock;
         let transformCounter = 0;
 
+    
+
         // to keep track of current requested operations. If we are already loading
         // blocks on the left, then we shouldn't make another same request. Note
         // that this is a very poor exclusion mechanism.
         let isLoadingLeft = false;
         let isLoadingRight = false;
 
+        //Main SVG caneva that contains the last added block
+        const last = d3
+        .select("#last-container")
+        .attr("height", this.svgHeight);
+        
+
+        
+
+
+
         // Main SVG caneva that contains the chain
         const svg = d3
             .select("#svg-container")
-            .attr("height", this.blockHeight);
+            .attr("height", this.svgHeight);
 
         // this group will contain the blocks
         const gblocks = svg.append("g").attr("class", "gblocks");
@@ -156,17 +181,6 @@ export class Chain {
             });
         svg.call(zoom);
 
-        ///ASSIGNEMNT 3 : counting number of transforms during loading
-
-        const transformWhileLoading = subject.pipe(
-            takeWhile((x) => isLoadingLeft || isLoadingRight),
-            count(),
-            repeat(),
-            filter((x) => x != 0)
-        );
-        transformWhileLoading.subscribe((x) =>
-            console.log("Times updated while loading " + x)
-        );
 
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
@@ -218,25 +232,12 @@ export class Chain {
                     .selectAll("svg")
                     .attr("transform", `scale(${1 / transform.k})`);
 
-                //ASSIGNMENT 3 : counting number of transform while loading (), witness testing
-                //TODO : Determine wether this version or the other one is the correct one
-                if (isLoadingLeft || isLoadingRight) {
-                    transformCounter++;
-                } else {
-                    if (transformCounter != 0) {
-                        console.log(
-                            "Number of transform during update : " +
-                                transformCounter
-                        );
-                    }
-                    transformCounter = 0;
-                }
+              
+                
             },
         });
 
         // Handler to check if new blocks need to be loaded. We check every 300ms.
-        //TODO Lower timer
-        //REVIEW Seems really cumbersome...
         subject.pipe(throttleTime(200)).subscribe({
             next: (transform: any) => {
                 if (!isLoadingLeft) {
@@ -277,7 +278,7 @@ export class Chain {
                 if (err === 1) {
                     // To reset the websocket, create a new handler for the next function
                     // (of getnextblock)
-                    this.ws = undefined; //REVIEW Is it still WIP ?
+                    this.ws = undefined; 
                 } else {
                     this.flash.display(Flash.flashType.ERROR, `Error: ${err}`);
                 }
@@ -285,12 +286,10 @@ export class Chain {
                 isLoadingRight = false;
             },
             next: ([i, skipBlocks, backward]) => {
-                //REVIEW where is all this coming from
                 // i is the page number
                 let isLastPage = false;
                 // tslint:disable-next-line
                 if (i == this.nbPages - 1) {
-                    //FIXME Something ain't right here... nb page is init at 1...
                     isLastPage = true;
                 }
 
@@ -298,7 +297,6 @@ export class Chain {
                 this.loadedInfo.innerText = `${this.totalLoaded}`;
 
                 // If this is the first series of blocks, set the hash of the left first block
-                //FIXME Cumbersome init...
                 const firstBlock = skipBlocks[0];
                 if (firstBlock.index === this.initialBlockIndex) {
                     lastBlockLeft = firstBlock;
@@ -361,7 +359,16 @@ export class Chain {
                 }
             },
         });
+
+        //create 
+
+        let lastBlock = new TotalBlock(this.roster, initialBlock);
+        lastBlock.getTotalBlock().pipe(map((s:SkipBlock) => this.displayLast(s,last,s.hash))).subscribe();
+         
     }
+
+
+
 
     /**
      * Load the initial blocks.
@@ -374,7 +381,42 @@ export class Chain {
             this.subjectBrowse,
             false
         );
+        
+    
     }
+      /**
+     * Display the last added block of the chain 
+     * @param last the last added block of the blockchain
+     * @param svgLast the svg container that should welcome the block
+     * @param hashLast the hash of the last added block
+     */
+    private displayLast(
+        last: SkipBlock,
+        svgLast: any,
+        hashLast: Buffer
+
+    ) {
+        svgLast
+        .append("rect")
+        .attr("id", hashLast.toString("hex"))
+        .attr("width", this.lastWidth)
+        .attr("height", this.lastHeight)
+        .attr("x", 20)
+        .attr("y",20 )
+       // .attr("animation-name", "slideInFromLeft")
+       // .attr("animation-duration", 1)
+        //.attr("animation-timing-function", "ease-out")
+       // .attr("animation-delay", 0) /* how long to delay the animation from starting */
+       // .attr("animation-iteration-count", 1) /* how many times the animation will play */
+       .attr("fill", Chain.getBlockColor(last))
+        .on("click", () => {
+            this.blockClickedSubject.next(last);
+        });
+        
+    
+    }
+    
+    
 
     /**
      * Check if new blocks need to be loaded to the left and load them if
@@ -443,7 +485,7 @@ export class Chain {
                     self.subjectBrowse,
                     true
                 );
-            }, 250); //FIXME reduce me
+            }, 250); 
 
             return true;
         }
@@ -504,7 +546,7 @@ export class Chain {
                     self.subjectBrowse,
                     false
                 );
-            }, 250); //FIXME Reduce loading time
+            }, 250); 
 
             return true;
         }
@@ -585,7 +627,8 @@ export class Chain {
          </rect>
       `);
     }
-
+   
+    
     /**
      * Append the given blocks to the blockchain.
      * @param listBlocks list of blocks to append
@@ -623,56 +666,11 @@ export class Chain {
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
 
-            // Displaying text has a lot of impact on performances. We need to
-            // think either how to optimze it or drop the display of text on
-            // each block. For now we drop it.
-
-            // // Box the text index in an object to pass it by reference
-            // const textIndex = { index: 0 };
-
-            // // Index
-            // this.appendTextInBlock(
-            //     xTranslateText,
-            //     textIndex,
-            //     "index: " + block.index,
-            //     this.textColor,
-            //     gtext
-            // );
-
-            // // Hash
-            // const hash = Utils.bytes2String(block.hash);
-            // this.appendTextInBlock(
-            //     xTranslateText,
-            //     textIndex,
-            //     "hash: " + hash.slice(0, 8) + "...",
-            //     this.textColor,
-            //     gtext
-            // );
-
-            // // Number of transactions
-            // const body = DataBody.decode(block.payload);
-            // const nbTransactions = body.txResults.length;
-            // this.appendTextInBlock(
-            //     xTranslateText,
-            //     textIndex,
-            //     "#transactions: " + nbTransactions,
-            //     this.textColor,
-            //     gtext
-            // );
-
-            // const header = DataHeader.decode(block.data);
-            // // console.log(">>>>>>>> timestamp:", header.timestamp.toNumber());
-            // this.appendTextInBlock(
-            //     xTranslateText,
-            //     textIndex,
-            //     "T: " + header.timestamp.toString(),
-            //     this.textColor,
-            //     gtext
-            // );
         }
+        
         this.newblocksSubject.next(listBlocks);
     }
-
+    
     /**
      * Helper for displayBlocks: appends a block to the blockchain and adds it to
      * the subscriber list.
@@ -684,7 +682,7 @@ export class Chain {
             .append("rect")
             .attr("id", block.hash.toString("hex"))
             .attr("width", this.blockWidth)
-            .attr("height", this.blockHeight)
+            .attr("height",this.blockHeight+((block.height)*30))
             .attr("x", xTranslate)
             .attr("y", 20)
             .attr("fill", Chain.getBlockColor(block))
