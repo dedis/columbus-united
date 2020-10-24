@@ -1,3 +1,4 @@
+
 import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
 import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
 import {
@@ -15,10 +16,11 @@ import { Flash } from "./flash";
 import { TotalBlock } from './totalBlock';
 import { Utils } from "./utils";
 
+
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
     // find the palet of colors.
-    static readonly blockColor = { r: 217, v: 186, b: 130 }; // #D9BA82
+    static readonly blockColor = { r: 23, v: 73, b: 179 }; // #D9BA82 
 
     /**
      * Determine the color of the blocks.
@@ -43,8 +45,8 @@ export class Chain {
     readonly unitBlockAndPaddingWidth = this.blockPadding + this.blockWidth;
 
     // Recomended pageSize / nbPages: 80 / 50
-    readonly pageSize = 50;
-    readonly nbPages = 1;
+    readonly pageSize = 20;
+    readonly nbPages = 1; //FIXME Only works for 1 page. Overflow not verified if multiple pages...
 
     readonly textColor = "black";
     readonly loadedInfo = document.getElementById("loaded-blocks");
@@ -92,6 +94,7 @@ export class Chain {
 
         let lastBlockLeft = initialBlock;
         let lastBlockRight = initialBlock;
+        let transformCounter = 0;
 
     
 
@@ -132,12 +135,20 @@ export class Chain {
         // user
         const subject = new Subject();
 
+        //ASSIGNMENT 3 : Observable notified each time any subject is notified
+        const notifications = merge(
+            subject,
+            this.newblocksSubject,
+            this.blockClickedSubject,
+            this.subjectBrowse
+        );
+        notifications.subscribe((x) => console.log("Subject updated"));
+
         // the number of block the window can display at normal scale. Used to
         // define the domain the xScale
         const numblocks = this.svgWidth / (this.blockWidth + this.blockPadding);
 
         let lastTransform = { x: 0, y: 0, k: 1 };
-
         // the xScale displays the block index and allows the user to quickly see
         // where he is in the chain
         const xScale = d3
@@ -170,9 +181,11 @@ export class Chain {
             });
         svg.call(zoom);
 
+
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
         // zommed in-out by the user.
+
         subject.subscribe({
             next: (transform: any) => {
                 lastTransform = transform;
@@ -189,13 +202,16 @@ export class Chain {
 
                 // Horizontal only transformation on the blocks (sets scale Y to
                 // 1)
+                //ASSIGNMENT 1
                 const transformString =
                     "translate(" +
                     transform.x +
                     "," +
                     "0) scale(" +
                     transform.k +
-                    ",1)";
+                    "," +
+                    transform.k +
+                    ")";
                 gblocks.attr("transform", transformString);
 
                 // Standard transformation on the text since we need to keep the
@@ -215,11 +231,14 @@ export class Chain {
                 gloader
                     .selectAll("svg")
                     .attr("transform", `scale(${1 / transform.k})`);
+
+              
+                
             },
         });
 
-        // Handler to check if new blocks need to be leaded. We check every 300ms.
-        subject.pipe(throttleTime(300)).subscribe({
+        // Handler to check if new blocks need to be loaded. We check every 300ms.
+        subject.pipe(throttleTime(200)).subscribe({
             next: (transform: any) => {
                 if (!isLoadingLeft) {
                     isLoadingLeft = true;
@@ -259,7 +278,7 @@ export class Chain {
                 if (err === 1) {
                     // To reset the websocket, create a new handler for the next function
                     // (of getnextblock)
-                    this.ws = undefined;
+                    this.ws = undefined; 
                 } else {
                     this.flash.display(Flash.flashType.ERROR, `Error: ${err}`);
                 }
@@ -414,7 +433,7 @@ export class Chain {
     ): boolean {
         const self = this;
 
-        // x represents to x-axis translation of the caneva. If the block width
+        // x represents the x-axis translation of the caneva. If the block width
         // is 100 and x = -100, then it means the user dragged one block from
         // the initial block on the left.
         const x = -transform.x;
@@ -465,7 +484,7 @@ export class Chain {
                     self.subjectBrowse,
                     true
                 );
-            }, 2000);
+            }, 250); 
 
             return true;
         }
@@ -526,7 +545,7 @@ export class Chain {
                     self.subjectBrowse,
                     false
                 );
-            }, 2000);
+            }, 250); 
 
             return true;
         }

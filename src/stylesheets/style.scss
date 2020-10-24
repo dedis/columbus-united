@@ -8,6 +8,7 @@ body {
 }
 .topnav {
     display: flex;
+
     background: #f0eeeece;
     
     margin-bottom: 10px;
@@ -111,7 +112,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgb(230, 230, 230);
+    background-color: rgb(255, 255, 255);
     color: black;
 }
 
@@ -191,11 +192,7 @@ body {
 }
 
 .uk-open {
-    background-color: rgb(224, 224, 224);
-}
-
-.uk-accordion-title:focus {
-    color: #333 !important;
+    background-color: #ffffff;
 }
 
 .description {
@@ -206,7 +203,7 @@ body {
     transform: translateX(-50%);
 }
 
-.clickable-detail-block>li {
+.clickable-detail-block > li {
     padding: 10px;
 }
 
@@ -296,7 +293,6 @@ body {
     content: url(https://avatars2.githubusercontent.com/u/3638331?s=200&v=4);
 }
 
-
 /*
 footer from status.dedis.ch
 */
@@ -312,69 +308,105 @@ footer {
     text-align: center;
 }
 
-
 /*
 List of classes for the new transaction container
 */
 
+
+#block-detail-container{
+    outline:  2px solid  #006fff;
+}
+
+
+// #block-detail-field {
+//     font-family: "Space Mono", monospace;
+//     color: #ffffff;
+// }
+.uk-accordion > .uk-open {
+    background-color: #006fff;
+}
+
+.uk-accordion-title:focus{
+    color: #ffffff;
+}
+
+.uk-accordion-title::before{
+    background-color : white
+}
+
+.uk-accordion {
+    font-family: "Space Mono", monospace;
+    background-color: #006fff;
+    padding: 8px;
+}
+
+.uk-accordion * {
+    color: #ffffff;
+
+}
+
+
+.uk-accordion-content > p {
+    margin-left: 10px;
+}
+
 .active {
-    background-color: rgb(160, 160, 160);
+    background-color: rgb(255, 255, 255);
 }
 
 .block-detail-container p {
-    color: black;
     font-size: 17px;
+    overflow: hidden;
 }
 
 .browse-container p {
-    color: black;
     font-size: 17px;
 }
 
 .spinner {
     animation: rotate 2s linear infinite;
     transform-origin: 50%;
-  }
+}
 
- .spinner circle {
+.spinner circle {
     stroke: rgb(140, 182, 224);
     stroke-linecap: round;
     animation: dash 1.5s ease-in-out infinite;
-  }
-  
-  @keyframes rotate {
+}
+
+@keyframes rotate {
     100% {
-      transform: rotate(360deg);
+        transform: rotate(360deg);
     }
-  }
-  
-  @keyframes dash {
+}
+
+@keyframes dash {
     0% {
-      stroke-dasharray: 1, 150;
-      stroke-dashoffset: 0;
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
     }
     50% {
-      stroke-dasharray: 90, 150;
-      stroke-dashoffset: -35;
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
     }
     100% {
-      stroke-dasharray: 90, 150;
-      stroke-dashoffset: -124;
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
     }
-  }
+}
 
-  .header {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 20px;
+.header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
 
-      h1 {
-          color: #264473;
-      }
+    h1 {
+        color: #264473;
+    }
 
-      #status-info {
+    #status-info {
         .info {
             display: flex;
             flex-direction: row;
@@ -386,14 +418,17 @@ List of classes for the new transaction container
                 height: 50px;
                 position: relative;
             }
-  
+
             .info-message {
                 padding: 20px;
             }
         }
+    }
+}
 
-      }
-  }
+
+      
+  
 
 .x-axis{
    
