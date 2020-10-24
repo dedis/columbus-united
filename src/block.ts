@@ -146,8 +146,6 @@ export class Block {
             .attr("id", "block_detail_container")
             .text("")
             .append("p");
-
-
         //!SECTION
 
         //SECTION Block details
@@ -206,7 +204,8 @@ export class Block {
         block.verifiers.forEach((uid, j) => {
             divVerifier
                 .append("p")
-                .text(` Verifier ${j} , ID: ${uid.toString("hex")}`);
+                .text(` Verifier ${j} , ID: ${uid.toString("hex")}`)
+                .attr("uk-tooltip","Placeholder");
         });
 
         //ANCHOR BackLink details
