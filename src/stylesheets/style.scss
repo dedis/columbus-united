@@ -6,6 +6,19 @@ body {
     height: 100vh;
     overflow-y: hidden;
 }
+div.block-infos {
+    display: flex;
+    flex-grow: 0;
+    flex-direction: row;
+    flex: 1;
+    min-height: 200px;
+    margin-bottom: 36px;
+    margin-left: 10;
+    margin-right: 10;
+    background-color: #ffffff;
+}
+
+
 .topnav {
     display: flex;
 
@@ -62,6 +75,11 @@ body {
     padding: 8px;
     flex: 1;
 }
+
+.block-infos {
+    display: block;
+}
+
 
 @media only screen and (max-width: 1000px) {
     div.block-infos {
