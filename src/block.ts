@@ -176,8 +176,10 @@ export class Block {
             .attr("margin-top", "5px")
             .text(`Block ${block.index}`)
             .style("color", "#666");
-        const blockCardHeaderHash = blockCardHeader.append("p");
-        blockCardHeaderHash.text(`Hash: ${block.hash.toString("hex")}`);
+        const blockCardHeaderDetails = blockCardHeader.append("p");
+        blockCardHeaderDetails.text(`Hash: ${block.hash.toString("hex")}`)
+        .append("p")
+        .text(`Height : ${block.height}`);
 
         //The Body of the card is wrapping all of the Accordions
         const blockCardBody = blockCard.append("div");
