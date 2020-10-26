@@ -6,7 +6,7 @@ import { Observable } from "rxjs";
 import { throttleTime } from "rxjs/operators";
 
 import * as blockies from "blockies-ts";
- 
+
 import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
@@ -168,7 +168,6 @@ export class Block {
         const blockCardHeader = blockCard.append("div");
         blockCardHeader.attr("class", "uk-card-header  uk-padding-small");
 
-
         //TODO Give titles like this an ID and handle the styling in the css
         const blockCardHeaderTitle = blockCardHeader.append("h3");
         blockCardHeaderTitle
@@ -177,9 +176,10 @@ export class Block {
             .text(`Block ${block.index}`)
             .style("color", "#666");
         const blockCardHeaderDetails = blockCardHeader.append("p");
-        blockCardHeaderDetails.text(`Hash: ${block.hash.toString("hex")}`)
-        .append("p")
-        .text(`Height : ${block.height}`);
+        blockCardHeaderDetails
+            .text(`Hash: ${block.hash.toString("hex")}`)
+            .append("p")
+            .text(`Height : ${block.height}`);
 
         //The Body of the card is wrapping all of the Accordions
         const blockCardBody = blockCard.append("div");
@@ -206,7 +206,7 @@ export class Block {
         const divVerifier = liVerifier.append("div");
         divVerifier.attr("class", "uk-accordion-content");
         block.verifiers.forEach((uid, j) => {
-            const blockie = blockies.create({seed : uid.toString("hex")});
+            const blockie = blockies.create({ seed: uid.toString("hex") });
             divVerifier
                 .append("p")
                 .text(` Verifier ${j} , ID:  `)
@@ -215,8 +215,7 @@ export class Block {
                 .attr("src", blockie.toDataURL())
                 .attr("width", 32)
                 .attr("height", 32)
-                .attr("uk-tooltip",`${uid.toString("hex")}`);
-
+                .attr("uk-tooltip", `${uid.toString("hex")}`);
         });
 
         //ANCHOR BackLink details
@@ -259,7 +258,6 @@ export class Block {
         //SECTION Transaction details
         const ulTransaction = transaction_detail_container.append("ul");
 
-
         //This card simply hold the title of the section in its header, and lists all transactions
         //in its body
         const transactionCard = ulTransaction.append("div");
@@ -285,7 +283,6 @@ export class Block {
         // ulTransaction.attr("class", "clickable-detail-block");
         const body = DataBody.decode(block.payload);
 
-        
         body.txResults.forEach((transaction, i) => {
             const accepted: string = transaction.accepted
                 ? "Accepted"
@@ -323,8 +320,7 @@ export class Block {
                     const liInstruction = ulInstruction.append("li");
                     liInstruction.attr("style", "padding-left:15px");
                     const aInstruction = liInstruction.append("a");
-                    aInstruction
-                        .attr("class", "uk-accordion-title")
+                    aInstruction.attr("class", "uk-accordion-title");
 
                     //TODO Maybe modularize this as it's gonna be very heavy
                     if (instruction.type === Instruction.typeSpawn) {
@@ -430,8 +426,7 @@ export class Block {
                             }
                         });
                 }
-            );//!SECTION
-
+            ); //!SECTION
         });
     }
 
@@ -674,10 +669,4 @@ export class Block {
     private doneLoading() {
         d3.select(".load-container").remove();
     }
-
-
-
-
-
-
 }

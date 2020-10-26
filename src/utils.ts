@@ -55,7 +55,4 @@ export class Utils {
     static getRightBlockHash(block: SkipBlock): string {
         return this.bytes2String(block.forwardLinks[0].to);
     }
-
-
-
 }

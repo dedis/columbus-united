@@ -1,4 +1,3 @@
-
 import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
 import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
 import {
@@ -10,17 +9,26 @@ import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { merge, Subject } from "rxjs";
-import { buffer, last, map, takeLast, throttleTime,count, tap, mapTo,flatMap } from "rxjs/operators";
+import {
+    buffer,
+    last,
+    map,
+    takeLast,
+    throttleTime,
+    count,
+    tap,
+    mapTo,
+    flatMap,
+} from "rxjs/operators";
 
 import { Flash } from "./flash";
-import { TotalBlock } from './totalBlock';
+import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
-
 
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
     // find the palet of colors.
-    static readonly blockColor = { r: 23, v: 73, b: 179 }; // #D9BA82 
+    static readonly blockColor = { r: 23, v: 73, b: 179 }; // #D9BA82
 
     /**
      * Determine the color of the blocks.
@@ -36,9 +44,9 @@ export class Chain {
 
     readonly blockPadding = 10;
     readonly textMargin = 5;
-    readonly blockHeight = 50; 
+    readonly blockHeight = 50;
     readonly blockWidth = 100;
-    readonly lastHeight = 200; 
+    readonly lastHeight = 200;
     readonly lastWidth = 200;
     readonly svgWidth = window.innerWidth;
     readonly svgHeight = 200;
@@ -75,13 +83,11 @@ export class Chain {
     // Flash is a utiliy class to display flash messages in the view.
     flash: Flash;
 
-
     // initialBlockIndex is the initial block index, which is used to compute the
     // number of blocks loaded to the left and to the right.
     initialBlockIndex: number;
 
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
-      
         const self = this;
 
         // Blockchain properties
@@ -96,8 +102,6 @@ export class Chain {
         let lastBlockRight = initialBlock;
         let transformCounter = 0;
 
-    
-
         // to keep track of current requested operations. If we are already loading
         // blocks on the left, then we shouldn't make another same request. Note
         // that this is a very poor exclusion mechanism.
@@ -106,18 +110,11 @@ export class Chain {
 
         //Main SVG caneva that contains the last added block
         const last = d3
-        .select("#last-container")
-        .attr("height", this.svgHeight);
-        
-
-        
-
-
+            .select("#last-container")
+            .attr("height", this.svgHeight);
 
         // Main SVG caneva that contains the chain
-        const svg = d3
-            .select("#svg-container")
-            .attr("height", this.svgHeight);
+        const svg = d3.select("#svg-container").attr("height", this.svgHeight);
 
         // this group will contain the blocks
         const gblocks = svg.append("g").attr("class", "gblocks");
@@ -135,7 +132,6 @@ export class Chain {
         // user
         const subject = new Subject();
 
-  
         // the number of block the window can display at normal scale. Used to
         // define the domain the xScale
         const numblocks = this.svgWidth / (this.blockWidth + this.blockPadding);
@@ -172,7 +168,6 @@ export class Chain {
                 subject.next(d3.event.transform);
             });
         svg.call(zoom);
-
 
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
@@ -220,9 +215,6 @@ export class Chain {
                 gloader
                     .selectAll("svg")
                     .attr("transform", `scale(${1 / transform.k})`);
-
-              
-                
             },
         });
 
@@ -267,7 +259,7 @@ export class Chain {
                 if (err === 1) {
                     // To reset the websocket, create a new handler for the next function
                     // (of getnextblock)
-                    this.ws = undefined; 
+                    this.ws = undefined;
                 } else {
                     this.flash.display(Flash.flashType.ERROR, `Error: ${err}`);
                 }
@@ -349,15 +341,14 @@ export class Chain {
             },
         });
 
-        //create 
+        //create
 
         let lastBlock = new TotalBlock(this.roster, initialBlock);
-        lastBlock.getTotalBlock().pipe(map((s:SkipBlock) => this.displayLast(s,last,s.hash))).subscribe();
-         
+        lastBlock
+            .getTotalBlock()
+            .pipe(map((s: SkipBlock) => this.displayLast(s, last, s.hash)))
+            .subscribe();
     }
-
-
-
 
     /**
      * Load the initial blocks.
@@ -370,42 +361,31 @@ export class Chain {
             this.subjectBrowse,
             false
         );
-        
-    
     }
-      /**
-     * Display the last added block of the chain 
+    /**
+     * Display the last added block of the chain
      * @param last the last added block of the blockchain
      * @param svgLast the svg container that should welcome the block
      * @param hashLast the hash of the last added block
      */
-    private displayLast(
-        last: SkipBlock,
-        svgLast: any,
-        hashLast: Buffer
-
-    ) {
+    private displayLast(last: SkipBlock, svgLast: any, hashLast: Buffer) {
         svgLast
-        .append("rect")
-        .attr("id", hashLast.toString("hex"))
-        .attr("width", this.lastWidth)
-        .attr("height", this.lastHeight)
-        .attr("x", 20)
-        .attr("y",20 )
-       // .attr("animation-name", "slideInFromLeft")
-       // .attr("animation-duration", 1)
-        //.attr("animation-timing-function", "ease-out")
-       // .attr("animation-delay", 0) /* how long to delay the animation from starting */
-       // .attr("animation-iteration-count", 1) /* how many times the animation will play */
-       .attr("fill", Chain.getBlockColor(last))
-        .on("click", () => {
-            this.blockClickedSubject.next(last);
-        });
-        
-    
+            .append("rect")
+            .attr("id", hashLast.toString("hex"))
+            .attr("width", this.lastWidth)
+            .attr("height", this.lastHeight)
+            .attr("x", 20)
+            .attr("y", 20)
+            // .attr("animation-name", "slideInFromLeft")
+            // .attr("animation-duration", 1)
+            //.attr("animation-timing-function", "ease-out")
+            // .attr("animation-delay", 0) /* how long to delay the animation from starting */
+            // .attr("animation-iteration-count", 1) /* how many times the animation will play */
+            .attr("fill", Chain.getBlockColor(last))
+            .on("click", () => {
+                this.blockClickedSubject.next(last);
+            });
     }
-    
-    
 
     /**
      * Check if new blocks need to be loaded to the left and load them if
@@ -474,7 +454,7 @@ export class Chain {
                     self.subjectBrowse,
                     true
                 );
-            }, 250); 
+            }, 250);
 
             return true;
         }
@@ -535,7 +515,7 @@ export class Chain {
                     self.subjectBrowse,
                     false
                 );
-            }, 250); 
+            }, 250);
 
             return true;
         }
@@ -616,8 +596,7 @@ export class Chain {
          </rect>
       `);
     }
-   
-    
+
     /**
      * Append the given blocks to the blockchain.
      * @param listBlocks list of blocks to append
@@ -654,12 +633,11 @@ export class Chain {
 
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
-
         }
-        
+
         this.newblocksSubject.next(listBlocks);
     }
-    
+
     /**
      * Helper for displayBlocks: appends a block to the blockchain and adds it to
      * the subscriber list.
@@ -671,7 +649,7 @@ export class Chain {
             .append("rect")
             .attr("id", block.hash.toString("hex"))
             .attr("width", this.blockWidth)
-            .attr("height",this.blockHeight+((block.height)*30))
+            .attr("height", this.blockHeight + block.height * 30)
             .attr("x", xTranslate)
             .attr("y", 20)
             .attr("fill", Chain.getBlockColor(block))
