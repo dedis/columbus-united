@@ -80,6 +80,10 @@ div.block-infos {
     display: block;
 }
 
+.uk-tooltip {
+    word-wrap: break-word;
+  }
+
 
 @media only screen and (max-width: 1000px) {
     div.block-infos {

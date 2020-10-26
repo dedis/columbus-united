@@ -5,6 +5,8 @@ import * as d3 from "d3";
 import { Observable } from "rxjs";
 import { throttleTime } from "rxjs/operators";
 
+import * as blockies from "blockies-ts";
+ 
 import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
@@ -17,7 +19,7 @@ import { Lifecycle } from "./lifecycle";
  * It also handles the loading screen with the progress bar
  * to be updated.
  *
- * @author Julien von Felten <julien.vonfelten@epfl.ch>
+ * @author Lucas Trognon <lucas.trognon@epfl.ch>
  *
  * @export
  * @class Block
@@ -202,10 +204,17 @@ export class Block {
         const divVerifier = liVerifier.append("div");
         divVerifier.attr("class", "uk-accordion-content");
         block.verifiers.forEach((uid, j) => {
+            const blockie = blockies.create({seed : uid.toString("hex")});
             divVerifier
                 .append("p")
-                .text(` Verifier ${j} , ID: ${uid.toString("hex")}`)
-                .attr("uk-tooltip","Placeholder");
+                .text(` Verifier ${j} , ID:  `)
+                .append("img")
+                .attr("class", "uk-img")
+                .attr("src", blockie.toDataURL())
+                .attr("width", 32)
+                .attr("height", 32)
+                .attr("uk-tooltip",`${uid.toString("hex")}`);
+
         });
 
         //ANCHOR BackLink details
@@ -663,4 +672,10 @@ export class Block {
     private doneLoading() {
         d3.select(".load-container").remove();
     }
+
+
+
+
+
+
 }
