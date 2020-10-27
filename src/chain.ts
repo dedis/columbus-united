@@ -661,7 +661,7 @@ export class Chain {
 
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
-            this.getToAndFrom(block, gblocks);
+            this.getToAndFrom(xTranslateBlock,block, gblocks);
             
 
         }
@@ -680,7 +680,7 @@ export class Chain {
             .append("rect")
             .attr("id", block.hash.toString("hex"))
             .attr("width", this.blockWidth)
-            .attr("height",this.blockHeight+block.height*20)
+            .attr("height",this.blockHeight+block.height*5)
             .attr("x", xTranslate)
             .attr("y", 20)
             .attr("fill", Chain.getBlockColor(block))
@@ -690,58 +690,67 @@ export class Chain {
            
     }
 
-    private  appendArrows(i1: number,i2:number, block: SkipBlock, svgBlocks: any,factor:number){
+    private  appendArrows(xTranslate:number, iFrom: number, iTo:number, block: SkipBlock, svgBlocks: any,factor:number){
 
-    console.log("hi"+i1);
-    console.log("dwngfsk"+i2);
+  
+    console.log("from"+iFrom);
+    console.log("to"+iTo);
+   
         svgBlocks
         .append('line')
-        .attr("x1", (i1-1)*this.blockWidth + this.blockPadding)
-        .attr("y1",this.blockHeight + factor*20)
-        .attr("x2", (i2-i1)*this.blockWidth)
-        .attr("y2", this.blockHeight + factor*20 )
+        .attr("id",iFrom)
+        .attr("x1", (iFrom+1)*(this.blockPadding+this.blockWidth))
+        .attr("y1",20+ this.blockHeight+factor*10 )
+        .attr("x2", (iFrom+1)*(this.blockPadding+this.blockWidth)+(iTo-iFrom)*(this.blockWidth+this.blockPadding)-this.blockWidth)
+        .attr("y2",20+ this.blockHeight+factor*10 )
         .attr("stroke-width", 2)
-        .attr("stroke", "black");
-        //.attr("marker-end", "url(#triangle)");
-        //
+        .attr("stroke", "grey")
+        .attr("marker-end", "url(#triangle)");
+
+        svgBlocks.append("svg:defs").append("svg:marker")
+            .attr("id", "triangle")
+            .attr("refX", 6)
+            .attr("refY", 6)
+            .attr("markerWidth", 10)
+            .attr("markerHeight", 10)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M 0 0 12 6 0 12 3 6")
+            .style("fill", "black");
+        
         
       
     }
 
 
-    private getToAndFrom(block:SkipBlock,svgBlocks:any):[number,number] {
+    private getToAndFrom(xTranslate:number,block:SkipBlock,svgBlocks:any) {
+
+        
 
         let indexTo: number;
         let indexFrom: number;
 
-        const from = block.forwardLinks[0].from;
-        
 
-        new SkipchainRPC(this.roster)
-        .getSkipBlock(from)
-        .then(
-            (blockReply) => {
-                indexFrom = blockReply.index;
+        indexFrom = block.index;
+        console.log("in"+ indexFrom);
                
          for(let i =0 ; i<block.forwardLinks.length; i++) {
+             console.log("hiiiiiii");
          new SkipchainRPC(this.roster)
         .getSkipBlock(block.forwardLinks[i].to)
         .then(
             (blockReply) => {
+                if(indexFrom+1<blockReply.index){
                 indexTo = blockReply.index;
-           
-
-            this.appendArrows(indexFrom,indexTo,block,svgBlocks,i);
+                this.appendArrows(xTranslate,indexFrom,indexTo,block,svgBlocks,i);
+                }
             });
         }
-    });
-       
-
-
-
-    return [indexTo,indexFrom];
-
+    
+    
+    
 }
+
 
     /**
      * Helper for displayBlocks: appends a text element in a block.
