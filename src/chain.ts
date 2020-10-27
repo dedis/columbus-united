@@ -1,4 +1,3 @@
-
 import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
 import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
 import {
@@ -11,6 +10,7 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { merge, Subject } from "rxjs";
 import { buffer, last, map, takeLast, throttleTime,count, tap, mapTo,flatMap } from "rxjs/operators";
+import { SkipchainRPC } from "@dedis/cothority/skipchain";
 
 import { Flash } from "./flash";
 import { TotalBlock } from './totalBlock';
@@ -80,6 +80,8 @@ export class Chain {
     // number of blocks loaded to the left and to the right.
     initialBlockIndex: number;
 
+    initalBlock: SkipBlock;
+
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
       
         const self = this;
@@ -89,6 +91,7 @@ export class Chain {
 
         // Blocks observation
         this.flash = flash;
+        this.initalBlock= initialBlock;
 
         this.initialBlockIndex = initialBlock.index;
 
@@ -159,6 +162,9 @@ export class Chain {
             .attr("transform", `translate(${this.blockPadding}, 0)`)
             .attr("fill", "#8C764A")
             .call(xAxis);
+
+
+            
 
         // Update the subject when the view is dragged and zoomed in-out
         const zoom = d3
@@ -655,6 +661,8 @@ export class Chain {
 
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
+            this.getToAndFrom(block, gblocks);
+            
 
         }
         
@@ -672,14 +680,68 @@ export class Chain {
             .append("rect")
             .attr("id", block.hash.toString("hex"))
             .attr("width", this.blockWidth)
-            .attr("height",this.blockHeight+((block.height)*30))
+            .attr("height",this.blockHeight+block.height*20)
             .attr("x", xTranslate)
             .attr("y", 20)
             .attr("fill", Chain.getBlockColor(block))
             .on("click", () => {
                 this.blockClickedSubject.next(block);
             });
+           
     }
+
+    private  appendArrows(i1: number,i2:number, block: SkipBlock, svgBlocks: any,factor:number){
+
+    console.log("hi"+i1);
+    console.log("dwngfsk"+i2);
+        svgBlocks
+        .append('line')
+        .attr("x1", (i1-1)*this.blockWidth + this.blockPadding)
+        .attr("y1",this.blockHeight + factor*20)
+        .attr("x2", (i2-i1)*this.blockWidth)
+        .attr("y2", this.blockHeight + factor*20 )
+        .attr("stroke-width", 2)
+        .attr("stroke", "black");
+        //.attr("marker-end", "url(#triangle)");
+        //
+        
+      
+    }
+
+
+    private getToAndFrom(block:SkipBlock,svgBlocks:any):[number,number] {
+
+        let indexTo: number;
+        let indexFrom: number;
+
+        const from = block.forwardLinks[0].from;
+        
+
+        new SkipchainRPC(this.roster)
+        .getSkipBlock(from)
+        .then(
+            (blockReply) => {
+                indexFrom = blockReply.index;
+               
+         for(let i =0 ; i<block.forwardLinks.length; i++) {
+         new SkipchainRPC(this.roster)
+        .getSkipBlock(block.forwardLinks[i].to)
+        .then(
+            (blockReply) => {
+                indexTo = blockReply.index;
+           
+
+            this.appendArrows(indexFrom,indexTo,block,svgBlocks,i);
+            });
+        }
+    });
+       
+
+
+
+    return [indexTo,indexFrom];
+
+}
 
     /**
      * Helper for displayBlocks: appends a text element in a block.

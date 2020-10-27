@@ -62,7 +62,7 @@ export class TotalBlock {
     ): Observable<SkipBlock> {
         return new Observable((sub) => {
             let nextID = Buffer.from(startID, "hex");
-
+            console.log("next " + nextID.toString());
             try {
                 // tslint:disable-next-line
                 var conn = new WebSocketConnection(

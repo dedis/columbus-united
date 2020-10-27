@@ -42,7 +42,7 @@ export function sayHi() {
     }
 
     // Load the first block
-    const initialBlockIndex = 20; // Change here the first block to display
+    const initialBlockIndex = 0; // Change here the first block to display
     if (initialBlockIndex < 0) {
         flash.display(
             Flash.flashType.ERROR,
@@ -93,7 +93,7 @@ function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
-    new Block(
+ new Block(
         chain.getBlockClickedSubject(),
         lifecycle,
         flash,
