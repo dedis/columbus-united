@@ -52,10 +52,10 @@ export class Utils {
     /**
      * Get the hash of the next (right) block.
      * @param block block of which we want the hash of the right block
-     */
+   */
     static getRightBlockHash(block: SkipBlock): string {
         return this.bytes2String(block.forwardLinks[0].to);
-    }
+    } 
 
     static async getBlockIndex(hash: Buffer, roster:Roster): Promise<number> {
         return await new Promise<number>((resolve, reject) => {
