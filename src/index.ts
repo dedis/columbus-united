@@ -41,7 +41,7 @@ export function sayHi() {
     }
 
     // Load the first block
-    const initialBlockIndex = 0; // Change here the first block to display
+    const initialBlockIndex = 111934; // Change here the first block to display
     if (initialBlockIndex < 0) {
         flash.display(
             Flash.flashType.ERROR,
@@ -79,7 +79,9 @@ export function sayHi() {
  */
 function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
     const chain = new Chain(roster, flash, initialBlock);
+    
     chain.loadInitialBlocks(initialBlock.hash);
+    console.log("passed");
 
     // The totalBlock utility class allows the browsing class to get the total
     // number of block in the chain. This class is stateful, it will keep each

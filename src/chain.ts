@@ -147,7 +147,7 @@ export class Chain {
         // where he is in the chain
         const xScale = d3
             .scaleLinear()
-            .domain([initialBlock.index, initialBlock.index + numblocks])
+            .domain([initialBlock.index, initialBlock.index- numblocks])
             .range([0, this.svgWidth]);
 
         const xAxis = d3
@@ -330,7 +330,7 @@ export class Chain {
 
                     this.displayBlocks(
                         skipBlocks,
-                        false,
+                        true,
                         gblocks,
                         garrow,
                         gtext,
@@ -509,7 +509,7 @@ export class Chain {
         // represents the actual rightmost x coordinate on the svg caneva. +50
         // is to allow a margin before loading a new block, because we want to
         // allow a bit of blank space before triggering the load.
-        if (x + this.svgWidth > rightBlockX + 50) {
+        if (x + this.svgWidth > rightBlockX ) {
             const hashNextBlockRight = Utils.getRightBlockHash(lastBlockRight);
 
             this.addLoader(
@@ -866,6 +866,7 @@ export class Chain {
                 },
                 error: (err: Error) => {
                     this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
+                    console.log("1");
                     this.ws = undefined;
                 },
                 next: ([data, ws]) => {
@@ -874,7 +875,9 @@ export class Chain {
                         this.flash.display(
                             Flash.flashType.ERROR,
                             `got an error with code ${data.errorcode} : ${data.errortext}`
+                            
                         );
+                        console.log("2");
                         return 1;
                     }
                     if (ws !== undefined) {
