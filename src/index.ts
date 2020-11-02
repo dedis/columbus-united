@@ -33,7 +33,6 @@ const rosterStr = getRosterStr();
 export function sayHi() {
     // Create the roster
     const roster = Roster.fromTOML(rosterStr);
-
     // Create the flash class that will handle the flash messages
     const flash = new Flash();
     if (!roster) {

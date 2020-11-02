@@ -7,6 +7,7 @@ import { Roster } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { Observable } from "rxjs";
+import { SkipchainRPC } from "@dedis/cothority/skipchain";
 
 export class Utils {
     /**
@@ -55,4 +56,16 @@ export class Utils {
     static getRightBlockHash(block: SkipBlock): string {
         return this.bytes2String(block.forwardLinks[0].to);
     }
+
+    static async getBlockIndex(hash: Buffer, roster:Roster): Promise<number> {
+        return await new Promise<number>((resolve, reject) => {
+            new SkipchainRPC(roster)
+            .getSkipBlock(hash)
+            .then((skipblock) => resolve(skipblock.index)
+            ).catch( e => reject(e));
+        })
+    }
+    
+
+
 }

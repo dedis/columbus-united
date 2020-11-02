@@ -9,18 +9,27 @@ import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { merge, Subject } from "rxjs";
-import { buffer, last, map, takeLast, throttleTime,count, tap, mapTo,flatMap } from "rxjs/operators";
+import {
+    buffer,
+    last,
+    map,
+    takeLast,
+    throttleTime,
+    count,
+    tap,
+    mapTo,
+    flatMap,
+} from "rxjs/operators";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 
 import { Flash } from "./flash";
-import { TotalBlock } from './totalBlock';
+import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
-
 
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
     // find the palet of colors.
-    static readonly blockColor = { r: 23, v: 73, b: 179 }; // #D9BA82 
+    static readonly blockColor = { r: 23, v: 73, b: 179 }; // #D9BA82
 
     /**
      * Determine the color of the blocks.
@@ -36,9 +45,9 @@ export class Chain {
 
     readonly blockPadding = 10;
     readonly textMargin = 5;
-    readonly blockHeight = 50; 
+    readonly blockHeight = 50;
     readonly blockWidth = 100;
-    readonly lastHeight = 200; 
+    readonly lastHeight = 200;
     readonly lastWidth = 200;
     readonly svgWidth = window.innerWidth;
     readonly svgHeight = 200;
@@ -46,7 +55,7 @@ export class Chain {
 
     // Recomended pageSize / nbPages: 80 / 50
     readonly pageSize = 20;
-    readonly nbPages = 1; //FIXME Only works for 1 page. Overflow not verified if multiple pages...
+    readonly nbPages = 1; // Only works for 1 page. Overflow not verified if multiple pages...
 
     readonly textColor = "black";
     readonly loadedInfo = document.getElementById("loaded-blocks");
@@ -75,7 +84,6 @@ export class Chain {
     // Flash is a utiliy class to display flash messages in the view.
     flash: Flash;
 
-
     // initialBlockIndex is the initial block index, which is used to compute the
     // number of blocks loaded to the left and to the right.
     initialBlockIndex: number;
@@ -83,7 +91,6 @@ export class Chain {
     initalBlock: SkipBlock;
 
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
-      
         const self = this;
 
         // Blockchain properties
@@ -91,15 +98,13 @@ export class Chain {
 
         // Blocks observation
         this.flash = flash;
-        this.initalBlock= initialBlock;
+        this.initalBlock = initialBlock;
 
         this.initialBlockIndex = initialBlock.index;
 
         let lastBlockLeft = initialBlock;
         let lastBlockRight = initialBlock;
         let transformCounter = 0;
-
-    
 
         // to keep track of current requested operations. If we are already loading
         // blocks on the left, then we shouldn't make another same request. Note
@@ -109,21 +114,16 @@ export class Chain {
 
         //Main SVG caneva that contains the last added block
         const last = d3
-        .select("#last-container")
-        .attr("height", this.svgHeight);
-        
-
-        
-
-
+            .select("#last-container")
+            .attr("height", this.svgHeight);
 
         // Main SVG caneva that contains the chain
-        const svg = d3
-            .select("#svg-container")
-            .attr("height", this.svgHeight);
+        const svg = d3.select("#svg-container").attr("height", this.svgHeight);
 
         // this group will contain the blocks
         const gblocks = svg.append("g").attr("class", "gblocks");
+
+        const garrow = gblocks.append("g").attr("class", "garrow");
 
         // this group will contain the text. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
@@ -138,7 +138,6 @@ export class Chain {
         // user
         const subject = new Subject();
 
-  
         // the number of block the window can display at normal scale. Used to
         // define the domain the xScale
         const numblocks = this.svgWidth / (this.blockWidth + this.blockPadding);
@@ -163,9 +162,6 @@ export class Chain {
             .attr("fill", "#8C764A")
             .call(xAxis);
 
-
-            
-
         // Update the subject when the view is dragged and zoomed in-out
         const zoom = d3
             .zoom()
@@ -178,7 +174,6 @@ export class Chain {
                 subject.next(d3.event.transform);
             });
         svg.call(zoom);
-
 
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
@@ -210,7 +205,6 @@ export class Chain {
                     "1" +
                     ")";
                 gblocks.attr("transform", transformString);
-
                 // Standard transformation on the text since we need to keep the
                 // original scale
                 gtext.attr("transform", transform);
@@ -220,7 +214,6 @@ export class Chain {
                         .selectAll("text")
                         .attr("font-size", 1 + transform.k + "em");
                 }
-
                 // Update the loader. We want to keep them at their original
                 // scale so we only translate them
                 gloader.attr("transform", transform);
@@ -228,9 +221,6 @@ export class Chain {
                 gloader
                     .selectAll("svg")
                     .attr("transform", `scale(${1 / transform.k})`);
-
-              
-                
             },
         });
 
@@ -275,7 +265,7 @@ export class Chain {
                 if (err === 1) {
                     // To reset the websocket, create a new handler for the next function
                     // (of getnextblock)
-                    this.ws = undefined; 
+                    this.ws = undefined;
                 } else {
                     this.flash.display(Flash.flashType.ERROR, `Error: ${err}`);
                 }
@@ -307,6 +297,7 @@ export class Chain {
                         skipBlocks,
                         true,
                         gblocks,
+                        garrow,
                         gtext,
                         lastBlockLeft.index - this.initialBlockIndex
                     );
@@ -337,7 +328,14 @@ export class Chain {
                         nb = lastBlockRight.index - this.initialBlockIndex + 1;
                     }
 
-                    this.displayBlocks(skipBlocks, false, gblocks, gtext, nb);
+                    this.displayBlocks(
+                        skipBlocks,
+                        false,
+                        gblocks,
+                        garrow,
+                        gtext,
+                        nb
+                    );
 
                     lastBlockRight = lastBlock;
 
@@ -359,12 +357,11 @@ export class Chain {
 
         //Get last added block of the chain
         let lastBlock = new TotalBlock(this.roster, initialBlock);
-        lastBlock.getTotalBlock().pipe(map((s:SkipBlock) => this.displayLast(s,last,s.hash))).subscribe();
-         
+        lastBlock
+            .getTotalBlock()
+            .pipe(map((s: SkipBlock) => this.displayLast(s, last, s.hash)))
+            .subscribe();
     }
-
-
-
 
     /**
      * Load the initial blocks.
@@ -377,42 +374,31 @@ export class Chain {
             this.subjectBrowse,
             false
         );
-        
-    
     }
-      /**
-     * Display the last added block of the chain 
+    /**
+     * Display the last added block of the chain
      * @param last the last added block of the blockchain
      * @param svgLast the svg container that should welcome the block
      * @param hashLast the hash of the last added block
      */
-    private displayLast(
-        last: SkipBlock,
-        svgLast: any,
-        hashLast: Buffer
-
-    ) {
+    private displayLast(last: SkipBlock, svgLast: any, hashLast: Buffer) {
         svgLast
-        .append("rect")
-        .attr("id", hashLast.toString("hex"))
-        .attr("width", this.lastWidth)
-        .attr("height", this.lastHeight)
-        .attr("x", 20)
-        .attr("y",20 )
-       // .attr("animation-name", "slideInFromLeft")
-       // .attr("animation-duration", 1)
-        //.attr("animation-timing-function", "ease-out")
-       // .attr("animation-delay", 0) /* how long to delay the animation from starting */
-       // .attr("animation-iteration-count", 1) /* how many times the animation will play */
-       .attr("fill", Chain.getBlockColor(last))
-        .on("click", () => {
-            this.blockClickedSubject.next(last);
-        });
-        
-    
+            .append("rect")
+            .attr("id", hashLast.toString("hex"))
+            .attr("width", this.lastWidth)
+            .attr("height", this.lastHeight)
+            .attr("x", 20)
+            .attr("y", 20)
+            // .attr("animation-name", "slideInFromLeft")
+            // .attr("animation-duration", 1)
+            //.attr("animation-timing-function", "ease-out")
+            // .attr("animation-delay", 0) /* how long to delay the animation from starting */
+            // .attr("animation-iteration-count", 1) /* how many times the animation will play */
+            .attr("fill", Chain.getBlockColor(last))
+            .on("click", () => {
+                this.blockClickedSubject.next(last);
+            });
     }
-    
-    
 
     /**
      * Check if new blocks need to be loaded to the left and load them if
@@ -481,7 +467,7 @@ export class Chain {
                     self.subjectBrowse,
                     true
                 );
-            }, 250); 
+            }, 250);
 
             return true;
         }
@@ -542,7 +528,7 @@ export class Chain {
                     self.subjectBrowse,
                     false
                 );
-            }, 250); 
+            }, 250);
 
             return true;
         }
@@ -623,8 +609,7 @@ export class Chain {
          </rect>
       `);
     }
-   
-    
+
     /**
      * Append the given blocks to the blockchain.
      * @param listBlocks list of blocks to append
@@ -638,6 +623,7 @@ export class Chain {
         listBlocks: SkipBlock[],
         backwards: boolean,
         gblocks: any,
+        garrow: any,
         gtext: any,
         numblocks: number
     ) {
@@ -661,14 +647,12 @@ export class Chain {
 
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
-            this.getToAndFrom(xTranslateBlock,block, gblocks);
-            
-
+            this.getToAndFrom(xTranslateBlock, block, garrow);
         }
-        
+
         this.newblocksSubject.next(listBlocks);
     }
-    
+
     /**
      * Helper for displayBlocks: appends a block to the blockchain and adds it to
      * the subscriber list.
@@ -676,81 +660,116 @@ export class Chain {
      * @param block the block to append
      */
     private appendBlock(xTranslate: number, block: SkipBlock, svgBlocks: any) {
+        //console.log("yoooo "+block.height + " vs  "+ block.forwardLinks.length);
         svgBlocks
             .append("rect")
             .attr("id", block.hash.toString("hex"))
             .attr("width", this.blockWidth)
-            .attr("height",this.blockHeight+block.height*5)
+            .attr("height", (block.forwardLinks.length+block.backlinks.length) * 25)
             .attr("x", xTranslate)
             .attr("y", 20)
             .attr("fill", Chain.getBlockColor(block))
             .on("click", () => {
                 this.blockClickedSubject.next(block);
             });
-           
     }
 
-    private  appendArrows(xTranslate:number, iFrom: number, iTo:number, block: SkipBlock, svgBlocks: any,factor:number){
+    private async appendArrows(
+        //bjr:number,
+        iFrom: number,
+        iTo: number,
+        block: SkipBlock,
+        svgBlocks: any,
+        factor: number
+    ) {
+        let y: number;
+       // console.log("from"+ iFrom);
+       // console.log("to"+ iTo);
 
-  
-    console.log("from"+iFrom);
-    console.log("to"+iTo);
-   
+        if((iTo - iFrom ) == 1 ){
+            svgBlocks
+            .append("line")
+            .attr("id", iFrom)
+            .attr("x1",  (iFrom + 1) * (this.blockPadding + this.blockWidth) + this.blockPadding)
+            .attr("y1", 25 + this.blockHeight/2)
+            .attr(
+                "x2",
+                (iFrom + 1) * (this.blockPadding + this.blockWidth)
+            )
+            .attr("y2",  25 + this.blockHeight/2)
+            .attr("stroke-width", 2)
+            .attr("stroke", "grey")
+          //.attr("marker-end", "url(#triangle)");
+        }else {
+            console.log("in     "+ block.index);
+           console.log("fator   " + (50+ (1+factor)*25 + 12));
+           console.log("                    " +((block.forwardLinks.length+ block.backlinks.length) * 25));
+           if( (50+ (1+factor)*25 + 12) > ((block.forwardLinks.length+block.backlinks.length) * 25)){
+            y= (block.forwardLinks.length+block.backlinks.length) * 25;
+
+        }else {
+            y = 50+ (1+factor)*25 + 12;
+        }
+     
+            
         svgBlocks
-        .append('line')
-        .attr("id",iFrom)
-        .attr("x1", (iFrom+1)*(this.blockPadding+this.blockWidth))
-        .attr("y1",20+ this.blockHeight+factor*10 )
-        .attr("x2", (iFrom+1)*(this.blockPadding+this.blockWidth)+(iTo-iFrom)*(this.blockWidth+this.blockPadding)-this.blockWidth)
-        .attr("y2",20+ this.blockHeight+factor*10 )
-        .attr("stroke-width", 2)
-        .attr("stroke", "grey")
-        .attr("marker-end", "url(#triangle)");
+            .append("line")
+            .attr("id", iFrom)
+            .attr("x1", (iFrom + 1) * (this.blockPadding + this.blockWidth))
+            .attr("y1", y)
+            .attr(
+                "x2",
+                (iFrom + 1) * (this.blockPadding + this.blockWidth) +
+                    (iTo - iFrom) * (this.blockWidth + this.blockPadding) -
+                    this.blockWidth -
+                    20
+            )
+            .attr("y2",  y)
+            .attr("stroke-width", 2)
+            .attr("stroke", "grey")
+            .attr("marker-end", "url(#triangle)");
 
-        svgBlocks.append("svg:defs").append("svg:marker")
+            svgBlocks
+            .append("svg:defs")
+            .append("svg:marker")
             .attr("id", "triangle")
             .attr("refX", 6)
             .attr("refY", 6)
-            .attr("markerWidth", 10)
-            .attr("markerHeight", 10)
+            .attr("markerWidth", 15)
+            .attr("markerHeight", 15)
             .attr("orient", "auto")
             .append("path")
             .attr("d", "M 0 0 12 6 0 12 3 6")
-            .style("fill", "black");
-        
-        
+            .style("fill", "grey");
+        }
+
       
     }
 
-
-    private getToAndFrom(xTranslate:number,block:SkipBlock,svgBlocks:any) {
-
-        
-
-        let indexTo: number;
+    private async getToAndFrom(xTranslate: number, block: SkipBlock, svgBlocks: any) {
+       
         let indexFrom: number;
-
-
         indexFrom = block.index;
-        console.log("in"+ indexFrom);
-               
-         for(let i =0 ; i<block.forwardLinks.length; i++) {
-             console.log("hiiiiiii");
-         new SkipchainRPC(this.roster)
-        .getSkipBlock(block.forwardLinks[i].to)
-        .then(
-            (blockReply) => {
-                if(indexFrom+1<blockReply.index){
-                indexTo = blockReply.index;
-                this.appendArrows(xTranslate,indexFrom,indexTo,block,svgBlocks,i);
-                }
-            });
-        }
-    
-    
-    
-}
+       // console.log("hi      "+ indexFrom);
+       //console.log("bcljsdbfljcblknxakl<nlyk        " + block.forwardLinks.length);
+        for (let i = 0; i < block.forwardLinks.length; i++) {
+         //   console.log("wzf    " + i);
+            let indexTo= (await Utils.getBlockIndex(block.forwardLinks[i].to,this.roster));
+      //  console.log("bijour" + d3.select("#".concat(Utils.bytes2String(block.forwardLinks[i].to))).attr("height"));
+            
 
+
+                        this.appendArrows(
+                            //bjr,
+                            indexFrom,
+                            indexTo,
+                            block,
+                            svgBlocks,
+                            i
+                        );
+                
+        }
+    }
 
     /**
      * Helper for displayBlocks: appends a text element in a block.
