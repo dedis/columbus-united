@@ -9,6 +9,16 @@ import { Lifecycle } from "./lifecycle";
 import { getRosterStr } from "./roster";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
+import {
+    buffer,
+    last,
+    map,
+    takeLast,
+    throttleTime,
+    count,
+    tap,
+    mapTo,
+} from "rxjs/operators";
 
 import "uikit";
 import "./stylesheets/style.scss";
@@ -39,9 +49,11 @@ export function sayHi() {
         flash.display(Flash.flashType.ERROR, "Roster is undefined");
         return;
     }
+    
+    
 
-    // Load the first block
-    const initialBlockIndex = 111934; // Change here the first block to display
+   // Load the first block
+    const initialBlockIndex = 110850; // Change here the first block to display
     if (initialBlockIndex < 0) {
         flash.display(
             Flash.flashType.ERROR,
@@ -68,7 +80,44 @@ export function sayHi() {
                 );
             }
         );
+       
+
+/*
+    new SkipchainRPC(roster)
+    .getSkipBlock(Utils.hex2Bytes(hashBlock0)).then( //get genesis SkipBlock
+        (blockReply) => { 
+    (new TotalBlock(roster,blockReply)).getTotalBlock().subscribe( //get last block of chain
+        (s:SkipBlock)=> {
+           const initialBlockIndex = s.index - 1; // Change here the first block to display (lastblockIndex - 1)
+    if (initialBlockIndex < 0) {
+        flash.display(
+            Flash.flashType.ERROR,
+            "index of initial block cannot be negative, specified index is " +
+                initialBlockIndex
+        );
+    }
+   
+    new SkipchainRPC(roster)   
+        .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), initialBlockIndex) //get the SkipBlock of lastblockIndex - 1
+        .then(
+            (blockReply) => {
+                startColumbus(blockReply.skipblock, roster, flash); //start visualisation 
+            },
+            (e) => {
+                flash.display(
+                    Flash.flashType.ERROR,
+                    "unable to find initial block with index " +
+                        initialBlockIndex +
+                        ": " +
+                        e
+                );
+            }
+        );
+        });;   
+});
+*/
 }
+
 
 /**
  * startColumbus starts the visualization

@@ -156,7 +156,7 @@ div.block-infos {
 
 .blocks-container {
     display: flex;
-    flex-direction:row-reverse;
+    flex-direction:row;
     margin-bottom: 10;
     padding: 0 10px;
 }
@@ -164,23 +164,23 @@ div.block-infos {
     
 #last-container{
     display: flex;
-    margin-right: 35px;
-
+    margin-left: 35px;
     background-color: white;
-    animation: 2s ease-out 2s 1 slideInFromLeft;
+    animation: 2s ease-out 2s 1 slideInFromRight;
     background: white;
-    animation-fill-mode: backwards;
-    border-right: 1px solid gray;
+    animation-direction: reverse;
+   // animation-fill-mode: normal;
+    border-left: 1px solid gray;
 }
 
 
 
-@keyframes slideInFromLeft {
+@keyframes slideInFromRight {
     0% {
-      transform: translateX(-100%);
+      transform: translateX(0%);
     }
     100% {
-      transform: translateX(0);
+      transform: translateX(100%);
     }
   }
 

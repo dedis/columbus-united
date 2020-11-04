@@ -54,7 +54,7 @@ export class Chain {
     readonly unitBlockAndPaddingWidth = this.blockPadding + this.blockWidth;
 
     // Recomended pageSize / nbPages: 80 / 50
-    readonly pageSize = 20;
+    readonly pageSize = 50;
     readonly nbPages = 1; // Only works for 1 page. Overflow not verified if multiple pages...
 
     readonly textColor = "black";
@@ -140,14 +140,14 @@ export class Chain {
 
         // the number of block the window can display at normal scale. Used to
         // define the domain the xScale
-        const numblocks = this.svgWidth / (this.blockWidth );
+        const numblocks = this.svgWidth / (this.blockWidth + this.blockPadding);
 
         let lastTransform = { x: 0, y: 0, k: 1 };
         // the xScale displays the block index and allows the user to quickly see
         // where he is in the chain
         const xScale = d3
             .scaleLinear()
-            .domain([initialBlock.index, initialBlock.index - numblocks])
+            .domain([initialBlock.index, initialBlock.index + numblocks])
             .range([0, this.svgWidth]);
 
         const xAxis = d3
@@ -666,7 +666,7 @@ export class Chain {
             .attr("id", block.hash.toString("hex"))
             .attr("width", this.blockWidth)
             .attr("height", (block.forwardLinks.length+block.backlinks.length) * 25)
-            .attr("x", -xTranslate)
+            .attr("x", xTranslate)
             .attr("y", 20)
             .attr("fill", Chain.getBlockColor(block))
             .on("click", () => {
