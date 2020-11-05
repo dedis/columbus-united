@@ -15,7 +15,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@dedis/cothority": "^3.5.1",
+        "@dedis/cothority": "^3.6.2",
         "d3": "^5.16.0",
         "rxjs": "^6.6.2",
         "style-loader": "^1.2.1",
