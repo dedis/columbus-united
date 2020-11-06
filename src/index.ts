@@ -51,27 +51,30 @@ export function sayHi() {
     }
     
     
-
+  
    // Load the first block
-    const initialBlockIndex = 110850; // Change here the first block to display
+    const initialBlockIndex = 110000; // Change here the first block to display
     if (initialBlockIndex < 0) {
         flash.display(
             Flash.flashType.ERROR,
             "index of initial block cannot be negative, specified index is " +
                 initialBlockIndex
         );
+    
+
+
     }
 
     // Load the first block at the provided index, and start the visualization
     // once we got that block and the promise resolves.
-    new SkipchainRPC(roster)
+   new SkipchainRPC(roster)
         .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), initialBlockIndex)
         .then(
             (blockReply) => {
                 startColumbus(blockReply.skipblock, roster, flash);
             },
             (e) => {
-                flash.display(
+                flash.display( 
                     Flash.flashType.ERROR,
                     "unable to find initial block with index " +
                         initialBlockIndex +
@@ -80,10 +83,8 @@ export function sayHi() {
                 );
             }
         );
-       
 
-/*
-    new SkipchainRPC(roster)
+   /* new SkipchainRPC(roster)
     .getSkipBlock(Utils.hex2Bytes(hashBlock0)).then( //get genesis SkipBlock
         (blockReply) => { 
     (new TotalBlock(roster,blockReply)).getTotalBlock().subscribe( //get last block of chain
@@ -114,8 +115,9 @@ export function sayHi() {
             }
         );
         });;   
-});
-*/
+});*/
+
+
 }
 
 
@@ -130,7 +132,7 @@ function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
     const chain = new Chain(roster, flash, initialBlock);
     
     chain.loadInitialBlocks(initialBlock.hash);
-    console.log("passed");
+ 
 
     // The totalBlock utility class allows the browsing class to get the total
     // number of block in the chain. This class is stateful, it will keep each

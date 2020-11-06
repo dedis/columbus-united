@@ -19,6 +19,7 @@ import {
     tap,
     mapTo,
     flatMap,
+    skip,
 } from "rxjs/operators";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 
@@ -87,6 +88,8 @@ export class Chain {
     // initialBlockIndex is the initial block index, which is used to compute the
     // number of blocks loaded to the left and to the right.
     initialBlockIndex: number;
+
+    
 
     initalBlock: SkipBlock;
 
@@ -665,7 +668,7 @@ export class Chain {
             .append("rect")
             .attr("id", block.hash.toString("hex"))
             .attr("width", this.blockWidth)
-            .attr("height", (block.forwardLinks.length+block.backlinks.length) * 25)
+            .attr("height", (block.height) * 40)
             .attr("x", xTranslate)
             .attr("y", 20)
             .attr("fill", Chain.getBlockColor(block))
@@ -675,8 +678,8 @@ export class Chain {
     }
 
     private async appendArrows(
-        //bjr:number,
-        iFrom: number,
+        xTrans:number,
+        skipFrom: SkipBlock,
         iTo: number,
         block: SkipBlock,
         svgBlocks: any,
@@ -686,45 +689,38 @@ export class Chain {
        // console.log("from"+ iFrom);
        // console.log("to"+ iTo);
 
-        if((iTo - iFrom ) == 1 ){
+        if((iTo - skipFrom.index ) == 1 ){
             svgBlocks
             .append("line")
-            .attr("id", iFrom)
-            .attr("x1",  (iFrom + 1) * (this.blockPadding + this.blockWidth) + this.blockPadding)
-            .attr("y1", 25 + this.blockHeight/2)
+            .attr("id", skipFrom.index)
+            .attr("x1", xTrans)
+            .attr("y1", 22 + this.blockHeight/2)
             .attr(
                 "x2",
-                (iFrom + 1) * (this.blockPadding + this.blockWidth)
+                xTrans-this.blockWidth-this.blockPadding
             )
-            .attr("y2",  25 + this.blockHeight/2)
+            .attr("y2", 22 + this.blockHeight/2)
             .attr("stroke-width", 2)
             .attr("stroke", "grey")
           //.attr("marker-end", "url(#triangle)");
         }else {
-            console.log("in     "+ block.index);
-           console.log("fator   " + (50+ (1+factor)*25 + 12));
-           console.log("                    " +((block.forwardLinks.length+ block.backlinks.length) * 25));
-           if( (50+ (1+factor)*25 + 12) > ((block.forwardLinks.length+block.backlinks.length) * 25)){
-            y= (block.forwardLinks.length+block.backlinks.length) * 25;
-
-        }else {
-            y = 50+ (1+factor)*25 + 12;
-        }
-     
+      
+   // if (20+ (block.height) * 40 < 30+(factor)*40 )
             
         svgBlocks
             .append("line")
-            .attr("id", iFrom)
-            .attr("x1", (iFrom + 1) * (this.blockPadding + this.blockWidth))
-            .attr("y1", y)
+            .attr("id", skipFrom.index)
+            .attr("x2",xTrans-this.blockPadding)
+            // .attr("x1", (iFrom + 1) * (this.blockPadding + this.blockWidth) +
+            // (iTo - iFrom) * (this.blockWidth + this.blockPadding) -
+            // this.blockWidth -
+            // 20)
+            .attr("y1", 40+(factor)*38)
             .attr(
-                "x2",
-                (iFrom + 1) * (this.blockPadding + this.blockWidth) +
-                    (iTo - iFrom) * (this.blockWidth + this.blockPadding) -
-                    this.blockWidth -
-                    20
-            )
-            .attr("y2",  y)
+                "x1",xTrans - (iTo - skipFrom.index) * (this.blockWidth + this.blockPadding) + this.blockWidth)
+            //     (iFrom + 1) * (this.blockPadding + this.blockWidth)
+            // 
+            .attr("y2", 40+(factor)*38)
             .attr("stroke-width", 2)
             .attr("stroke", "grey")
             .attr("marker-end", "url(#triangle)");
@@ -737,7 +733,7 @@ export class Chain {
             .attr("refY", 6)
             .attr("markerWidth", 15)
             .attr("markerHeight", 15)
-            .attr("orient", "auto")
+            .attr("orient", "auto-start-reverse")
             .append("path")
             .attr("d", "M 0 0 12 6 0 12 3 6")
             .style("fill", "grey");
@@ -748,20 +744,18 @@ export class Chain {
 
     private async getToAndFrom(xTranslate: number, block: SkipBlock, svgBlocks: any) {
        
-        let indexFrom: number;
-        indexFrom = block.index;
+        let indexTo: number;
+        indexTo= block.index;
        // console.log("hi      "+ indexFrom);
        //console.log("bcljsdbfljcblknxakl<nlyk        " + block.forwardLinks.length);
-        for (let i = 0; i < block.forwardLinks.length; i++) {
+        for (let i = 0; i < block.backlinks.length; i++) {
          //   console.log("wzf    " + i);
-            let indexTo= (await Utils.getBlockIndex(block.forwardLinks[i].to,this.roster));
+            let skipFrom= (await Utils.getBlock(block.backlinks[i],this.roster));
       //  console.log("bijour" + d3.select("#".concat(Utils.bytes2String(block.forwardLinks[i].to))).attr("height"));
-            
-
-
+        
                         this.appendArrows(
-                            //bjr,
-                            indexFrom,
+                            xTranslate,
+                            skipFrom,
                             indexTo,
                             block,
                             svgBlocks,
@@ -770,7 +764,8 @@ export class Chain {
                 
         }
     }
-
+    
+    
     /**
      * Helper for displayBlocks: appends a text element in a block.
      * @param xTranslate horizontal position where the text should be displayed

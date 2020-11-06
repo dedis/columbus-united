@@ -65,6 +65,14 @@ export class Utils {
             ).catch( e => reject(e));
         })
     }
+    static async getBlock(hash: Buffer, roster:Roster): Promise<SkipBlock> {
+        return await new Promise<SkipBlock>((resolve, reject) => {
+            new SkipchainRPC(roster)
+            .getSkipBlock(hash)
+            .then((skipblock) => resolve(skipblock)
+            ).catch( e => reject(e));
+        })
+    }
     
 
 
