@@ -50,7 +50,7 @@ export class Chain {
     readonly blockWidth = 100;
     readonly lastHeight = 200;
     readonly lastWidth = 200;
-    readonly svgWidth = window.innerWidth;
+    readonly svgWidth = 1110;
     readonly svgHeight = 200;
     readonly unitBlockAndPaddingWidth = this.blockPadding + this.blockWidth;
 
@@ -120,6 +120,8 @@ export class Chain {
             .select("#last-container")
             .attr("height", this.svgHeight);
 
+        const gtextLast = last.append("g").attr("class", "gtext");
+
         // Main SVG caneva that contains the chain
         const svg = d3.select("#svg-container").attr("height", this.svgHeight);
 
@@ -151,7 +153,7 @@ export class Chain {
         const xScale = d3
             .scaleLinear()
             .domain([initialBlock.index, initialBlock.index + numblocks])
-            .range([0, this.svgWidth]);
+            .range([1, this.svgWidth]);
 
         const xAxis = d3
             .axisBottom(xScale)
@@ -172,7 +174,7 @@ export class Chain {
                 [0, 0],
                 [this.svgWidth, this.svgHeight],
             ])
-            .scaleExtent([0.0001, 4])
+            .scaleExtent([0.0001, 1.4])
             .on("zoom", () => {
                 subject.next(d3.event.transform);
             });
@@ -362,7 +364,7 @@ export class Chain {
         let lastBlock = new TotalBlock(this.roster, initialBlock);
         lastBlock
             .getTotalBlock()
-            .pipe(map((s: SkipBlock) => this.displayLast(s, last, s.hash)))
+            .pipe(map((s: SkipBlock) => this.displayLast(s, last, s.hash,gtextLast)))
             .subscribe();
     }
 
@@ -384,7 +386,7 @@ export class Chain {
      * @param svgLast the svg container that should welcome the block
      * @param hashLast the hash of the last added block
      */
-    private displayLast(last: SkipBlock, svgLast: any, hashLast: Buffer) {
+    private displayLast(last: SkipBlock, svgLast: any, hashLast: Buffer,gtextLast:any) {
         svgLast
             .append("rect")
             .attr("id", hashLast.toString("hex"))
@@ -392,15 +394,30 @@ export class Chain {
             .attr("height", this.lastHeight)
             .attr("x", 20)
             .attr("y", 20)
-            // .attr("animation-name", "slideInFromLeft")
-            // .attr("animation-duration", 1)
-            //.attr("animation-timing-function", "ease-out")
-            // .attr("animation-delay", 0) /* how long to delay the animation from starting */
-            // .attr("animation-iteration-count", 1) /* how many times the animation will play */
             .attr("fill", Chain.getBlockColor(last))
             .on("click", () => {
                 this.blockClickedSubject.next(last);
             });
+
+            gtextLast
+            .append("text")
+            .attr("x", 12 +this.lastWidth/4)
+            .attr("y", 15)
+            .text("Last added block")
+            .attr("font-family", "sans-serif")
+            .attr("font-size", "16px")
+            .attr("fill", "#808080");
+
+            // gtextLast
+            // .append("text")
+            // .attr("x", 21)
+            // .attr("y", 35)
+            // .text("Block index: "+last.index.toString())
+            // .attr("font-family", "Space-mono")
+            // .attr("font-size", "15px")
+            // .attr("fill", "#FFFFFF");
+
+            
     }
 
     /**
@@ -694,12 +711,12 @@ export class Chain {
             .append("line")
             .attr("id", skipFrom.index)
             .attr("x1", xTrans)
-            .attr("y1", 22 + this.blockHeight/2)
+            .attr("y1", 15 + this.blockHeight/2)
             .attr(
                 "x2",
                 xTrans-this.blockWidth-this.blockPadding
             )
-            .attr("y2", 22 + this.blockHeight/2)
+            .attr("y2", 15 + this.blockHeight/2)
             .attr("stroke-width", 2)
             .attr("stroke", "grey")
           //.attr("marker-end", "url(#triangle)");
@@ -775,7 +792,7 @@ export class Chain {
      */
     private appendTextInBlock(
         xTranslate: number,
-        textIndex: { index: number },
+      textIndex: { index: number },
         text: string,
         textColor: string,
         gtext: any

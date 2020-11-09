@@ -159,6 +159,8 @@ div.block-infos {
     flex-direction:row;
     margin-bottom: 10;
     padding: 0 10px;
+    
+    
 }
 
     
@@ -188,7 +190,10 @@ div.block-infos {
 #svg-container {
     display: flex;
     flex-direction: row;
-    width: 90%;
+    flex: 90%;
+    
+ 
+  
 }
 ::-webkit-scrollbar{
     widows: 25px;
@@ -440,17 +445,17 @@ List of classes for the new transaction container
 }
 
 
-      
-  
 
 .x-axis{
-   
+    text-anchor: start;
+    
     line{
     
         stroke: #8C764A;
     }
 
     path{
+       
         stroke: #8C764A;
         
     }
