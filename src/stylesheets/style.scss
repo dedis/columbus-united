@@ -1,5 +1,11 @@
 @import "~uikit/dist/css/uikit.min.css";
 
+/* */
+:root {
+    --selected-colour : #006fff; //Main colour for displaying the properties
+}
+
+
 body {
     display: flex;
     flex-direction: column;
@@ -16,6 +22,31 @@ div.block-infos {
     margin-left: 10;
     margin-right: 10;
     background-color: #ffffff;
+}
+div.query-answer {
+    display: flex;
+    flex-grow: 0;
+    flex-direction: column;
+    margin-bottom: 36px;
+    min-height: 200px;
+    text-align: center;
+
+    margin-bottom : 36px;
+    
+    padding: 15px;
+    outline:  1px solid var(--selected-colour)
+}
+
+#query-card-container {
+    overflow-x: scroll;
+    overflow-y: scroll;
+
+}
+
+#query-card-container > .uk-card {
+    margin-top: 20px;
+    margin-left: 10px;
+    margin-right: 10px;
 }
 
 
@@ -319,7 +350,7 @@ List of classes for the new transaction container
 
 
 #block-detail-container{
-    outline:  2px solid  #006fff;
+    outline:  2px solid var(--selected-colour);
 }
 
 
@@ -328,7 +359,7 @@ List of classes for the new transaction container
 //     color: #ffffff;
 // }
 .uk-accordion > .uk-open {
-    background-color: #006fff;
+    background-color: var(--selected-colour);
 }
 
 .uk-accordion-title:focus{
@@ -341,7 +372,7 @@ List of classes for the new transaction container
 
 .uk-accordion {
     font-family: "Space Mono", monospace;
-    background-color: #006fff;
+    background-color : var(--selected-colour);
     padding: 8px;
 }
 

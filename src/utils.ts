@@ -7,6 +7,7 @@ import { Roster } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { Observable } from "rxjs";
+import { DataHeader } from '@dedis/cothority/byzcoin/proto';
 
 export class Utils {
     /**
@@ -55,4 +56,19 @@ export class Utils {
     static getRightBlockHash(block: SkipBlock): string {
         return this.bytes2String(block.forwardLinks[0].to);
     }
+    /**
+     * Formats and outputs the date at which a block was validated
+     * @param block block of which we want the validation time
+     */
+    static getTimeString(block : SkipBlock): string{
+        var timestamp = Number(DataHeader.decode(block.data).timestamp);
+        const date = new Date(timestamp/1000_000)
+        console.log(timestamp)
+        const hours = date.getHours();
+        const minutes = "0" + date.getMinutes();
+        const seconds = "0" + date.getSeconds();
+        return date.toDateString()+ " at " + hours + ":" + minutes.substr(-2)+":"+seconds.substr(-2)
+    }
+
+    
 }

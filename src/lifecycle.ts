@@ -96,6 +96,7 @@ export class Lifecycle {
         instance: Instruction
     ): [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>] {
         const self = this;
+        
         const subjectInstruction = new Subject<[SkipBlock[], Instruction[]]>();
         const subjectProgress = new Subject<number[]>();
 
