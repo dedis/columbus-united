@@ -47,6 +47,11 @@ div.query-answer {
     margin-right: 10px;
 }
 
+#query-card-container > .uk-card >.uk-card-body{
+    text-align: left;
+}
+
+
 
 .topnav {
     display: flex;
@@ -127,18 +132,13 @@ div.query-answer {
 }
 
 #progress-bar-container {
+    align-self: center;
     width: 80%;
-    position: absolute;
-    top: 52%;
-    left: 10%;
+    
 }
 
 #progress-bar {
-    position: absolute;
-    top: 0%;
-    left: 0%;
-    bottom: 0%;
-    width: 1%;
+    height: 40%;
     z-index: 1;
     background-color: #4caf50;
 }
@@ -154,31 +154,22 @@ div.query-answer {
     color: black;
 }
 
-.load-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+.load-container {   
+    
+    display: flex;
+    flex-direction: column;
+    align-content: center;
     background-color: rgb(255, 255, 255);
     color: black;
 }
 
 .div-load {
-    position: absolute;
     top: 30%;
-    left: 50%;
-    transform: translateX(-50%);
+    align-self: center;
+    align-content: center;
 }
 
-.loader {
-    border: 16px solid #f3f3f3;
-    border-top: 16px solid #3498db;
-    border-radius: 50%;
-    width: 120px;
-    height: 120px;
-    animation: spin 2s linear infinite;
-}
+
 
 @keyframes spin {
     0% {
@@ -289,9 +280,6 @@ div.query-answer {
 }
 
 .cancel-button {
-    position: absolute;
-    top: 80%;
-    right: 10%;
     display: inline-block;
     border: 0.16em solid rgba(255, 255, 255, 0);
     border-radius: 2em;
@@ -306,6 +294,13 @@ div.query-answer {
     text-align: center;
     transition: all 0.2s;
     background-color: #0004e2;
+    align-self: center;
+}
+
+.spinner{
+    margin: 0 auto;
+    align-self: center;
+    display: flex;
 }
 
 .cancel-button:hover {
@@ -320,11 +315,9 @@ div.query-answer {
 }
 
 .logo {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    top: 10%;
     content: url(https://avatars2.githubusercontent.com/u/3638331?s=200&v=4);
+    display: table;
+    margin: 0 auto;
 }
 
 /*

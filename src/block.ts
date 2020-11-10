@@ -622,10 +622,11 @@ export class Block {
     private createLoadingScreen() {
         const self = this;
         this.loadContainer = d3
-            .select("body")
+            .select(".query-answer")
             .append("div")
             .attr("class", "load-container");
         this.loadContainer
+            .append("div")
             .append("div")
             .attr("class", "logo") // tslint:disable-next-line
             .on("click", function () {
@@ -634,7 +635,10 @@ export class Block {
         const divLoad = this.loadContainer
             .append("div")
             .attr("class", "div-load");
-        divLoad.append("div").attr("class", "loader");
+        divLoad.append("div") 
+        .attr("class", "spinner")
+        .attr("uk-spinner", "ratio : 3")
+        .style("color", "blue");
 
         this.progressBarContainer = this.loadContainer
             .append("div")
