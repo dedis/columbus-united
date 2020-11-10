@@ -521,7 +521,7 @@ export class Block {
                 blocki.hash.toString("hex") ===
                 this.clickedBlock.hash.toString("hex")
             ) {
-                instructionCard.style("background-color", "red");
+                instructionCard.style("outline", "1px red");
             }
             // Detail of each instruction
             const divInstructionB = instructionCardBody.append("div");
