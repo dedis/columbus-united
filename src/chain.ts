@@ -26,6 +26,7 @@ import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import { Flash } from "./flash";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
+import { timeHours } from 'd3';
 
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
@@ -217,7 +218,7 @@ export class Chain {
                 if (transform.k < 1) {
                     gtext
                         .selectAll("text")
-                        .attr("font-size", 1 + transform.k + "em");
+                        .attr("font-size", 1+transform.k + "em");
                 }
                 // Update the loader. We want to keep them at their original
                 // scale so we only translate them
@@ -386,7 +387,7 @@ export class Chain {
      * @param svgLast the svg container that should welcome the block
      * @param hashLast the hash of the last added block
      */
-    private displayLast(last: SkipBlock, svgLast: any, hashLast: Buffer,gtextLast:any) {
+    private  displayLast(last: SkipBlock, svgLast: any, hashLast: Buffer, gtextLast:any) {
         svgLast
             .append("rect")
             .attr("id", hashLast.toString("hex"))
@@ -394,28 +395,66 @@ export class Chain {
             .attr("height", this.lastHeight)
             .attr("x", 20)
             .attr("y", 20)
+            .attr("z-index", 10)
             .attr("fill", Chain.getBlockColor(last))
             .on("click", () => {
                 this.blockClickedSubject.next(last);
             });
 
-            gtextLast
-            .append("text")
-            .attr("x", 12 +this.lastWidth/4)
+            svgLast.append("text")
+          //  .attr("id", "textLast")
+           // .attr("class", "gtext")
+            .attr("x", 27)
+            .attr("y", 50)
+            .text("Block "+last.index.toString())
+            .attr("font-family", "sans-serif")
+            .attr("font-size", "16px")
+            .attr("fill", "#FFFFFF");
+
+            gtextLast.append("text")
+          //  .attr("id", "textLast")
+           // .attr("class", "gtext")
+            .attr("x", 46)
             .attr("y", 15)
             .text("Last added block")
             .attr("font-family", "sans-serif")
-            .attr("font-size", "16px")
+            .attr("font-size", "17px")
             .attr("fill", "#808080");
 
+
+
+
+            
+        }
+            
+        private appendTextInLastBlock(
+            xTranslate: number,
+         // textIndex: { index: number },
+            text: string,
+            textColor: string,
+            gtext: any,
+            last: SkipBlock
+        ) {
+           
+           // ++textIndex.index;
+    
             // gtextLast
             // .append("text")
-            // .attr("x", 21)
-            // .attr("y", 35)
-            // .text("Block index: "+last.index.toString())
-            // .attr("font-family", "Space-mono")
-            // .attr("font-size", "15px")
-            // .attr("fill", "#FFFFFF");
+            // .attr("x", 12 +this.lastWidth/4)
+            // .attr("y", 15)
+            // .text("Last added block")
+            // .attr("font-family", "sans-serif")
+            // .attr("font-size", "16px")
+            // .attr("fill", "#808080")
+            gtext
+            .append("text")
+            .attr("x", 21)
+            .attr("y", 35)
+            .text("Block index: "+last.index.toString())
+            .attr("font-family", "Space-mono")
+            .attr("z-index", 20)
+            .attr("font-size", "30px")
+            .attr("fill", "#000000");
 
             
     }
@@ -668,6 +707,7 @@ export class Chain {
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
             this.getToAndFrom(xTranslateBlock, block, garrow);
+            this.appendTextInBlock(xTranslateBlock,"hi","hi",gtext);
         }
 
         this.newblocksSubject.next(listBlocks);
@@ -792,20 +832,20 @@ export class Chain {
      */
     private appendTextInBlock(
         xTranslate: number,
-      textIndex: { index: number },
+     // textIndex: { index: number },
         text: string,
         textColor: string,
         gtext: any
     ) {
         gtext
             .append("text")
-            .attr("x", xTranslate)
-            .attr("y", (textIndex.index + 1) * 30)
-            .text(text)
+            .attr("x", 5+ xTranslate)
+            .attr("y",50)
+            .text(" 🟢   🟣")
             .attr("font-family", "sans-serif")
-            .attr("font-size", "18px")
-            .attr("fill", textColor);
-        ++textIndex.index;
+            .attr("font-size", "14")
+            .attr("fill", "#FFFFFF");
+       // ++textIndex.index;
     }
 
     /**
