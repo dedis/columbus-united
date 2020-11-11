@@ -57,7 +57,7 @@ export function sayHi() {
     //'6bacd57b248c94dc1e2372d62976d8986948f04d727254ffbc0220182f73ab67' block #110997 - problem with nextID
     //that block has no forwards link
     //block #110940 gives as last block 110997
-
+    
 
     if (initialBlockIndex < 0) {
         flash.display(
@@ -66,9 +66,15 @@ export function sayHi() {
                 initialBlockIndex
         );
 
+    }
+    if (initialBlockIndex >  110948) {
+        flash.display(
+            Flash.flashType.ERROR,
+            "Forward links from block index '110948' are broken" +
+                initialBlockIndex
+        );
 
     }
-
     // Load the first block at the provided index, and start the visualization
     // once we got that block and the promise resolves.
    new SkipchainRPC(roster)
@@ -136,6 +142,10 @@ function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
     const chain = new Chain(roster, flash, initialBlock);
     
     chain.loadInitialBlocks(initialBlock.hash);
+
+    new SkipchainRPC(roster).getLatestBlock(Utils.hex2Bytes(hashBlock0), false).then(
+        (resp) => console.log(resp)
+    )
  
 
     // The totalBlock utility class allows the browsing class to get the total

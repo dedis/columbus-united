@@ -49,9 +49,9 @@ export class Chain {
     readonly textMargin = 5;
     readonly blockHeight = 50;
     readonly blockWidth = 100;
-    readonly lastHeight = 200;
+    readonly lastHeight = 176;
     readonly lastWidth = 200;
-    readonly svgWidth = 1110;
+    readonly svgWidth =window.innerWidth; //1039;
     readonly svgHeight = 200;
     readonly unitBlockAndPaddingWidth = this.blockPadding + this.blockWidth;
 
@@ -120,14 +120,16 @@ export class Chain {
         const last = d3
             .select("#last-container")
             .attr("height", this.svgHeight);
+        
 
-        const gtextLast = last.append("g").attr("class", "gtext");
+
 
         // Main SVG caneva that contains the chain
         const svg = d3.select("#svg-container").attr("height", this.svgHeight);
 
         // this group will contain the blocks
         const gblocks = svg.append("g").attr("class", "gblocks");
+  
 
         const garrow = gblocks.append("g").attr("class", "garrow");
 
@@ -154,7 +156,7 @@ export class Chain {
         const xScale = d3
             .scaleLinear()
             .domain([initialBlock.index, initialBlock.index + numblocks])
-            .range([1, this.svgWidth]);
+            .range([0, this.svgWidth]);
 
         const xAxis = d3
             .axisBottom(xScale)
@@ -218,7 +220,7 @@ export class Chain {
                 if (transform.k < 1) {
                     gtext
                         .selectAll("text")
-                        .attr("font-size", 1+transform.k + "em");
+                        .attr("font-size",  1 + transform.k + "em");
                 }
                 // Update the loader. We want to keep them at their original
                 // scale so we only translate them
@@ -360,13 +362,13 @@ export class Chain {
                 }
             },
         });
-
-        //Get last added block of the chain
-        let lastBlock = new TotalBlock(this.roster, initialBlock);
-        lastBlock
-            .getTotalBlock()
-            .pipe(map((s: SkipBlock) => this.displayLast(s, last, s.hash,gtextLast)))
-            .subscribe();
+    //Get last added block of the chain
+    let lastBlock = new TotalBlock(this.roster, initialBlock);
+    lastBlock
+        .getTotalBlock()
+        .pipe(map((s: SkipBlock) => this.displayLastAddedBlock(s, last, s.hash)))
+        .subscribe();
+       
     }
 
     /**
@@ -380,14 +382,17 @@ export class Chain {
             this.subjectBrowse,
             false
         );
+         
     }
     /**
      * Display the last added block of the chain
-     * @param last the last added block of the blockchain
+     * @param lastBlock the last added block of the blockchain
      * @param svgLast the svg container that should welcome the block
      * @param hashLast the hash of the last added block
+     * 
      */
-    private  displayLast(last: SkipBlock, svgLast: any, hashLast: Buffer, gtextLast:any) {
+    private  displayLastAddedBlock(lastBlock: SkipBlock, svgLast: any, hashLast: Buffer) {
+
         svgLast
             .append("rect")
             .attr("id", hashLast.toString("hex"))
@@ -395,69 +400,113 @@ export class Chain {
             .attr("height", this.lastHeight)
             .attr("x", 20)
             .attr("y", 20)
-            .attr("z-index", 10)
-            .attr("fill", Chain.getBlockColor(last))
+            .style("filter", "url(#drop-shadow)")
+            .attr("fill", Chain.getBlockColor(lastBlock))
             .on("click", () => {
-                this.blockClickedSubject.next(last);
+                this.blockClickedSubject.next(lastBlock);
             });
 
-            svgLast.append("text")
-          //  .attr("id", "textLast")
-           // .attr("class", "gtext")
-            .attr("x", 27)
-            .attr("y", 50)
-            .text("Block "+last.index.toString())
-            .attr("font-family", "sans-serif")
-            .attr("font-size", "16px")
-            .attr("fill", "#FFFFFF");
+        //shadow filter for last added blcok
+        var defs = svgLast.append("defs");
 
+        // create filter with id #drop-shadow
+        // height=130% so that the shadow is not clipped
+        var filter = defs.append("filter")
+            .attr("id", "drop-shadow")
+            .attr("height", "130%");
+        
+        // SourceAlpha refers to opacity of graphic that this filter will be applied to
+        // convolve that with a Gaussian with standard deviation 3 and store result
+        // in blur
+        filter.append("feGaussianBlur")
+            .attr("in", "SourceAlpha")
+            .attr("stdDeviation", 3)
+            .attr("result", "blur");
+        
+        // translate output of Gaussian blur to the right and downwards with 2px
+        // store result in offsetBlur
+        filter.append("feOffset")
+            .attr("in", "blur")
+            .attr("dx", 2)
+            .attr("dy", 2)
+            .attr("result", "offsetBlur");
+        
+        // overlay original SourceGraphic over translated blurred opacity by using
+        // feMerge filter. Order of specifying inputs is important!
+        var feMerge = filter.append("feMerge");
+        
+        feMerge.append("feMergeNode")
+            .attr("in", "offsetBlur")
+        feMerge.append("feMergeNode")
+            .attr("in", "SourceGraphic");
+
+            const gtextLast = svgLast.append("g").attr("class", "gtext");
+
+            //add text on top of last added block
             gtextLast.append("text")
-          //  .attr("id", "textLast")
-           // .attr("class", "gtext")
-            .attr("x", 46)
-            .attr("y", 15)
+            .attr("x", 51)
+            .attr("y", 14)
             .text("Last added block")
-            .attr("font-family", "sans-serif")
+            .attr("font-family", "Arial")
             .attr("font-size", "17px")
-            .attr("fill", "#808080");
+            .attr("fill", "#808080")
+            .attr("pointer-events", "none");
 
-
-
+            this.lastAddedTxInfo(lastBlock,svgLast,lastBlock)
 
             
         }
-            
-        private appendTextInLastBlock(
-            xTranslate: number,
-         // textIndex: { index: number },
-            text: string,
-            textColor: string,
-            gtext: any,
-            last: SkipBlock
-        ) {
-           
-           // ++textIndex.index;
-    
-            // gtextLast
-            // .append("text")
-            // .attr("x", 12 +this.lastWidth/4)
-            // .attr("y", 15)
-            // .text("Last added block")
-            // .attr("font-family", "sans-serif")
-            // .attr("font-size", "16px")
-            // .attr("fill", "#808080")
-            gtext
-            .append("text")
-            .attr("x", 21)
-            .attr("y", 35)
-            .text("Block index: "+last.index.toString())
-            .attr("font-family", "Space-mono")
-            .attr("z-index", 20)
-            .attr("font-size", "30px")
-            .attr("fill", "#000000");
 
-            
+     lastAddedTxInfo(lastBlock: SkipBlock, svgLast: any ,block:SkipBlock){
+
+        svgLast.append("text")
+          .attr("x", 31)
+          .attr("y", 60)
+          .text("Block "+lastBlock.index.toString())
+          .attr("font-family", "Arial")
+          .attr("font-size", "16px")
+          .attr("fill", "#FFFFFF")
+          .attr("pointer-events", "none");
+
+          //validated transactions number 
+          svgLast.append("circle")
+          .attr("cx", 41)
+          .attr("cy", 90)
+          .attr("r", 8)
+          .attr("fill", "#b3ff99");
+
+
+          //text for number of validated tx
+          svgLast.append("text")
+          .attr("x", 55)
+          .attr("y", 94)
+          .text("validated 1") //add number of validated transacitons 
+          .attr("font-family", "Arial")
+          .attr("font-size", "16px")
+          .attr("fill", "#b3ff99")
+          .attr("pointer-events", "none");
+
+          //cirle for refused transactions 
+          svgLast.append("circle")
+          .attr("cx", 41)
+          .attr("cy", 120)
+          .attr("r", 8)
+          .attr("fill", "#ff4d4d");
+
+          //text for number of validated tx
+          svgLast.append("text")
+          .attr("x", 55)
+          .attr("y", 124)
+          .text("rejected 0") //add number of validated transacitons 
+          .attr("font-family", "Arial")
+          .attr("font-size", "16px")
+          .attr("fill", "#ff4d4d")
+          .attr("pointer-events", "none");
+
     }
+
+         
+       
 
     /**
      * Check if new blocks need to be loaded to the left and load them if
@@ -707,7 +756,7 @@ export class Chain {
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
             this.getToAndFrom(xTranslateBlock, block, garrow);
-            this.appendTextInBlock(xTranslateBlock,"hi","hi",gtext);
+         //   this.appendTextInBlock(xTranslateBlock,"hi","hi",gblocks);
         }
 
         this.newblocksSubject.next(listBlocks);
@@ -754,7 +803,7 @@ export class Chain {
             .attr("y1", 15 + this.blockHeight/2)
             .attr(
                 "x2",
-                xTrans-this.blockWidth-this.blockPadding
+                xTrans-this.blockPadding
             )
             .attr("y2", 15 + this.blockHeight/2)
             .attr("stroke-width", 2)
@@ -765,6 +814,7 @@ export class Chain {
    // if (20+ (block.height) * 40 < 30+(factor)*40 )
             
         svgBlocks
+        
             .append("line")
             .attr("id", skipFrom.index)
             .attr("x2",xTrans-this.blockPadding)
@@ -786,13 +836,13 @@ export class Chain {
             .append("svg:defs")
             .append("svg:marker")
             .attr("id", "triangle")
-            .attr("refX", 6)
-            .attr("refY", 6)
+            .attr("refX", 5.5)
+            .attr("refY", 4.5)
             .attr("markerWidth", 15)
             .attr("markerHeight", 15)
             .attr("orient", "auto-start-reverse")
             .append("path")
-            .attr("d", "M 0 0 12 6 0 12 3 6")
+            .attr("d", "M 0 0 L 10 5 L 0 10 z")
             .style("fill", "grey");
         }
 
@@ -838,13 +888,50 @@ export class Chain {
         gtext: any
     ) {
         gtext
-            .append("text")
-            .attr("x", 5+ xTranslate)
-            .attr("y",50)
-            .text(" 🟢   🟣")
-            .attr("font-family", "sans-serif")
-            .attr("font-size", "14")
-            .attr("fill", "#FFFFFF");
+        .append("circle")
+        .attr("cx", xTranslate+35)
+        .attr("cy", 40)
+        .attr("r", 6)
+        .attr("fill", "#99ccff");
+
+        gtext.append("circle")
+        .attr("cx", xTranslate+this.blockWidth-35)
+        .attr("cy", 40)
+        .attr("r", 6)
+        .attr("fill", "#b3ffb3");
+
+    //     var Tooltip = d3.select("#div_template")
+    // .append("div")
+    // .style("opacity", 0)
+    // .attr("class", "tooltip")
+    // .style("background-color", "white")
+    // .style("border", "solid")
+    // .style("border-width", "2px")
+    // .style("border-radius", "5px")
+    // .style("padding", "5px")
+
+//   // Three function that change the tooltip when user hover / move / leave a cell
+//   var mouseover = function(d) {
+//     Tooltip
+//       .style("opacity", 1)
+//     d3.select(this)
+//       .style("stroke", "black")
+//       .style("opacity", 1)
+//   }
+//   var mousemove = function(d) {
+//     Tooltip
+//       .html("The exact value of<br>this cell is: " + d.value)
+//       .style("left", (d3.mouse(this)[0]+70) + "px")
+//       .style("top", (d3.mouse(this)[1]) + "px")
+//   }
+//   var mouseleave = function(d) {
+//     Tooltip
+//       .style("opacity", 0)
+//     d3.select(this)
+//       .style("stroke", "none")
+//       .style("opacity", 0.8)
+//   }
+
        // ++textIndex.index;
     }
 

@@ -171,10 +171,8 @@ div.block-infos {
     animation: 2s ease-out 2s 1 slideInFromRight;
     background: white;
     animation-direction: reverse;
-   // animation-fill-mode: normal;
     border-left: 1px solid gray;
 }
-
 
 
 @keyframes slideInFromRight {
@@ -186,11 +184,20 @@ div.block-infos {
     }
   }
 
+.last-added{
+
+    left: 0;
+    
+}
+
+
 
 #svg-container {
     display: flex;
     flex-direction: row;
     flex: 90%;
+
+   //padding-left: 30px;
     
  
   
@@ -447,7 +454,7 @@ List of classes for the new transaction container
 
 
 .x-axis{
-    text-anchor: start;
+   text-anchor: start;
     
     line{
     
