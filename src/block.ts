@@ -463,14 +463,43 @@ export class Block {
         this.removeHighlighBlocks(this.hashHighligh);
 
         const queryContainer = d3.select(".query-answer");
+        queryContainer.text("");
         queryContainer
-            .text("")
-            .append("p")
+        .attr("class", "query-answer uk-card uk-card-default")
+        .style("margin-top", "0px")
+        .style("padding-top", "10px");
+            const queryHeader = queryContainer.append("p");
+            queryHeader
+            .attr("id", "query-header")
+            .append("div")
             .text(
                 `Summary of the evolution of the instance: ${tuple[1][0].instanceID.toString(
                     "hex"
                 )}`
+            )
+            .style("padding-left", "2%")
+            .style("font-weight", "700")
+            .style("color", "#666")
+            .style("font-size", "1.3em");
+            
+        
+        const closeButtonWrap = queryHeader.append("div");
+        closeButtonWrap.attr("id", "clear-query-button");
+        closeButtonWrap.append("button")
+        .attr("class", "uk-close-large")
+        .attr("type", "button")
+        .attr("uk-close", "")
+        .on("click", function () {
+            const confir = confirm(
+                "Are you sure you want to clear the query results ?"
             );
+            if (confir) {
+                queryContainer.html("");
+                console.log("button");
+            }
+        });
+
+
         const queryCardContainer = queryContainer.append("ul");
         queryCardContainer
             .attr("id", "query-card-container")

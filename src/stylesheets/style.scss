@@ -30,7 +30,6 @@ div.query-answer {
     margin-bottom: 36px;
     min-height: 200px;
     text-align: center;
-
     
     padding: 10px;
 }
@@ -38,7 +37,7 @@ div.query-answer {
 #query-card-container {
     overflow-x: scroll;
     overflow-y: scroll;
-
+    outline: 1px solid var(--selected-colour);
 }
 
 #query-card-container > .uk-card {
@@ -49,6 +48,13 @@ div.query-answer {
 
 #query-card-container > .uk-card >.uk-card-body{
     text-align: left;
+}
+
+#query-header{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 0px;
 }
 
 
