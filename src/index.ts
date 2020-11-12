@@ -9,6 +9,16 @@ import { Lifecycle } from "./lifecycle";
 import { getRosterStr } from "./roster";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
+import {
+    buffer,
+    last,
+    map,
+    takeLast,
+    throttleTime,
+    count,
+    tap,
+    mapTo,
+} from "rxjs/operators";
 
 import "uikit";
 import "./stylesheets/style.scss";
@@ -33,16 +43,63 @@ const rosterStr = getRosterStr();
 export function sayHi() {
     // Create the roster
     const roster = Roster.fromTOML(rosterStr);
-
     // Create the flash class that will handle the flash messages
     const flash = new Flash();
     if (!roster) {
         flash.display(Flash.flashType.ERROR, "Roster is undefined");
         return;
     }
-
-    // Load the first block
+    
+    
+  
+   // Load the first block
     const initialBlockIndex = 20; // Change here the first block to display
+    //'6bacd57b248c94dc1e2372d62976d8986948f04d727254ffbc0220182f73ab67' block #110997 - problem with nextID
+    //that block has no forwards link
+    //block #110940 gives as last block 110997
+    
+
+    if (initialBlockIndex < 0) {
+        flash.display(
+            Flash.flashType.ERROR,
+            "index of initial block cannot be negative, specified index is " +
+                initialBlockIndex
+        );
+
+    }
+    if (initialBlockIndex >  110948) {
+        flash.display(
+            Flash.flashType.ERROR,
+            "Forward links from block index '110948' are broken" +
+                initialBlockIndex
+        );
+
+    }
+    // Load the first block at the provided index, and start the visualization
+    // once we got that block and the promise resolves.
+   new SkipchainRPC(roster)
+        .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), initialBlockIndex)
+        .then(
+            (blockReply) => {
+                startColumbus(blockReply.skipblock, roster, flash);
+            },
+            (e) => {
+                flash.display( 
+                    Flash.flashType.ERROR,
+                    "unable to find initial block with index " +
+                        initialBlockIndex +
+                        ": " +
+                        e
+                );
+            }
+        );
+
+   /* new SkipchainRPC(roster)
+    .getSkipBlock(Utils.hex2Bytes(hashBlock0)).then( //get genesis SkipBlock
+        (blockReply) => { 
+    (new TotalBlock(roster,blockReply)).getTotalBlock().subscribe( //get last block of chain
+        (s:SkipBlock)=> {
+           const initialBlockIndex = s.index - 1; // Change here the first block to display (lastblockIndex - 1)
     if (initialBlockIndex < 0) {
         flash.display(
             Flash.flashType.ERROR,
@@ -50,14 +107,12 @@ export function sayHi() {
                 initialBlockIndex
         );
     }
-
-    // Load the first block at the provided index, and start the visualization
-    // once we got that block and the promise resolves.
-    new SkipchainRPC(roster)
-        .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), initialBlockIndex)
+   
+    new SkipchainRPC(roster)   
+        .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), initialBlockIndex) //get the SkipBlock of lastblockIndex - 1
         .then(
             (blockReply) => {
-                startColumbus(blockReply.skipblock, roster, flash);
+                startColumbus(blockReply.skipblock, roster, flash); //start visualisation 
             },
             (e) => {
                 flash.display(
@@ -69,7 +124,12 @@ export function sayHi() {
                 );
             }
         );
+        });;   
+});*/
+
+
 }
+
 
 /**
  * startColumbus starts the visualization
@@ -80,7 +140,13 @@ export function sayHi() {
  */
 function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
     const chain = new Chain(roster, flash, initialBlock);
+    
     chain.loadInitialBlocks(initialBlock.hash);
+
+    new SkipchainRPC(roster).getLatestBlock(Utils.hex2Bytes(hashBlock0), false).then(
+        (resp) => console.log(resp)
+    )
+ 
 
     // The totalBlock utility class allows the browsing class to get the total
     // number of block in the chain. This class is stateful, it will keep each
@@ -93,7 +159,7 @@ function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
-    new Block(
+ new Block(
         chain.getBlockClickedSubject(),
         lifecycle,
         flash,

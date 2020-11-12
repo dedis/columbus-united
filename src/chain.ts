@@ -19,11 +19,17 @@ import {
     tap,
     mapTo,
     flatMap,
+
+    skip,
 } from "rxjs/operators";
+import { SkipchainRPC } from "@dedis/cothority/skipchain";
+
 
 import { Flash } from "./flash";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
+
+import { timeHours } from 'd3';
 
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
@@ -46,15 +52,17 @@ export class Chain {
     readonly textMargin = 5;
     readonly blockHeight = 50;
     readonly blockWidth = 100;
-    readonly lastHeight = 200;
+
+    readonly lastHeight = 176;
+
     readonly lastWidth = 200;
-    readonly svgWidth = window.innerWidth;
+    readonly svgWidth =window.innerWidth; //1039;
     readonly svgHeight = 200;
     readonly unitBlockAndPaddingWidth = this.blockPadding + this.blockWidth;
 
     // Recomended pageSize / nbPages: 80 / 50
-    readonly pageSize = 20;
-    readonly nbPages = 1; //FIXME Only works for 1 page. Overflow not verified if multiple pages...
+    readonly pageSize = 50;
+    readonly nbPages = 1; // Only works for 1 page. Overflow not verified if multiple pages...
 
     readonly textColor = "black";
     readonly loadedInfo = document.getElementById("loaded-blocks");
@@ -87,6 +95,10 @@ export class Chain {
     // number of blocks loaded to the left and to the right.
     initialBlockIndex: number;
 
+    
+
+    initalBlock: SkipBlock;
+
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
         const self = this;
 
@@ -95,6 +107,7 @@ export class Chain {
 
         // Blocks observation
         this.flash = flash;
+        this.initalBlock = initialBlock;
 
         this.initialBlockIndex = initialBlock.index;
 
@@ -118,6 +131,9 @@ export class Chain {
 
         // this group will contain the blocks
         const gblocks = svg.append("g").attr("class", "gblocks");
+  
+
+        const garrow = gblocks.append("g").attr("class", "garrow");
 
         // this group will contain the text. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
@@ -163,7 +179,7 @@ export class Chain {
                 [0, 0],
                 [this.svgWidth, this.svgHeight],
             ])
-            .scaleExtent([0.0001, 4])
+            .scaleExtent([0.0001, 1.4])
             .on("zoom", () => {
                 subject.next(d3.event.transform);
             });
@@ -195,9 +211,10 @@ export class Chain {
                     "," +
                     "0) scale(" +
                     transform.k +
-                    ",1)";
+                    "," +
+                    "1" +
+                    ")";
                 gblocks.attr("transform", transformString);
-
                 // Standard transformation on the text since we need to keep the
                 // original scale
                 gtext.attr("transform", transform);
@@ -205,9 +222,8 @@ export class Chain {
                 if (transform.k < 1) {
                     gtext
                         .selectAll("text")
-                        .attr("font-size", 1 + transform.k + "em");
+                        .attr("font-size",  1 + transform.k + "em");
                 }
-
                 // Update the loader. We want to keep them at their original
                 // scale so we only translate them
                 gloader.attr("transform", transform);
@@ -291,6 +307,7 @@ export class Chain {
                         skipBlocks,
                         true,
                         gblocks,
+                        garrow,
                         gtext,
                         lastBlockLeft.index - this.initialBlockIndex
                     );
@@ -321,7 +338,14 @@ export class Chain {
                         nb = lastBlockRight.index - this.initialBlockIndex + 1;
                     }
 
-                    this.displayBlocks(skipBlocks, false, gblocks, gtext, nb);
+                    this.displayBlocks(
+                        skipBlocks,
+                        false,
+                        gblocks,
+                        garrow,
+                        gtext,
+                        nb
+                    );
 
                     lastBlockRight = lastBlock;
 
@@ -341,13 +365,14 @@ export class Chain {
             },
         });
 
-        //create
+    //Get last added block of the chain
+    let lastBlock = new TotalBlock(this.roster, initialBlock);
+    lastBlock
+        .getTotalBlock()
+        .pipe(map((s: SkipBlock) => this.displayLastAddedBlock(s, last, s.hash)))
+        .subscribe();
+       
 
-        let lastBlock = new TotalBlock(this.roster, initialBlock);
-        lastBlock
-            .getTotalBlock()
-            .pipe(map((s: SkipBlock) => this.displayLast(s, last, s.hash)))
-            .subscribe();
     }
 
     /**
@@ -361,14 +386,20 @@ export class Chain {
             this.subjectBrowse,
             false
         );
+
+         
     }
     /**
      * Display the last added block of the chain
-     * @param last the last added block of the blockchain
+     * @param lastBlock the last added block of the blockchain
+
      * @param svgLast the svg container that should welcome the block
      * @param hashLast the hash of the last added block
+     * 
      */
-    private displayLast(last: SkipBlock, svgLast: any, hashLast: Buffer) {
+
+    private  displayLastAddedBlock(lastBlock: SkipBlock, svgLast: any, hashLast: Buffer) {
+
         svgLast
             .append("rect")
             .attr("id", hashLast.toString("hex"))
@@ -376,16 +407,115 @@ export class Chain {
             .attr("height", this.lastHeight)
             .attr("x", 20)
             .attr("y", 20)
-            // .attr("animation-name", "slideInFromLeft")
-            // .attr("animation-duration", 1)
-            //.attr("animation-timing-function", "ease-out")
-            // .attr("animation-delay", 0) /* how long to delay the animation from starting */
-            // .attr("animation-iteration-count", 1) /* how many times the animation will play */
-            .attr("fill", Chain.getBlockColor(last))
+
+            .style("filter", "url(#drop-shadow)")
+            .attr("fill", Chain.getBlockColor(lastBlock))
             .on("click", () => {
-                this.blockClickedSubject.next(last);
+                this.blockClickedSubject.next(lastBlock);
             });
+
+        //shadow filter for last added blcok
+        var defs = svgLast.append("defs");
+
+        // create filter with id #drop-shadow
+        // height=130% so that the shadow is not clipped
+        var filter = defs.append("filter")
+            .attr("id", "drop-shadow")
+            .attr("height", "130%");
+        
+        // SourceAlpha refers to opacity of graphic that this filter will be applied to
+        // convolve that with a Gaussian with standard deviation 3 and store result
+        // in blur
+        filter.append("feGaussianBlur")
+            .attr("in", "SourceAlpha")
+            .attr("stdDeviation", 3)
+            .attr("result", "blur");
+        
+        // translate output of Gaussian blur to the right and downwards with 2px
+        // store result in offsetBlur
+        filter.append("feOffset")
+            .attr("in", "blur")
+            .attr("dx", 2)
+            .attr("dy", 2)
+            .attr("result", "offsetBlur");
+        
+        // overlay original SourceGraphic over translated blurred opacity by using
+        // feMerge filter. Order of specifying inputs is important!
+        var feMerge = filter.append("feMerge");
+        
+        feMerge.append("feMergeNode")
+            .attr("in", "offsetBlur")
+        feMerge.append("feMergeNode")
+            .attr("in", "SourceGraphic");
+
+            const gtextLast = svgLast.append("g").attr("class", "gtext");
+
+            //add text on top of last added block
+            gtextLast.append("text")
+            .attr("x", 51)
+            .attr("y", 14)
+            .text("Last added block")
+            .attr("font-family", "Arial")
+            .attr("font-size", "17px")
+            .attr("fill", "#808080")
+            .attr("pointer-events", "none");
+
+            this.lastAddedTxInfo(lastBlock,svgLast,lastBlock)
+
+            
+        }
+
+     lastAddedTxInfo(lastBlock: SkipBlock, svgLast: any ,block:SkipBlock){
+
+        svgLast.append("text")
+          .attr("x", 31)
+          .attr("y", 60)
+          .text("Block "+lastBlock.index.toString())
+          .attr("font-family", "Arial")
+          .attr("font-size", "16px")
+          .attr("fill", "#FFFFFF")
+          .attr("pointer-events", "none");
+
+          //validated transactions number 
+          svgLast.append("circle")
+          .attr("cx", 41)
+          .attr("cy", 90)
+          .attr("r", 8)
+          .attr("fill", "#b3ff99");
+
+
+          //text for number of validated tx
+          svgLast.append("text")
+          .attr("x", 55)
+          .attr("y", 94)
+          .text("validated 1") //add number of validated transacitons 
+          .attr("font-family", "Arial")
+          .attr("font-size", "16px")
+          .attr("fill", "#b3ff99")
+          .attr("pointer-events", "none");
+
+          //cirle for refused transactions 
+          svgLast.append("circle")
+          .attr("cx", 41)
+          .attr("cy", 120)
+          .attr("r", 8)
+          .attr("fill", "#ff4d4d");
+
+          //text for number of validated tx
+          svgLast.append("text")
+          .attr("x", 55)
+          .attr("y", 124)
+          .text("rejected 0") //add number of validated transacitons 
+          .attr("font-family", "Arial")
+          .attr("font-size", "16px")
+          .attr("fill", "#ff4d4d")
+          .attr("pointer-events", "none");
+
     }
+
+         
+       
+
 
     /**
      * Check if new blocks need to be loaded to the left and load them if
@@ -610,6 +740,7 @@ export class Chain {
         listBlocks: SkipBlock[],
         backwards: boolean,
         gblocks: any,
+        garrow: any,
         gtext: any,
         numblocks: number
     ) {
@@ -633,6 +764,10 @@ export class Chain {
 
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
+
+            this.getToAndFrom(xTranslateBlock, block, garrow);
+         //   this.appendTextInBlock(xTranslateBlock,"hi","hi",gblocks);
+
         }
 
         this.newblocksSubject.next(listBlocks);
@@ -645,11 +780,14 @@ export class Chain {
      * @param block the block to append
      */
     private appendBlock(xTranslate: number, block: SkipBlock, svgBlocks: any) {
+        //console.log("yoooo "+block.height + " vs  "+ block.forwardLinks.length);
         svgBlocks
             .append("rect")
             .attr("id", block.hash.toString("hex"))
             .attr("width", this.blockWidth)
-            .attr("height", this.blockHeight + block.height * 30)
+
+            .attr("height", (block.height) * 40)
+
             .attr("x", xTranslate)
             .attr("y", 20)
             .attr("fill", Chain.getBlockColor(block))
@@ -658,6 +796,96 @@ export class Chain {
             });
     }
 
+    private async appendArrows(
+        xTrans:number,
+        skipFrom: SkipBlock,
+        iTo: number,
+        block: SkipBlock,
+        svgBlocks: any,
+        factor: number
+    ) {
+        let y: number;
+       // console.log("from"+ iFrom);
+       // console.log("to"+ iTo);
+
+        if((iTo - skipFrom.index ) == 1 ){
+            svgBlocks
+            .append("line")
+            .attr("id", skipFrom.index)
+            .attr("x1", xTrans)
+            .attr("y1", 15 + this.blockHeight/2)
+            .attr(
+                "x2",
+                xTrans-this.blockPadding
+            )
+            .attr("y2", 15 + this.blockHeight/2)
+            .attr("stroke-width", 2)
+            .attr("stroke", "grey")
+          //.attr("marker-end", "url(#triangle)");
+        }else {
+      
+   // if (20+ (block.height) * 40 < 30+(factor)*40 )
+            
+        svgBlocks
+        
+            .append("line")
+            .attr("id", skipFrom.index)
+            .attr("x2",xTrans-this.blockPadding)
+            // .attr("x1", (iFrom + 1) * (this.blockPadding + this.blockWidth) +
+            // (iTo - iFrom) * (this.blockWidth + this.blockPadding) -
+            // this.blockWidth -
+            // 20)
+            .attr("y1", 40+(factor)*38)
+            .attr(
+                "x1",xTrans - (iTo - skipFrom.index) * (this.blockWidth + this.blockPadding) + this.blockWidth)
+            //     (iFrom + 1) * (this.blockPadding + this.blockWidth)
+            // 
+            .attr("y2", 40+(factor)*38)
+            .attr("stroke-width", 2)
+            .attr("stroke", "grey")
+            .attr("marker-end", "url(#triangle)");
+
+            svgBlocks
+            .append("svg:defs")
+            .append("svg:marker")
+            .attr("id", "triangle")
+            .attr("refX", 5.5)
+            .attr("refY", 4.5)
+            .attr("markerWidth", 15)
+            .attr("markerHeight", 15)
+            .attr("orient", "auto-start-reverse")
+            .append("path")
+            .attr("d", "M 0 0 L 10 5 L 0 10 z")
+            .style("fill", "grey");
+        }
+
+      
+    }
+
+    private async getToAndFrom(xTranslate: number, block: SkipBlock, svgBlocks: any) {
+       
+        let indexTo: number;
+        indexTo= block.index;
+       // console.log("hi      "+ indexFrom);
+       //console.log("bcljsdbfljcblknxakl<nlyk        " + block.forwardLinks.length);
+        for (let i = 0; i < block.backlinks.length; i++) {
+         //   console.log("wzf    " + i);
+            let skipFrom= (await Utils.getBlock(block.backlinks[i],this.roster));
+      //  console.log("bijour" + d3.select("#".concat(Utils.bytes2String(block.forwardLinks[i].to))).attr("height"));
+        
+                        this.appendArrows(
+                            xTranslate,
+                            skipFrom,
+                            indexTo,
+                            block,
+                            svgBlocks,
+                            i
+                        );
+                
+        }
+    }
+    
+    
     /**
      * Helper for displayBlocks: appends a text element in a block.
      * @param xTranslate horizontal position where the text should be displayed
@@ -667,20 +895,57 @@ export class Chain {
      */
     private appendTextInBlock(
         xTranslate: number,
-        textIndex: { index: number },
+     // textIndex: { index: number },
         text: string,
         textColor: string,
         gtext: any
     ) {
         gtext
-            .append("text")
-            .attr("x", xTranslate)
-            .attr("y", (textIndex.index + 1) * 30)
-            .text(text)
-            .attr("font-family", "sans-serif")
-            .attr("font-size", "18px")
-            .attr("fill", textColor);
-        ++textIndex.index;
+        .append("circle")
+        .attr("cx", xTranslate+35)
+        .attr("cy", 40)
+        .attr("r", 6)
+        .attr("fill", "#99ccff");
+
+        gtext.append("circle")
+        .attr("cx", xTranslate+this.blockWidth-35)
+        .attr("cy", 40)
+        .attr("r", 6)
+        .attr("fill", "#b3ffb3");
+
+    //     var Tooltip = d3.select("#div_template")
+    // .append("div")
+    // .style("opacity", 0)
+    // .attr("class", "tooltip")
+    // .style("background-color", "white")
+    // .style("border", "solid")
+    // .style("border-width", "2px")
+    // .style("border-radius", "5px")
+    // .style("padding", "5px")
+
+//   // Three function that change the tooltip when user hover / move / leave a cell
+//   var mouseover = function(d) {
+//     Tooltip
+//       .style("opacity", 1)
+//     d3.select(this)
+//       .style("stroke", "black")
+//       .style("opacity", 1)
+//   }
+//   var mousemove = function(d) {
+//     Tooltip
+//       .html("The exact value of<br>this cell is: " + d.value)
+//       .style("left", (d3.mouse(this)[0]+70) + "px")
+//       .style("top", (d3.mouse(this)[1]) + "px")
+//   }
+//   var mouseleave = function(d) {
+//     Tooltip
+//       .style("opacity", 0)
+//     d3.select(this)
+//       .style("stroke", "none")
+//       .style("opacity", 0.8)
+//   }
+
+       // ++textIndex.index;
     }
 
     /**

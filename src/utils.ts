@@ -8,6 +8,7 @@ import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { Observable } from "rxjs";
 import { DataHeader } from '@dedis/cothority/byzcoin/proto';
+import { SkipchainRPC } from "@dedis/cothority/skipchain";
 
 export class Utils {
     /**
@@ -52,9 +53,26 @@ export class Utils {
     /**
      * Get the hash of the next (right) block.
      * @param block block of which we want the hash of the right block
-     */
+   */
     static getRightBlockHash(block: SkipBlock): string {
         return this.bytes2String(block.forwardLinks[0].to);
+    } 
+
+    static async getBlockIndex(hash: Buffer, roster:Roster): Promise<number> {
+        return await new Promise<number>((resolve, reject) => {
+            new SkipchainRPC(roster)
+            .getSkipBlock(hash)
+            .then((skipblock) => resolve(skipblock.index)
+            ).catch( e => reject(e));
+        })
+    }
+    static async getBlock(hash: Buffer, roster:Roster): Promise<SkipBlock> {
+        return await new Promise<SkipBlock>((resolve, reject) => {
+            new SkipchainRPC(roster)
+            .getSkipBlock(hash)
+            .then((skipblock) => resolve(skipblock)
+            ).catch( e => reject(e));
+        })
     }
     /**
      * Formats and outputs the date at which a block was validated

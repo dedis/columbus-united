@@ -114,11 +114,9 @@ div.query-answer {
     overflow-y: scroll;
     padding: 8px;
     flex: 1;
+    
 }
 
-.block-infos {
-    display: block;
-}
 
 .uk-tooltip {
     word-wrap: break-word;
@@ -188,38 +186,64 @@ div.query-answer {
 
 .blocks-container {
     display: flex;
-    flex-direction:row-reverse;
+    flex-direction:row;
     margin-bottom: 10;
     padding: 0 10px;
+    
+    
 }
 
+    
 #last-container{
     display: flex;
-    margin-right: 35px;
-
+    margin-left: 35px;
     background-color: white;
-    animation: 2s ease-out 2s 1 slideInFromLeft;
+    animation: 2s ease-out 2s 1 slideInFromRight;
     background: white;
-    animation-fill-mode: backwards;
-   
-    border-right: 1px solid gray;
+    animation-direction: reverse;
+    border-left: 1px solid gray;
 }
 
-@keyframes slideInFromLeft {
+
+@keyframes slideInFromRight {
     0% {
-      transform: translateX(-100%);
+      transform: translateX(0%);
     }
     100% {
-      transform: translateX(0);
+      transform: translateX(100%);
     }
   }
 
-  
+.last-added{
+
+    left: 0;
+    
+}
+
+
 
 #svg-container {
     display: flex;
     flex-direction: row;
-    width: 90%;
+    flex: 90%;
+
+   //padding-left: 30px;
+    
+ 
+  
+}
+::-webkit-scrollbar{
+    widows: 25px;
+}
+::-webkit-scrollbar-track{
+
+    border: 7px solid #232943;
+    box-shadow:  inset 0 0 2.5px 2px rgba(0, 0, 0, 0.35);
+}
+
+::-webkit-scrollbar-thumb{
+    background: pink;
+    border-radius: 3px;
 }
 
 .uk-open {
@@ -460,17 +484,17 @@ List of classes for the new transaction container
 }
 
 
-      
-  
 
 .x-axis{
-   
+   text-anchor: start;
+    
     line{
     
         stroke: #8C764A;
     }
 
     path{
+       
         stroke: #8C764A;
         
     }
