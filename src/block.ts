@@ -210,13 +210,13 @@ export class Block {
         const divVerifier = liVerifier.append("div");
         divVerifier.attr("class", "uk-accordion-content");
         block.verifiers.forEach((uid, j) => {
-            const blockie = blockies.create({ seed: uid.toString("hex") });
+          const blockie = blockies.create({ seed: uid.toString("hex") });
             divVerifier
                 .append("p")
                 .text(` Verifier ${j} , ID:  `)
                 .append("img")
                 .attr("class", "uk-img")
-                .attr("src", blockie.toDataURL())
+              .attr("src", blockie.toDataURL())
                 .attr("width", 32)
                 .attr("height", 32)
                 .attr("uk-tooltip", `${uid.toString("hex")}`);

@@ -9,6 +9,7 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import { Observable } from "rxjs";
 import { DataHeader } from '@dedis/cothority/byzcoin/proto';
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
+import { DataBody } from "@dedis/cothority/byzcoin/proto";
 
 export class Utils {
     /**
@@ -57,7 +58,11 @@ export class Utils {
     static getRightBlockHash(block: SkipBlock): string {
         return this.bytes2String(block.forwardLinks[0].to);
     } 
-
+    /**
+     * Gets the block index by it's hash and roster
+     * @param hash block of which we want the index
+     * @param roster roster that validated the block
+     */
     static async getBlockIndex(hash: Buffer, roster:Roster): Promise<number> {
         return await new Promise<number>((resolve, reject) => {
             new SkipchainRPC(roster)
@@ -66,6 +71,12 @@ export class Utils {
             ).catch( e => reject(e));
         })
     }
+
+     /**
+     * Gets the block  by it's hash and roster
+     * @param hash block of which we want the index
+     * @param roster roster that validated the block
+     */
     static async getBlock(hash: Buffer, roster:Roster): Promise<SkipBlock> {
         return await new Promise<SkipBlock>((resolve, reject) => {
             new SkipchainRPC(roster)
@@ -74,6 +85,20 @@ export class Utils {
             ).catch( e => reject(e));
         })
     }
+
+//     static getTransations(block:SkipBlock): Buffer {
+//         txs: Buffer;
+//         const body = DataBody.decode(block.payload);
+//         body.txResults.forEach((transaction, i) => {
+//             const accepted: string = transaction.accepted
+//                 ? "Accepted"
+//                 : "Not accepted";
+
+        
+        
+//     }
+// }
+
     /**
      * Formats and outputs the date at which a block was validated
      * @param block block of which we want the validation time

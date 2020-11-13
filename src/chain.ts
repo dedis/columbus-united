@@ -23,13 +23,13 @@ import {
     skip,
 } from "rxjs/operators";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
-
+import * as blockies from "blockies-ts";
 
 import { Flash } from "./flash";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
 
-import { timeHours } from 'd3';
+import { group, timeHours } from 'd3';
 
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
@@ -124,7 +124,8 @@ export class Chain {
         //Main SVG caneva that contains the last added block
         const last = d3
             .select("#last-container")
-            .attr("height", this.svgHeight);
+            .attr("height", this.svgHeight)
+            .attr("z-index", -1);
 
         // Main SVG caneva that contains the chain
         const svg = d3.select("#svg-container").attr("height", this.svgHeight);
@@ -372,6 +373,7 @@ export class Chain {
         .pipe(map((s: SkipBlock) => this.displayLastAddedBlock(s, last, s.hash)))
         .subscribe();
        
+        
 
     }
 
@@ -460,12 +462,12 @@ export class Chain {
             .attr("fill", "#808080")
             .attr("pointer-events", "none");
 
-            this.lastAddedTxInfo(lastBlock,svgLast,lastBlock)
+            this.lastAddedBlockInfo(lastBlock,svgLast,lastBlock)
 
             
         }
 
-     lastAddedTxInfo(lastBlock: SkipBlock, svgLast: any ,block:SkipBlock){
+     lastAddedBlockInfo(lastBlock: SkipBlock, svgLast: any ,block:SkipBlock){
 
         svgLast.append("text")
           .attr("x", 31)
@@ -477,43 +479,158 @@ export class Chain {
           .attr("pointer-events", "none");
 
           //validated transactions number 
-          svgLast.append("circle")
+          var accepted = svgLast.append("g")
+          .attr("class", "gaccepted")
+          .attr("uk-tooltip", `Validated transactions`);
+
+          accepted.append("circle")
           .attr("cx", 41)
           .attr("cy", 90)
+        //   .attr("border-radius","50%")
+        //   .attr("border","3px solid #99ff99")
           .attr("r", 8)
           .attr("fill", "#b3ff99");
+          //.attr("uk-tooltip", `Validated transactions`);
 
 
           //text for number of validated tx
-          svgLast.append("text")
-          .attr("x", 55)
+          accepted.append("text")
+          .attr("x", 57)
           .attr("y", 94)
-          .text("validated 1") //add number of validated transacitons 
+          .text(this.getTransactionRatio(lastBlock)[0].toString()) //add number of validated transacitons 
           .attr("font-family", "Arial")
           .attr("font-size", "16px")
           .attr("fill", "#b3ff99")
           .attr("pointer-events", "none");
+          //.attr("uk-tooltip", `Validated transactions`);
 
           //cirle for refused transactions 
-          svgLast.append("circle")
-          .attr("cx", 41)
-          .attr("cy", 120)
+
+          var rejected = svgLast.append("g")
+          .attr("class", "grefused")
+          .attr("uk-tooltip", `Validated transactions`);
+
+          rejected.append("circle")
+          .attr("cx", 90)
+          .attr("cy", 90)
           .attr("r", 8)
-          .attr("fill", "#ff4d4d");
+          .attr("fill", "#ff4d4d")
+          .attr("uk-tooltip", `Rejected transactions`);
+
+        //   svgLast.append("a").
+        //   attr("uk-icon", "question")
+        //   .attr("x", 41)
+        //   .attr("y", 120)
+        //   .attr("width",10)
+        //   .attr("height",10)
+        //   .attr("fill", "#ff4d4d");
+
 
           //text for number of validated tx
-          svgLast.append("text")
-          .attr("x", 55)
-          .attr("y", 124)
-          .text("rejected 0") //add number of validated transacitons 
+          rejected.append("text")
+          .attr("x", 104)
+          .attr("y", 94)
+          .text(this.getTransactionRatio(lastBlock)[1].toString()) //add number of validated transacitons 
           .attr("font-family", "Arial")
           .attr("font-size", "16px")
           .attr("fill", "#ff4d4d")
           .attr("pointer-events", "none");
 
+
+          //Roster 
+
+                 
+        var roster1 = svgLast.append("g")
+        .attr("class", "groster");
+
+        let hi: Array<String> = []; 
+        for (let i =0; i<block.roster.list.length;i++){
+            hi[i] = block.roster.list[i].description;
+        }
+
+
+
+        roster1.append("rect")
+        .attr("x", 33)
+        .attr("y", 134)
+        .attr("width",("Roster").length*10)
+        .attr("fill-opacity", "0")
+        .attr("height",16)
+        .attr("uk-tooltip",hi.join('<br/>'));
+
+        roster1
+        .append("text")
+        .text("Roster")
+        .attr("x", 33)
+        .attr("y", 150)
+        .attr("text-decoration", "underline")
+      
+           .attr("font-family", "Arial")
+          .attr("font-size", "16px")
+          .attr("fill", "#ffffff")
+          .attr("pointer-events", "none")
+          .attr("uk-tooltip","kfsdm")
+          ;
+        
+         const blockie = blockies.create({ seed: lastBlock.hash.toString('hex') });
+
+          svgLast
+         
+          .append("svg:image")
+            .attr("xlink:href", blockie.toDataURL())
+              .attr("x", 90)
+              .attr("y", 136)
+                .attr("width", 15)
+                .attr("class","groster")
+                .attr("height", 15)
+.attr("uk-tooltip",block.hash.toString("hex"));
+
+        // var roster1 = svgLast.append("g")
+        // .attr("class", "gaccepted");
+
+
+
+    //     svgLast
+    //     .append("text")
+    //     .text("Roster")
+    //     .attr("x", 55)
+    //     .attr("y", 150)
+    //        .attr("font-family", "Arial")
+    //       .attr("font-size", "16px")
+    //       .attr("fill", "#ffffff")
+    //       .attr("pointer-events", "none");
+    //   //    .attr("uk-tooltip",hi.toString() );
+
+
+
+
+
+
     }
 
-         
+    getTransactionRatio(block:SkipBlock): [Number,Number]{
+        let accepted=0;
+        let rejected=0;
+
+        const body = DataBody.decode(block.payload);
+        body.txResults.forEach((transaction, i) => {
+            if(transaction.accepted){
+                accepted++;
+            }else{
+                rejected++
+            }
+        });
+        console.log(Utils.bytes2String(block.roster.id))
+        block.roster.list.forEach(x=> console.log(x.description))
+        return [accepted,rejected];
+    }
+
+         //coin
+         //config
+         //darc
+         //credential
+         //longtermsecret
+         //calypsoread
        
 
 
