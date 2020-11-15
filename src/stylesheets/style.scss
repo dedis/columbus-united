@@ -458,10 +458,16 @@ List of classes for the new transaction container
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding: 0 20px;
+    padding: 0 0px;
 
-    h1 {
-        color: #264473;
+
+
+    img{
+        
+        color: #264473; 
+       max-width: none;
+       height: 70;
+        
     }
 
     #status-info {

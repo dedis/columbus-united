@@ -1,7 +1,7 @@
 import { Roster } from "@dedis/cothority/network";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import { SkipBlock } from "@dedis/cothority/skipchain/skipblock";
-
+import * as d3 from "d3";
 import { Block } from "./block";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
@@ -50,10 +50,10 @@ export function sayHi() {
         return;
     }
     
-    
+
   
    // Load the first block
-    const initialBlockIndex = 110000; // Change here the first block to display
+    const initialBlockIndex = 108900; // Change here the first block to display
     //'6bacd57b248c94dc1e2372d62976d8986948f04d727254ffbc0220182f73ab67' block #110997 - problem with nextID
     //that block has no forwards link
     //block #110940 gives as last block 110997
@@ -94,6 +94,8 @@ export function sayHi() {
             }
         );
 
+
+
    /* new SkipchainRPC(roster)
     .getSkipBlock(Utils.hex2Bytes(hashBlock0)).then( //get genesis SkipBlock
         (blockReply) => { 
@@ -128,7 +130,14 @@ export function sayHi() {
 });*/
 
 
+
+
+
 }
+
+
+
+ 
 
 
 /**

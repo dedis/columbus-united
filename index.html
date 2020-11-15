@@ -2,13 +2,9 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <script src="uikit/dist/js/uikit-icons.min.js"></script>
+    
         <script src="dist/bundle.min.js" type="text/javascript"></script>
-        <script src="https://kit.fontawesome.com/yourcode.js"></script>
-
-
-       
-        <link rel="icon" href="icon.png" />
+     
         <link href='https://css.gg/css' rel='stylesheet'>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <style>
@@ -24,7 +20,10 @@
 
     <body>
         <div class="header">
-            <h1>Columbus</h1>
+       
+            <img src="assets/logo color small.png" alt="logo" />
+            
+
             <button class="uk-button uk-button-default" type="button">
                 About
             </button>
@@ -57,10 +56,12 @@
             </div>
         </div>
         <div class="searchbar-container">
-            <div class="topnav">
+            <div class="topnav">   <!-- onclick="getInputValue();" -->
                 <input
+                    id = "search-input"
                     type="text"
                     placeholder=" Search by block / hash / transaction "
+
                 />
             </div>
         </div>
@@ -88,6 +89,37 @@
         </footer>
     </body>
     <script>
+       
         jsapp.sayHi();
+
+        function getInputValue(){
+            // Selecting the input element and get its value 
+            var inputVal = document.getElementById("search-input").value;
+            
+           
+
+        }
+
+
+        
+
+        
+    //   let searchInput = document.getElementById("search-input");
+    //   Rx.Observable.fromEvent(searchInput, 'input')
+    //     .pluck('target', 'value')
+    //     .debounceTime(500)
+    //     .distinctUntilChanged()
+    //     .switchMap(searchKey => Rx.Observable.ajax(`https://api.crossref.org/works?rows=50&query.author=${searchKey}`)
+    //       .map(resp => ({
+    //           "status" : resp["status"] == 200,
+    //           "details" : resp["status"] == 200 ? resp["response"] : [],
+    //           "result_hash": Date.now()
+    //         })
+    //       )
+    //     )
+    //     .filter(resp => resp.status !== false)
+    //     .distinctUntilChanged((a, b) => a.result_hash === b.result_hash)
+    //     .subscribe(resp => console.log(resp.details));
+
     </script>
 </html>

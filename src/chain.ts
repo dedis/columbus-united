@@ -111,7 +111,7 @@ export class Chain {
 
         let lastBlockLeft = initialBlock;
         let lastBlockRight = initialBlock;
-        let transformCounter = 0;
+      
 
         // to keep track of current requested operations. If we are already loading
         // blocks on the left, then we shouldn't make another same request. Note
@@ -182,6 +182,7 @@ export class Chain {
                 subject.next(d3.event.transform);
             });
         svg.call(zoom);
+      
 
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
@@ -215,13 +216,20 @@ export class Chain {
                 gblocks.attr("transform", transformString);
                 // Standard transformation on the text since we need to keep the
                 // original scale
-                gtext.attr("transform", transform);
+              //  gblocks.selectAll("circle").attr("r",transform.k*5);
+                
+             
+
+               gtext.selectAll("circle").attr("transform", transformString);
+           
+              //  console.log("bondoue"+ gtext.selectAll("circle").attr("height").toString());
+                //gtext.attr("r", transform.k*100);
                 // Update the text size
-                if (transform.k < 1) {
-                    gtext
-                        .selectAll("text")
-                        .attr("font-size", 1 + transform.k + "em");
-                }
+                // if (transform.k < 1) {
+                //     gtext
+                //         .selectAll("text")
+                //         .attr("font-size", 1 + transform.k + "em");
+                // }
                 // Update the loader. We want to keep them at their original
                 // scale so we only translate them
                 gloader.attr("transform", transform);
@@ -373,7 +381,19 @@ export class Chain {
                 )
             )
             .subscribe();
+
+
+            // let sb = d3.select(".topnav").on("keyup").call(this.search())
     }
+
+    // search() {
+    //     console.log("dgknsfd");
+
+
+
+    // }
+
+   
 
     /**
      * Load the initial blocks.
@@ -387,6 +407,8 @@ export class Chain {
             false
         );
     }
+
+   
     /**
      * Display the last added block of the chain
      * @param lastBlock the last added block of the blockchain
@@ -464,31 +486,31 @@ export class Chain {
 
         gtextLast
             .append("text")
-            .attr("x", 77)
-            .attr("y", 63)
+            .attr("x", 63)
+            .attr("y", 57)
             .text("Block " + lastBlock.index.toString())
             .attr("font-family", "Arial")
             .attr("font-size", "17px")
             .attr("fill", "#ffffff")
-        
-            .attr("pointer-events", "none")
-            .attr("font-weight", "bold")
-            .attr("uk-tooltip", Utils.bytes2String(lastBlock.hash));
+            .attr("pointer-events", "none");
+           // .attr("font-weight", "bold")
+           
+
+            gtextLast
+            .append("rect")
+            .attr("x", 63)
+            .attr("y", 40)
+            .attr("width", 120)
+            .attr("height", 19)
+            .attr("fill-opacity", "0")
+            .attr("uk-tooltip", Utils.bytes2String(lastBlock.hash));  
+          
 
         this.lastAddedBlockInfo(lastBlock, svgLast, lastBlock);
     }
 
     lastAddedBlockInfo(lastBlock: SkipBlock, svgLast: any, block: SkipBlock) {
-        // svgLast.
-        // append("text")
-        // .attr("class","gtext")
-        //   .attr("x", 31)
-        //   .attr("y", 60)
-        //   .text("Block "+lastBlock.index.toString())
-        //   .attr("font-family", "Arial")
-        //   .attr("font-size", "16px")
-        //   .attr("fill", "#FFFFFF")
-        //   .attr("pointer-events", "none");
+        
 
         //validated transactions number
         var accepted = svgLast
@@ -498,8 +520,8 @@ export class Chain {
 
         accepted
             .append("rect")
-            .attr("x", 73)
-            .attr("y", 90)
+            .attr("x", 65)
+            .attr("y", 74)
             .attr("width", 21)
             .attr("fill-opacity", "0")
             .attr("height", 19);
@@ -532,9 +554,9 @@ export class Chain {
 
         rejected
             .append("rect")
-            .attr("x", 118)
-            .attr("y", 80)
-            .attr("width", 20)
+            .attr("x", 65)
+            .attr("y", 104)
+            .attr("width", 21)
             .attr("fill-opacity", "0")
             .attr("height", 19)
             .attr("uk-tooltip", `Rejected transactions`);
@@ -887,7 +909,7 @@ export class Chain {
             this.appendBlock(xTranslateBlock, block, gblocks);
 
             this.getToAndFrom(xTranslateBlock, block, garrow);
-            //   this.appendTextInBlock(xTranslateBlock,"hi","hi",gblocks);
+              // this.appendTextInBlock(xTranslateBlock,"hi","hi",gtext);
         }
 
         this.newblocksSubject.next(listBlocks);
@@ -937,20 +959,16 @@ export class Chain {
                 .attr("x2", xTrans - this.blockPadding)
                 .attr("y2", 15 + this.blockHeight / 2)
                 .attr("stroke-width", 2)
-                .attr("stroke", "grey");
+                .attr("stroke", "grey")
+                
+                ;
             //.attr("marker-end", "url(#triangle)");
         } else {
             // if (20+ (block.height) * 40 < 30+(factor)*40 )
 
             svgBlocks
-
                 .append("line")
-                .attr("id", skipFrom.index)
                 .attr("x2", xTrans - this.blockPadding)
-                // .attr("x1", (iFrom + 1) * (this.blockPadding + this.blockWidth) +
-                // (iTo - iFrom) * (this.blockWidth + this.blockPadding) -
-                // this.blockWidth -
-                // 20)
                 .attr("y1", 40 + factor * 38)
                 .attr(
                     "x1",
@@ -959,17 +977,20 @@ export class Chain {
                             (this.blockWidth + this.blockPadding) +
                         this.blockWidth
                 )
-                //     (iFrom + 1) * (this.blockPadding + this.blockWidth)
-                //
+              
                 .attr("y2", 40 + factor * 38)
                 .attr("stroke-width", 2)
                 .attr("stroke", "grey")
-                .attr("marker-end", "url(#triangle)");
+                .attr("marker-end", "url(#triangle)")
+                .on("click", () => {
+                    this.blockClickedSubject.next(block);
+                });
 
             svgBlocks
                 .append("svg:defs")
                 .append("svg:marker")
                 .attr("id", "triangle")
+        
                 .attr("refX", 5.5)
                 .attr("refY", 4.5)
                 .attr("markerWidth", 15)
@@ -977,6 +998,9 @@ export class Chain {
                 .attr("orient", "auto-start-reverse")
                 .append("path")
                 .attr("d", "M 0 0 L 10 5 L 0 10 z")
+                .on("click", () => {
+                    this.blockClickedSubject.next(block);
+                })
                 .style("fill", "grey");
         }
     }
@@ -1028,14 +1052,14 @@ export class Chain {
             .attr("cx", xTranslate + 35)
             .attr("cy", 40)
             .attr("r", 6)
-            .attr("fill", "#99ccff");
+            .attr("fill", "#b3ffb3");
 
         gtext
             .append("circle")
             .attr("cx", xTranslate + this.blockWidth - 35)
             .attr("cy", 40)
             .attr("r", 6)
-            .attr("fill", "#b3ffb3");
+            .attr("fill", "#EF5959");
 
         //     var Tooltip = d3.select("#div_template")
         // .append("div")
