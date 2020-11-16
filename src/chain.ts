@@ -7,6 +7,7 @@ import {
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
+
 import * as d3 from "d3";
 import { merge, Subject } from "rxjs";
 
@@ -28,8 +29,8 @@ import * as blockies from "blockies-ts";
 import { Flash } from "./flash";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
-
 import { group, timeHours } from "d3";
+import { sayHi } from '.';
 
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
@@ -86,7 +87,7 @@ export class Chain {
     // view.
     newblocksSubject = new Subject<SkipBlock[]>();
 
-    lastSubject = new Subject<SkipBlock>();
+    lastSubject = new Subject();
 
     // Flash is a utiliy class to display flash messages in the view.
     flash: Flash;
@@ -145,6 +146,7 @@ export class Chain {
         // this subject will be notified when the main SVG caneva in moved by the
         // user
         const subject = new Subject();
+        this.lastSubject = subject
 
         // the number of block the window can display at normal scale. Used to
         // define the domain the xScale
@@ -182,6 +184,8 @@ export class Chain {
                 subject.next(d3.event.transform);
             });
         svg.call(zoom);
+
+       
       
 
         // Handler to update the view (drag the view, zoom in-out). We subscribe to

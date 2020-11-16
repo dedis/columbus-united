@@ -181,7 +181,7 @@ export class Block {
         blockCardHeaderDetails
             .text(`Hash: ${block.hash.toString("hex")}`)
             .append("p")
-            .text(`Validated on ${Utils.getTimeString(block)}`)
+            .text(`Validated on the ${Utils.getTimeString(block)}`)
             .append("p")
             .text(`Height : ${block.height}`);
 
@@ -210,16 +210,23 @@ export class Block {
         const divVerifier = liVerifier.append("div");
         divVerifier.attr("class", "uk-accordion-content");
         block.verifiers.forEach((uid, j) => {
-          const blockie = blockies.create({ seed: uid.toString("hex") });
-            divVerifier
-                .append("p")
-                .text(` Verifier ${j} , ID:  `)
-                .append("img")
+            const blockie = blockies.create({ seed: uid.toString("hex") });
+            
+            const verifierLine = divVerifier.append("p");
+                verifierLine.text(` Verifier ${j} , ID:  `);                
+               
+            const imgBlockie = verifierLine.append("img");
+            imgBlockie
                 .attr("class", "uk-img")
               .attr("src", blockie.toDataURL())
                 .attr("width", 32)
-                .attr("height", 32)
-                .attr("uk-tooltip", `${uid.toString("hex")}`);
+                .attr("uk-tooltip", `${uid.toString("hex")}`)
+                .append("input")
+                .text(`${uid.toString("hex")}`)
+                .style("height", "0")
+                .style("width", "0");
+
+            imgBlockie.on("click",function() {Utils.copyToClipBoard(uid.toString("hex"), self.flash)});
         });
 
         //ANCHOR BackLink details
@@ -229,7 +236,7 @@ export class Block {
         const aBackLink = liBackLink.append("a");
         aBackLink
             .attr("class", "uk-accordion-title")
-            .text(`BackLinks: ${block.backlinks.length}`);
+            .text(`Back Links: ${block.backlinks.length}`);
         const divBackLink = liBackLink.append("div");
         divBackLink.attr("class", "uk-accordion-content");
         block.backlinks.forEach((value, j) => {
@@ -240,6 +247,7 @@ export class Block {
                 .append("span")
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
+                .on("click",function() {Utils.copyToClipBoard(value.toString("hex"), self.flash)})
                 .attr("uk-tooltip", `${value.toString("hex")}`);
         });
 
@@ -250,7 +258,7 @@ export class Block {
         const aForwardLink = liForwardLink.append("a");
         aForwardLink
             .attr("class", "uk-accordion-title")
-            .text(`ForwardLinks: ${block.forwardLinks.length}`);
+            .text(`Forward Links: ${block.forwardLinks.length}`);
 
         const divForwardLink = liForwardLink.append("div");
         divForwardLink.attr("class", "uk-accordion-content");
@@ -259,18 +267,33 @@ export class Block {
 
             divForwardLink
                 .append("p")
-                .text("To ")
+                .text(`Forward link ${j} to `)
                 .append("span")
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
+                .on("click",function() {Utils.copyToClipBoard(fl.to.toString("hex"), self.flash)})
                 .attr("uk-tooltip", `${fl.to.toString("hex")}`);
 
-            divForwardLink
-                .append("p")
-                .text(`Hash: ${fl.hash().toString("hex")}`);
-            divForwardLink
-                .append("p")
-                .text(`signature: ${fl.signature.sig.toString("hex")}`);
+            const lockIcon = divForwardLink
+                .append("a");
+
+            const lockContent = `<p>Hash: ${fl.hash().toString("hex")}</p>
+            <p>signature: ${fl.signature.sig.toString("hex")}</p>`
+
+
+            lockIcon
+                .attr("class", "uk-icon-button")
+                .attr("uk-icon", "icon: lock")
+                .attr("href","")
+                .style("margin-left", "15px")
+                .on("click",function() {Utils.copyToClipBoard(lockContent, self.flash)});
+            const linkDetails = divForwardLink
+                .append("div");
+            linkDetails
+                .attr("uk-dropdown", "pos: right-center")
+                .attr("id", "forwardlink-drop")
+                .html(lockContent)
+                .style("color", "var(--selected-colour)");
         });
         //!SECTION
         //SECTION Transaction details
@@ -291,20 +314,23 @@ export class Block {
             .attr("margin-top", "5px")
             .text(`Transaction details`)
             .style("color", "#666");
+        
+        const body = DataBody.decode(block.payload);
+
+        const totalTransaction = body.txResults.length;
+        
+        transactionCardHeaderTitle
+        .append("p")
+        .text(`Total of ${totalTransaction} transactions`)
+        .style("margin-left", "10px");
 
         const transactionCardBody = transactionCard.append("div");
         transactionCardBody.attr("class", "uk-card-body uk-padding-small");
 
-        // ulTransaction.attr("uk-accordion", "");
-        // ulTransaction.attr("background-color = #006fff");
-        // ulTransaction.attr("multiple", "true");
-        // ulTransaction.attr("class", "clickable-detail-block");
-        const body = DataBody.decode(block.payload);
-
         body.txResults.forEach((transaction, i) => {
             const accepted: string = transaction.accepted
                 ? "Accepted"
-                : "Not accepted";
+                : `<span id ="rejected">Not accepted</span>`;
             const liTransaction = transactionCardBody.append("ul");
             liTransaction.attr("id", "detail-window");
             liTransaction.attr("class", "uk-open");
@@ -340,20 +366,25 @@ export class Block {
                     const aInstruction = liInstruction.append("a");
                     aInstruction.attr("class", "uk-accordion-title");
 
-                    //TODO Maybe modularize this as it's gonna be very heavy
                     if (instruction.type === Instruction.typeSpawn) {
+                        const contractName = instruction.spawn.contractID.charAt(0).toUpperCase() + 
+                        instruction.spawn.contractID.slice(1);
                         aInstruction.text(
-                            `Spawn instruction ${j}, name of contract: ${instruction.spawn.contractID}`
+                            `Spawned : ${contractName }`
                         );
                         args = instruction.spawn.args;
                     } else if (instruction.type === Instruction.typeInvoke) {
+                        const contractName = instruction.invoke.contractID.charAt(0).toUpperCase() + 
+                        instruction.invoke.contractID.slice(1);
                         aInstruction.text(
-                            `Invoke instruction ${j}, name of contract: ${instruction.invoke.contractID}`
+                            `Invoked : ${contractName }`
                         );
                         args = instruction.invoke.args;
                     } else if (instruction.type === Instruction.typeDelete) {
+                        const contractName = instruction.delete.contractID.charAt(0).toUpperCase() + 
+                        instruction.delete.contractID.slice(1);
                         aInstruction.text(
-                            `Delete instruction ${j}, name of contract:${instruction.delete.contractID}`
+                            `Deleted : ${contractName }`
                         );
                     }
 
@@ -364,7 +395,7 @@ export class Block {
                     // Detail of one instruction
                     divInstruction
                         .append("p")
-                        .text(`Hash:${instruction.hash().toString("hex")}`);
+                        .text(`Transaction hash : ${instruction.hash().toString("hex")}`);
                     divInstruction
                         .append("p")
                         .text(
@@ -399,7 +430,7 @@ export class Block {
                         )
                         .attr("style", "border:none")
                         .text(
-                            `Search for all instance with the ID: "${instruction.instanceID.toString(
+                            `Search for all instructions related to this instance: "${instruction.instanceID.toString(
                                 "hex"
                             )}"`
                         )
@@ -446,6 +477,9 @@ export class Block {
                 }
             ); //!SECTION
         });
+
+
+
     }
 
     //SECTION Query
@@ -461,7 +495,7 @@ export class Block {
     private printDataBrowsing(tuple: [SkipBlock[], Instruction[]]) {
         // removes previous highlighted blocks
         this.removeHighlighBlocks(this.hashHighligh);
-
+        const self = this;
         const queryContainer = d3.select(".query-answer");
         queryContainer.text("");
         queryContainer
@@ -494,8 +528,9 @@ export class Block {
                 "Are you sure you want to clear the query results ?"
             );
             if (confir) {
+                self.removeHighlighBlocks(self.hashHighligh);
                 queryContainer.html("");
-                console.log("button");
+                
             }
         });
 
@@ -675,13 +710,14 @@ export class Block {
 
         this.progressBar = this.progressBarContainer
             .append("div")
-            .attr("id", "progress-bar");
+            .attr("id", "progress-bar")
+            .style("width", "0");
         this.textBar = this.progressBarContainer
             .append("div")
             .attr("id", "text-bar")
             .text(`???% --- block parsed: ??? / ??? and instances found: ???`);
 
-        this.loadContainer
+        this.progressBarContainer
             .append("button")
             .attr("class", "cancel-button")
             .attr("id", "cancel-button")
@@ -725,6 +761,16 @@ export class Block {
             );
         }
     }
+
+
+
+ 
+ 
+
+
+
+
+    
 
     //!SECTION
 

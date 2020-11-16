@@ -2,7 +2,8 @@
 
 /* */
 :root {
-    --selected-colour : #006fff; //Main colour for displaying the properties
+    --selected-colour : #006fff; //Main colour for displaying the propertiesù
+    --base-colour : #1749b3;
 }
 
 
@@ -28,7 +29,7 @@ div.query-answer {
     flex-grow: 0;
     flex-direction: column;
     margin-bottom: 36px;
-    min-height: 200px;
+    min-height: 80px;
     text-align: center;
     
     padding: 10px;
@@ -84,7 +85,7 @@ div.query-answer {
     margin-left: auto;
     margin-right: auto;
     width: 40%;
-    font-size: 15px;
+    font-size: 14px;
     font-family: 'Roboto', Arial, sans-serif;
     border-radius: 15px;
   }
@@ -137,12 +138,13 @@ div.query-answer {
 
 #progress-bar-container {
     align-self: center;
+    flex-direction: row;
     width: 80%;
     
 }
 
 #progress-bar {
-    height: 40%;
+    height: 30px;
     z-index: 1;
     background-color: #4caf50;
 }
@@ -165,6 +167,7 @@ div.query-answer {
     align-content: center;
     background-color: rgb(255, 255, 255);
     color: black;
+    min-height: 200px;
 }
 
 .div-load {
@@ -300,7 +303,7 @@ div.query-answer {
     color: white;
     font-weight: bold;
     float: right;
-    font-size: 22px;
+    font-size: 20px;
     line-height: 20px;
     cursor: pointer;
     transition: 0.3s;
@@ -408,17 +411,27 @@ List of classes for the new transaction container
     margin-left: 10px;
 }
 
+#rejected{
+    color: red;
+}
+
+
+#forwardlink-drop{
+    background-color: var(--base-colour);
+    max-width: 80%;
+}
+
 .active {
     background-color: rgb(255, 255, 255);
 }
 
 .block-detail-container p {
-    font-size: 17px;
+    font-size: 16px;
     overflow: hidden;
 }
 
 .browse-container p {
-    font-size: 17px;
+    font-size: 16px;
 }
 
 .spinner {
