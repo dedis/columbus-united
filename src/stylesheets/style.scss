@@ -331,6 +331,10 @@ div.query-answer {
     align-self: center;
 }
 
+#white-icon{
+    filter: invert(100%) sepia(8%) saturate(2%) hue-rotate(87deg) brightness(115%) contrast(100%);
+}
+
 .spinner{
     margin: 0 auto;
     align-self: center;

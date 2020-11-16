@@ -53,7 +53,7 @@ export function sayHi() {
 
   
    // Load the first block
-    const initialBlockIndex = 108909; // Change here the first block to display
+    const initialBlockIndex = 20; // Change here the first block to display
     //'6bacd57b248c94dc1e2372d62976d8986948f04d727254ffbc0220182f73ab67' block #110997 - problem with nextID
     //that block has no forwards link
     //block #110940 gives as last block 110997
@@ -164,7 +164,7 @@ function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
 
     // Create the browsing instance, which is used by the detailBlock class when a
     // user wants to get the lifecycle of an instance.
-    const lifecycle = new Lifecycle(roster, flash, totalBlock, initialBlock);
+    const lifecycle = new Lifecycle(roster, flash, totalBlock, hashBlock0);
 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.

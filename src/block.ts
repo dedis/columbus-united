@@ -11,6 +11,7 @@ import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
 import { Utils } from "./utils";
+import { style } from 'd3';
 
 /**
  * Create the interface under the blockchain. It displays
@@ -275,16 +276,19 @@ export class Block {
                 .attr("uk-tooltip", `${fl.to.toString("hex")}`);
 
             const lockIcon = divForwardLink
-                .append("a");
+                .append("object");
 
             const lockContent = `<p>Hash: ${fl.hash().toString("hex")}</p>
             <p>signature: ${fl.signature.sig.toString("hex")}</p>`
 
 
             lockIcon
-                .attr("class", "uk-icon-button")
-                .attr("uk-icon", "icon: lock")
-                .attr("href","")
+                .attr("id", "white-icon")
+                .attr("type", "image/svg+xml")
+                .attr("data", "signature.svg")
+                .style("width", "32px")
+                .style("height", "32px")
+                .style("display", "block")
                 .style("margin-left", "15px")
                 .on("click",function() {Utils.copyToClipBoard(lockContent, self.flash)});
             const linkDetails = divForwardLink
