@@ -516,7 +516,7 @@ export class Chain {
             .attr("height", 20)
             .attr("x", 44)
             .attr("y", 75)
-            .attr("href", "information-button.svg");
+            .attr("href", "assets/information-button-green.svg");
 
         //text for number of validated tx
         accepted
@@ -551,7 +551,7 @@ export class Chain {
             .attr("height", 20)
             .attr("x", 44)
             .attr("y", 104)
-            .attr("href", "information-button-2.svg");
+            .attr("href", "assets/information-button-2.svg");
 
         //text for number of validated tx
         rejected
