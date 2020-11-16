@@ -495,7 +495,7 @@ export class Block {
     private printDataBrowsing(tuple: [SkipBlock[], Instruction[]]) {
         // removes previous highlighted blocks
         this.removeHighlighBlocks(this.hashHighligh);
-
+        const self = this;
         const queryContainer = d3.select(".query-answer");
         queryContainer.text("");
         queryContainer
@@ -528,8 +528,9 @@ export class Block {
                 "Are you sure you want to clear the query results ?"
             );
             if (confir) {
+                self.removeHighlighBlocks(self.hashHighligh);
                 queryContainer.html("");
-                console.log("button");
+                
             }
         });
 
