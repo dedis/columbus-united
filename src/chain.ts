@@ -9,28 +9,21 @@ import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 
 import * as d3 from "d3";
-import { merge, Subject } from "rxjs";
+import {  Subject } from "rxjs";
 
 import {
-    buffer,
-    last,
+   
     map,
-    takeLast,
+
     throttleTime,
-    count,
-    tap,
-    mapTo,
-    flatMap,
-    skip,
+ 
 } from "rxjs/operators";
-import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import * as blockies from "blockies-ts";
 
 import { Flash } from "./flash";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
-import { group, timeHours } from "d3";
-import { sayHi } from '.';
+
 
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
@@ -106,13 +99,13 @@ export class Chain {
 
         // Blocks observation
         this.flash = flash;
+
         this.initalBlock = initialBlock;
 
         this.initialBlockIndex = initialBlock.index;
 
         let lastBlockLeft = initialBlock;
         let lastBlockRight = initialBlock;
-      
 
         // to keep track of current requested operations. If we are already loading
         // blocks on the left, then we shouldn't make another same request. Note
@@ -137,7 +130,7 @@ export class Chain {
         // this group will contain the text. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
         // readable
-        const gtext = svg.append("g").attr("class", "gtext");
+        const gcircle = svg.append("g").attr("class", "gtext");
 
         // this group will contain the left and right loaders that display a spinner
         // when new blocks are being added
@@ -146,7 +139,7 @@ export class Chain {
         // this subject will be notified when the main SVG caneva in moved by the
         // user
         const subject = new Subject();
-        this.lastSubject = subject
+        this.lastSubject = subject;
 
         // the number of block the window can display at normal scale. Used to
         // define the domain the xScale
@@ -185,9 +178,6 @@ export class Chain {
             });
         svg.call(zoom);
 
-       
-      
-
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
         // zommed in-out by the user.
@@ -220,13 +210,11 @@ export class Chain {
                 gblocks.attr("transform", transformString);
                 // Standard transformation on the text since we need to keep the
                 // original scale
-              //  gblocks.selectAll("circle").attr("r",transform.k*5);
-                
-             
+                //  gblocks.selectAll("circle").attr("r",transform.k*5);
 
-               gtext.selectAll("circle").attr("transform", transformString);
-           
-              //  console.log("bondoue"+ gtext.selectAll("circle").attr("height").toString());
+                gcircle.selectAll("circle").attr("transform", transformString);
+
+                //  console.log("text"+ gtext.selectAll("circle").attr("height").toString());
                 //gtext.attr("r", transform.k*100);
                 // Update the text size
                 // if (transform.k < 1) {
@@ -318,7 +306,7 @@ export class Chain {
                         true,
                         gblocks,
                         garrow,
-                        gtext,
+                        gcircle,
                         lastBlockLeft.index - this.initialBlockIndex
                     );
 
@@ -353,7 +341,7 @@ export class Chain {
                         false,
                         gblocks,
                         garrow,
-                        gtext,
+                        gcircle,
                         nb
                     );
 
@@ -386,18 +374,13 @@ export class Chain {
             )
             .subscribe();
 
-
-            // let sb = d3.select(".topnav").on("keyup").call(this.search())
+        // let sb = d3.select(".topnav").on("keyup").call(this.search())
     }
 
     // search() {
     //     console.log("dgknsfd");
 
-
-
     // }
-
-   
 
     /**
      * Load the initial blocks.
@@ -412,7 +395,8 @@ export class Chain {
         );
     }
 
-   
+  
+
     /**
      * Display the last added block of the chain
      * @param lastBlock the last added block of the blockchain
@@ -440,7 +424,7 @@ export class Chain {
                 this.blockClickedSubject.next(lastBlock);
             });
 
-        //shadow filter for last added blcok
+        //shadow filter for last addedss blcok
         var defs = svgLast.append("defs");
 
         // create filter with id #drop-shadow
@@ -497,25 +481,21 @@ export class Chain {
             .attr("font-size", "17px")
             .attr("fill", "#ffffff")
             .attr("pointer-events", "none");
-           // .attr("font-weight", "bold")
-           
+        // .attr("font-weight", "bold")
 
-            gtextLast
+        gtextLast
             .append("rect")
             .attr("x", 63)
             .attr("y", 40)
             .attr("width", 120)
             .attr("height", 19)
             .attr("fill-opacity", "0")
-            .attr("uk-tooltip", Utils.bytes2String(lastBlock.hash));  
-          
+            .attr("uk-tooltip", Utils.bytes2String(lastBlock.hash));
 
         this.lastAddedBlockInfo(lastBlock, svgLast, lastBlock);
     }
 
     lastAddedBlockInfo(lastBlock: SkipBlock, svgLast: any, block: SkipBlock) {
-        
-
         //validated transactions number
         var accepted = svgLast
             .append("g")
@@ -536,7 +516,7 @@ export class Chain {
             .attr("height", 20)
             .attr("x", 44)
             .attr("y", 75)
-            .attr("href", "information-button.svg");
+            .attr("href", "assets/information-button-green.svg");
 
         //text for number of validated tx
         accepted
@@ -571,7 +551,7 @@ export class Chain {
             .attr("height", 20)
             .attr("x", 44)
             .attr("y", 104)
-            .attr("href", "information-button-2.svg");
+            .attr("href", "assets/information-button-red.svg");
 
         //text for number of validated tx
         rejected
@@ -629,7 +609,7 @@ export class Chain {
             seed: lastBlock.hash.toString("hex"),
         });
 
-        svgLast
+        var imBlockies = svgLast
             .append("svg:image")
             .attr("xlink:href", blockie.toDataURL())
             .attr("x", 114)
@@ -638,6 +618,10 @@ export class Chain {
             //  .attr("class","groster")
             .attr("height", 18)
             .attr("uk-tooltip", block.hash.toString("hex"));
+
+        imBlockies.on("click", function () {
+            Utils.copyToClipBoard(block.hash.toString("hex"), this.flash);
+        });
     }
 
     getTransactionRatio(block: SkipBlock): [Number, Number] {
@@ -888,7 +872,7 @@ export class Chain {
         backwards: boolean,
         gblocks: any,
         garrow: any,
-        gtext: any,
+        gcircle: any,
         numblocks: number
     ) {
         // Iterate over the blocks to append them
@@ -913,7 +897,7 @@ export class Chain {
             this.appendBlock(xTranslateBlock, block, gblocks);
 
             this.getToAndFrom(xTranslateBlock, block, garrow);
-              // this.appendTextInBlock(xTranslateBlock,"hi","hi",gtext);
+            //this.appendCircleInBlock(xTranslateBlock, gcircle);
         }
 
         this.newblocksSubject.next(listBlocks);
@@ -951,8 +935,7 @@ export class Chain {
         factor: number
     ) {
         let y: number;
-        // console.log("from"+ iFrom);
-        // console.log("to"+ iTo);
+ 
 
         if (iTo - skipFrom.index == 1) {
             svgBlocks
@@ -963,12 +946,8 @@ export class Chain {
                 .attr("x2", xTrans - this.blockPadding)
                 .attr("y2", 15 + this.blockHeight / 2)
                 .attr("stroke-width", 2)
-                .attr("stroke", "grey")
-                
-                ;
-            //.attr("marker-end", "url(#triangle)");
+                .attr("stroke", "grey");
         } else {
-            // if (20+ (block.height) * 40 < 30+(factor)*40 )
 
             svgBlocks
                 .append("line")
@@ -981,7 +960,7 @@ export class Chain {
                             (this.blockWidth + this.blockPadding) +
                         this.blockWidth
                 )
-              
+
                 .attr("y2", 40 + factor * 38)
                 .attr("stroke-width", 2)
                 .attr("stroke", "grey")
@@ -994,7 +973,7 @@ export class Chain {
                 .append("svg:defs")
                 .append("svg:marker")
                 .attr("id", "triangle")
-        
+
                 .attr("refX", 5.5)
                 .attr("refY", 4.5)
                 .attr("markerWidth", 15)
@@ -1016,15 +995,13 @@ export class Chain {
     ) {
         let indexTo: number;
         indexTo = block.index;
-        // console.log("hi      "+ indexFrom);
-        //console.log("bcljsdbfljcblknxakl<nlyk        " + block.forwardLinks.length);
+       
         for (let i = 0; i < block.backlinks.length; i++) {
-            //   console.log("wzf    " + i);
+
             let skipFrom = await Utils.getBlock(
                 block.backlinks[i],
                 this.roster
             );
-            //  console.log("bijour" + d3.select("#".concat(Utils.bytes2String(block.forwardLinks[i].to))).attr("height"));
 
             this.appendArrows(
                 xTranslate,
@@ -1044,11 +1021,11 @@ export class Chain {
      * @param text text to display
      * @param textColor color of the text
      */
-    private appendTextInBlock(
+    private appendCircleInBlock(
         xTranslate: number,
         // textIndex: { index: number },
-        text: string,
-        textColor: string,
+        //text: string,
+        //textColor: string,
         gtext: any
     ) {
         gtext
@@ -1064,40 +1041,6 @@ export class Chain {
             .attr("cy", 40)
             .attr("r", 6)
             .attr("fill", "#EF5959");
-
-        //     var Tooltip = d3.select("#div_template")
-        // .append("div")
-        // .style("opacity", 0)
-        // .attr("class", "tooltip")
-        // .style("background-color", "white")
-        // .style("border", "solid")
-        // .style("border-width", "2px")
-        // .style("border-radius", "5px")
-        // .style("padding", "5px")
-
-        //   // Three function that change the tooltip when user hover / move / leave a cell
-        //   var mouseover = function(d) {
-        //     Tooltip
-        //       .style("opacity", 1)
-        //     d3.select(this)
-        //       .style("stroke", "black")
-        //       .style("opacity", 1)
-        //   }
-        //   var mousemove = function(d) {
-        //     Tooltip
-        //       .html("The exact value of<br>this cell is: " + d.value)
-        //       .style("left", (d3.mouse(this)[0]+70) + "px")
-        //       .style("top", (d3.mouse(this)[1]) + "px")
-        //   }
-        //   var mouseleave = function(d) {
-        //     Tooltip
-        //       .style("opacity", 0)
-        //     d3.select(this)
-        //       .style("stroke", "none")
-        //       .style("opacity", 0.8)
-        //   }
-
-        // ++textIndex.index;
     }
 
     /**
