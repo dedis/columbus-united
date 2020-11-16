@@ -7,17 +7,35 @@ import {
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
+
 import * as d3 from "d3";
 import { merge, Subject } from "rxjs";
-import { buffer, throttleTime } from "rxjs/operators";
+
+import {
+    buffer,
+    last,
+    map,
+    takeLast,
+    throttleTime,
+    count,
+    tap,
+    mapTo,
+    flatMap,
+    skip,
+} from "rxjs/operators";
+import { SkipchainRPC } from "@dedis/cothority/skipchain";
+import * as blockies from "blockies-ts";
 
 import { Flash } from "./flash";
+import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
+import { group, timeHours } from "d3";
+import { sayHi } from '.';
 
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
     // find the palet of colors.
-    static readonly blockColor = { r: 217, v: 186, b: 130 }; // #D9BA82
+    static readonly blockColor = { r: 23, v: 73, b: 179 }; // #D9BA82
 
     /**
      * Determine the color of the blocks.
@@ -33,15 +51,19 @@ export class Chain {
 
     readonly blockPadding = 10;
     readonly textMargin = 5;
-    readonly blockHeight = 200;
-    readonly blockWidth = 200;
-    readonly svgWidth = window.innerWidth;
+    readonly blockHeight = 50;
+    readonly blockWidth = 100;
+
+    readonly lastHeight = 176;
+
+    readonly lastWidth = 200;
+    readonly svgWidth = window.innerWidth; //1039;
     readonly svgHeight = 200;
     readonly unitBlockAndPaddingWidth = this.blockPadding + this.blockWidth;
 
     // Recomended pageSize / nbPages: 80 / 50
     readonly pageSize = 50;
-    readonly nbPages = 1;
+    readonly nbPages = 1; // Only works for 1 page. Overflow not verified if multiple pages...
 
     readonly textColor = "black";
     readonly loadedInfo = document.getElementById("loaded-blocks");
@@ -65,12 +87,16 @@ export class Chain {
     // view.
     newblocksSubject = new Subject<SkipBlock[]>();
 
+    lastSubject = new Subject();
+
     // Flash is a utiliy class to display flash messages in the view.
     flash: Flash;
 
     // initialBlockIndex is the initial block index, which is used to compute the
     // number of blocks loaded to the left and to the right.
     initialBlockIndex: number;
+
+    initalBlock: SkipBlock;
 
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
         const self = this;
@@ -80,11 +106,13 @@ export class Chain {
 
         // Blocks observation
         this.flash = flash;
+        this.initalBlock = initialBlock;
 
         this.initialBlockIndex = initialBlock.index;
 
         let lastBlockLeft = initialBlock;
         let lastBlockRight = initialBlock;
+      
 
         // to keep track of current requested operations. If we are already loading
         // blocks on the left, then we shouldn't make another same request. Note
@@ -92,13 +120,19 @@ export class Chain {
         let isLoadingLeft = false;
         let isLoadingRight = false;
 
+        //Main SVG caneva that contains the last added block
+        const last = d3
+            .select("#last-container")
+            .attr("height", this.svgHeight)
+            .attr("z-index", -1);
+
         // Main SVG caneva that contains the chain
-        const svg = d3
-            .select("#svg-container")
-            .attr("height", this.blockHeight);
+        const svg = d3.select("#svg-container").attr("height", this.svgHeight);
 
         // this group will contain the blocks
         const gblocks = svg.append("g").attr("class", "gblocks");
+
+        const garrow = gblocks.append("g").attr("class", "garrow");
 
         // this group will contain the text. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
@@ -112,13 +146,13 @@ export class Chain {
         // this subject will be notified when the main SVG caneva in moved by the
         // user
         const subject = new Subject();
+        this.lastSubject = subject
 
         // the number of block the window can display at normal scale. Used to
         // define the domain the xScale
         const numblocks = this.svgWidth / (this.blockWidth + this.blockPadding);
 
         let lastTransform = { x: 0, y: 0, k: 1 };
-
         // the xScale displays the block index and allows the user to quickly see
         // where he is in the chain
         const xScale = d3
@@ -145,15 +179,19 @@ export class Chain {
                 [0, 0],
                 [this.svgWidth, this.svgHeight],
             ])
-            .scaleExtent([0.0001, 4])
+            .scaleExtent([0.0001, 1.4])
             .on("zoom", () => {
                 subject.next(d3.event.transform);
             });
         svg.call(zoom);
 
+       
+      
+
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
         // zommed in-out by the user.
+
         subject.subscribe({
             next: (transform: any) => {
                 lastTransform = transform;
@@ -176,19 +214,26 @@ export class Chain {
                     "," +
                     "0) scale(" +
                     transform.k +
-                    ",1)";
+                    "," +
+                    "1" +
+                    ")";
                 gblocks.attr("transform", transformString);
-
                 // Standard transformation on the text since we need to keep the
                 // original scale
-                gtext.attr("transform", transform);
-                // Update the text size
-                if (transform.k < 1) {
-                    gtext
-                        .selectAll("text")
-                        .attr("font-size", 1 + transform.k + "em");
-                }
+              //  gblocks.selectAll("circle").attr("r",transform.k*5);
+                
+             
 
+               gtext.selectAll("circle").attr("transform", transformString);
+           
+              //  console.log("bondoue"+ gtext.selectAll("circle").attr("height").toString());
+                //gtext.attr("r", transform.k*100);
+                // Update the text size
+                // if (transform.k < 1) {
+                //     gtext
+                //         .selectAll("text")
+                //         .attr("font-size", 1 + transform.k + "em");
+                // }
                 // Update the loader. We want to keep them at their original
                 // scale so we only translate them
                 gloader.attr("transform", transform);
@@ -199,8 +244,8 @@ export class Chain {
             },
         });
 
-        // Handler to check if new blocks need to be leaded. We check every 300ms.
-        subject.pipe(throttleTime(300)).subscribe({
+        // Handler to check if new blocks need to be loaded. We check every 300ms.
+        subject.pipe(throttleTime(200)).subscribe({
             next: (transform: any) => {
                 if (!isLoadingLeft) {
                     isLoadingLeft = true;
@@ -272,6 +317,7 @@ export class Chain {
                         skipBlocks,
                         true,
                         gblocks,
+                        garrow,
                         gtext,
                         lastBlockLeft.index - this.initialBlockIndex
                     );
@@ -302,7 +348,14 @@ export class Chain {
                         nb = lastBlockRight.index - this.initialBlockIndex + 1;
                     }
 
-                    this.displayBlocks(skipBlocks, false, gblocks, gtext, nb);
+                    this.displayBlocks(
+                        skipBlocks,
+                        false,
+                        gblocks,
+                        garrow,
+                        gtext,
+                        nb
+                    );
 
                     lastBlockRight = lastBlock;
 
@@ -321,7 +374,30 @@ export class Chain {
                 }
             },
         });
+
+        //Get last added block of the chain
+        let lastBlock = new TotalBlock(this.roster, initialBlock);
+        lastBlock
+            .getTotalBlock()
+            .pipe(
+                map((s: SkipBlock) =>
+                    this.displayLastAddedBlock(s, last, s.hash)
+                )
+            )
+            .subscribe();
+
+
+            // let sb = d3.select(".topnav").on("keyup").call(this.search())
     }
+
+    // search() {
+    //     console.log("dgknsfd");
+
+
+
+    // }
+
+   
 
     /**
      * Load the initial blocks.
@@ -335,6 +411,258 @@ export class Chain {
             false
         );
     }
+
+   
+    /**
+     * Display the last added block of the chain
+     * @param lastBlock the last added block of the blockchain
+     * @param svgLast the svg container that should welcome the block
+     * @param hashLast the hash of the last added block
+     *
+     */
+
+    private displayLastAddedBlock(
+        lastBlock: SkipBlock,
+        svgLast: any,
+        hashLast: Buffer
+    ) {
+        svgLast
+            .append("rect")
+            .attr("id", hashLast.toString("hex"))
+            .attr("width", this.lastWidth)
+            .attr("height", this.lastHeight)
+            .attr("x", 20)
+            .attr("y", 20)
+
+            .style("filter", "url(#drop-shadow)")
+            .attr("fill", Chain.getBlockColor(lastBlock))
+            .on("click", () => {
+                this.blockClickedSubject.next(lastBlock);
+            });
+
+        //shadow filter for last added blcok
+        var defs = svgLast.append("defs");
+
+        // create filter with id #drop-shadow
+        // height=130% so that the shadow is not clipped
+        var filter = defs
+            .append("filter")
+            .attr("id", "drop-shadow")
+            .attr("height", "130%");
+
+        // SourceAlpha refers to opacity of graphic that this filter will be applied to
+        // convolve that with a Gaussian with standard deviation 3 and store result
+        // in blur
+        filter
+            .append("feGaussianBlur")
+            .attr("in", "SourceAlpha")
+            .attr("stdDeviation", 3)
+            .attr("result", "blur");
+
+        // translate output of Gaussian blur to the right and downwards with 2px
+        // store result in offsetBlur
+        filter
+            .append("feOffset")
+            .attr("in", "blur")
+            .attr("dx", 2)
+            .attr("dy", 2)
+            .attr("result", "offsetBlur");
+
+        // overlay original SourceGraphic over translated blurred opacity by using
+        // feMerge filter. Order of specifying inputs is important!
+        var feMerge = filter.append("feMerge");
+
+        feMerge.append("feMergeNode").attr("in", "offsetBlur");
+        feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+        const gtextLast = svgLast.append("g").attr("class", "gtext");
+
+        //add text on top of last added block
+        gtextLast
+            .append("text")
+            .attr("x", 72)
+            .attr("y", 14)
+            .text("Last added")
+            .attr("font-family", "Arial")
+            .attr("font-size", "17px")
+            .attr("fill", "#808080")
+            .attr("pointer-events", "none");
+
+        gtextLast
+            .append("text")
+            .attr("x", 63)
+            .attr("y", 57)
+            .text("Block " + lastBlock.index.toString())
+            .attr("font-family", "Arial")
+            .attr("font-size", "17px")
+            .attr("fill", "#ffffff")
+            .attr("pointer-events", "none");
+           // .attr("font-weight", "bold")
+           
+
+            gtextLast
+            .append("rect")
+            .attr("x", 63)
+            .attr("y", 40)
+            .attr("width", 120)
+            .attr("height", 19)
+            .attr("fill-opacity", "0")
+            .attr("uk-tooltip", Utils.bytes2String(lastBlock.hash));  
+          
+
+        this.lastAddedBlockInfo(lastBlock, svgLast, lastBlock);
+    }
+
+    lastAddedBlockInfo(lastBlock: SkipBlock, svgLast: any, block: SkipBlock) {
+        
+
+        //validated transactions number
+        var accepted = svgLast
+            .append("g")
+            .attr("class", "gaccepted")
+            .attr("uk-tooltip", `Validated transactions`);
+
+        accepted
+            .append("rect")
+            .attr("x", 65)
+            .attr("y", 74)
+            .attr("width", 21)
+            .attr("fill-opacity", "0")
+            .attr("height", 19);
+
+        accepted
+            .append("image")
+            .attr("width", 20)
+            .attr("height", 20)
+            .attr("x", 44)
+            .attr("y", 75)
+            .attr("href", "information-button.svg");
+
+        //text for number of validated tx
+        accepted
+            .append("text")
+            .attr("class", "gaccepted")
+            .attr("x", 73)
+            .attr("y", 90)
+            .text(this.getTransactionRatio(lastBlock)[0].toString()) //add number of validated transacitons
+            .attr("font-family", "Arial")
+            .attr("font-size", "18px")
+            .attr("font-weight", "bold")
+            .attr("fill", "#65E1A7")
+            .attr("pointer-events", "none");
+
+        var rejected = svgLast
+            .append("g")
+            .attr("class", "grefused")
+            .attr("uk-tooltip", `Rejected transactions`);
+
+        rejected
+            .append("rect")
+            .attr("x", 65)
+            .attr("y", 104)
+            .attr("width", 21)
+            .attr("fill-opacity", "0")
+            .attr("height", 19)
+            .attr("uk-tooltip", `Rejected transactions`);
+
+        rejected
+            .append("image")
+            .attr("width", 20)
+            .attr("height", 20)
+            .attr("x", 44)
+            .attr("y", 104)
+            .attr("href", "information-button-2.svg");
+
+        //text for number of validated tx
+        rejected
+            .append("text")
+            .attr("x", 74)
+            .attr("y", 120)
+            .text(this.getTransactionRatio(lastBlock)[1].toString()) //add number of validated transacitons
+            .attr("font-family", "Arial")
+            .attr("font-size", "18px")
+            .attr("font-weight", "bold")
+            .attr("fill", "#EF5959")
+            .attr("pointer-events", "none");
+
+        //Roster
+
+        let descList: Array<String> = [];
+        for (let i = 0; i < block.roster.list.length; i++) {
+            descList[i] = block.roster.list[i].description;
+        }
+
+        var roster1 = svgLast
+            .append("g")
+            .attr("class", "groster")
+            .attr("uk-tooltip", descList.join("<br/>"));
+
+        //     roster1.
+        //   append("image")
+        //   .attr('width', 14)
+        //   .attr('height', 14)
+        //   .attr("x", 33)
+        //   .attr("y", 138)
+        //   .attr("href", "information-button-3.svg");
+
+        roster1
+            .append("rect")
+            .attr("x", 43)
+            .attr("y", 137)
+            .attr("width", 58)
+            .attr("height", 27)
+            .attr("fill", "#1a8cff")
+            .attr("fill-opacity", "0.5")
+            .attr("rx", "7px");
+
+        roster1
+            .append("text")
+            .text("Roster")
+            .attr("x", 48)
+            .attr("y", 157)
+            .attr("font-family", "Arial")
+            .attr("font-size", "16px")
+            .attr("fill", "#ffffff")
+            .attr("pointer-events", "none");
+
+        const blockie = blockies.create({
+            seed: lastBlock.hash.toString("hex"),
+        });
+
+        svgLast
+            .append("svg:image")
+            .attr("xlink:href", blockie.toDataURL())
+            .attr("x", 114)
+            .attr("y", 143)
+            .attr("width", 18)
+            //  .attr("class","groster")
+            .attr("height", 18)
+            .attr("uk-tooltip", block.hash.toString("hex"));
+    }
+
+    getTransactionRatio(block: SkipBlock): [Number, Number] {
+        let accepted = 0;
+        let rejected = 0;
+
+        const body = DataBody.decode(block.payload);
+        body.txResults.forEach((transaction, i) => {
+            if (transaction.accepted) {
+                accepted++;
+            } else {
+                rejected++;
+            }
+        });
+        console.log(Utils.bytes2String(block.roster.id));
+        block.roster.list.forEach((x) => console.log(x.description));
+        return [accepted, rejected];
+    }
+
+    //coin
+    //config
+    //darc
+    //credential
+    //longtermsecret
+    //calypsoread
 
     /**
      * Check if new blocks need to be loaded to the left and load them if
@@ -352,7 +680,7 @@ export class Chain {
     ): boolean {
         const self = this;
 
-        // x represents to x-axis translation of the caneva. If the block width
+        // x represents the x-axis translation of the caneva. If the block width
         // is 100 and x = -100, then it means the user dragged one block from
         // the initial block on the left.
         const x = -transform.x;
@@ -403,7 +731,7 @@ export class Chain {
                     self.subjectBrowse,
                     true
                 );
-            }, 2000);
+            }, 250);
 
             return true;
         }
@@ -464,7 +792,7 @@ export class Chain {
                     self.subjectBrowse,
                     false
                 );
-            }, 2000);
+            }, 250);
 
             return true;
         }
@@ -559,6 +887,7 @@ export class Chain {
         listBlocks: SkipBlock[],
         backwards: boolean,
         gblocks: any,
+        garrow: any,
         gtext: any,
         numblocks: number
     ) {
@@ -583,53 +912,10 @@ export class Chain {
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
 
-            // Displaying text has a lot of impact on performances. We need to
-            // think either how to optimze it or drop the display of text on
-            // each block. For now we drop it.
-
-            // // Box the text index in an object to pass it by reference
-            // const textIndex = { index: 0 };
-
-            // // Index
-            // this.appendTextInBlock(
-            //     xTranslateText,
-            //     textIndex,
-            //     "index: " + block.index,
-            //     this.textColor,
-            //     gtext
-            // );
-
-            // // Hash
-            // const hash = Utils.bytes2String(block.hash);
-            // this.appendTextInBlock(
-            //     xTranslateText,
-            //     textIndex,
-            //     "hash: " + hash.slice(0, 8) + "...",
-            //     this.textColor,
-            //     gtext
-            // );
-
-            // // Number of transactions
-            // const body = DataBody.decode(block.payload);
-            // const nbTransactions = body.txResults.length;
-            // this.appendTextInBlock(
-            //     xTranslateText,
-            //     textIndex,
-            //     "#transactions: " + nbTransactions,
-            //     this.textColor,
-            //     gtext
-            // );
-
-            // const header = DataHeader.decode(block.data);
-            // // console.log(">>>>>>>> timestamp:", header.timestamp.toNumber());
-            // this.appendTextInBlock(
-            //     xTranslateText,
-            //     textIndex,
-            //     "T: " + header.timestamp.toString(),
-            //     this.textColor,
-            //     gtext
-            // );
+            this.getToAndFrom(xTranslateBlock, block, garrow);
+              // this.appendTextInBlock(xTranslateBlock,"hi","hi",gtext);
         }
+
         this.newblocksSubject.next(listBlocks);
     }
 
@@ -640,17 +926,115 @@ export class Chain {
      * @param block the block to append
      */
     private appendBlock(xTranslate: number, block: SkipBlock, svgBlocks: any) {
+        //console.log("yoooo "+block.height + " vs  "+ block.forwardLinks.length);
         svgBlocks
             .append("rect")
             .attr("id", block.hash.toString("hex"))
             .attr("width", this.blockWidth)
-            .attr("height", this.blockHeight)
+
+            .attr("height", block.height * 40)
+
             .attr("x", xTranslate)
             .attr("y", 20)
             .attr("fill", Chain.getBlockColor(block))
             .on("click", () => {
                 this.blockClickedSubject.next(block);
             });
+    }
+
+    private async appendArrows(
+        xTrans: number,
+        skipFrom: SkipBlock,
+        iTo: number,
+        block: SkipBlock,
+        svgBlocks: any,
+        factor: number
+    ) {
+        let y: number;
+        // console.log("from"+ iFrom);
+        // console.log("to"+ iTo);
+
+        if (iTo - skipFrom.index == 1) {
+            svgBlocks
+                .append("line")
+                .attr("id", skipFrom.index)
+                .attr("x1", xTrans)
+                .attr("y1", 15 + this.blockHeight / 2)
+                .attr("x2", xTrans - this.blockPadding)
+                .attr("y2", 15 + this.blockHeight / 2)
+                .attr("stroke-width", 2)
+                .attr("stroke", "grey")
+                
+                ;
+            //.attr("marker-end", "url(#triangle)");
+        } else {
+            // if (20+ (block.height) * 40 < 30+(factor)*40 )
+
+            svgBlocks
+                .append("line")
+                .attr("x2", xTrans - this.blockPadding)
+                .attr("y1", 40 + factor * 38)
+                .attr(
+                    "x1",
+                    xTrans -
+                        (iTo - skipFrom.index) *
+                            (this.blockWidth + this.blockPadding) +
+                        this.blockWidth
+                )
+              
+                .attr("y2", 40 + factor * 38)
+                .attr("stroke-width", 2)
+                .attr("stroke", "grey")
+                .attr("marker-end", "url(#triangle)")
+                .on("click", () => {
+                    this.blockClickedSubject.next(block);
+                });
+
+            svgBlocks
+                .append("svg:defs")
+                .append("svg:marker")
+                .attr("id", "triangle")
+        
+                .attr("refX", 5.5)
+                .attr("refY", 4.5)
+                .attr("markerWidth", 15)
+                .attr("markerHeight", 15)
+                .attr("orient", "auto-start-reverse")
+                .append("path")
+                .attr("d", "M 0 0 L 10 5 L 0 10 z")
+                .on("click", () => {
+                    this.blockClickedSubject.next(block);
+                })
+                .style("fill", "grey");
+        }
+    }
+
+    private async getToAndFrom(
+        xTranslate: number,
+        block: SkipBlock,
+        svgBlocks: any
+    ) {
+        let indexTo: number;
+        indexTo = block.index;
+        // console.log("hi      "+ indexFrom);
+        //console.log("bcljsdbfljcblknxakl<nlyk        " + block.forwardLinks.length);
+        for (let i = 0; i < block.backlinks.length; i++) {
+            //   console.log("wzf    " + i);
+            let skipFrom = await Utils.getBlock(
+                block.backlinks[i],
+                this.roster
+            );
+            //  console.log("bijour" + d3.select("#".concat(Utils.bytes2String(block.forwardLinks[i].to))).attr("height"));
+
+            this.appendArrows(
+                xTranslate,
+                skipFrom,
+                indexTo,
+                block,
+                svgBlocks,
+                i
+            );
+        }
     }
 
     /**
@@ -662,20 +1046,58 @@ export class Chain {
      */
     private appendTextInBlock(
         xTranslate: number,
-        textIndex: { index: number },
+        // textIndex: { index: number },
         text: string,
         textColor: string,
         gtext: any
     ) {
         gtext
-            .append("text")
-            .attr("x", xTranslate)
-            .attr("y", (textIndex.index + 1) * 30)
-            .text(text)
-            .attr("font-family", "sans-serif")
-            .attr("font-size", "18px")
-            .attr("fill", textColor);
-        ++textIndex.index;
+            .append("circle")
+            .attr("cx", xTranslate + 35)
+            .attr("cy", 40)
+            .attr("r", 6)
+            .attr("fill", "#b3ffb3");
+
+        gtext
+            .append("circle")
+            .attr("cx", xTranslate + this.blockWidth - 35)
+            .attr("cy", 40)
+            .attr("r", 6)
+            .attr("fill", "#EF5959");
+
+        //     var Tooltip = d3.select("#div_template")
+        // .append("div")
+        // .style("opacity", 0)
+        // .attr("class", "tooltip")
+        // .style("background-color", "white")
+        // .style("border", "solid")
+        // .style("border-width", "2px")
+        // .style("border-radius", "5px")
+        // .style("padding", "5px")
+
+        //   // Three function that change the tooltip when user hover / move / leave a cell
+        //   var mouseover = function(d) {
+        //     Tooltip
+        //       .style("opacity", 1)
+        //     d3.select(this)
+        //       .style("stroke", "black")
+        //       .style("opacity", 1)
+        //   }
+        //   var mousemove = function(d) {
+        //     Tooltip
+        //       .html("The exact value of<br>this cell is: " + d.value)
+        //       .style("left", (d3.mouse(this)[0]+70) + "px")
+        //       .style("top", (d3.mouse(this)[1]) + "px")
+        //   }
+        //   var mouseleave = function(d) {
+        //     Tooltip
+        //       .style("opacity", 0)
+        //     d3.select(this)
+        //       .style("stroke", "none")
+        //       .style("opacity", 0.8)
+        //   }
+
+        // ++textIndex.index;
     }
 
     /**

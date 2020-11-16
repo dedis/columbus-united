@@ -1,13 +1,17 @@
 import { Instruction } from "@dedis/cothority/byzcoin";
-import { DataBody } from "@dedis/cothority/byzcoin/proto";
+import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable } from "rxjs";
 import { throttleTime } from "rxjs/operators";
 
+import * as blockies from "blockies-ts";
+
 import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
+import { Utils } from "./utils";
+import { style } from 'd3';
 
 /**
  * Create the interface under the blockchain. It displays
@@ -17,7 +21,7 @@ import { Lifecycle } from "./lifecycle";
  * It also handles the loading screen with the progress bar
  * to be updated.
  *
- * @author Julien von Felten <julien.vonfelten@epfl.ch>
+ * @author Lucas Trognon <lucas.trognon@epfl.ch>
  *
  * @export
  * @class Block
@@ -74,7 +78,7 @@ export class Block {
         });
 
         this.clickedBlock = null;
-        this.colorClickedBlock = "#6589BF";
+        this.colorClickedBlock = "#006fff";
 
         this.loadedSkipBObs = loadedSkipBObs;
 
@@ -116,6 +120,7 @@ export class Block {
      * @memberof DetailBlock
      */
     private listTransaction(block: SkipBlock) {
+        //SECTION Reseting and init
         // (re)set the color of the clickedBlock
         if (this.clickedBlock !== block) {
             if (this.clickedBlock != null) {
@@ -132,27 +137,208 @@ export class Block {
             );
         }
         const self = this;
-        const transactionContainer = d3.select(".block-detail-container");
-        transactionContainer
-            .attr("id", "transactionContainer")
-            .text("")
-            .append("p")
-            .text(`Block ${block.index}, Hash: ${block.hash.toString("hex")}`);
 
-        const ulTransaction = transactionContainer.append("ul");
-        ulTransaction.attr("uk-accordion", "");
-        ulTransaction.attr("multiple", "true");
-        ulTransaction.attr("class", "clickable-detail-block");
+        //Left column of the UI, displays all the block details
+        const block_detail_container = d3.select(".block-detail-container");
+        block_detail_container
+            .attr("id", "block_detail_container")
+            .text("")
+            .append("p");
+        //Right column of the UI, displays all the transactions of a block and their details
+        const transaction_detail_container = d3.select(".browse-container");
+        transaction_detail_container
+            .attr("id", "block_detail_container")
+            .text("")
+            .append("p");
+        //!SECTION
+
+        //SECTION Block details
+        //Big wrapper for all of the Block details
+        const ulBlockDetail = block_detail_container.append("ul");
+        //ulBlockDetail.attr("uk-accordion", "");
+        //ulBlockDetail.attr("background-color", "#006fff");
+        ulBlockDetail.attr("multiple", "true");
+        ulBlockDetail.attr("class", "clickable-detail-block");
+
+        // Details of the blocks (Verifier, backlinks, forwardlinks) are wrapped in this card
+        const blockCard = ulBlockDetail.append("div");
+        blockCard
+            .attr("class", "uk-card uk-card-default")
+            .attr("id", "detail-window");
+
+        //The header of the card is used to display the block index and it's hash
+        const blockCardHeader = blockCard.append("div");
+        blockCardHeader.attr("class", "uk-card-header  uk-padding-small");
+
+        //TODO Give titles like this an ID and handle the styling in the css
+        const blockCardHeaderTitle = blockCardHeader.append("h3");
+        blockCardHeaderTitle
+            .style("font-weight", "700")
+            .attr("margin-top", "5px")
+            .text(`Block ${block.index}`)
+            .style("color", "#666");
+        const blockCardHeaderDetails = blockCardHeader.append("p");
+
+        blockCardHeaderDetails
+            .text(`Hash: ${block.hash.toString("hex")}`)
+            .append("p")
+            .text(`Validated on the ${Utils.getTimeString(block)}`)
+            .append("p")
+            .text(`Height : ${block.height}`);
+
+        //The Body of the card is wrapping all of the Accordions
+        const blockCardBody = blockCard.append("div");
+        blockCardBody.attr("class", "uk-card-body uk-padding-small");
+
+        //TODO Give titles like this an ID and handle the styling in the css
+        const blockCardBodyTitle = blockCardBody.append("h3");
+        blockCardBodyTitle
+            .text("Block details")
+            .style("font-weight", "700")
+            .style("color", "#666")
+            .style("font-size", "1.3em");
+        const divDetails = blockCardBody.append("div");
+        divDetails.attr("class", "uk-accordion-content");
+
+        //ANCHOR Verifier details
+        const ulVerifier = divDetails.append("ul");
+        ulVerifier.attr("uk-accordion", "");
+        const liVerifier = ulVerifier.append("li");
+        const aVerifier = liVerifier.append("a");
+        aVerifier
+            .attr("class", "uk-accordion-title")
+            .text(`Verifiers: ${block.verifiers.length}`);
+        const divVerifier = liVerifier.append("div");
+        divVerifier.attr("class", "uk-accordion-content");
+        block.verifiers.forEach((uid, j) => {
+            const blockie = blockies.create({ seed: uid.toString("hex") });
+            
+            const verifierLine = divVerifier.append("p");
+                verifierLine.text(` Verifier ${j} , ID:  `);                
+               
+            const imgBlockie = verifierLine.append("img");
+            imgBlockie
+                .attr("class", "uk-img")
+              .attr("src", blockie.toDataURL())
+                .attr("width", 32)
+                .attr("uk-tooltip", `${uid.toString("hex")}`)
+                .append("input")
+                .text(`${uid.toString("hex")}`)
+                .style("height", "0")
+                .style("width", "0");
+
+            imgBlockie.on("click",function() {Utils.copyToClipBoard(uid.toString("hex"), self.flash)});
+        });
+
+        //ANCHOR BackLink details
+        const ulBackLink = divDetails.append("ul");
+        ulBackLink.attr("uk-accordion", "");
+        const liBackLink = ulBackLink.append("li");
+        const aBackLink = liBackLink.append("a");
+        aBackLink
+            .attr("class", "uk-accordion-title")
+            .text(`Back Links: ${block.backlinks.length}`);
+        const divBackLink = liBackLink.append("div");
+        divBackLink.attr("class", "uk-accordion-content");
+        block.backlinks.forEach((value, j) => {
+            const blockIndex = block.index - Math.pow(block.baseHeight, j);
+            divBackLink
+                .append("p")
+                .text(`Backlink ${j} to `)
+                .append("span")
+                .attr("class", "uk-badge")
+                .text(`Block ${blockIndex}`)
+                .on("click",function() {Utils.copyToClipBoard(value.toString("hex"), self.flash)})
+                .attr("uk-tooltip", `${value.toString("hex")}`);
+        });
+
+        //ANCHOR ForwardLink
+        const ulForwardLink = divDetails.append("ul");
+        ulForwardLink.attr("uk-accordion", "");
+        const liForwardLink = ulForwardLink.append("li");
+        const aForwardLink = liForwardLink.append("a");
+        aForwardLink
+            .attr("class", "uk-accordion-title")
+            .text(`Forward Links: ${block.forwardLinks.length}`);
+
+        const divForwardLink = liForwardLink.append("div");
+        divForwardLink.attr("class", "uk-accordion-content");
+        block.forwardLinks.forEach((fl, j) => {
+            const blockIndex = block.index + Math.pow(block.baseHeight, j);
+
+            divForwardLink
+                .append("p")
+                .text(`Forward link ${j} to `)
+                .append("span")
+                .attr("class", "uk-badge")
+                .text(`Block ${blockIndex}`)
+                .on("click",function() {Utils.copyToClipBoard(fl.to.toString("hex"), self.flash)})
+                .attr("uk-tooltip", `${fl.to.toString("hex")}`);
+
+            const lockIcon = divForwardLink
+                .append("object");
+
+            const lockContent = `<p>Hash: ${fl.hash().toString("hex")}</p>
+            <p>signature: ${fl.signature.sig.toString("hex")}</p>`
+
+
+            lockIcon
+                .attr("id", "white-icon")
+                .attr("type", "image/svg+xml")
+                .attr("data", "signature.svg")
+                .style("width", "32px")
+                .style("height", "32px")
+                .style("display", "block")
+                .style("margin-left", "15px")
+                .on("click",function() {Utils.copyToClipBoard(lockContent, self.flash)});
+            const linkDetails = divForwardLink
+                .append("div");
+            linkDetails
+                .attr("uk-dropdown", "pos: right-center")
+                .attr("id", "forwardlink-drop")
+                .html(lockContent)
+                .style("color", "var(--selected-colour)");
+        });
+        //!SECTION
+        //SECTION Transaction details
+        const ulTransaction = transaction_detail_container.append("ul");
+
+        //This card simply hold the title of the section in its header, and lists all transactions
+        //in its body
+        const transactionCard = ulTransaction.append("div");
+        transactionCard
+            .attr("class", "uk-card uk-card-default")
+            .attr("id", "detail-window");
+
+        const transactionCardHeader = transactionCard.append("div");
+        transactionCardHeader.attr("class", "uk-card-header uk-padding-small");
+        const transactionCardHeaderTitle = transactionCardHeader.append("h3");
+        transactionCardHeaderTitle
+            .style("font-weight", "700")
+            .attr("margin-top", "5px")
+            .text(`Transaction details`)
+            .style("color", "#666");
+        
         const body = DataBody.decode(block.payload);
 
-        // transactions of the block
+        const totalTransaction = body.txResults.length;
+        
+        transactionCardHeaderTitle
+        .append("p")
+        .text(`Total of ${totalTransaction} transactions`)
+        .style("margin-left", "10px");
+
+        const transactionCardBody = transactionCard.append("div");
+        transactionCardBody.attr("class", "uk-card-body uk-padding-small");
+
         body.txResults.forEach((transaction, i) => {
             const accepted: string = transaction.accepted
                 ? "Accepted"
-                : "Not accepted";
-            const liTransaction = ulTransaction.append("li");
+                : `<span id ="rejected">Not accepted</span>`;
+            const liTransaction = transactionCardBody.append("ul");
+            liTransaction.attr("id", "detail-window");
             liTransaction.attr("class", "uk-open");
-            const aTransaction = liTransaction.append("a");
+            const transactionTitle = liTransaction.append("h3");
             let totalInstruction = 0;
             transaction.clientTransaction.instructions.forEach((_, __) => {
                 totalInstruction++;
@@ -161,12 +347,15 @@ export class Block {
             if (totalInstruction > 2) {
                 s = "s";
             }
-            aTransaction
-                .attr("class", "uk-accordion-title")
-                .attr("href", "#")
+            //TODO Give titles like this an ID and handle the styling in the css
+            transactionTitle
                 .html(
-                    `<b>Transaction</b> ${i} ${accepted}, show ${totalInstruction} instruction${s}:`
-                );
+                    `<b>Transaction ${i}</b> ${accepted}, show ${totalInstruction} instruction${s}:`
+                )
+                .style("font", "Monospace")
+                .style("color", "#666")
+                .style("font-size", "1.3em");
+
             const divTransaction = liTransaction.append("div");
             divTransaction.attr("class", "uk-accordion-content");
 
@@ -179,23 +368,27 @@ export class Block {
                     const liInstruction = ulInstruction.append("li");
                     liInstruction.attr("style", "padding-left:15px");
                     const aInstruction = liInstruction.append("a");
-                    aInstruction
-                        .attr("class", "uk-accordion-title")
-                        .attr("href", "#");
+                    aInstruction.attr("class", "uk-accordion-title");
 
                     if (instruction.type === Instruction.typeSpawn) {
+                        const contractName = instruction.spawn.contractID.charAt(0).toUpperCase() + 
+                        instruction.spawn.contractID.slice(1);
                         aInstruction.text(
-                            `Spawn instruction ${j}, name of contract: ${instruction.spawn.contractID}`
+                            `Spawned : ${contractName }`
                         );
                         args = instruction.spawn.args;
                     } else if (instruction.type === Instruction.typeInvoke) {
+                        const contractName = instruction.invoke.contractID.charAt(0).toUpperCase() + 
+                        instruction.invoke.contractID.slice(1);
                         aInstruction.text(
-                            `Invoke instruction ${j}, name of contract: ${instruction.invoke.contractID}`
+                            `Invoked : ${contractName }`
                         );
                         args = instruction.invoke.args;
                     } else if (instruction.type === Instruction.typeDelete) {
+                        const contractName = instruction.delete.contractID.charAt(0).toUpperCase() + 
+                        instruction.delete.contractID.slice(1);
                         aInstruction.text(
-                            `Delete instruction ${j}, name of contract:${instruction.delete.contractID}`
+                            `Deleted : ${contractName }`
                         );
                     }
 
@@ -206,7 +399,7 @@ export class Block {
                     // Detail of one instruction
                     divInstruction
                         .append("p")
-                        .text(`Hash:${instruction.hash().toString("hex")}`);
+                        .text(`Transaction hash : ${instruction.hash().toString("hex")}`);
                     divInstruction
                         .append("p")
                         .text(
@@ -224,6 +417,7 @@ export class Block {
                         const aArgs = liArgs.append("a");
                         aArgs
                             .attr("class", "uk-accordion-title")
+
                             .attr("href", "#");
                         aArgs.text(`${i}: ${arg.name}`);
                         const divArgs = liArgs.append("div");
@@ -240,7 +434,7 @@ export class Block {
                         )
                         .attr("style", "border:none")
                         .text(
-                            `Search for all instance with the ID: "${instruction.instanceID.toString(
+                            `Search for all instructions related to this instance: "${instruction.instanceID.toString(
                                 "hex"
                             )}"`
                         )
@@ -285,76 +479,14 @@ export class Block {
                             }
                         });
                 }
-            );
-        });
-        // Details of the blocks (Verifier, backlinks, forwardlinks)
-        const liDetails = ulTransaction.append("li");
-        liDetails.attr("class", "uk-open");
-        const aDetails = liDetails.append("a");
-        aDetails
-            .attr("class", "uk-accordion-title")
-            .attr("href", "#")
-            .html("<b>Block details</b>");
-
-        const divDetails = liDetails.append("div");
-        divDetails.attr("class", "uk-accordion-content");
-
-        // Verifier details
-        const ulVerifier = divDetails.append("ul");
-        ulVerifier.attr("uk-accordion", "");
-        const liVerifier = ulVerifier.append("li");
-        const aVerifier = liVerifier.append("a");
-        aVerifier
-            .attr("class", "uk-accordion-title")
-            .attr("href", "#")
-            .text(`Verifiers: ${block.verifiers.length}`);
-        const divVerifier = liVerifier.append("div");
-        divVerifier.attr("class", "uk-accordion-content");
-        block.verifiers.forEach((uid, j) => {
-            divVerifier
-                .append("p")
-                .text(` Verifier: ${j} , ID: ${uid.toString("hex")}`);
+            ); //!SECTION
         });
 
-        // BackLink details
-        const ulBackLink = divDetails.append("ul");
-        ulBackLink.attr("uk-accordion", "");
-        const liBackLink = ulBackLink.append("li");
-        const aBackLink = liBackLink.append("a");
-        aBackLink
-            .attr("class", "uk-accordion-title")
-            .attr("href", "#")
-            .text(`BackLinks: ${block.backlinks.length}`);
-        const divBackLink = liBackLink.append("div");
-        divBackLink.attr("class", "uk-accordion-content");
-        block.backlinks.forEach((value, j) => {
-            divBackLink
-                .append("p")
-                .text(`Backlink: ${j}, Value: ${value.toString("hex")}`);
-        });
 
-        // ForwardLink
-        const ulForwardLink = divDetails.append("ul");
-        ulForwardLink.attr("uk-accordion", "");
-        const liForwardLink = ulForwardLink.append("li");
-        const aForwardLink = liForwardLink.append("a");
-        aForwardLink
-            .attr("class", "uk-accordion-title")
-            .attr("href", "#")
-            .text(`ForwardLinks: ${block.forwardLinks.length}`);
-        const divForwardLink = liForwardLink.append("div");
-        divForwardLink.attr("class", "uk-accordion-content");
-        block.forwardLinks.forEach((fl, j) => {
-            divForwardLink.append("p").text(`To: ${fl.to.toString("hex")}`);
-            divForwardLink
-                .append("p")
-                .text(`Hash: ${fl.hash().toString("hex")}`);
-            divForwardLink
-                .append("p")
-                .text(`signature: ${fl.signature.sig.toString("hex")}`);
-        });
+
     }
 
+    //SECTION Query
     /**
      * Displays the result of the browsing, highlights the
      * blocks found.
@@ -367,46 +499,89 @@ export class Block {
     private printDataBrowsing(tuple: [SkipBlock[], Instruction[]]) {
         // removes previous highlighted blocks
         this.removeHighlighBlocks(this.hashHighligh);
-
-        const browseContainer = d3.select(".browse-container");
-        browseContainer
-            .attr("id", "browseContainer")
-            .text("")
-            .append("p")
+        const self = this;
+        const queryContainer = d3.select(".query-answer");
+        queryContainer.text("");
+        queryContainer
+        .attr("class", "query-answer uk-card uk-card-default")
+        .style("margin-top", "0px")
+        .style("padding-top", "10px");
+            const queryHeader = queryContainer.append("p");
+            queryHeader
+            .attr("id", "query-header")
+            .append("div")
             .text(
                 `Summary of the evolution of the instance: ${tuple[1][0].instanceID.toString(
                     "hex"
                 )}`
+            )
+            .style("padding-left", "2%")
+            .style("font-weight", "700")
+            .style("color", "#666")
+            .style("font-size", "1.3em");
+            
+        
+        const closeButtonWrap = queryHeader.append("div");
+        closeButtonWrap.attr("id", "clear-query-button");
+        closeButtonWrap.append("button")
+        .attr("class", "uk-close-large")
+        .attr("type", "button")
+        .attr("uk-close", "")
+        .on("click", function () {
+            const confir = confirm(
+                "Are you sure you want to clear the query results ?"
             );
-        const ulInstructionB = browseContainer.append("ul");
-        ulInstructionB.attr("uk-accordion", "");
-        ulInstructionB.attr("multiple", "true");
-        ulInstructionB.attr("class", "clickable-detail-block");
+            if (confir) {
+                self.removeHighlighBlocks(self.hashHighligh);
+                queryContainer.html("");
+                
+            }
+        });
+
+
+        const queryCardContainer = queryContainer.append("ul");
+        queryCardContainer
+            .attr("id", "query-card-container")
+            .attr("multiple", "true")
+            .attr("class", "uk-flex");
+
         for (let i = 0; i < tuple[1].length; i++) {
             const blocki = tuple[0][i];
             const instruction = tuple[1][i];
-            const liInstructionB = ulInstructionB.append("li");
-            const aInstructionB = liInstructionB.append("a");
-            aInstructionB.attr("class", "uk-accordion-title").attr("href", "#");
+            const instructionCard = queryCardContainer.append("li");
+
+            instructionCard.attr("class", "uk-card uk-card-default");
+
+            const instructionCardHeader = instructionCard.append("div");
+            instructionCardHeader.attr(
+                "class",
+                "uk-card-header uk-padding-small"
+            );
+
+            const instructionCardBody = instructionCard.append("div");
+            instructionCardBody.attr("class uk-card-body uk-padding-small");
 
             let args = null;
             let contractID = "";
             if (instruction.type === Instruction.typeSpawn) {
-                aInstructionB
-                    .attr("id", `buttonInstance${i}`)
-                    .text(`${i}: Spawn in the block ${blocki.index}`);
+                instructionCard.attr("id", `buttonInstance${i}`);
+                instructionCardHeader.text(
+                    `${i}: Spawn in the block ${blocki.index}`
+                );
                 args = instruction.spawn.args;
                 contractID = instruction.spawn.contractID;
             } else if (instruction.type === Instruction.typeInvoke) {
-                aInstructionB
-                    .attr("id", `buttonInstance${i}`)
-                    .text(`${i}: Invoke in the block ${blocki.index}`);
+                instructionCard.attr("id", `buttonInstance${i}`);
+                instructionCardHeader.text(
+                    `${i}: Invoke in the block ${blocki.index}`
+                );
                 args = instruction.invoke.args;
                 contractID = instruction.invoke.contractID;
             } else if (instruction.type === Instruction.typeDelete) {
-                aInstructionB
-                    .attr("id", `buttonInstance${i}`)
-                    .text(`${i}: Delete in the block ${blocki.index}`);
+                instructionCard.attr("id", `buttonInstance${i}`);
+                instructionCardHeader.text(
+                    `${i}: Delete in the block ${blocki.index}`
+                );
                 contractID = instruction.delete.contractID;
             }
             // Add an highlight of the instance which was browsed
@@ -414,13 +589,13 @@ export class Block {
                 blocki.hash.toString("hex") ===
                 this.clickedBlock.hash.toString("hex")
             ) {
-                aInstructionB.style("background-color", "red");
+                instructionCard.style("outline", "1px red");
             }
             // Detail of each instruction
-            const divInstructionB = liInstructionB.append("div");
+            const divInstructionB = instructionCardBody.append("div");
             divInstructionB.attr(
                 "class",
-                "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
+                "uk-accordion-content uk-padding-small"
             );
             divInstructionB
                 .append("p")
@@ -515,10 +690,11 @@ export class Block {
     private createLoadingScreen() {
         const self = this;
         this.loadContainer = d3
-            .select("body")
+            .select(".query-answer")
             .append("div")
             .attr("class", "load-container");
         this.loadContainer
+            .append("div")
             .append("div")
             .attr("class", "logo") // tslint:disable-next-line
             .on("click", function () {
@@ -527,7 +703,10 @@ export class Block {
         const divLoad = this.loadContainer
             .append("div")
             .attr("class", "div-load");
-        divLoad.append("div").attr("class", "loader");
+        divLoad.append("div") 
+        .attr("class", "spinner")
+        .attr("uk-spinner", "ratio : 3")
+        .style("color", "blue");
 
         this.progressBarContainer = this.loadContainer
             .append("div")
@@ -535,13 +714,14 @@ export class Block {
 
         this.progressBar = this.progressBarContainer
             .append("div")
-            .attr("id", "progress-bar");
+            .attr("id", "progress-bar")
+            .style("width", "0");
         this.textBar = this.progressBarContainer
             .append("div")
             .attr("id", "text-bar")
             .text(`???% --- block parsed: ??? / ??? and instances found: ???`);
 
-        this.loadContainer
+        this.progressBarContainer
             .append("button")
             .attr("class", "cancel-button")
             .attr("id", "cancel-button")
@@ -585,6 +765,19 @@ export class Block {
             );
         }
     }
+
+
+
+ 
+ 
+
+
+
+
+    
+
+    //!SECTION
+
     /**
      * Removes the loading screen
      *

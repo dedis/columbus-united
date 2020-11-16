@@ -57,7 +57,7 @@ export class Lifecycle {
         roster: Roster,
         flash: Flash,
         totalBlock: TotalBlock,
-        initialBlock: SkipBlock
+        initialBlockHash: string
     ) {
         this.roster = roster;
 
@@ -71,7 +71,7 @@ export class Lifecycle {
         this.nextIDB = "";
         this.contractID = "";
         this.instanceSearch = null;
-        this.firstBlockIDStart = Utils.bytes2String(initialBlock.hash);
+        this.firstBlockIDStart = initialBlockHash;
 
         this.flash = flash;
         this.abort = false;
@@ -96,6 +96,7 @@ export class Lifecycle {
         instance: Instruction
     ): [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>] {
         const self = this;
+        
         const subjectInstruction = new Subject<[SkipBlock[], Instruction[]]>();
         const subjectProgress = new Subject<number[]>();
 

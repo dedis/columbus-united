@@ -1,12 +1,18 @@
 @import "~uikit/dist/css/uikit.min.css";
 
+/* */
+:root {
+    --selected-colour : #006fff; //Main colour for displaying the propertiesù
+    --base-colour : #1749b3;
+}
+
+
 body {
     display: flex;
     flex-direction: column;
     height: 100vh;
     overflow-y: hidden;
 }
-
 div.block-infos {
     display: flex;
     flex-grow: 0;
@@ -16,8 +22,88 @@ div.block-infos {
     margin-bottom: 36px;
     margin-left: 10;
     margin-right: 10;
-    background-color: #CABEA8;
+    background-color: #ffffff;
 }
+div.query-answer {
+    display: flex;
+    flex-grow: 0;
+    flex-direction: column;
+    margin-bottom: 36px;
+    min-height: 80px;
+    text-align: center;
+    
+    padding: 10px;
+}
+
+#query-card-container {
+    overflow-x: scroll;
+    overflow-y: scroll;
+    outline: 1px solid var(--selected-colour);
+}
+
+#query-card-container > .uk-card {
+    margin-top: 20px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+#query-card-container > .uk-card >.uk-card-body{
+    text-align: left;
+}
+
+#query-header{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 0px;
+}
+
+
+
+.topnav {
+    display: flex;
+
+    background: #f0eeeece;
+    
+    margin-bottom: 10px;
+  }
+  
+  /* Change the color of links on hover */
+  .topnav a:hover {
+    background-color: rgb(139, 9, 9);
+    border-radius: 15px;
+    color: black;
+  }
+  
+  /* Style the search box inside the navigation bar */
+  .topnav input[type=text] {
+    display: block;
+    padding: 10px;
+    border: 2px black;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 40%;
+    font-size: 14px;
+    font-family: 'Roboto', Arial, sans-serif;
+    border-radius: 15px;
+  }
+  
+  /* When the screen is less than 600px wide, stack the links and the search field vertically instead of horizontally */
+  @media screen and (max-width: 600px) {
+    .topnav a, .topnav input[type=text] {
+      float: none;
+      display: block;
+      text-align: left;
+      width: 100%;
+      margin: 0;
+      padding: 14px;
+    }
+    .topnav input[type=text] {
+      border: 1px solid #ccc;
+    }
+  }
 
 .block-detail-container {
     overflow-y: scroll;
@@ -29,7 +115,14 @@ div.block-infos {
     overflow-y: scroll;
     padding: 8px;
     flex: 1;
+    
 }
+
+
+.uk-tooltip {
+    word-wrap: break-word;
+  }
+
 
 @media only screen and (max-width: 1000px) {
     div.block-infos {
@@ -44,18 +137,14 @@ div.block-infos {
 }
 
 #progress-bar-container {
+    align-self: center;
+    flex-direction: row;
     width: 80%;
-    position: absolute;
-    top: 52%;
-    left: 10%;
+    
 }
 
 #progress-bar {
-    position: absolute;
-    top: 0%;
-    left: 0%;
-    bottom: 0%;
-    width: 1%;
+    height: 30px;
     z-index: 1;
     background-color: #4caf50;
 }
@@ -71,31 +160,23 @@ div.block-infos {
     color: black;
 }
 
-.load-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgb(230, 230, 230);
+.load-container {   
+    
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    background-color: rgb(255, 255, 255);
     color: black;
+    min-height: 200px;
 }
 
 .div-load {
-    position: absolute;
     top: 30%;
-    left: 50%;
-    transform: translateX(-50%);
+    align-self: center;
+    align-content: center;
 }
 
-.loader {
-    border: 16px solid #f3f3f3;
-    border-top: 16px solid #3498db;
-    border-radius: 50%;
-    width: 120px;
-    height: 120px;
-    animation: spin 2s linear infinite;
-}
+
 
 @keyframes spin {
     0% {
@@ -107,21 +188,70 @@ div.block-infos {
 }
 
 .blocks-container {
+    display: flex;
+    flex-direction:row;
     margin-bottom: 10;
     padding: 0 10px;
+    
+    
 }
 
+
+    
+#last-container{
+    display: flex;
+    margin-left: 35px;
+    background-color: white;
+    animation: 2s ease-out 2s 1 slideInFromRight;
+    background: white;
+    animation-direction: reverse;
+    border-left: 1px solid gray;
+}
+
+
+@keyframes slideInFromRight {
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+.last-added{
+
+    left: 0;
+    
+}
+
+
+
 #svg-container {
-    display: block;
-    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex: 90%;
+
+   //padding-left: 30px;
+    
+ 
+  
+}
+::-webkit-scrollbar{
+    widows: 25px;
+}
+::-webkit-scrollbar-track{
+
+    border: 7px solid #232943;
+    box-shadow:  inset 0 0 2.5px 2px rgba(0, 0, 0, 0.35);
+}
+
+::-webkit-scrollbar-thumb{
+    background: pink;
+    border-radius: 3px;
 }
 
 .uk-open {
-    background-color: rgb(224, 224, 224);
-}
-
-.uk-accordion-title:focus {
-    color: #333 !important;
+    background-color: #ffffff;
 }
 
 .description {
@@ -132,7 +262,7 @@ div.block-infos {
     transform: translateX(-50%);
 }
 
-.clickable-detail-block>li {
+.clickable-detail-block > li {
     padding: 10px;
 }
 
@@ -173,7 +303,7 @@ div.block-infos {
     color: white;
     font-weight: bold;
     float: right;
-    font-size: 22px;
+    font-size: 20px;
     line-height: 20px;
     cursor: pointer;
     transition: 0.3s;
@@ -184,9 +314,6 @@ div.block-infos {
 }
 
 .cancel-button {
-    position: absolute;
-    top: 80%;
-    right: 10%;
     display: inline-block;
     border: 0.16em solid rgba(255, 255, 255, 0);
     border-radius: 2em;
@@ -201,6 +328,17 @@ div.block-infos {
     text-align: center;
     transition: all 0.2s;
     background-color: #0004e2;
+    align-self: center;
+}
+
+#white-icon{
+    filter: invert(100%) sepia(8%) saturate(2%) hue-rotate(87deg) brightness(115%) contrast(100%);
+}
+
+.spinner{
+    margin: 0 auto;
+    align-self: center;
+    display: flex;
 }
 
 .cancel-button:hover {
@@ -215,13 +353,10 @@ div.block-infos {
 }
 
 .logo {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    top: 10%;
     content: url(https://avatars2.githubusercontent.com/u/3638331?s=200&v=4);
+    display: table;
+    margin: 0 auto;
 }
-
 
 /*
 footer from status.dedis.ch
@@ -238,69 +373,121 @@ footer {
     text-align: center;
 }
 
-
 /*
 List of classes for the new transaction container
 */
 
+
+#block-detail-container{
+    outline:  2px solid var(--selected-colour);
+}
+
+
+// #block-detail-field {
+//     font-family: "Space Mono", monospace;
+//     color: #ffffff;
+// }
+.uk-accordion > .uk-open {
+    background-color: var(--selected-colour);
+}
+
+.uk-accordion-title:focus{
+    color: #ffffff;
+}
+
+.uk-accordion-title::before{
+    background-color : white
+}
+
+.uk-accordion {
+    font-family: "Space Mono", monospace;
+    background-color : var(--selected-colour);
+    padding: 8px;
+}
+
+.uk-accordion * {
+    color: #ffffff;
+
+}
+
+
+.uk-accordion-content > p {
+    margin-left: 10px;
+}
+
+#rejected{
+    color: red;
+}
+
+
+#forwardlink-drop{
+    background-color: var(--base-colour);
+    max-width: 80%;
+}
+
 .active {
-    background-color: rgb(160, 160, 160);
+    background-color: rgb(255, 255, 255);
 }
 
 .block-detail-container p {
-    color: black;
-    font-size: 17px;
+    font-size: 16px;
+    overflow: hidden;
 }
 
 .browse-container p {
-    color: black;
-    font-size: 17px;
+    font-size: 16px;
 }
 
 .spinner {
     animation: rotate 2s linear infinite;
     transform-origin: 50%;
-  }
+}
 
- .spinner circle {
+.spinner circle {
     stroke: rgb(140, 182, 224);
     stroke-linecap: round;
     animation: dash 1.5s ease-in-out infinite;
-  }
-  
-  @keyframes rotate {
+}
+
+@keyframes rotate {
     100% {
-      transform: rotate(360deg);
+        transform: rotate(360deg);
     }
-  }
-  
-  @keyframes dash {
+}
+
+@keyframes dash {
     0% {
-      stroke-dasharray: 1, 150;
-      stroke-dashoffset: 0;
+        stroke-dasharray: 1, 150;
+        stroke-dashoffset: 0;
     }
     50% {
-      stroke-dasharray: 90, 150;
-      stroke-dashoffset: -35;
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -35;
     }
     100% {
-      stroke-dasharray: 90, 150;
-      stroke-dashoffset: -124;
+        stroke-dasharray: 90, 150;
+        stroke-dashoffset: -124;
     }
-  }
+}
 
-  .header {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 20px;
+.header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 0px;
 
-      h1 {
-          color: #264473;
-      }
 
-      #status-info {
+
+    img{
+        
+        color: #264473; 
+       max-width: none;
+       height: 70;
+        
+    }
+
+    #status-info {
         .info {
             display: flex;
             flex-direction: row;
@@ -312,26 +499,33 @@ List of classes for the new transaction container
                 height: 50px;
                 position: relative;
             }
-  
+
             .info-message {
                 padding: 20px;
             }
         }
+    }
+}
 
-      }
-  }
+
 
 .x-axis{
-
+   text-anchor: start;
+    
     line{
+    
         stroke: #8C764A;
     }
 
     path{
+       
         stroke: #8C764A;
+        
     }
     
     text{
         fill: #8C764A;
     } 
 }
+
+
