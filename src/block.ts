@@ -211,12 +211,11 @@ export class Block {
         divVerifier.attr("class", "uk-accordion-content");
         block.verifiers.forEach((uid, j) => {
             const blockie = blockies.create({ seed: uid.toString("hex") });
-            divVerifier
-                .append("p")
-                .text(` Verifier ${j} , ID:  `);
-                
+            
+            const verifierLine = divVerifier.append("p");
+                verifierLine.text(` Verifier ${j} , ID:  `);                
                
-            const imgBlockie = divVerifier.append("img");
+            const imgBlockie = verifierLine.append("img");
             imgBlockie
                 .attr("class", "uk-img")
                 .attr("src", blockie.toDataURL())
@@ -328,11 +327,6 @@ export class Block {
         const transactionCardBody = transactionCard.append("div");
         transactionCardBody.attr("class", "uk-card-body uk-padding-small");
 
-        // ulTransaction.attr("uk-accordion", "");
-        // ulTransaction.attr("background-color = #006fff");
-        // ulTransaction.attr("multiple", "true");
-        // ulTransaction.attr("class", "clickable-detail-block");
-
         body.txResults.forEach((transaction, i) => {
             const accepted: string = transaction.accepted
                 ? "Accepted"
@@ -372,7 +366,6 @@ export class Block {
                     const aInstruction = liInstruction.append("a");
                     aInstruction.attr("class", "uk-accordion-title");
 
-                    //TODO Maybe modularize this as it's gonna be very heavy
                     if (instruction.type === Instruction.typeSpawn) {
                         const contractName = instruction.spawn.contractID.charAt(0).toUpperCase() + 
                         instruction.spawn.contractID.slice(1);
