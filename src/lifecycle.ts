@@ -51,6 +51,7 @@ export class Lifecycle {
      * @param {Roster} roster
      * @param {Flash} flash
      * @param {TotalBlock} totalBlock
+     * @param {string} initialBlockHash
      * @memberof Browsing
      */
     constructor(
