@@ -213,13 +213,21 @@ export class Block {
             const blockie = blockies.create({ seed: uid.toString("hex") });
             divVerifier
                 .append("p")
-                .text(` Verifier ${j} , ID:  `)
-                .append("img")
+                .text(` Verifier ${j} , ID:  `);
+                
+               
+            const imgBlockie = divVerifier.append("img");
+            imgBlockie
                 .attr("class", "uk-img")
                 .attr("src", blockie.toDataURL())
                 .attr("width", 32)
-                .attr("height", 32)
-                .attr("uk-tooltip", `${uid.toString("hex")}`);
+                .attr("uk-tooltip", `${uid.toString("hex")}`)
+                .append("input")
+                .text(`${uid.toString("hex")}`)
+                .style("height", "0")
+                .style("width", "0");
+
+            imgBlockie.on("click",function() {Utils.copyToClipBoard(uid.toString("hex"), self.flash)});
         });
 
         //ANCHOR BackLink details
@@ -240,6 +248,7 @@ export class Block {
                 .append("span")
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
+                .on("click",function() {Utils.copyToClipBoard(value.toString("hex"), self.flash)})
                 .attr("uk-tooltip", `${value.toString("hex")}`);
         });
 
@@ -263,23 +272,28 @@ export class Block {
                 .append("span")
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
+                .on("click",function() {Utils.copyToClipBoard(fl.to.toString("hex"), self.flash)})
                 .attr("uk-tooltip", `${fl.to.toString("hex")}`);
 
             const lockIcon = divForwardLink
                 .append("a");
+
+            const lockContent = `Hash: ${fl.hash().toString("hex")}</p>
+            <p>signature: ${fl.signature.sig.toString("hex")}</p>`
+
+
             lockIcon
                 .attr("class", "uk-icon-button")
                 .attr("uk-icon", "icon: lock")
                 .attr("href","")
-                .style("margin-left", "15px");
+                .style("margin-left", "15px")
+                .on("click",function() {Utils.copyToClipBoard(lockContent, self.flash)});
             const linkDetails = divForwardLink
                 .append("div");
             linkDetails
                 .attr("uk-dropdown", "pos: right-center")
                 .attr("id", "forwardlink-drop")
-                .html(`
-                <p>Hash: ${fl.hash().toString("hex")}</p>
-                <p>signature: ${fl.signature.sig.toString("hex")}</p>`)
+                .html(lockContent)
                 .style("color", "var(--selected-colour)");
         });
         //!SECTION
@@ -470,6 +484,9 @@ export class Block {
                 }
             ); //!SECTION
         });
+
+
+
     }
 
     //SECTION Query
@@ -750,6 +767,16 @@ export class Block {
             );
         }
     }
+
+
+
+ 
+ 
+
+
+
+
+    
 
     //!SECTION
 
