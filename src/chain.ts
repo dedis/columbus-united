@@ -424,7 +424,7 @@ export class Chain {
                 this.blockClickedSubject.next(lastBlock);
             });
 
-        //shadow filter for last added blcok
+        //shadow filter for last addedss blcok
         var defs = svgLast.append("defs");
 
         // create filter with id #drop-shadow
@@ -551,7 +551,7 @@ export class Chain {
             .attr("height", 20)
             .attr("x", 44)
             .attr("y", 104)
-            .attr("href", "assets/information-button-2.svg");
+            .attr("href", "assets/information-button-red.svg");
 
         //text for number of validated tx
         rejected
