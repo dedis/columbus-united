@@ -9,28 +9,21 @@ import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 
 import * as d3 from "d3";
-import { merge, Subject } from "rxjs";
+import {  Subject } from "rxjs";
 
 import {
-    buffer,
-    last,
+   
     map,
-    takeLast,
+
     throttleTime,
-    count,
-    tap,
-    mapTo,
-    flatMap,
-    skip,
+ 
 } from "rxjs/operators";
-import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import * as blockies from "blockies-ts";
 
 import { Flash } from "./flash";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
-import { group, timeHours } from "d3";
-import { sayHi } from ".";
+
 
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
@@ -904,7 +897,7 @@ export class Chain {
             this.appendBlock(xTranslateBlock, block, gblocks);
 
             this.getToAndFrom(xTranslateBlock, block, garrow);
-            this.appendCircleInBlock(xTranslateBlock, gcircle);
+            //this.appendCircleInBlock(xTranslateBlock, gcircle);
         }
 
         this.newblocksSubject.next(listBlocks);

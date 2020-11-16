@@ -132,7 +132,6 @@ export function sayHi() {
         
         var input= d3.select("#search-input").property("value");
     
-      // console.log( Buffer.from(input,'hex'));
         
      try{
          let hi = await Utils.getBlock(Buffer.from(input,'hex'),roster)
