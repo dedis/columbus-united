@@ -30,6 +30,9 @@ jobs:
       run: |
         mv ./assets/favicon.ico ./
         mv ./assets/icon.png ./
+        mv ./assets/information-button-green.svg ./
+        mv ./assets/information-button-red.svg ./
+        mv ./assets/icon.png ./
         echo "${{secrets.DEPLOY_DEV_KEY}}" > deploy_key
         chmod 600 ./deploy_key
         rsync -chav --delete \
