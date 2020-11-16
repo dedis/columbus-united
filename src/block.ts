@@ -277,7 +277,7 @@ export class Block {
             const lockIcon = divForwardLink
                 .append("a");
 
-            const lockContent = `Hash: ${fl.hash().toString("hex")}</p>
+            const lockContent = `<p>Hash: ${fl.hash().toString("hex")}</p>
             <p>signature: ${fl.signature.sig.toString("hex")}</p>`
 
 
