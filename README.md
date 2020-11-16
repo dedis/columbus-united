@@ -5,8 +5,15 @@
 </div>
 
 <div align="center">
-  <img src="https://github.com/dedis/columbus-united/workflows/Wookiee%20deployment/badge.svg?branch=production">
-  <img src="https://github.com/dedis/columbus-united/workflows/Prettier/badge.svg">
+  <a href="https://github.com/dedis/columbus-united/actions?query=workflow%3A%22Wookiee+deployment%22">
+    <img src="https://github.com/dedis/columbus-united/workflows/Wookiee%20deployment/badge.svg?branch=production">
+  </a>
+  <a href="https://github.com/dedis/columbus-united/actions?query=workflow%3A%22Wookiee+DEV+deployment%22">
+    <img src="https://github.com/dedis/columbus-united/workflows/Wookiee%20DEV%20deployment/badge.svg">
+  </a>
+  <a href="https://github.com/dedis/columbus-united/actions?query=workflow%3APrettier">
+    <img src="https://github.com/dedis/columbus-united/workflows/Prettier/badge.svg">
+  </a>
 </div>
 
 Implementation of an intuitive and insightful blockchain explorer. The Columbus project is a project aiming to facilitate the visualization of the [Byzcoin](https://github.com/dedis/cothority/tree/master/byzcoin) blockchain by providing a unified and interactive visualization tool.
@@ -152,7 +159,7 @@ Use:
 
 ## Production deployment
 
-A change on the production branch automatically triggers a deployment on
+A change on the `production` branch automatically triggers a deployment on
 [https://wookiee.ch/columbus](https://wookiee.ch/columbus).
 
 The production branch must only be used that way:
@@ -160,6 +167,18 @@ The production branch must only be used that way:
 ```bash
 # Trigger a deployment:
 git push origin master:production
+```
+
+## Dev deployment
+
+A change on the `deploy-dev` branch automatically triggers a deployment on
+[https://wookiee.ch/columbus-dev](https://wookiee.ch/columbus-dev).
+
+The `deploy-dev` branch must only be used that way:
+
+```bash
+# Trigger a deployment:
+git push origin <source branch>:deploy-dev
 ```
 
 ## Documentation
