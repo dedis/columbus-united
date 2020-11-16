@@ -83,11 +83,29 @@ div.query-answer {
     margin-top: 8px;
     margin-bottom: 8px;
     margin-left: auto;
-    margin-right: auto;
-    width: 40%;
+    margin-right: none;
+    width: 35%;
     font-size: 14px;
     font-family: 'Roboto', Arial, sans-serif;
-    border-radius: 15px;
+    border-radius: 15px 0 0 15px;
+  }
+  .topnav input[type=submit]{
+    background:white;
+    margin-right: 35%;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    color: grey;
+    border-radius: 0 15px 15px 0;
+    border-color: #f0eeeece;
+    height: 40px;
+    width: 60px;
+    border: none;
+    
+    font: 14px arial, sans-serif;
+    
+    
+    text-shadow:none;
+
   }
   
   /* When the screen is less than 600px wide, stack the links and the search field vertically instead of horizontally */

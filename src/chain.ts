@@ -402,6 +402,8 @@ export class Chain {
         );
     }
 
+  
+
     /**
      * Display the last added block of the chain
      * @param lastBlock the last added block of the blockchain

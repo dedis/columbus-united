@@ -9,16 +9,8 @@ import { Lifecycle } from "./lifecycle";
 import { getRosterStr } from "./roster";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
-import {
-    buffer,
-    last,
-    map,
-    takeLast,
-    throttleTime,
-    count,
-    tap,
-    mapTo,
-} from "rxjs/operators";
+import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
+
 
 import "uikit";
 import "./stylesheets/style.scss";
@@ -135,6 +127,36 @@ export function sayHi() {
 
 }
 
+  function search(roster:Roster,flash:Flash) {
+    d3.select("#submit-button").on("click",async function () {
+        
+        var input= d3.select("#search-input").property("value");
+    
+      // console.log( Buffer.from(input,'hex'));
+        
+     try{
+         let hi = await Utils.getBlock(Buffer.from(input,'hex'),roster)
+         flash.display( Flash.flashType.INFO,
+            "Block index: " + hi.index.toString() + " - " +
+            "Height: " + hi.height.toString()+ " - " +
+            "Number of transactions: " + DataBody.decode(hi.payload).txResults.length) + " - " +
+            "Number of verifiers: "+ hi.verifiers.length;
+     } catch(error) {
+    
+       // try transactions
+       flash.display( Flash.flashType.ERROR,"Block does not exist");
+
+     }
+
+       
+      
+      
+    }
+  
+    );
+       
+     }
+ 
 
 
  
@@ -151,6 +173,8 @@ function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
     const chain = new Chain(roster, flash, initialBlock);
     
     chain.loadInitialBlocks(initialBlock.hash);
+
+   search(roster,flash)
 
     new SkipchainRPC(roster).getLatestBlock(Utils.hex2Bytes(hashBlock0), false).then(
         (resp) => console.log(resp)
