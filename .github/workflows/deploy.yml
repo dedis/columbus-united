@@ -27,8 +27,6 @@ jobs:
       env:
         dest: 'jstech@${{secrets.DEPLOY_ADDR}}:/var/www/wookiee.ch/public_html/columbus-dev'
       run: |
-        mv ./assets/favicon.ico ./
-        mv ./assets/icon.png ./
         mv ./assets/information-button-green.svg ./
         mv ./assets/information-button-red.svg ./
         mv ./assets/logo color small.png ./
@@ -38,8 +36,9 @@ jobs:
           -e 'ssh -p ${{secrets.DEPLOY_PORT}} -i ./deploy_key -o StrictHostKeyChecking=no' \
           --exclude='.DS_Store' \
           --include=index.html \
-          --include=favicon.ico \
-          --include=icon.png \
+          --include=information-button-green.svg ./
+          --include=information-button-red.svg ./
+          --include=logo color small.png ./
           --include='dist/***' \
           --exclude='*' \
           ./ ${{env.dest}}
