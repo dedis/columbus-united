@@ -11,14 +11,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - uses: actions/setup-node@v1
+    - uses: actions/setup-node@v1.1.0
       with:
         version: 12.x
 
     - name: Install dependencies
       run: |
         npm install
-
     - name: Build
       run: |
         mv src/roster.ts.template src/roster.ts
@@ -28,12 +27,16 @@ jobs:
       env:
         dest: 'jstech@${{secrets.DEPLOY_ADDR}}:/var/www/wookiee.ch/public_html/columbus'
       run: |
+        mv ./assets/favicon.ico ./
+        mv ./assets/icon.png ./
         echo "${{secrets.DEPLOY_KEY}}" > deploy_key
         chmod 600 ./deploy_key
         rsync -chav --delete \
           -e 'ssh -p ${{secrets.DEPLOY_PORT}} -i ./deploy_key -o StrictHostKeyChecking=no' \
           --exclude='.DS_Store' \
           --include=index.html \
+          --include=favicon.ico \
+          --include=icon.png \
           --include='dist/***' \
           --exclude='*' \
           ./ ${{env.dest}}
