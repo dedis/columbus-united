@@ -29,7 +29,7 @@ jobs:
       run: |
         mv ./assets/information-button-green.svg ./
         mv ./assets/information-button-red.svg ./
-        mv ./assets/logo color small.png ./
+        mv ./assets/logo-color-small.png ./
         echo "${{secrets.DEPLOY_DEV_KEY}}" > deploy_key
         chmod 600 ./deploy_key
         rsync -chav --delete \
