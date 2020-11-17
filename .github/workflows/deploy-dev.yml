@@ -25,7 +25,7 @@ jobs:
     
     - name: Sync
       env:
-        dest: 'jstech@${{secrets.DEPLOY_ADDR}}:/var/www/wookiee.ch/public_html/columbus-dev'
+        dest: 'jstech@${{secrets.DEPLOY_ADDR}}:/var/www/wookiee.ch/public_html/columbus-dev/'
       run: |
         mv ./assets/favicon.ico ./
         mv ./assets/icon.png ./
@@ -38,5 +38,6 @@ jobs:
           --include=favicon.ico \
           --include=icon.png \
           --include='dist/***' \
+          --include='assets/***' \
           --exclude='*' \
           ./ ${{env.dest}}
