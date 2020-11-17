@@ -18,6 +18,7 @@ jobs:
     - name: Install dependencies
       run: |
         npm install
+
     - name: Build
       run: |
         mv src/roster.ts.template src/roster.ts
@@ -38,4 +39,5 @@ jobs:
           --include=favicon.ico \
           --include=icon.png \
           --include='dist/***' \
+          --exclude='*' \
           ./ ${{env.dest}}
