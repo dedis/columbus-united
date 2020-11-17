@@ -38,5 +38,4 @@ jobs:
           --include=favicon.ico \
           --include=icon.png \
           --include='dist/***' \
-          --exclude='*' \
           ./ ${{env.dest}}
