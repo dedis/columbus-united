@@ -41,6 +41,9 @@ jobs:
           --include=index.html \
           --include=favicon.ico \
           --include=icon.png \
+          --include=information-button-green.svg ./
+          --include=information-button-red.svg ./
+          --include=logo color small.png ./
           --include='dist/***' \
           --exclude='*' \
           ./ ${{env.dest}}
