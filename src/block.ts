@@ -550,7 +550,7 @@ export class Block {
             instructionCard
             .attr("class", "uk-card uk-card-default")
             .style("min-width","350px");
-
+            
             const instructionCardHeader = instructionCard.append("div");
             instructionCardHeader.attr(
                 "class",
@@ -558,7 +558,9 @@ export class Block {
             );
 
             const instructionCardBody = instructionCard.append("div");
-            instructionCardBody.attr("class uk-card-body uk-padding-small");
+            instructionCardBody
+            // .attr("class","uk-card-body uk-padding-small")
+            ;
 
             let args = null;
             let contractID = "";
@@ -616,7 +618,8 @@ export class Block {
 
             divInstructionB.append("p").text("Arguments: ");
             const ulArgsB = divInstructionB.append("ul");
-            ulArgsB.attr("uk-accordion", "");
+            ulArgsB
+            .attr("uk-accordion", "");
             // tslint:disable-next-line
             args.forEach((arg, i) => {
                 const liArgsB = ulArgsB.append("li");
@@ -630,7 +633,8 @@ export class Block {
                     "class",
                     "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
                 );
-                divArgsB.append("p").text(`${arg.value}`);
+                divArgsB.append("p").text(`${arg.value}`)
+
             });
         }
         // Highlights the blocks in the blockchain

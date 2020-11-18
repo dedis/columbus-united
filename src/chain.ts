@@ -29,7 +29,7 @@ import * as blockies from "blockies-ts";
 import { Flash } from "./flash";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
-import { group, timeHours } from "d3";
+import { group, timeHours, style } from "d3";
 import { sayHi } from '.';
 
 export class Chain {
@@ -955,8 +955,8 @@ export class Chain {
         // console.log("to"+ iTo);
 
         if (iTo - skipFrom.index == 1) {
-            svgBlocks
-                .append("line")
+            const line = svgBlocks.append("line");
+            line
                 .attr("id", skipFrom.index)
                 .attr("x1", xTrans)
                 .attr("y1", 15 + this.blockHeight / 2)
@@ -965,13 +965,15 @@ export class Chain {
                 .attr("stroke-width", 2)
                 .attr("stroke", "grey")
                 
+                
                 ;
             //.attr("marker-end", "url(#triangle)");
         } else {
             // if (20+ (block.height) * 40 < 30+(factor)*40 )
 
-            svgBlocks
-                .append("line")
+            const line = svgBlocks
+                .append("line");
+            line
                 .attr("x2", xTrans - this.blockPadding)
                 .attr("y1", 40 + factor * 38)
                 .attr(
@@ -986,15 +988,16 @@ export class Chain {
                 .attr("stroke-width", 2)
                 .attr("stroke", "grey")
                 .attr("marker-end", "url(#triangle)")
+
                 .on("click", () => {
                     this.blockClickedSubject.next(block);
                 });
 
-            svgBlocks
+            const triangle = svgBlocks
                 .append("svg:defs")
-                .append("svg:marker")
+                .append("svg:marker");
+            triangle
                 .attr("id", "triangle")
-        
                 .attr("refX", 5.5)
                 .attr("refY", 4.5)
                 .attr("markerWidth", 15)
@@ -1006,6 +1009,25 @@ export class Chain {
                     this.blockClickedSubject.next(block);
                 })
                 .style("fill", "grey");
+            //FIXME can't change the colour of the svg markers like this. Only option I see
+            //is to create anover triangle and witch when needed
+            triangle.on("mouseover", () => {
+                    line.style("stroke", "var(--selected-colour");
+                    triangle.style("fill", "var(--selected-colour");
+                });
+            line.on("mouseover", () => {
+                    line.style("stroke", "var(--selected-colour");
+                    triangle.attr("stroke", "var(--selected-colour");
+                });
+            triangle.on("mouseout", () => {
+                line.style("stroke", "grey");
+                triangle.style("stroke", "grey");
+            });               
+            line.on("mouseout", () => {
+                line.style("stroke", "grey");
+                triangle.style("stroke", "grey");
+            });   
+
         }
     }
 
