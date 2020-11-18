@@ -285,7 +285,7 @@ export class Block {
             lockIcon
                 .attr("id", "white-icon")
                 .attr("type", "image/svg+xml")
-                .attr("data", "signature.svg")
+                .attr("data", "assets/signature.svg")
                 .style("width", "32px")
                 .style("height", "32px")
                 .style("display", "block")
@@ -325,7 +325,7 @@ export class Block {
         
         transactionCardHeaderTitle
         .append("p")
-        .text(`Total of ${totalTransaction} transactions`)
+        .text(`Total of ${totalTransaction} transaction`+ (totalTransaction>1? 's':''))
         .style("margin-left", "10px");
 
         const transactionCardBody = transactionCard.append("div");
@@ -334,7 +334,7 @@ export class Block {
         body.txResults.forEach((transaction, i) => {
             const accepted: string = transaction.accepted
                 ? "Accepted"
-                : `<span id ="rejected">Not accepted</span>`;
+                : `<span id ="rejected">Rejected</span>`;
             const liTransaction = transactionCardBody.append("ul");
             liTransaction.attr("id", "detail-window");
             liTransaction.attr("class", "uk-open");
@@ -343,14 +343,11 @@ export class Block {
             transaction.clientTransaction.instructions.forEach((_, __) => {
                 totalInstruction++;
             });
-            let s = "";
-            if (totalInstruction > 2) {
-                s = "s";
-            }
             //TODO Give titles like this an ID and handle the styling in the css
             transactionTitle
                 .html(
-                    `<b>Transaction ${i}</b> ${accepted}, show ${totalInstruction} instruction${s}:`
+                    `<b>Transaction ${i}</b> ${accepted}, show ${totalInstruction} instruction`
+                    +(totalInstruction>1? `s`:``)+ `:`
                 )
                 .style("font", "Monospace")
                 .style("color", "#666")
@@ -550,7 +547,9 @@ export class Block {
             const instruction = tuple[1][i];
             const instructionCard = queryCardContainer.append("li");
 
-            instructionCard.attr("class", "uk-card uk-card-default");
+            instructionCard
+            .attr("class", "uk-card uk-card-default")
+            .style("min-width","350px");
 
             const instructionCardHeader = instructionCard.append("div");
             instructionCardHeader.attr(
@@ -563,27 +562,44 @@ export class Block {
 
             let args = null;
             let contractID = "";
+            instructionCard.attr("id", `buttonInstance${i}`);
+            let verb = "";
             if (instruction.type === Instruction.typeSpawn) {
-                instructionCard.attr("id", `buttonInstance${i}`);
-                instructionCardHeader.text(
-                    `${i}: Spawn in the block ${blocki.index}`
-                );
-                args = instruction.spawn.args;
                 contractID = instruction.spawn.contractID;
+                verb = "Spawned";
+                args = instruction.spawn.args;
+
             } else if (instruction.type === Instruction.typeInvoke) {
-                instructionCard.attr("id", `buttonInstance${i}`);
-                instructionCardHeader.text(
-                    `${i}: Invoke in the block ${blocki.index}`
-                );
-                args = instruction.invoke.args;
+                verb = "Invoked";
                 contractID = instruction.invoke.contractID;
+                args = instruction.invoke.args;
+
             } else if (instruction.type === Instruction.typeDelete) {
-                instructionCard.attr("id", `buttonInstance${i}`);
-                instructionCardHeader.text(
-                    `${i}: Delete in the block ${blocki.index}`
-                );
+                verb = "Deleted";
                 contractID = instruction.delete.contractID;
             }
+
+            instructionCardHeader
+                .append("span")
+                .attr("class", "uk-badge")
+                .text(`${verb}`) 
+                .on("click",function() {Utils.copyToClipBoard(`${instruction.hash()
+                    .toString("hex")}}`, self.flash)})
+                .attr("uk-tooltip", `${instruction.hash().toString("hex")}`);
+
+            instructionCardHeader
+                .append("span")
+                .text(
+                    ` ${contractID} contract in `
+                );
+            instructionCardHeader
+                .append("span")
+                .attr("class", "uk-badge")
+                .text(`Block ${blocki.index}`) 
+                .on("click",function() {Utils.copyToClipBoard(`${blocki.hash.toString("hex")}`, self.flash)})
+                .attr("uk-tooltip", `${blocki.hash.toString("hex")}`);
+                
+            
             // Add an highlight of the instance which was browsed
             if (
                 blocki.hash.toString("hex") ===
@@ -597,17 +613,7 @@ export class Block {
                 "class",
                 "uk-accordion-content uk-padding-small"
             );
-            divInstructionB
-                .append("p")
-                .text(
-                    `Hash of instanceID is: ${instruction
-                        .hash()
-                        .toString("hex")}`
-                );
-            divInstructionB.append("p").text(`contractID: ${contractID}`);
-            divInstructionB
-                .append("p")
-                .text(`In the block: ${blocki.hash.toString("hex")}`);
+
             divInstructionB.append("p").text("Arguments: ");
             const ulArgsB = divInstructionB.append("ul");
             ulArgsB.attr("uk-accordion", "");
@@ -705,7 +711,7 @@ export class Block {
             .attr("class", "div-load");
         divLoad.append("div") 
         .attr("class", "spinner")
-        .attr("uk-spinner", "ratio : 3")
+        .attr("uk-spinner", "ratio : 2")
         .style("color", "blue");
 
         this.progressBarContainer = this.loadContainer

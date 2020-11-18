@@ -2,30 +2,29 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-    
+
         <script src="dist/bundle.min.js" type="text/javascript"></script>
-     
-        <link href='https://css.gg/css' rel='stylesheet'>
+
+        <link href="https://css.gg/css" rel="stylesheet" />
 
         <link rel="icon" href="icon.png" />
 
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+        />
         <style>
             /* 1. You define the CSS class like this:  */
-      
-            .custom__color path {
-              color: white;
-            }
-      
-          </style>
-    </head>
 
+            .custom__color path {
+                color: white;
+            }
+        </style>
+    </head>
 
     <body>
         <div class="header">
-       
             <img src="assets/logo color small.png" alt="logo" />
-            
 
             <button class="uk-button uk-button-default" type="button">
                 About
@@ -59,29 +58,26 @@
             </div>
         </div>
         <div class="searchbar-container">
-            <div class="topnav">   <!-- onclick="getInputValue();" -->
+            <div class="topnav">
+                <!-- onclick="getInputValue();" -->
                 <input
-                    id = "search-input"
+                    id="search-input"
                     type="text"
                     placeholder=" Search by block / hash / transaction "
-
                 />
             </div>
         </div>
 
         <div class="blocks-container">
-    
-           
             <svg id="svg-container"></svg>
             <svg id="last-container"></svg>
-            
         </div>
         <div class="block-infos">
             <div class="block-detail-container"></div>
             <div class="browse-container"></div>
         </div>
 
-        <div class= "query-answer"></div>
+        <div class="query-answer"></div>
 
         <footer>
             <span>© DEDIS 2018 - by Anthony Iozzia and Julien von Felten</span>
@@ -92,37 +88,28 @@
         </footer>
     </body>
     <script>
-       
         jsapp.sayHi();
 
-        function getInputValue(){
-            // Selecting the input element and get its value 
+        function getInputValue() {
+            // Selecting the input element and get its value
             var inputVal = document.getElementById("search-input").value;
-            
-           
-
         }
 
-
-        
-
-        
-    //   let searchInput = document.getElementById("search-input");
-    //   Rx.Observable.fromEvent(searchInput, 'input')
-    //     .pluck('target', 'value')
-    //     .debounceTime(500)
-    //     .distinctUntilChanged()
-    //     .switchMap(searchKey => Rx.Observable.ajax(`https://api.crossref.org/works?rows=50&query.author=${searchKey}`)
-    //       .map(resp => ({
-    //           "status" : resp["status"] == 200,
-    //           "details" : resp["status"] == 200 ? resp["response"] : [],
-    //           "result_hash": Date.now()
-    //         })
-    //       )
-    //     )
-    //     .filter(resp => resp.status !== false)
-    //     .distinctUntilChanged((a, b) => a.result_hash === b.result_hash)
-    //     .subscribe(resp => console.log(resp.details));
-
+        //   let searchInput = document.getElementById("search-input");
+        //   Rx.Observable.fromEvent(searchInput, 'input')
+        //     .pluck('target', 'value')
+        //     .debounceTime(500)
+        //     .distinctUntilChanged()
+        //     .switchMap(searchKey => Rx.Observable.ajax(`https://api.crossref.org/works?rows=50&query.author=${searchKey}`)
+        //       .map(resp => ({
+        //           "status" : resp["status"] == 200,
+        //           "details" : resp["status"] == 200 ? resp["response"] : [],
+        //           "result_hash": Date.now()
+        //         })
+        //       )
+        //     )
+        //     .filter(resp => resp.status !== false)
+        //     .distinctUntilChanged((a, b) => a.result_hash === b.result_hash)
+        //     .subscribe(resp => console.log(resp.details));
     </script>
 </html>

@@ -28,8 +28,7 @@ div.query-answer {
     display: flex;
     flex-grow: 0;
     flex-direction: column;
-    margin-bottom: 36px;
-    min-height: 80px;
+    margin-bottom: 50px;
     text-align: center;
     
     padding: 10px;
@@ -322,13 +321,13 @@ div.query-answer {
     text-decoration: none;
     font-family: "Roboto", sans-serif;
     font-weight: 500;
-    font-size: 110%;
+    font-size: 100%;
     color: #ffffff;
     text-shadow: 0 0.04em 0.04em rgba(0, 0, 0, 0.35);
     text-align: center;
     transition: all 0.2s;
     background-color: #0004e2;
-    align-self: center;
+    right : 10%;
 }
 
 #white-icon{
@@ -356,6 +355,8 @@ div.query-answer {
     content: url(https://avatars2.githubusercontent.com/u/3638331?s=200&v=4);
     display: table;
     margin: 0 auto;
+    width: 80px;
+    height: 80px;
 }
 
 /*
