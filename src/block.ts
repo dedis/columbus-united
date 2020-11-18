@@ -633,6 +633,7 @@ export class Block {
                     "class",
                     "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
                 );
+                
                 divArgsB.append("p").text(`${arg.value}`)
 
             });
