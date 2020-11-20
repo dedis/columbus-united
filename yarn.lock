@@ -2371,6 +2371,11 @@ css-loader@^3.6.0:
     schema-utils "^2.7.0"
     semver "^6.3.0"
 
+css.gg@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/css.gg/-/css.gg-2.0.0.tgz#1ba891092ceac58a2550540171c2d469a86b27b2"
+  integrity sha512-8qO59kSXLbewo7xaUM4eC8328MTdGmb8atpmw6PRzeDGsZrCkAVjJzKeFDIntagl1/aCee+NG1OQtIvWAjgG/A==
+
 cssesc@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/cssesc/-/cssesc-3.0.0.tgz#37741919903b868565e1c09ea747445cd18983ee"
@@ -5731,10 +5736,10 @@ uglify-js@^3.1.4:
   resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.11.1.tgz#32d274fea8aac333293044afd7f81409d5040d38"
   integrity sha512-OApPSuJcxcnewwjSGGfWOjx3oix5XpmrK9Z2j0fTRlHGoZ49IU6kExfZTM0++fCArOOCet+vIfWwFHbvWqwp6g==
 
-uikit@^3.5.8:
-  version "3.5.8"
-  resolved "https://registry.yarnpkg.com/uikit/-/uikit-3.5.8.tgz#746a80a16c3ef2763297c7c058c423267d8eeda2"
-  integrity sha512-MzUykA+mOC74W+vtvxJUZ76YJvGM2tlBsZs0ab2ZFyZBBfqSV5xsJ5/48HVhPtuAlsdfhbP36c5OXJ38xY6Iuw==
+uikit@^3.5.9:
+  version "3.5.9"
+  resolved "https://registry.yarnpkg.com/uikit/-/uikit-3.5.9.tgz#50e550f24c3d0fb411e82de0d004659a61fc53b4"
+  integrity sha512-0197WceeBMlCLscsmds6zqL8K3TOtdUCvoHPJEuYqYY2gKa7JttlA6MiyzU0yBPzDlcawXF2TdOmQ/DWy6ZDEw==
 
 unicode-canonical-property-names-ecmascript@^1.0.4:
   version "1.0.4"

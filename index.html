@@ -8,6 +8,8 @@
         <link href="https://css.gg/css" rel="stylesheet" />
 
         <link rel="icon" href="icon.png" />
+        <link rel="stylesheet" href="node_modules/uikit/css/uikit.min.css">
+
 
         <link
             rel="stylesheet"
@@ -66,6 +68,7 @@
                     type="text"
                     placeholder=" Search by block / hash / transaction "
                 />
+                <input type="submit" value="Search" id="submit-button">
             </div>
         </div>
 
@@ -87,30 +90,12 @@
                 >github repository</a
             >
         </footer>
+    
     </body>
     <script>
         jsapp.sayHi();
 
-        function getInputValue() {
-            // Selecting the input element and get its value
-            var inputVal = document.getElementById("search-input").value;
-        }
+    
 
-        //   let searchInput = document.getElementById("search-input");
-        //   Rx.Observable.fromEvent(searchInput, 'input')
-        //     .pluck('target', 'value')
-        //     .debounceTime(500)
-        //     .distinctUntilChanged()
-        //     .switchMap(searchKey => Rx.Observable.ajax(`https://api.crossref.org/works?rows=50&query.author=${searchKey}`)
-        //       .map(resp => ({
-        //           "status" : resp["status"] == 200,
-        //           "details" : resp["status"] == 200 ? resp["response"] : [],
-        //           "result_hash": Date.now()
-        //         })
-        //       )
-        //     )
-        //     .filter(resp => resp.status !== false)
-        //     .distinctUntilChanged((a, b) => a.result_hash === b.result_hash)
-        //     .subscribe(resp => console.log(resp.details));
     </script>
 </html>
