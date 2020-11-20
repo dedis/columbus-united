@@ -79,29 +79,38 @@ Finally, install dependencies with `npm install`.
 You are ready to use the app: bundle it with `npm run bundle` and open
 `index.html`.
 
-#### If you need to run a local blockchain
+## If you need to run a local blockchain
 
-If you are developping on Columbus you will need to use a local blockchain in
+If you are developing on Columbus you will need to use a local blockchain in
 order to avoid over-loading a node running the production blockchain.
 
-Download and extract the conode binary (`conode-v<x.y.z>.tar.gz`) from the
-[cothority releases](https://github.com/dedis/cothority/releases).
-
-Execute `./conode.Linux.x86_64 setup` in this folder. When prompted, enter the
-address `127.0.0.1:7770`, then finish the setup with your preferences.
-
-Start the server with: `./conode.Linux.x86_64 -d 2 server`. You can stop it with
-<kbd>ctrl</kbd> + <kbd>C</kbd>.
-
-To use an existing database, replace it in `~/.local/share/conode` by keeping
-the same name and reload your conode. 
-
-You can download a cached database reflecting the production data at
+Download and extract the latest binaries from
+https://github.com/c4dt/byzcoin/releases. Choose the folder corresponding to
+your environment (only Mac and Linux is supported) and run the `byzcoin` binary
+in "proxy" mode. You need to provide an existing database. You can download a
+cached database reflecting the production data at
 [https://demo.c4dt.org/omniledger/cached.db](https://demo.c4dt.org/omniledger/cached.db).
-This is the database that should replace the one in `~/.local/share/conode`.
 
-Your can fetch your roster configuration with `cat
-~/.config/conode/public.toml`.
+Then, run the node in "proxy" mode with :
+
+```
+./byzcoin proxy <MY_DATABASE.db>
+```
+
+That's it ! This will run a node listening on 127.0.0.1:7771.
+
+You can stop it with <kbd>ctrl</kbd> + <kbd>C</kbd>.
+
+There are additional options that you can spot with `./byzcoin proxy -h`.
+
+You can then use the following roster in your `roster.ts`:
+
+```
+[[servers]]
+  Url = "http://127.0.0.1:7771"
+  Suite = "Ed25519"
+  Public = "0000000000000000000000000000000000000000000000000000000000000000"
+```
 
 ## Recommendations for Visual Studio Code
 
