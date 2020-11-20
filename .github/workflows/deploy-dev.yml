@@ -18,6 +18,7 @@ jobs:
     - name: Install dependencies
       run: |
         npm install
+        
     - name: Build
       run: |
         mv src/roster.ts.template src/roster.ts
@@ -25,7 +26,7 @@ jobs:
     
     - name: Sync
       env:
-        dest: 'jstech@${{secrets.DEPLOY_ADDR}}:/var/www/wookiee.ch/public_html/columbus-dev/'
+        dest: 'jstech@${{secrets.DEPLOY_ADDR}}:/var/www/wookiee.ch/public_html/columbus-dev'
       run: |
         mv ./assets/favicon.ico ./
         mv ./assets/icon.png ./

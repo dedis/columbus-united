@@ -16,9 +16,13 @@
   </a>
 </div>
 
-Implementation of an intuitive and insightful blockchain explorer. The Columbus project is a project aiming to facilitate the visualization of the [Byzcoin](https://github.com/dedis/cothority/tree/master/byzcoin) blockchain by providing a unified and interactive visualization tool.
+Implementation of an intuitive and insightful blockchain explorer. The Columbus
+project is a project aiming to facilitate the visualization of the
+[Byzcoin](https://github.com/dedis/cothority/tree/master/byzcoin) blockchain by
+providing a unified and interactive visualization tool.
 
-This tool is a web based application written in typescript, bundled with webpack, and using the d3 and rxjs librairies.
+This tool is a web based application written in typescript, bundled with
+webpack, and using the d3 and rxjs librairies.
 
 👌 **Quick TL;DR setup**:
 
