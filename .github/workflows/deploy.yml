@@ -18,6 +18,7 @@ jobs:
     - name: Install dependencies
       run: |
         npm install
+
     - name: Build
       run: |
         mv src/roster.ts.template src/roster.ts
