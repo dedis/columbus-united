@@ -218,14 +218,11 @@ export class Block {
                
             const imgBlockie = verifierLine.append("img");
             imgBlockie
-                .attr("class", "uk-img")
-              .attr("src", blockie.toDataURL())
+                .attr("class", "uk-img clip-blocky")
+                .attr("src", blockie.toDataURL())
                 .attr("width", 32)
-                .attr("uk-tooltip", `${uid.toString("hex")}`)
-                .append("input")
-                .text(`${uid.toString("hex")}`)
-                .style("height", "0")
-                .style("width", "0");
+                .attr("uk-tooltip", `${uid.toString("hex")}`);
+                
 
             imgBlockie.on("click",function() {Utils.copyToClipBoard(uid.toString("hex"), self.flash)});
         });
@@ -389,20 +386,28 @@ export class Block {
                     }
 
                     const divInstruction = liInstruction.append("div");
+                    const hash = instruction.hash().toString("hex");
+                    const blockie = blockies.create({ seed: hash});
                     divInstruction
                         .attr("class", "uk-accordion-content")
                         .attr("style", "padding-left:15px");
                     // Detail of one instruction
+                    
                     divInstruction
                         .append("p")
-                        .text(`Transaction hash : ${instruction.hash().toString("hex")}`);
+                        .text(`Transaction hash : `)
+                        .append("img")
+                        .attr("class", "uk-img")
+                        .attr("src", blockie.toDataURL())
+                        .attr("uk-tooltip", `${hash}`)
+                        .on("click", function() {Utils.copyToClipBoard(hash, self.flash)});
                     divInstruction
                         .append("p")
                         .text(
-                            `Instance ID: ${instruction.instanceID.toString(
-                                "hex"
-                            )}`
-                        );
+                            `Instance ID: ${instruction.instanceID.toString("hex")}`);
+                        
+                        
+                        
                     divInstruction.append("p").text("Arguments:");
                     // Args of the instruction
                     const ulArgs = divInstruction.append("ul");

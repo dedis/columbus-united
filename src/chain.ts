@@ -612,10 +612,10 @@ export class Chain {
             .append("svg:image")
             .attr("xlink:href", blockie.toDataURL())
             .attr("x", 114)
-            .attr("y", 143)
-            .attr("width", 18)
+            .attr("y", 138)
+            .attr("width", 26)
             //  .attr("class","groster")
-            .attr("height", 18)
+            .attr("height", 26)
             .attr("uk-tooltip", block.hash.toString("hex"));
 
         imBlockies.on("click", function () {
