@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import * as rx from 'rxjs';
 
 /**
  * Create flash alerte using flashType, displayed at the top of the page
@@ -9,7 +10,7 @@ import * as d3 from "d3";
 export class Flash {
     containerFlash: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
     flashType: Flash.flashType;
-
+    span : d3.Selection<HTMLSpanElement, unknown, HTMLElement,any>;
     /**
      * Creates an instance of Flash, setting the container
      * @memberof Flash
@@ -29,14 +30,14 @@ export class Flash {
      * @memberof Flash
      */
     display(errorCode: Flash.flashType, text: string) {
-        let span;
         let divAlert;
+        
         switch (errorCode) {
             case Flash.flashType.ERROR:
                 divAlert = this.containerFlash
                     .append("div")
                     .attr("class", "alert");
-                span = divAlert
+                this.span = divAlert
                     .append("span")
                     .attr("class", "close-btn")
                     .text(`\u2715`);
@@ -47,7 +48,7 @@ export class Flash {
                 divAlert = this.containerFlash
                     .append("div")
                     .attr("class", "alert warning");
-                span = divAlert
+                this.span = divAlert
                     .append("span")
                     .attr("class", "close-btn")
                     .text(`\u2715`);
@@ -58,7 +59,7 @@ export class Flash {
                 divAlert = this.containerFlash
                     .append("div")
                     .attr("class", "alert info");
-                span = divAlert
+                this.span = divAlert
                     .append("span")
                     .attr("class", "close-btn")
                     .text(`\u2715`);
@@ -70,7 +71,7 @@ export class Flash {
                 divAlert = this.containerFlash
                     .append("div")
                     .attr("class", "alert other");
-                span = divAlert
+                this.span = divAlert
                     .append("span")
                     .attr("class", "close-btn")
                     .text(`\u2715`);
@@ -79,17 +80,29 @@ export class Flash {
                     .text(`Other error not handled: ${text}`);
                 break;
         }
+        const timer = rx.timer(5000);
+
+        const decay = timer.subscribe(()=>{
+            Flash.closeAlert(this.span.node().parentElement);
+            });
+
         // on click to remove the flash
         // tslint:disable-next-line
-        span.on("click", function () {
-            const div = this.parentElement;
-            div.style.opacity = "0";
-            // tslint:disable-next-line
-            setTimeout(function () {
-                div.style.display = "none";
-            }, 200);
+        this.span.on("click", function () {
+            this;
+            Flash.closeAlert(this.parentElement);
         });
     }
+    private static closeAlert(div : HTMLElement){
+        div.style.opacity = "0";
+        setTimeout(function () {
+            div.style.display = "none";
+        }, 200);
+
+    }
+
+
+
 } // tslint:disable-next-line
 
 /**

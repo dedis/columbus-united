@@ -9,25 +9,19 @@ import { Lifecycle } from "./lifecycle";
 import { getRosterStr } from "./roster";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
-import {
-    buffer,
-    last,
-    map,
-    takeLast,
-    throttleTime,
-    count,
-    tap,
-    mapTo,
-} from "rxjs/operators";
+import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
 
-import "uikit";
+import 'uikit';
 import "./stylesheets/style.scss";
+import { Subject } from 'rxjs';
 
 // This is the genesis block, which is also the skipchain identifier
 const hashBlock0 =
     "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
 // The roster configuration, parsed as a string
-const rosterStr = getRosterStr();
+const rosterStr = getRosterStr();   
+
+
 
 /**
  *
@@ -135,6 +129,34 @@ export function sayHi() {
 
 }
 
+  function search(roster:Roster,flash:Flash, blockSubject: Subject<SkipBlock>) {
+    d3.select("#submit-button").on("click",async function () {
+        
+        var input= d3.select("#search-input").property("value");
+    
+        
+     try{
+         let hi = await Utils.getBlock(Buffer.from(input,'hex'),roster)
+         flash.display( Flash.flashType.INFO,
+            "Valid search for block index: " + hi.index.toString());
+
+            blockSubject.next(hi);
+     } catch(error) {
+    
+       // try transactions
+       flash.display( Flash.flashType.ERROR,"Block does not exist");
+
+     }
+
+       
+      
+      
+    }
+  
+    );
+       
+     }
+ 
 
 
  
@@ -151,6 +173,8 @@ function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
     const chain = new Chain(roster, flash, initialBlock);
     
     chain.loadInitialBlocks(initialBlock.hash);
+
+   search(roster,flash, chain.blockClickedSubject)
 
     new SkipchainRPC(roster).getLatestBlock(Utils.hex2Bytes(hashBlock0), false).then(
         (resp) => console.log(resp)
@@ -175,3 +199,4 @@ function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
         chain.getNewblocksSubject()
     ).startListen();
 }
+

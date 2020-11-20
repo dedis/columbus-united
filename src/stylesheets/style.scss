@@ -28,8 +28,7 @@ div.query-answer {
     display: flex;
     flex-grow: 0;
     flex-direction: column;
-    margin-bottom: 36px;
-    min-height: 80px;
+    margin-bottom: 50px;
     text-align: center;
     
     padding: 10px;
@@ -83,11 +82,29 @@ div.query-answer {
     margin-top: 8px;
     margin-bottom: 8px;
     margin-left: auto;
-    margin-right: auto;
-    width: 40%;
+    margin-right: none;
+    width: 35%;
     font-size: 14px;
     font-family: 'Roboto', Arial, sans-serif;
-    border-radius: 15px;
+    border-radius: 15px 0 0 15px;
+  }
+  .topnav input[type=submit]{
+    background:white;
+    margin-right: 30%;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    color: grey;
+    border-radius: 0 15px 15px 0;
+    border-color: #f0eeeece;
+    height: 40px;
+    width: 60px;
+    border: none;
+    
+    font: 14px arial, sans-serif;
+    
+    
+    text-shadow:none;
+
   }
   
   /* When the screen is less than 600px wide, stack the links and the search field vertically instead of horizontally */
@@ -322,13 +339,13 @@ div.query-answer {
     text-decoration: none;
     font-family: "Roboto", sans-serif;
     font-weight: 500;
-    font-size: 110%;
+    font-size: 100%;
     color: #ffffff;
     text-shadow: 0 0.04em 0.04em rgba(0, 0, 0, 0.35);
     text-align: center;
     transition: all 0.2s;
     background-color: #0004e2;
-    align-self: center;
+    right : 10%;
 }
 
 #white-icon{
@@ -356,6 +373,8 @@ div.query-answer {
     content: url(https://avatars2.githubusercontent.com/u/3638331?s=200&v=4);
     display: table;
     margin: 0 auto;
+    width: 80px;
+    height: 80px;
 }
 
 /*
@@ -455,6 +474,10 @@ List of classes for the new transaction container
     }
 }
 
+.clip-blocky {
+    clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
+}
+
 @keyframes dash {
     0% {
         stroke-dasharray: 1, 150;
@@ -515,6 +538,7 @@ List of classes for the new transaction container
     line{
     
         stroke: #8C764A;
+        
     }
 
     path{
