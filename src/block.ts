@@ -366,7 +366,6 @@ export class Block {
                     liInstruction.attr("style", "padding-left:15px");
                     const aInstruction = liInstruction.append("a");
                     aInstruction.attr("class", "uk-accordion-title");
-
                     if (instruction.type === Instruction.typeSpawn) {
                         const contractName = instruction.spawn.contractID.charAt(0).toUpperCase() + 
                         instruction.spawn.contractID.slice(1);
@@ -410,6 +409,7 @@ export class Block {
                     ulArgs.attr("uk-accordion", "");
                     // tslint:disable-next-line
                     args.forEach((arg, i) => {
+
                         const liArgs = ulArgs.append("li");
                         const aArgs = liArgs.append("a");
                         aArgs
@@ -419,7 +419,12 @@ export class Block {
                         aArgs.text(`${i}: ${arg.name}`);
                         const divArgs = liArgs.append("div");
                         divArgs.attr("class", "uk-accordion-content");
-                        divArgs.append("p").text(`${arg.value}`);
+                        if (arg.name == "darc" || arg.name=="config"){ //TODO update this when the cothority clients gets updated
+                            divArgs.append("p").text(`${instruction.beautify().args[i].value}`);
+                        }
+                        else{
+                            divArgs.append("p").text(`${arg.value}`);
+                        }
                     });
                     // Search button
                     const searchInstance = divInstruction.append("button");
@@ -546,7 +551,6 @@ export class Block {
             const blocki = tuple[0][i];
             const instruction = tuple[1][i];
             const instructionCard = queryCardContainer.append("li");
-
             instructionCard
             .attr("class", "uk-card uk-card-default")
             .style("min-width","350px");
