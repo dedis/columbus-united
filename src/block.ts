@@ -386,8 +386,7 @@ export class Block {
                     }
 
                     const divInstruction = liInstruction.append("div");
-                    const hash = instruction.hash().toString("hex");
-                    const blockie = blockies.create({ seed: hash});
+
                     divInstruction
                         .attr("class", "uk-accordion-content")
                         .attr("style", "padding-left:15px");
@@ -395,16 +394,18 @@ export class Block {
                     
                     divInstruction
                         .append("p")
-                        .text(`Transaction hash : `)
+                        .text(`Transaction hash : ${instruction.hash().toString("hex")}`);
+
+                    const hash = instruction.instanceID.toString("hex");
+                    const blockie = blockies.create({ seed: hash});
+                    divInstruction
+                        .append("p")
+                        .text(`Instance ID: `)
                         .append("img")
                         .attr("class", "uk-img")
                         .attr("src", blockie.toDataURL())
                         .attr("uk-tooltip", `${hash}`)
                         .on("click", function() {Utils.copyToClipBoard(hash, self.flash)});
-                    divInstruction
-                        .append("p")
-                        .text(
-                            `Instance ID: ${instruction.instanceID.toString("hex")}`);
                         
                         
                         
