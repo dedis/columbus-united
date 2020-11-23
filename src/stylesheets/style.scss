@@ -11,7 +11,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    overflow-y: hidden;
+    overflow-y: auto;
 }
 div.block-infos {
     display: flex;
@@ -35,8 +35,7 @@ div.query-answer {
 }
 
 #query-card-container {
-    overflow-x: scroll;
-    overflow-y: scroll;
+    overflow: auto;
     outline: 1px solid var(--selected-colour);
 }
 
@@ -450,7 +449,7 @@ List of classes for the new transaction container
 
 .block-detail-container p {
     font-size: 16px;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .browse-container p {
