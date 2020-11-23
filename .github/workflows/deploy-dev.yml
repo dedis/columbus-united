@@ -43,5 +43,7 @@ jobs:
           ./ ${{env.dest}}
     - name: Update version number
       run: |
-          timestamp() {date +"%s" # current time}
-          sed -i "s/VERSIONNUMBER/$(timestamp)" index.html
+          timestamp() {   
+            date +"%s" 
+                      }
+          sed -i "s/VERSIONNUMBER/$(timestamp)/" index.html
