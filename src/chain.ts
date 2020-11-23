@@ -9,7 +9,7 @@ import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 
 import * as d3 from "d3";
-import {  Subject } from "rxjs";
+import { Subject } from "rxjs";
 
 import {
    

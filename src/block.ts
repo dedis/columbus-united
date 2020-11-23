@@ -11,7 +11,6 @@ import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
 import { Utils } from "./utils";
-import { style } from 'd3';
 
 /**
  * Create the interface under the blockchain. It displays
@@ -440,7 +439,6 @@ export class Block {
                             "class",
                             "uk-button uk-button-default uk-padding-remove-right uk-padding-remove-left"
                         )
-                        .attr("style", "border:none")
                         .text(
                             `Search for all instructions related to this instance: "${instruction.instanceID.toString(
                                 "hex"
