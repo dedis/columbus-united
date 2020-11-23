@@ -30,7 +30,7 @@ jobs:
       run: |
         mv ./assets/favicon.ico ./
         mv ./assets/icon.png ./
-        echo "${{secrets.DEPLOY_KEY}}" > deploy_key
+        echo "${{secrets.DEPLOY_DEV_KEY}}" > deploy_key
         chmod 600 ./deploy_key
         rsync -chav --delete \
           -e 'ssh -p ${{secrets.DEPLOY_PORT}} -i ./deploy_key -o StrictHostKeyChecking=no' \
