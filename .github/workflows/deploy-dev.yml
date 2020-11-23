@@ -41,3 +41,7 @@ jobs:
           --include='assets/***' \
           --exclude='*' \
           ./ ${{env.dest}}
+    - name: Update version number
+      run: |
+          TIMESTAMP = date '+%s'
+          sed -i "s/VERSIONNUMBER/$TIMESTAMP" index.html
