@@ -14,6 +14,7 @@ import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
 import 'uikit';
 import "./stylesheets/style.scss";
 import { Subject } from 'rxjs';
+import { drag } from 'd3';
 
 // This is the genesis block, which is also the skipchain identifier
 const hashBlock0 =
@@ -130,31 +131,62 @@ export function sayHi() {
 }
 
   function search(roster:Roster,flash:Flash, blockSubject: Subject<SkipBlock>) {
+
+    d3.select("#search-input").on("input",function () {
+        console.log("hi");
+
+       // d3.select("#submit-button").dispatch('click');
+    });
+
+
+
     d3.select("#submit-button").on("click",async function () {
+
+
         
         var input= d3.select("#search-input").property("value");
-    
+        if (input.length > 10){
         
      try{
          let hi = await Utils.getBlock(Buffer.from(input,'hex'),roster)
+
          flash.display( Flash.flashType.INFO,
             "Valid search for block index: " + hi.index.toString());
 
             blockSubject.next(hi);
+            
      } catch(error) {
     
        // try transactions
        flash.display( Flash.flashType.ERROR,"Block does not exist");
 
      }
+    } else {
+        try{
+        let block = await Utils.getBlockByIndex(Utils.hex2Bytes(hashBlock0),parseInt(input,10),roster);
+        let blockByIndex = block.index;
+        flash.display( Flash.flashType.INFO,
+            "Valid search for block index: " + blockByIndex.toString());
+
+            blockSubject.next(block);
+            
+    } catch(error) {
+    
+        // try transactions
+        flash.display( Flash.flashType.ERROR,"Block does not exist");
+ 
+
+    }
 
        
       
       
     }
-  
+}
     );
-       
+  
+    
+
      }
  
 
@@ -178,7 +210,7 @@ function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
 
     new SkipchainRPC(roster).getLatestBlock(Utils.hex2Bytes(hashBlock0), false).then(
         (resp) => console.log(resp)
-    )
+    );
  
 
     // The totalBlock utility class allows the browsing class to get the total

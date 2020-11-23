@@ -83,7 +83,7 @@ export class Chain {
     lastSubject = new Subject();
 
     // Flash is a utiliy class to display flash messages in the view.
-    flash: Flash;
+    flash: Flash; 
 
     // initialBlockIndex is the initial block index, which is used to compute the
     // number of blocks loaded to the left and to the right.
@@ -615,7 +615,6 @@ export class Chain {
             .attr("x", 114)
             .attr("y", 143)
             .attr("width", 18)
-            //  .attr("class","groster")
             .attr("height", 18)
             .attr("uk-tooltip", block.hash.toString("hex"));
 
@@ -1110,6 +1109,7 @@ export class Chain {
                 // ws callback "onMessage":
                 complete: () => {
                     this.flash.display(Flash.flashType.ERROR, "closed");
+                    this.ws=undefined;
                 },
                 error: (err: Error) => {
                     this.flash.display(Flash.flashType.ERROR, `error: ${err}`);

@@ -86,6 +86,22 @@ export class Utils {
         })
     }
 
+     /**
+     * Gets the block by it's hash and roster
+     * @param hash block of which we want the index
+     * @param roster roster that validated the block
+     */
+    static async getBlockByIndex(genesis: Buffer, index :number, roster:Roster): Promise<SkipBlock> {
+        return await new Promise<SkipBlock>((resolve, reject) => {
+            new SkipchainRPC(roster)
+            .getSkipBlockByIndex(genesis,index)
+            .then((skipblock) => resolve(skipblock.skipblock)
+            ).catch( e => reject(e));
+        })
+    }
+
+
+
 
 
     /**
