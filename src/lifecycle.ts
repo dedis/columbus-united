@@ -194,16 +194,7 @@ export class Lifecycle {
                     transaction.clientTransaction.instructions.forEach(
                         // tslint:disable-next-line
                         (instruction, _) => {
-                            if (instruction.type === Instruction.typeSpawn) {
-                                if (
-                                    Utils.bytes2String(
-                                        instruction.deriveId("")
-                                    ) === this.contractID
-                                ) {
-                                    skipBlocksSubject.push(skipBlock);
-                                    instructionB.push(instruction);
-                                }
-                            } else if (
+                           if (
                                 Utils.bytes2String(instruction.instanceID) ===
                                 this.contractID
                             ) {
