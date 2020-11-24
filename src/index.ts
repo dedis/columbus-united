@@ -8,6 +8,7 @@ import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
 import { getRosterStr } from "./roster";
 import { TotalBlock } from "./totalBlock";
+import { LastAddedBlock } from "./lastAddedBlock";
 import { Utils } from "./utils";
 import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
 
@@ -100,9 +101,9 @@ function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
     chain.loadInitialBlocks(initialBlock.hash);
 
     searchBar(roster, flash, chain.blockClickedSubject,hashBlock0);
-
+    
+    const lastAddedBlock = new LastAddedBlock(roster,flash,initialBlock,chain)
   
-
     // The totalBlock utility class allows the browsing class to get the total
     // number of block in the chain. This class is stateful, it will keep each
     // time the last know block instead of browsing the entire chain each time.

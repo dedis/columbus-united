@@ -1,20 +1,12 @@
 import { Roster } from "@dedis/cothority/network";
-import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import { SkipBlock } from "@dedis/cothority/skipchain/skipblock";
 import * as d3 from "d3";
-import { Block } from "./block";
-import { Chain } from "./chain";
 import { Flash } from "./flash";
-import { Lifecycle } from "./lifecycle";
-import { getRosterStr } from "./roster";
-import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
-import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
-
 import "uikit";
 import "./stylesheets/style.scss";
 import { Subject } from "rxjs";
-import { drag } from "d3";
+
 
 
 
@@ -43,7 +35,7 @@ export function searchBar(
 }
 
 
-async function searchRequest(input:any,roster:Roster,flash:Flash,blockSubject: Subject<SkipBlock>, hashBlock0: string){
+ async function searchRequest(input:any,roster:Roster,flash:Flash,blockSubject: Subject<SkipBlock>, hashBlock0: string){
     if (input.length > 10) {
         try {
             let hi = await Utils.getBlock(
