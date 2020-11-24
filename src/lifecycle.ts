@@ -8,6 +8,7 @@ import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { Subject } from "rxjs";
+import { finalize, take } from 'rxjs/operators';
 
 import { Flash } from "./flash";
 import { TotalBlock } from "./totalBlock";
@@ -51,13 +52,14 @@ export class Lifecycle {
      * @param {Roster} roster
      * @param {Flash} flash
      * @param {TotalBlock} totalBlock
+     * @param {string} initialBlockHash
      * @memberof Browsing
      */
     constructor(
         roster: Roster,
         flash: Flash,
         totalBlock: TotalBlock,
-        initialBlock: SkipBlock
+        initialBlockHash: string
     ) {
         this.roster = roster;
 
@@ -71,7 +73,7 @@ export class Lifecycle {
         this.nextIDB = "";
         this.contractID = "";
         this.instanceSearch = null;
-        this.firstBlockIDStart = Utils.bytes2String(initialBlock.hash);
+        this.firstBlockIDStart = initialBlockHash;
 
         this.flash = flash;
         this.abort = false;
@@ -93,7 +95,7 @@ export class Lifecycle {
      * @memberof Browsing
      */
     getInstructionSubject(
-        instance: Instruction
+        instance: Instruction, maxNumberOfBlocks:number = 100
     ): [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>] {
         const self = this;
         
@@ -124,7 +126,8 @@ export class Lifecycle {
             subjectInstruction,
             subjectProgress,
             [],
-            []
+            [],
+            maxNumberOfBlocks
         );
         return [subjectInstruction, subjectProgress];
     }
@@ -143,6 +146,7 @@ export class Lifecycle {
      * @param {Subject<number[]>} subjectProgress : Subject for the loading
      * @param {SkipBlock[]} skipBlocksSubject : Accumulator for the subjectInstruction
      * @param {Instruction[]} instructionB : Accumulator for the subjectInstruction
+     * @param {number} maxNumberOfBlocks : Max number of blocks requested
      * @memberof Browsing
      */
     private browse(
@@ -152,7 +156,8 @@ export class Lifecycle {
         subjectInstruction: Subject<[SkipBlock[], Instruction[]]>,
         subjectProgress: Subject<number[]>,
         skipBlocksSubject: SkipBlock[],
-        instructionB: Instruction[]
+        instructionB: Instruction[],
+        maxNumberOfBlocks:number
     ) {
         const subjectBrowse = new Subject<[number, SkipBlock]>();
         let pageDone = 0;
@@ -164,7 +169,7 @@ export class Lifecycle {
                 );
                 subjectInstruction.next([skipBlocksSubject, instructionB]);
             },
-
+        
             error: (data: PaginateResponse) => {
                 // tslint:disable-next-line
                 if (data.errorcode == 5) {
@@ -177,7 +182,8 @@ export class Lifecycle {
                         subjectInstruction,
                         subjectProgress,
                         skipBlocksSubject,
-                        instructionB
+                        instructionB,
+                        maxNumberOfBlocks
                     );
                 } else {
                     this.flash.display(
@@ -193,16 +199,7 @@ export class Lifecycle {
                     transaction.clientTransaction.instructions.forEach(
                         // tslint:disable-next-line
                         (instruction, _) => {
-                            if (instruction.type === Instruction.typeSpawn) {
-                                if (
-                                    Utils.bytes2String(
-                                        instruction.deriveId("")
-                                    ) === this.contractID
-                                ) {
-                                    skipBlocksSubject.push(skipBlock);
-                                    instructionB.push(instruction);
-                                }
-                            } else if (
+                           if (
                                 Utils.bytes2String(instruction.instanceID) ===
                                 this.contractID
                             ) {
@@ -214,10 +211,9 @@ export class Lifecycle {
                         }
                     );
                 });
-
                 if (i === pageSizeB) {
                     pageDone++;
-                    if (pageDone === numPagesB) {
+                    if (pageDone >= numPagesB) {
                         // condition to end the browsing
                         if (
                             skipBlock.forwardLinks.length !== 0 &&
@@ -242,8 +238,14 @@ export class Lifecycle {
                         }
                     }
                 }
+                
             },
         });
+        subjectBrowse.pipe(take(maxNumberOfBlocks), finalize(()=>{
+            this.abort=true;
+            
+            }
+        )).subscribe();
         this.getNextBlocks(
             firstBlockID,
             pageSizeB,

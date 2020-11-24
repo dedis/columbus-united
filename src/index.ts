@@ -197,7 +197,7 @@ function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
 
     // Create the browsing instance, which is used by the detailBlock class when a
     // user wants to get the lifecycle of an instance.
-    const lifecycle = new Lifecycle(roster, flash, totalBlock, initialBlock);
+    const lifecycle = new Lifecycle(roster, flash, totalBlock, hashBlock0);
 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.

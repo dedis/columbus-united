@@ -18,6 +18,14 @@ jobs:
     - name: Install dependencies
       run: |
         npm install
+        
+    - name: Update version number
+      run: |
+          timestamp() {   
+            date +"%s" 
+                      }
+          sed -i "s|dist/bundle.min.js?v=VERSIONNUMBER|dist/bundle.min.js?v=$(timestamp)|" index.html
+
     - name: Build
       run: |
         mv src/roster.ts.template src/roster.ts
@@ -41,9 +49,3 @@ jobs:
           --include='assets/***' \
           --exclude='*' \
           ./ ${{env.dest}}
-    - name: Update version number
-      run: |
-          timestamp() {   
-            date +"%s" 
-                      }
-          sed -i "s/VERSIONNUMBER/$(timestamp)/" index.html
