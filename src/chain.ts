@@ -577,13 +577,6 @@ export class Chain {
             .attr("class", "groster")
             .attr("uk-tooltip", descList.join("<br/>"));
 
-        //     roster1.
-        //   append("image")
-        //   .attr('width', 14)
-        //   .attr('height', 14)
-        //   .attr("x", 33)
-        //   .attr("y", 138)
-        //   .attr("href", "information-button-3.svg");
 
         roster1
             .append("rect")
@@ -635,8 +628,7 @@ export class Chain {
                 rejected++;
             }
         });
-        console.log(Utils.bytes2String(block.roster.id));
-        block.roster.list.forEach((x) => console.log(x.description));
+        
         return [accepted, rejected];
     }
 

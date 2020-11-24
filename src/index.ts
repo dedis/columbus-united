@@ -11,18 +11,16 @@ import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
 import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
 
-import 'uikit';
+import "uikit";
 import "./stylesheets/style.scss";
-import { Subject } from 'rxjs';
-import { drag } from 'd3';
+import { Subject } from "rxjs";
+import { drag } from "d3";
 
 // This is the genesis block, which is also the skipchain identifier
 const hashBlock0 =
     "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
 // The roster configuration, parsed as a string
-const rosterStr = getRosterStr();   
-
-
+const rosterStr = getRosterStr();
 
 /**
  *
@@ -44,15 +42,12 @@ export function sayHi() {
         flash.display(Flash.flashType.ERROR, "Roster is undefined");
         return;
     }
-    
 
-  
-   // Load the first block
-    const initialBlockIndex = 108909; // Change here the first block to display
+    // Load the first block
+    const initialBlockIndex = 0; // Change here the first block to display
     //'6bacd57b248c94dc1e2372d62976d8986948f04d727254ffbc0220182f73ab67' block #110997 - problem with nextID
     //that block has no forwards link
     //block #110940 gives as last block 110997
-    
 
     if (initialBlockIndex < 0) {
         flash.display(
@@ -60,26 +55,24 @@ export function sayHi() {
             "index of initial block cannot be negative, specified index is " +
                 initialBlockIndex
         );
-
     }
-    if (initialBlockIndex >  110948) {
+    if (initialBlockIndex > 110948) {
         flash.display(
             Flash.flashType.ERROR,
             "Forward links from block index '110948' are broken" +
                 initialBlockIndex
         );
-
     }
     // Load the first block at the provided index, and start the visualization
     // once we got that block and the promise resolves.
-   new SkipchainRPC(roster)
+    new SkipchainRPC(roster)
         .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), initialBlockIndex)
         .then(
             (blockReply) => {
                 startColumbus(blockReply.skipblock, roster, flash);
             },
             (e) => {
-                flash.display( 
+                flash.display(
                     Flash.flashType.ERROR,
                     "unable to find initial block with index " +
                         initialBlockIndex +
@@ -89,9 +82,7 @@ export function sayHi() {
             }
         );
 
-
-
-   /* new SkipchainRPC(roster)
+    /* new SkipchainRPC(roster)
     .getSkipBlock(Utils.hex2Bytes(hashBlock0)).then( //get genesis SkipBlock
         (blockReply) => { 
     (new TotalBlock(roster,blockReply)).getTotalBlock().subscribe( //get last block of chain
@@ -123,76 +114,63 @@ export function sayHi() {
         );
         });;   
 });*/
-
-
-
-
-
 }
 
-  function search(roster:Roster,flash:Flash, blockSubject: Subject<SkipBlock>) {
+function search(
+    roster: Roster,
+    flash: Flash,
+    blockSubject: Subject<SkipBlock>
+) {
+    d3.select("#search-input").on("keypress", function () {
+        if (d3.event.keyCode === 32) {
+            // var e = document.createEvent('UIEvents');
+            // e.initEvent("click", true, true, window, 1);
+            // d3.select("submit-input").node().dispatchEvent(e);
 
-    d3.select("#search-input").on("input",function () {
-        console.log("hi");
-
-       // d3.select("#submit-button").dispatch('click');
+            // d3.select("#submit-button").dispatch('click');
+            console.log("enter");
+        }
     });
 
+    d3.select("#submit-button").on("click", async function () {
+        var input = d3.select("#search-input").property("value");
+        if (input.length > 10) {
+            try {
+                let hi = await Utils.getBlock(
+                    Buffer.from(input, "hex"),
+                    roster
+                );
 
+                flash.display(
+                    Flash.flashType.INFO,
+                    "Valid search for block index: " + hi.index.toString()
+                );
 
-    d3.select("#submit-button").on("click",async function () {
-
-
-        
-        var input= d3.select("#search-input").property("value");
-        if (input.length > 10){
-        
-     try{
-         let hi = await Utils.getBlock(Buffer.from(input,'hex'),roster)
-
-         flash.display( Flash.flashType.INFO,
-            "Valid search for block index: " + hi.index.toString());
-
-            blockSubject.next(hi);
-            
-     } catch(error) {
-    
-       // try transactions
-       flash.display( Flash.flashType.ERROR,"Block does not exist");
-
-     }
-    } else {
-        try{
-        let block = await Utils.getBlockByIndex(Utils.hex2Bytes(hashBlock0),parseInt(input,10),roster);
-        let blockByIndex = block.index;
-        flash.display( Flash.flashType.INFO,
-            "Valid search for block index: " + blockByIndex.toString());
-
-            blockSubject.next(block);
-            
-    } catch(error) {
-    
-        // try transactions
-        flash.display( Flash.flashType.ERROR,"Block does not exist");
- 
-
-    }
-
-       
-      
-      
-    }
+                blockSubject.next(hi);
+            } catch (error) {
+                // try transactions
+                flash.display(Flash.flashType.ERROR, "Block does not exist");
+            }
+        } else {
+            try {
+                let block = await Utils.getBlockByIndex(
+                    Utils.hex2Bytes(hashBlock0),
+                    parseInt(input, 10),
+                    roster
+                );
+                let blockByIndex = block.index;
+                flash.display(
+                    Flash.flashType.INFO,
+                    "Valid search for block index: " + blockByIndex.toString()
+                );
+                blockSubject.next(block);
+            } catch (error) {
+                // try transactions
+                flash.display(Flash.flashType.ERROR, "Block does not exist");
+            }
+        }
+    });
 }
-    );
-  
-    
-
-     }
- 
-
-
- 
-
 
 /**
  * startColumbus starts the visualization
@@ -203,15 +181,14 @@ export function sayHi() {
  */
 function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
     const chain = new Chain(roster, flash, initialBlock);
-    
+
     chain.loadInitialBlocks(initialBlock.hash);
 
-   search(roster,flash, chain.blockClickedSubject)
+    search(roster, flash, chain.blockClickedSubject);
 
     new SkipchainRPC(roster).getLatestBlock(Utils.hex2Bytes(hashBlock0), false).then(
         (resp) => console.log(resp)
     );
- 
 
     // The totalBlock utility class allows the browsing class to get the total
     // number of block in the chain. This class is stateful, it will keep each
@@ -224,11 +201,10 @@ function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
- new Block(
+    new Block(
         chain.getBlockClickedSubject(),
         lifecycle,
         flash,
         chain.getNewblocksSubject()
     ).startListen();
 }
-
