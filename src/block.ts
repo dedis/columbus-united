@@ -279,7 +279,7 @@ export class Block {
 
 
             lockIcon
-                .attr("id", "white-icon")
+                .attr("id", "white-icon") //FIXME Change to class
                 .attr("type", "image/svg+xml")
                 .attr("data", "assets/signature.svg")
                 .style("width", "32px")
@@ -413,23 +413,21 @@ export class Block {
                     const ulArgs = divInstruction.append("ul");
                     ulArgs.attr("uk-accordion", "");
                     // tslint:disable-next-line
-                    args.forEach((arg, i) => {
+                    const beautifiedArgs = instruction.beautify();
+                    beautifiedArgs.args.forEach((arg, i) => {
 
                         const liArgs = ulArgs.append("li");
                         const aArgs = liArgs.append("a");
                         aArgs
                             .attr("class", "uk-accordion-title")
-
                             .attr("href", "#");
                         aArgs.text(`${i}: ${arg.name}`);
                         const divArgs = liArgs.append("div");
                         divArgs.attr("class", "uk-accordion-content");
-                        if (arg.name == "darc" || arg.name=="config"){ //TODO update this when the cothority clients gets updated
-                            divArgs.append("p").text(`${instruction.beautify().args[i].value}`);
-                        }
-                        else{
-                            divArgs.append("p").text(`${arg.value}`);
-                        }
+                        divArgs.append("p").text(`${arg.value}`);
+                        //TODO Add tooltip to get full arg if it exists
+                        //TODO Discriminate coins to displya blockie
+
                     });
                     // Search button
                     const searchInstance = divInstruction.append("button");
