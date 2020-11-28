@@ -279,13 +279,10 @@ export class Block {
 
 
             lockIcon
-                .attr("id", "white-icon") //FIXME Change to class
+                .attr("class", "white-icon")
                 .attr("type", "image/svg+xml")
                 .attr("data", "assets/signature.svg")
-                .style("width", "32px")
-                .style("height", "32px")
-                .style("display", "block")
-                .style("margin-left", "15px")
+
                 .on("click",function() {Utils.copyToClipBoard(lockContent, self.flash)});
             const linkDetails = divForwardLink
                 .append("div");
@@ -438,9 +435,7 @@ export class Block {
                             "uk-button uk-button-default uk-padding-remove-right uk-padding-remove-left"
                         )
                         .text(
-                            `Search for all instructions related to this instance: "${instruction.instanceID.toString(
-                                "hex"
-                            )}"`
+                            `Search for all instructions related to this instance`
                         )
                         // Confirmation and start browsing on click
                         // tslint:disable-next-line

@@ -57,6 +57,13 @@ div.query-answer {
 }
 
 
+.white-icon{
+    width: 32px;
+    height: 32px;
+    display : block;
+    margin-left : 15px;
+    filter: invert(88%) sepia(67%) saturate(0%) hue-rotate(236deg) brightness(111%) contrast(100%);
+}
 
 .topnav {
     display: flex;
