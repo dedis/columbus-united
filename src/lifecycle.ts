@@ -6,8 +6,8 @@ import {
 } from "@dedis/cothority/byzcoin/proto/stream";
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network";
-import { SkipBlock } from "@dedis/cothority/skipchain";
-import { Subject } from "rxjs";
+import { ForwardLink, SkipBlock } from "@dedis/cothority/skipchain";
+import { Observable, Subject } from "rxjs";
 import { finalize, take } from 'rxjs/operators';
 
 import { Flash } from "./flash";
@@ -63,8 +63,8 @@ export class Lifecycle {
     ) {
         this.roster = roster;
 
-        this.pageSize = 15;
-        this.numPages = 15;
+        this.pageSize = 10;
+        this.numPages = 1;
         this.totatBlockNumber = -1;
         this.totalBlocks = totalBlock;
         this.seenBlocks = 0;
@@ -95,7 +95,7 @@ export class Lifecycle {
      * @memberof Browsing
      */
     getInstructionSubject(
-        instance: Instruction, maxNumberOfBlocks:number = 100
+        instance: Instruction, maxNumberOfBlocks:number = -1
     ): [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>] {
         const self = this;
         
@@ -160,6 +160,7 @@ export class Lifecycle {
         maxNumberOfBlocks:number
     ) {
         const subjectBrowse = new Subject<[number, SkipBlock]>();
+        const transactionFound = new Subject<number>();
         let pageDone = 0;
         subjectBrowse.subscribe({
             complete: () => {
@@ -205,8 +206,19 @@ export class Lifecycle {
                             ) {
                                 // get the hashes and instruction corresponding to the input instruction
                                 this.nbInstanceFound++;
-                                skipBlocksSubject.push(skipBlock);
-                                instructionB.push(instruction);
+                                transactionFound.next(this.nbInstanceFound);
+
+                                if(this.nbInstanceFound<maxNumberOfBlocks){
+                                    skipBlocksSubject.push(skipBlock);
+                                    instructionB.push(instruction);
+                                 }
+                                // else{
+                                //     subjectBrowse.complete();
+                                //     subjectProgress.complete();
+                                //     subjectInstruction.complete();
+                                // }
+                                console.log("Instance found : ",this.nbInstanceFound, " out of ", maxNumberOfBlocks);
+
                             }
                         }
                     );
@@ -215,6 +227,7 @@ export class Lifecycle {
                     pageDone++;
                     if (pageDone >= numPagesB) {
                         // condition to end the browsing
+                        console.log(this.abort)
                         if (
                             skipBlock.forwardLinks.length !== 0 &&
                             !this.abort
@@ -232,6 +245,7 @@ export class Lifecycle {
                             );
                         } else {
                             // complete all subjects at the end of the browsing
+                            console.log("Abort")
                             subjectBrowse.complete();
                             subjectProgress.complete();
                             subjectInstruction.complete();
@@ -241,11 +255,14 @@ export class Lifecycle {
                 
             },
         });
-        subjectBrowse.pipe(take(maxNumberOfBlocks), finalize(()=>{
-            this.abort=true;
-            
-            }
-        )).subscribe();
+        if (maxNumberOfBlocks > 0){
+            transactionFound.pipe(take(maxNumberOfBlocks), finalize(()=>{
+                this.abort=true;
+                console.log("ABORTABORTABORTABORTABORTABORTABORTABORT")
+                }
+            )).subscribe();
+
+        }
         this.getNextBlocks(
             firstBlockID,
             pageSizeB,

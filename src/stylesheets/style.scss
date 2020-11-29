@@ -375,6 +375,19 @@ div.query-answer {
     }
 }
 
+.uk-select{
+    width: 60%;
+}
+
+#button-browse{
+    padding: 8px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    width : 60%;
+    border-width: 2px;
+}
+
 .logo {
     content: url(https://avatars2.githubusercontent.com/u/3638331?s=200&v=4);
     display: table;
@@ -438,6 +451,7 @@ List of classes for the new transaction container
 
 .uk-accordion-content > p {
     margin-left: 10px;
+    
 }
 
 #rejected{

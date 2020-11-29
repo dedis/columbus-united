@@ -427,19 +427,64 @@ export class Block {
 
                     });
                     // Search button
-                    const searchInstance = divInstruction.append("button");
+                    
+
+                    const searchInstance = divInstruction.append("li");
                     searchInstance
-                        .attr("id", "buttonBrowse")
+                        .attr("id", "button-browse");
+                    const searchButton = searchInstance.append("button");
+                    searchButton
                         .attr(
                             "class",
-                            "uk-button uk-button-default uk-padding-remove-right uk-padding-remove-left"
+                            "uk-button uk-button-default"
                         )
                         .text(
-                            `Search for all instructions related to this instance`
-                        )
+                            `Search `
+                        );
+                    searchInstance.append("span").text(" for ");
+
+                    const formTag = searchInstance
+                        .append("span")
+                        .append("form")
+                        .style("display", "inline");
+                    const formSelect = formTag
+                        .append("select")
+                        .attr("class", "uk-select");
+
+                    formSelect
+                        .append("option")
+                        .attr("value" , "-1")
+                        .text("All instructions related to this instance"); 
+
+                    formSelect
+                        .append("option")
+                        .attr("value" , "100")
+                        .text("The 100 first instructions related to this instance"); 
+
+                    formSelect
+                       .append("option")
+                       .attr("value" , "50")
+                       .text("The 50 first instructions related to this instance");         
+                       
+                    formSelect
+                       .append("option")
+                       .attr("value" , "10")
+                       .text("The 10 first instructions related to this instance");                          
+
+                    var chosenQuery = -1;
+     
+                    formSelect.on("change", function(){
+                        chosenQuery = parseInt(this.options[this.selectedIndex].value);
+                    });
+                    
+                    
+
+                    searchButton
                         // Confirmation and start browsing on click
                         // tslint:disable-next-line
                         .on("click", function () {
+                            console.log(formSelect.data().values().next())
+
                             const conf = confirm(
                                 `Do you really want to browse the whole blockchain with the instance ID: ${instruction.instanceID.toString(
                                     "hex"
@@ -447,9 +492,10 @@ export class Block {
                             );
                             if (conf) {
                                 self.createLoadingScreen();
-                                const subjects = self.lifecycle.getInstructionSubject(
-                                    instruction
-                                );
+                                const subjects = chosenQuery > -1 ? 
+                                    self.lifecycle.getInstructionSubject(instruction,chosenQuery) :
+                                    self.lifecycle.getInstructionSubject(instruction);
+
                                 subjects[0].subscribe({
                                     next: self.printDataBrowsing.bind(self),
                                 });
