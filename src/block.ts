@@ -482,15 +482,7 @@ export class Block {
                     searchButton
                         // Confirmation and start browsing on click
                         // tslint:disable-next-line
-                        .on("click", function () {
-                            console.log(formSelect.data().values().next())
-
-                            const conf = confirm(
-                                `Do you really want to browse the whole blockchain with the instance ID: ${instruction.instanceID.toString(
-                                    "hex"
-                                )}? \nThis may take a while!`
-                            );
-                            if (conf) {
+                        .on("click", function () {   
                                 self.createLoadingScreen();
                                 const subjects = chosenQuery > -1 ? 
                                     self.lifecycle.getInstructionSubject(instruction,chosenQuery) :
@@ -516,12 +508,6 @@ export class Block {
                                         );
                                     },
                                 });
-                            } else {
-                                self.flash.display(
-                                    Flash.flashType.INFO,
-                                    "Browsing cancelled"
-                                );
-                            }
                         });
                 }
             ); //!SECTION
@@ -668,7 +654,9 @@ export class Block {
             ulArgsB
             .attr("uk-accordion", "");
             // tslint:disable-next-line
-            args.forEach((arg, i) => {
+            const beautifiedArgs = instruction.beautify();
+
+            beautifiedArgs.args.forEach((arg, i) => {
                 const liArgsB = ulArgsB.append("li");
                 const aArgsB = liArgsB.append("a");
                 aArgsB
@@ -680,13 +668,7 @@ export class Block {
                     "class",
                     "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
                 );
-                if (arg.name == "darc" || arg.name == "config"){
-                    divArgsB.append("p").text(`${instruction.beautify().args[i].value}`)
-                }
-                else{
-                    divArgsB.append("p").text(`${arg.value}`)
-                }
-
+                divArgsB.append("p").text(`${arg.value}`);
             });
         }
         // Highlights the blocks in the blockchain
