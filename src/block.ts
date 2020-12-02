@@ -104,6 +104,7 @@ export class Block {
                 self.highlightBlocks(this.hashHighligh);
             },
         });
+        
     }
 
     /**

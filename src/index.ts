@@ -52,7 +52,7 @@ export function sayHi() {
     //'6bacd57b248c94dc1e2372d62976d8986948f04d727254ffbc0220182f73ab67' block #110997 - problem with nextID
     //that block has no forwards link
     //block #110940 gives as last block 110997
-
+    
     if (initialBlockIndex < 0) {
         flash.display(
             Flash.flashType.ERROR,
@@ -115,6 +115,10 @@ function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
     // user wants to get the lifecycle of an instance.
     const lifecycle = new Lifecycle(roster, flash, totalBlock, hashBlock0);
 
+    // const selectedBlockSubject = new Subject();
+    // selectedBlockSubject.subscribe(chain.getBlockClickedSubject);
+    // selectedBlockSubject.subscribe(window.HashChangeEvent())
+    
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
     new Block(
