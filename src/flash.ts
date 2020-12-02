@@ -80,7 +80,7 @@ export class Flash {
                     .text(`Other error not handled: ${text}`);
                 break;
         }
-        const timer = rx.timer(5000);
+        const timer = rx.timer(2000);
 
         const decay = timer.subscribe(()=>{
             Flash.closeAlert(this.span.node().parentElement);

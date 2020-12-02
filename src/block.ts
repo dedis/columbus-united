@@ -11,6 +11,7 @@ import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
 import { Utils } from "./utils";
+import { csvParse } from 'd3';
 
 /**
  * Create the interface under the blockchain. It displays
@@ -352,7 +353,7 @@ export class Block {
 
             const ulInstruction = divTransaction.append("ul");
             ulInstruction.attr("uk-accordion", "");
-            // instructions of the transaction
+            // ANCHOR Transaction displaying
             transaction.clientTransaction.instructions.forEach(
                 (instruction, j) => {
                     let args = null;
@@ -360,6 +361,7 @@ export class Block {
                     liInstruction.attr("style", "padding-left:15px");
                     const aInstruction = liInstruction.append("a");
                     aInstruction.attr("class", "uk-accordion-title");
+                    
                     if (instruction.type === Instruction.typeSpawn) {
                         const contractName = instruction.spawn.contractID.charAt(0).toUpperCase() + 
                         instruction.spawn.contractID.slice(1);
@@ -392,20 +394,31 @@ export class Block {
                     divInstruction
                         .append("p")
                         .text(`Transaction hash : ${instruction.hash().toString("hex")}`);
-
+                    
                     const hash = instruction.instanceID.toString("hex");
-                    const blockie = blockies.create({ seed: hash});
+                    const hashBlockie = blockies.create({ seed: hash});
                     divInstruction
                         .append("p")
                         .text(`Instance ID: `)
                         .append("img")
                         .attr("class", "uk-img")
-                        .attr("src", blockie.toDataURL())
+                        .attr("src", hashBlockie.toDataURL())
                         .attr("uk-tooltip", `${hash}`)
                         .on("click", function() {Utils.copyToClipBoard(hash, self.flash)});
-                        
-                        
-                        
+                    
+                    if(instruction.signerCounter.length != 0 ){
+                        const userSignature = instruction.signerIdentities.pop().toString().slice(8);
+                        console.log("user sig", userSignature)
+                        const userBlockie = blockies.create({seed : userSignature})
+                        divInstruction
+                            .append("p")
+                            .text("Emmited by ")
+                            .append("img")
+                            .attr("class", 'uk-img')
+                            .attr("src", userBlockie.toDataURL())
+                            .attr("uk-tooltip", ` ${userSignature}`)
+                            .on("click", function() {Utils.copyToClipBoard(userSignature, self.flash)});
+                    }
                     divInstruction.append("p").text("Arguments:");
                     // Args of the instruction
                     const ulArgs = divInstruction.append("ul");
@@ -429,7 +442,7 @@ export class Block {
                     });
                     // Search button
                     
-
+                    //ANCHOR Browse button  
                     const searchInstance = divInstruction.append("li");
                     searchInstance
                         .attr("id", "button-browse");
@@ -479,7 +492,6 @@ export class Block {
                     });
                     
                     
-
                     searchButton
                         // Confirmation and start browsing on click
                         // tslint:disable-next-line
@@ -529,6 +541,7 @@ export class Block {
      * @memberof DetailBlock
      */
     private printDataBrowsing(tuple: [SkipBlock[], Instruction[]]) {
+        //ANCHOR Display and styling
         // removes previous highlighted blocks
         this.removeHighlighBlocks(this.hashHighligh);
         const self = this;
@@ -675,9 +688,11 @@ export class Block {
         // Highlights the blocks in the blockchain
         this.highlightBlocks(tuple[0]);
         this.hashHighligh = tuple[0];
-
-        var pos = {left : 0,x : 0};      
         
+        //ANCHOR Mouse events handling for clicking and dragging
+        //Stores the current scroll position
+        var pos = {left : 0,x : 0};      
+        //When mousedown fires in query card container, we instantiate the other event listener
         queryCardContainer.on("mousedown", function(e)
         {
          queryCardContainer.style("cursor", "grabbing");
@@ -692,12 +707,13 @@ export class Block {
         });
 
 
-        
+        //Fires when the mouse is down and moved, refreshes the scroll position
         const mouseMoveHandler = function() {
             const dx = d3.event.clientX-pos.x;
             queryCardContainer.node().scrollLeft = pos.left-dx
        }
-
+       //Fires when the mouse is released.
+       //Removes the move and up event handler and resets cursor properties.
         const mouseUpHandler = function(){
             queryCardContainer.style("cursor", 'grab');
             queryCardContainer.node().style.removeProperty('user-select');
