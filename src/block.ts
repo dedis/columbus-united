@@ -3,7 +3,7 @@ import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable } from "rxjs";
-import { throttleTime } from "rxjs/operators";
+import { elementAt, throttleTime } from "rxjs/operators";
 
 import * as blockies from "blockies-ts";
 
@@ -675,7 +675,41 @@ export class Block {
         // Highlights the blocks in the blockchain
         this.highlightBlocks(tuple[0]);
         this.hashHighligh = tuple[0];
+
+        var pos = {left : 0,x : 0};      
+        
+        queryCardContainer.on("mousedown", function(e)
+        {
+         queryCardContainer.style("cursor", "grabbing");
+         queryCardContainer.style("user-select", "none")
+
+            pos = {
+                left:queryCardContainer.node().scrollLeft,
+                x : d3.event.clientX
+            };
+            queryCardContainer.on('mousemove', mouseMoveHandler)
+            queryCardContainer.on('mouseup', mouseUpHandler)
+        });
+
+
+        
+        const mouseMoveHandler = function() {
+            const dx = d3.event.clientX-pos.x;
+            queryCardContainer.node().scrollLeft = pos.left-dx
+       }
+
+        const mouseUpHandler = function(){
+            queryCardContainer.style("cursor", 'grab');
+            queryCardContainer.node().style.removeProperty('user-select');
+            queryCardContainer.on('mousemove', null);
+            queryCardContainer.on('mouseup', null);
     }
+
+    document.addEventListener("mousemove", mouseMoveHandler)
+    
+
+    }
+    
 
     /**
      * Highlights the blocks in the blockchain

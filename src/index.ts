@@ -116,9 +116,8 @@ function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
     const lifecycle = new Lifecycle(roster, flash, totalBlock, hashBlock0);
 
     // const selectedBlockSubject = new Subject();
-    // selectedBlockSubject.subscribe(chain.getBlockClickedSubject);
-    // selectedBlockSubject.subscribe(window.HashChangeEvent())
-    
+    // selectedBlockSubject.subscribe(chain.getBlockClickedSubject());
+    // window.addEventListener('hashchange', ()=>selectedBlockSubject.next()) //TODO 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
     new Block(

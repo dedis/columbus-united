@@ -37,6 +37,7 @@ div.query-answer {
 #query-card-container {
     overflow: auto;
     outline: 1px solid var(--selected-colour);
+    cursor: grab; 
 }
 
 #query-card-container > .uk-card {
