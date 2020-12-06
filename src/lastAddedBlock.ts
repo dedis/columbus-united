@@ -26,11 +26,14 @@ export class LastAddedBlock {
 
     chain: Chain;
 
+    flash: Flash;
+
     
 
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock,chain: Chain ){
         
         this.chain = chain;
+        this.flash=flash;
         //Main SVG caneva that contains the last added block
 
         const last = d3
@@ -138,6 +141,8 @@ export class LastAddedBlock {
             .attr("pointer-events", "none");
         // .attr("font-weight", "bold")
 
+        
+        const self = this;
         gtextLast
             .append("rect")
             .attr("x", 63)
@@ -145,7 +150,10 @@ export class LastAddedBlock {
             .attr("width", 120)
             .attr("height", 19)
             .attr("fill-opacity", "0")
-            .attr("uk-tooltip", Utils.bytes2String(lastBlock.hash));
+            .attr("uk-tooltip", Utils.bytes2String(lastBlock.hash))
+            .on("click", function () {
+                Utils.copyToClipBoard(lastBlock.hash.toString("hex"),self.flash);
+            });
 
         this.lastAddedBlockInfo(lastBlock, svgLast, lastBlock);
     }
@@ -265,9 +273,10 @@ export class LastAddedBlock {
             .attr("width", 18)
             .attr("height", 18)
             .attr("uk-tooltip", block.hash.toString("hex"));
-
+        
+        const self = this;
         imBlockies.on("click", function () {
-            Utils.copyToClipBoard(block.hash.toString("hex"), this.flash);
+            Utils.copyToClipBoard(block.hash.toString("hex"),self.flash);
         });
     }
 
