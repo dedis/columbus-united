@@ -143,6 +143,10 @@ export class Utils {
         flash.display(Flash.flashType.INFO,"Copied to clipboard");
     }
 
+    static goToBlockOnChain(){
+        
+    }
+
 
     
 }

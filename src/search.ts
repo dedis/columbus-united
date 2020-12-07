@@ -13,6 +13,7 @@ import {
     PaginateRequest,
     PaginateResponse,
 } from "@dedis/cothority/byzcoin/proto/stream";
+import { zoom } from 'd3';
 
 export function searchBar(
     roster: Roster,
@@ -62,18 +63,26 @@ async function searchRequest(
                 "Valid search for block index: " + hi.index.toString()
             );
 
-           let newChain = new Chain(roster,flash,hi);
-          // chain = newChain; 
 
+            
+           
+
+           
+
+            //     d3.selectAll("gblocks").remove();
+            //    let newChain = new Chain(roster,flash,hi);
+            //    chain =newChain;
+            // chain = newChain; 
             //  blockSubject.next(hi);
             //  chain.subjectBrowse.next([chain.nbPages,ch,false])
             //  startColumbus(hi,roster,flash,i);
-            //   let plouf = { x: -10, y: 0, k: 1 };
-
-            //   chain.subject.next(plouf);
+          // let plouf = { x: -10, y: 0, k: 1 };
+      
+            
             //  chain.getNextBlocks(Utils.bytes2String(hi.hash),chain.pageSize,chain.nbPages,chain.subjectBrowse,false);
+
         } catch (error) {
-            // try transactions
+        
             flash.display(Flash.flashType.ERROR, "Block does not exist");
         }
     } else {
@@ -84,11 +93,16 @@ async function searchRequest(
                 roster
             );
             let blockByIndex = block.index;
+            let newZoom= d3.zoomIdentity.translate((108900-blockByIndex)*110, 0).scale(1);
+            chain.subject.next(newZoom);
+      
+            chain.subject.next(newZoom);
             flash.display(
                 Flash.flashType.INFO,
                 "Valid search for block index: " + blockByIndex.toString()
             );
             blockSubject.next(block);
+
         } catch (error) {
             // try transactions
             flash.display(Flash.flashType.ERROR, "Block does not exist");

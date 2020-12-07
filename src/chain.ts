@@ -9,21 +9,14 @@ import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 
 import * as d3 from "d3";
-import {  Subject } from "rxjs";
+import { Subject } from "rxjs";
 
-import {
-   
-    map,
-
-    throttleTime,
- 
-} from "rxjs/operators";
+import { map, throttleTime } from "rxjs/operators";
 import * as blockies from "blockies-ts";
 
 import { Flash } from "./flash";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
-
 
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
@@ -80,10 +73,10 @@ export class Chain {
     // view.
     newblocksSubject = new Subject<SkipBlock[]>();
 
- 
+    subject = new Subject();
 
     // Flash is a utiliy class to display flash messages in the view.
-    flash: Flash; 
+    flash: Flash;
 
     // initialBlockIndex is the initial block index, which is used to compute the
     // number of blocks loaded to the left and to the right.
@@ -113,8 +106,6 @@ export class Chain {
         let isLoadingLeft = false;
         let isLoadingRight = false;
 
-      
-
         // Main SVG caneva that contains the chain
         const svg = d3.select("#svg-container").attr("height", this.svgHeight);
 
@@ -134,8 +125,6 @@ export class Chain {
 
         // this subject will be notified when the main SVG caneva in moved by the
         // user
-        const subject = new Subject();
- 
 
         // the number of block the window can display at normal scale. Used to
         // define the domain the xScale
@@ -148,6 +137,7 @@ export class Chain {
             .scaleLinear()
             .domain([initialBlock.index, initialBlock.index + numblocks])
             .range([0, this.svgWidth]);
+
 
         const xAxis = d3
             .axisBottom(xScale)
@@ -170,17 +160,20 @@ export class Chain {
             ])
             .scaleExtent([0.0001, 1.4])
             .on("zoom", () => {
-                subject.next(d3.event.transform);
+                this.subject.next(d3.event.transform);
             });
         svg.call(zoom);
+
+        
 
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
         // zommed in-out by the user.
 
-        subject.subscribe({
-            next: (transform: any) => {
+        this.subject.subscribe({
+            next:(transform: any) => {
                 lastTransform = transform;
+               
                 // This line disables translate to the left. (for reference)
                 // transform.x = Math.min(0, transform.x);
 
@@ -188,12 +181,15 @@ export class Chain {
                 transform.y = 0;
 
                 // Update the scale
+              
                 const xScaleNew = transform.rescaleX(xScale);
                 xAxis.scale(xScaleNew);
                 xAxisDraw.call(xAxis);
+               
 
                 // Horizontal only transformation on the blocks (sets scale Y to
                 // 1)
+                console.log("after"+ transform.x+transform.k)
                 const transformString =
                     "translate(" +
                     transform.x +
@@ -204,20 +200,12 @@ export class Chain {
                     "1" +
                     ")";
                 gblocks.attr("transform", transformString);
+                console.log("jkhn" + transform.x);
                 // Standard transformation on the text since we need to keep the
                 // original scale
-                //  gblocks.selectAll("circle").attr("r",transform.k*5);
 
-                gcircle.selectAll("circle").attr("transform", transformString);
+                //   gcircle.selectAll("circle").attr("transform", transformString);
 
-                //  console.log("text"+ gtext.selectAll("circle").attr("height").toString());
-                //gtext.attr("r", transform.k*100);
-                // Update the text size
-                // if (transform.k < 1) {
-                //     gtext
-                //         .selectAll("text")
-                //         .attr("font-size", 1 + transform.k + "em");
-                // }
                 // Update the loader. We want to keep them at their original
                 // scale so we only translate them
                 gloader.attr("transform", transform);
@@ -228,8 +216,8 @@ export class Chain {
             },
         });
 
-        // Handler to check if new blocks need to be loaded. We check every 300ms.
-        subject.pipe(throttleTime(200)).subscribe({
+        // Handler to check if new blocks need to be loaded. We check every 200ms.
+        this.subject.pipe(throttleTime(200)).subscribe({
             next: (transform: any) => {
                 if (!isLoadingLeft) {
                     isLoadingLeft = true;
@@ -358,11 +346,8 @@ export class Chain {
                 }
             },
         });
-
-       
     }
 
-   
 
     /**
      * Load the initial blocks.
@@ -376,7 +361,6 @@ export class Chain {
             false
         );
     }
-
 
     /**
      * Check if new blocks need to be loaded to the left and load them if
@@ -468,7 +452,6 @@ export class Chain {
         gloader: any
     ): boolean {
         const self = this;
-
         // x represents to x-axis translation of the caneva. If the block width
         // is 100 and x = -100, then it means the user dragged one block from
         // the initial block on the left.
@@ -639,7 +622,6 @@ export class Chain {
      * @param block the block to append
      */
     private appendBlock(xTranslate: number, block: SkipBlock, svgBlocks: any) {
-        //console.log("yoooo "+block.height + " vs  "+ block.forwardLinks.length);
         svgBlocks
             .append("rect")
             .attr("id", block.hash.toString("hex"))
@@ -664,7 +646,6 @@ export class Chain {
         factor: number
     ) {
         let y: number;
- 
 
         if (iTo - skipFrom.index == 1) {
             svgBlocks
@@ -677,7 +658,6 @@ export class Chain {
                 .attr("stroke-width", 2)
                 .attr("stroke", "grey");
         } else {
-
             svgBlocks
                 .append("line")
                 .attr("x2", xTrans - this.blockPadding)
@@ -724,9 +704,8 @@ export class Chain {
     ) {
         let indexTo: number;
         indexTo = block.index;
-       
-        for (let i = 0; i < block.backlinks.length; i++) {
 
+        for (let i = 0; i < block.backlinks.length; i++) {
             let skipFrom = await Utils.getBlock(
                 block.backlinks[i],
                 this.roster
@@ -781,7 +760,8 @@ export class Chain {
      * @param backward false for loading blocks to the right, true for loading
      * blocks to the left
      */
-    private getNextBlocks(
+
+    getNextBlocks(
         nextBlockID: string,
         pageSize: number,
         nbPages: number,
@@ -839,7 +819,7 @@ export class Chain {
                 // ws callback "onMessage":
                 complete: () => {
                     this.flash.display(Flash.flashType.ERROR, "closed");
-                    this.ws=undefined;
+                    this.ws = undefined;
                 },
                 error: (err: Error) => {
                     this.flash.display(Flash.flashType.ERROR, `error: ${err}`);

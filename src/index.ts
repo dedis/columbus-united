@@ -65,13 +65,14 @@ export function sayHi() {
                 initialBlockIndex
         );
     }
+    let i = 1;
     // Load the first block at the provided index, and start the visualization
     // once we got that block and the promise resolves.
     new SkipchainRPC(roster)
         .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), initialBlockIndex)
         .then(
             (blockReply) => {
-                startColumbus(blockReply.skipblock, roster, flash);
+                startColumbus(blockReply.skipblock, roster, flash,i);
             },
             (e) => {
                 flash.display(
@@ -83,6 +84,7 @@ export function sayHi() {
                 );
             }
         );
+        
 
 }
 
@@ -95,12 +97,13 @@ export function sayHi() {
  * @param roster the roster
  * @param flash the flash class that handles the flash messages
  */
-function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
+export function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash,i:number) {
+  
     const chain = new Chain(roster, flash, initialBlock);
 
     chain.loadInitialBlocks(initialBlock.hash);
 
-    searchBar(roster, flash, chain.blockClickedSubject,hashBlock0);
+    searchBar(roster, flash, chain.blockClickedSubject,hashBlock0,chain,i);
     
     const lastAddedBlock = new LastAddedBlock(roster,flash,initialBlock,chain)
   
@@ -115,10 +118,12 @@ function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
+    if (i==1){
     new Block(
         chain.getBlockClickedSubject(),
         lifecycle,
         flash,
         chain.getNewblocksSubject()
     ).startListen();
+    }
 }
