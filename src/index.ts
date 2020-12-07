@@ -97,12 +97,12 @@ export function sayHi() {
  * @param roster the roster
  * @param flash the flash class that handles the flash messages
  */
-function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
+export function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
     const chain = new Chain(roster, flash, initialBlock);
 
     chain.loadInitialBlocks(initialBlock.hash);
 
-    searchBar(roster, flash, chain.blockClickedSubject,hashBlock0);
+    searchBar(roster, flash, chain.blockClickedSubject,hashBlock0, 0);
     
     const lastAddedBlock = new LastAddedBlock(roster,flash,initialBlock,chain)
   

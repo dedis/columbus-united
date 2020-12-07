@@ -13,33 +13,37 @@ import {
     PaginateRequest,
     PaginateResponse,
 } from "@dedis/cothority/byzcoin/proto/stream";
+import { select } from 'd3';
 
 export function searchBar(
     roster: Roster,
     flash: Flash,
     blockSubject: Subject<SkipBlock>,
     hashBlock0: string,
-    chain: Chain,
     i: number
 ) {
+
     d3.select("#search-input").on("keypress", function () {
         if (d3.event.keyCode === 13) {
             var input = d3.select("#search-input").property("value");
+            const search_mode = d3.select("#search-mode").property("value")
             searchRequest(
                 input,
                 roster,
                 flash,
                 blockSubject,
                 hashBlock0,
-                chain,
-                i
+                i,
+                search_mode
             );
+            
         }
     });
 
     d3.select("#submit-button").on("click", async function () {
         var input = d3.select("#search-input").property("value");
-        searchRequest(input, roster, flash, blockSubject, hashBlock0, chain, i);
+        const search_mode = d3.select("#search-mode").property("value");
+        searchRequest(input, roster, flash, blockSubject, hashBlock0, i, search_mode);
     });
 }
 
@@ -49,10 +53,10 @@ async function searchRequest(
     flash: Flash,
     blockSubject: Subject<SkipBlock>,
     hashBlock0: string,
-    chain: Chain,
-    i: number
+    i: number,
+    search_mode : string
 ) {
-    if (input.length > 10) {
+    if (search_mode == "hash") {
         try {
             ++i;
             let hi = await Utils.getBlock(Buffer.from(input, "hex"), roster);
@@ -76,6 +80,9 @@ async function searchRequest(
             // try transactions
             flash.display(Flash.flashType.ERROR, "Block does not exist");
         }
+    }else if(search_mode=="id"){
+
+
     } else {
         try {
             let block = await Utils.getBlockByIndex(

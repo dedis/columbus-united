@@ -80,8 +80,6 @@ div.query-answer {
   
   /* Change the color of links on hover */
   .topnav a:hover {
-    background-color: rgb(139, 9, 9);
-    border-radius: 15px;
    
     color: black;
   }
@@ -104,17 +102,33 @@ div.query-answer {
     
 
   }
-  .topnav input[type=submit]{
-    
+  .topnav a[type=submit]{
+    padding-top: 10px;
     background:white;
     //margin-right: 35%;
     margin-top: 8px;
     margin-bottom: 8px;
     color: grey;
+    border-right: 1px solid grey !important;
+    padding-right: 8px;
+    height: auto;
+    width: auto;
+    border: none;
+    text-shadow:none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+
+  .topnav>select{
+    background:white;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    color: grey;
     border-radius: 0 15px 15px 0;
     border-color: #f0eeeece;
+    border-left: 1px;
     height: 35px;
-    width: 60px;
+    width: 200px;
     border: none;
     font: 14px arial, sans-serif;
     text-shadow:none;
