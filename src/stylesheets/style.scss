@@ -12,6 +12,8 @@ body {
     flex-direction: column;
     height: 100vh;
     overflow-y: auto;
+    //overflow-y: hidden;
+   -webkit-appearance: none;
 }
 div.block-infos {
     display: flex;
@@ -23,6 +25,7 @@ div.block-infos {
     margin-left: 10;
     margin-right: 10;
     background-color: #ffffff;
+
 }
 div.query-answer {
     display: flex;
@@ -68,9 +71,10 @@ div.query-answer {
 
 .topnav {
     display: flex;
-
     background: #f0eeeece;
-    
+    height:auto;
+    width: auto;
+    -webkit-appearance: none;
     margin-bottom: 10px;
   }
   
@@ -78,45 +82,49 @@ div.query-answer {
   .topnav a:hover {
     background-color: rgb(139, 9, 9);
     border-radius: 15px;
+   
     color: black;
   }
-  
+ 
   /* Style the search box inside the navigation bar */
-  .topnav input[type=search] {
-    display: block;
+  .topnav input[type=input] {
+    -webkit-appearance: none;
     padding: 10px;
+    padding-bottom: 9px;
     border: 2px black;
     margin-top: 8px;
     margin-bottom: 8px;
-    margin-left: auto;
-    margin-right: none;
+    margin-left: 30%;
     width: 35%;
     font-size: 14px;
     font-family: 'Roboto', Arial, sans-serif;
     border-radius: 15px 0 0 15px;
+  
+   
+    
+
   }
   .topnav input[type=submit]{
+    
     background:white;
-    margin-right: 30%;
+    //margin-right: 35%;
     margin-top: 8px;
     margin-bottom: 8px;
     color: grey;
     border-radius: 0 15px 15px 0;
     border-color: #f0eeeece;
-    height: 40px;
+    height: 35px;
     width: 60px;
     border: none;
-    
     font: 14px arial, sans-serif;
-    
-    
     text-shadow:none;
-
+    -moz-appearance: none;
+    appearance: none;
   }
   
   /* When the screen is less than 600px wide, stack the links and the search field vertically instead of horizontally */
   @media screen and (max-width: 600px) {
-    .topnav a, .topnav input[type=text] {
+    .topnav a, .topnav input[type=input] {
       float: none;
       display: block;
       text-align: left;
@@ -124,7 +132,7 @@ div.query-answer {
       margin: 0;
       padding: 14px;
     }
-    .topnav input[type=text] {
+    .topnav input[type=input] {
       border: 1px solid #ccc;
     }
   }
@@ -216,10 +224,10 @@ div.query-answer {
     flex-direction:row;
     margin-bottom: 10;
     padding: 0 10px;
-    
+    height: 200px;
+
     
 }
-
 
     
 #last-container{
@@ -230,6 +238,8 @@ div.query-answer {
     background: white;
     animation-direction: reverse;
     border-left: 1px solid gray;
+    overflow: hidden;
+
 }
 
 
@@ -243,9 +253,7 @@ div.query-answer {
   }
 
 .last-added{
-
     left: 0;
-    
 }
 
 
@@ -257,8 +265,6 @@ div.query-answer {
 
    //padding-left: 30px;
     
- 
-  
 }
 ::-webkit-scrollbar{
     widows: 25px;
