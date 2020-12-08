@@ -28,7 +28,6 @@ export function searchBar(
     d3.select("#search-input").on("keypress", function () {
         if (d3.event.keyCode === 13) {
             var input = d3.select("#search-input").property("value");
-            const search_mode = d3.select("#search-mode").property("value")
             searchRequest(
                 input,
                 roster,
@@ -36,7 +35,6 @@ export function searchBar(
                 blockSubject,
                 hashBlock0,
                 i,
-                search_mode,
                 block
             );
             
@@ -46,7 +44,7 @@ export function searchBar(
     d3.select("#submit-button").on("click", async function () {
         var input = d3.select("#search-input").property("value");
         const search_mode = d3.select("#search-mode").property("value");
-        searchRequest(input, roster, flash, blockSubject, hashBlock0, i, search_mode, block);
+        searchRequest(input, roster, flash, blockSubject, hashBlock0, i, block);
     });
 }
 
@@ -57,42 +55,16 @@ async function searchRequest(
     blockSubject: Subject<SkipBlock>,
     hashBlock0: string,
     i: number,
-    search_mode : string,
     block : Block
 ) {
-    if (search_mode == "hash") {
-        try {
-            ++i;
-            let hi = await Utils.getBlock(Buffer.from(input, "hex"), roster);
-
-            flash.display(
-                Flash.flashType.INFO,
-                "Valid search for block index: " + hi.index.toString()
-            );
-
-           let newChain = new Chain(roster,flash,hi);
-          // chain = newChain; 
-
-            //  blockSubject.next(hi);
-            //  chain.subjectBrowse.next([chain.nbPages,ch,false])
-            //  startColumbus(hi,roster,flash,i);
-            //   let plouf = { x: -10, y: 0, k: 1 };
-
-            //   chain.subject.next(plouf);
-            //  chain.getNextBlocks(Utils.bytes2String(hi.hash),chain.pageSize,chain.nbPages,chain.subjectBrowse,false);
-        } catch (error) {
-            // try transactions
-            flash.display(Flash.flashType.ERROR, "Block does not exist");
-        }
-    }else if(search_mode=="id"){
-        console.log(input)
-        block.launchQuery(50, input)
-
-    } else {
+    console.log(`input : ${input}\n length ${input.length}`);
+    if (input.length<32)
+    {
+    
         try {
             let block = await Utils.getBlockByIndex(
                 Utils.hex2Bytes(hashBlock0),
-                parseInt(input, 10),
+                parseInt(input,10),
                 roster
             );
             let blockByIndex = block.index;
@@ -104,6 +76,34 @@ async function searchRequest(
         } catch (error) {
             // try transactions
             flash.display(Flash.flashType.ERROR, "Block does not exist");
+        }
+    }
+    else{
+        try {
+            ++i;
+            let block = await Utils.getBlock(Buffer.from(input, "hex"), roster);
+
+            flash.display(
+                Flash.flashType.INFO,
+                "Valid search for block index: " + block.index.toString()
+            );
+            blockSubject.next(block);
+
+        //let newChain = new Chain(roster,flash,blockAnswered);
+        // chain = newChain; 
+
+            //  blockSubject.next(hi);
+            //  chain.subjectBrowse.next([chain.nbPages,ch,false])
+            //  startColumbus(hi,roster,flash,i);
+            //   let plouf = { x: -10, y: 0, k: 1 };
+
+            //   chain.subject.next(plouf);
+            //  chain.getNextBlocks(Utils.bytes2String(hi.hash),chain.pageSize,chain.nbPages,chain.subjectBrowse,false);
+        } catch (error) {
+            // try transactions
+            console.log(error)
+            flash.display(Flash.flashType.INFO, `Browsing the chain for instance ID : ${input}`);
+            block.launchQuery(50, input.toString())
         }
     }
 }

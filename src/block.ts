@@ -3,15 +3,13 @@ import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable } from "rxjs";
-import { elementAt, throttleTime } from "rxjs/operators";
+import {throttleTime } from "rxjs/operators";
 
-import * as blockies from "blockies-ts";
 
 import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
 import { Utils } from "./utils";
-import { csvParse } from 'd3';
 
 /**
  * Create the interface under the blockchain. It displays
@@ -268,7 +266,6 @@ export class Block {
 
             const lockContent = `<p>Hash: ${fl.hash().toString("hex")}</p>
             <p>signature: ${fl.signature.sig.toString("hex")}</p>`
-
 
             lockIcon
                 .attr("class", "white-icon")
@@ -844,7 +841,7 @@ export class Block {
             .append("button")
             .attr("class", "cancel-button")
             .attr("id", "cancel-button")
-            .text("Abort research")
+            .text("Abort search")
             // tslint:disable-next-line
             .on("click", function () {
                 const conf = confirm(

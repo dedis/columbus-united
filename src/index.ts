@@ -73,7 +73,7 @@ export function sayHi() {
         .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), initialBlockIndex)
         .then(
             (blockReply) => {
-                startColumbus(blockReply.skipblock, roster, flash);
+                startColumbus(blockReply.skipblock, roster, flash, initialBlockIndex);
             },
             (e) => {
                 flash.display(
@@ -97,10 +97,11 @@ export function sayHi() {
  * @param roster the roster
  * @param flash the flash class that handles the flash messages
  */
-export function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
+export async function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash, initialBlockIndex : number) {
     const chain = new Chain(roster, flash, initialBlock);
 
     chain.loadInitialBlocks(initialBlock.hash);
+
 
     
     const lastAddedBlock = new LastAddedBlock(roster,flash,initialBlock,chain)
@@ -128,5 +129,19 @@ export function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Fl
     block.startListen();
 
     searchBar(roster, flash, chain.blockClickedSubject,hashBlock0, 0, block);
+
+    try{
+        let block = await Utils.getBlockByIndex(
+                Utils.hex2Bytes(hashBlock0),
+                initialBlockIndex,
+                roster
+            );
+
+            chain.blockClickedSubject.next(block);
+    }catch{
+        flash.display(
+            Flash.flashType.ERROR,
+            `Block index ${initialBlockIndex} could not be found`);
+    }
 
 }
