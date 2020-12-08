@@ -388,11 +388,10 @@ export class Block {
                         .text(`Transaction hash : ${instruction.hash().toString("hex")}`);
                     
                     const hash = instruction.instanceID.toString("hex");
-                    if (!coin_invoked){
-                        Utils.addHashBlocky(divInstruction
-                            .append("p")
-                            .text(`Instance ID: `), hash, self.flash);
-                        
+                    Utils.addHashBlocky(divInstruction
+                        .append("p")
+                        .text(`Instance ID: `), hash, self.flash);
+                    if (!coin_invoked){     
                         if(instruction.signerCounter.length != 0 ){
                             const userSignature = instruction.signerIdentities.pop().toString().slice(8);
                             const emmiterP =divInstruction
@@ -430,11 +429,25 @@ export class Block {
                         const userSignature = instruction.signerIdentities.pop().toString().slice(8);
                         const destinationSignature = beautifiedArgs[1].value;
 
-                        const line = divInstruction.append("p")
+                        const line = divInstruction
+                            .append("p")
                         Utils.addIDBlocky(line, userSignature,self.flash);
-                        Utils.addIDBlocky(line
+                        line
                             .append("span")
-                            .text(` gave ${beautifiedArgs[0].value} to `), destinationSignature, self.flash);
+                            .text(` gave ${beautifiedArgs[0].value.split(' ')[0]}`)
+                        line
+                            .append("object")
+                            .attr("class", "white-icon")
+                            .attr("type", "image/svg+xml")
+                            .attr("data", "assets/coin.svg")
+                            .style("display", "inline-block")
+                            .style("position", "relative")
+                            .style("top", "11px");
+                            
+                        line
+                            .append("span")
+                            .text(" to ")
+                        Utils.addIDBlocky(line, destinationSignature, self.flash);
 
                     }
                     // Search button
