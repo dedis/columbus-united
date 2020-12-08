@@ -366,8 +366,9 @@ export class Block {
                         aInstruction.text(
                             `Invoked : ${contractName }`
                         );
-                        coin_invoked = (contractName == "Coin" && block.index>45); //Blocks prior to index 45 don't implement coin in the right way unfortunately
                         args = instruction.invoke.args;
+                        coin_invoked = (contractName == "Coin" && args.length>1); //Blocks prior to index 45 don't implement coin in the right way unfortunately
+
                     } else if (instruction.type === Instruction.typeDelete) {
                         const contractName = instruction.delete.contractID.charAt(0).toUpperCase() + 
                         instruction.delete.contractID.slice(1);
