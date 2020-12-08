@@ -14,13 +14,15 @@ import {
     PaginateResponse,
 } from "@dedis/cothority/byzcoin/proto/stream";
 import { select } from 'd3';
+import { Block } from './block';
 
 export function searchBar(
     roster: Roster,
     flash: Flash,
     blockSubject: Subject<SkipBlock>,
     hashBlock0: string,
-    i: number
+    i: number,
+    block : Block
 ) {
 
     d3.select("#search-input").on("keypress", function () {
@@ -34,7 +36,8 @@ export function searchBar(
                 blockSubject,
                 hashBlock0,
                 i,
-                search_mode
+                search_mode,
+                block
             );
             
         }
@@ -43,7 +46,7 @@ export function searchBar(
     d3.select("#submit-button").on("click", async function () {
         var input = d3.select("#search-input").property("value");
         const search_mode = d3.select("#search-mode").property("value");
-        searchRequest(input, roster, flash, blockSubject, hashBlock0, i, search_mode);
+        searchRequest(input, roster, flash, blockSubject, hashBlock0, i, search_mode, block);
     });
 }
 
@@ -54,7 +57,8 @@ async function searchRequest(
     blockSubject: Subject<SkipBlock>,
     hashBlock0: string,
     i: number,
-    search_mode : string
+    search_mode : string,
+    block : Block
 ) {
     if (search_mode == "hash") {
         try {
@@ -81,7 +85,8 @@ async function searchRequest(
             flash.display(Flash.flashType.ERROR, "Block does not exist");
         }
     }else if(search_mode=="id"){
-
+        console.log(input)
+        block.launchQuery(50, input)
 
     } else {
         try {

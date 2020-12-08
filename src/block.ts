@@ -495,32 +495,8 @@ export class Block {
                     searchButton
                         // Confirmation and start browsing on click
                         // tslint:disable-next-line
-                        .on("click", function () {   
-                                self.createLoadingScreen();
-                                const subjects = chosenQuery > -1 ? 
-                                    self.lifecycle.getInstructionSubject(instruction,chosenQuery) :
-                                    self.lifecycle.getInstructionSubject(instruction);
-
-                                subjects[0].subscribe({
-                                    next: self.printDataBrowsing.bind(self),
-                                });
-                                // throttleTime: ignores the values for the 100 first ms
-                                subjects[1].pipe(throttleTime(100)).subscribe({
-                                    complete: self.doneLoading,
-                                    next: ([
-                                        percentage,
-                                        seenBlock,
-                                        totalBlock,
-                                        nbInstanceFound,
-                                    ]) => {
-                                        self.updateLoadingScreen(
-                                            percentage,
-                                            seenBlock,
-                                            totalBlock,
-                                            nbInstanceFound
-                                        );
-                                    },
-                                });
+                        .on("click", function () {
+                            self.launchQuery(chosenQuery, instruction.instanceID.toString("hex"))
                         });
                 }
             ); //!SECTION
@@ -530,6 +506,43 @@ export class Block {
 
     }
 
+   /**
+    * 
+    * @public
+    * @param chosenQuery 
+    * @param instruction 
+    * @memberof DetailBlock
+    */
+
+    public launchQuery(chosenQuery : number, instanceID:string)
+    {
+        const self = this;
+        self.createLoadingScreen();
+        const subjects = self.lifecycle
+            .getInstructionSubject(instanceID,chosenQuery);
+        subjects[0].subscribe({
+            next: self.printDataBrowsing.bind(self),
+        });
+        // throttleTime: ignores the values for the 100 first ms
+        subjects[1].pipe(throttleTime(100)).subscribe({
+            complete: self.doneLoading,
+            next: ([
+                percentage,
+                seenBlock,
+                totalBlock,
+                nbInstanceFound,
+            ]) => {
+                console.log("updated")
+                self.updateLoadingScreen(
+                    percentage,
+                    seenBlock,
+                    totalBlock,
+                    nbInstanceFound
+                );
+            },
+        });
+    }
+
     //SECTION Query
     /**
      * Displays the result of the browsing, highlights the
@@ -537,7 +550,7 @@ export class Block {
      *
      * @private
      * @param {[SkipBlock[], Instruction[]]} tuple : value of the observable
-     *                              browsing.getInstructionSubject function
+     browsing.getInstructionSubject function
      * @memberof DetailBlock
      */
     private printDataBrowsing(tuple: [SkipBlock[], Instruction[]]) {

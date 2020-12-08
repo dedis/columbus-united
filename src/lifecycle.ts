@@ -41,7 +41,6 @@ export class Lifecycle {
 
     nextIDB: string;
     contractID: string;
-    instanceSearch: Instruction;
     firstBlockIDStart: string;
 
     abort: boolean;
@@ -72,7 +71,6 @@ export class Lifecycle {
 
         this.nextIDB = "";
         this.contractID = "";
-        this.instanceSearch = null;
         this.firstBlockIDStart = initialBlockHash;
 
         this.flash = flash;
@@ -95,7 +93,7 @@ export class Lifecycle {
      * @memberof Browsing
      */
     getInstructionSubject(
-        instance: Instruction, maxNumberOfBlocks:number = -1
+        instanceID: string, maxNumberOfBlocks:number = -1
     ): [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>] {
         const self = this;
         
@@ -114,8 +112,7 @@ export class Lifecycle {
 
         this.nextIDB = "";
 
-        this.instanceSearch = instance;
-        this.contractID = this.instanceSearch.instanceID.toString("hex");
+        this.contractID = instanceID;
 
         this.abort = false;
 

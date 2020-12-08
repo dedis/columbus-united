@@ -102,7 +102,6 @@ export function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Fl
 
     chain.loadInitialBlocks(initialBlock.hash);
 
-    searchBar(roster, flash, chain.blockClickedSubject,hashBlock0, 0);
     
     const lastAddedBlock = new LastAddedBlock(roster,flash,initialBlock,chain)
   
@@ -120,10 +119,14 @@ export function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Fl
     // window.addEventListener('hashchange', ()=>selectedBlockSubject.next()) //TODO 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
-    new Block(
+    const block = new Block(
         chain.getBlockClickedSubject(),
         lifecycle,
         flash,
         chain.getNewblocksSubject()
-    ).startListen();
+    );
+    block.startListen();
+
+    searchBar(roster, flash, chain.blockClickedSubject,hashBlock0, 0, block);
+
 }
