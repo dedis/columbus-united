@@ -41,9 +41,9 @@ export function searchBar(
         }
     });
 
-    d3.select("#submit-button").on("click", async function () {
+    d3.select("#submit-button").on("click", function () {
+        console.log("click")
         var input = d3.select("#search-input").property("value");
-        const search_mode = d3.select("#search-mode").property("value");
         searchRequest(input, roster, flash, blockSubject, hashBlock0, i, block);
     });
 }

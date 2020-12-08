@@ -446,6 +446,9 @@ export class Block {
                             .append("span")
                             .text(" to ")
                         Utils.addIDBlocky(line, destinationSignature, self.flash);
+                        if (beautifiedArgs.length==3){
+                            divInstruction.append("p").text(`Challenge : ${beautifiedArgs[2].value}`)
+                        }
 
                     }
                     // Search button
