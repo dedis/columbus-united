@@ -212,20 +212,10 @@ export class Block {
         const divVerifier = liVerifier.append("div");
         divVerifier.attr("class", "uk-accordion-content");
         block.verifiers.forEach((uid, j) => {
-            const blockie = blockies.create({ seed: uid.toString("hex") });
             
             const verifierLine = divVerifier.append("p");
                 verifierLine.text(` Verifier ${j} , ID:  `);                
-               
-            const imgBlockie = verifierLine.append("img");
-            imgBlockie
-                .attr("class", "uk-img clip-blocky")
-                .attr("src", blockie.toDataURL())
-                .attr("width", 32)
-                .attr("uk-tooltip", `${uid.toString("hex")}`);
-                
-
-            imgBlockie.on("click",function() {Utils.copyToClipBoard(uid.toString("hex"), self.flash)});
+            Utils.addIDBlocky(verifierLine, uid.toString("hex"), self.flash)
         });
 
         //ANCHOR BackLink details
@@ -356,6 +346,7 @@ export class Block {
             // ANCHOR Transaction displaying
             transaction.clientTransaction.instructions.forEach(
                 (instruction, j) => {
+                    var coin_invoked = false;
                     let args = null;
                     const liInstruction = ulInstruction.append("li");
                     liInstruction.attr("style", "padding-left:15px");
@@ -375,6 +366,7 @@ export class Block {
                         aInstruction.text(
                             `Invoked : ${contractName }`
                         );
+                        coin_invoked = contractName == "Coin";
                         args = instruction.invoke.args;
                     } else if (instruction.type === Instruction.typeDelete) {
                         const contractName = instruction.delete.contractID.charAt(0).toUpperCase() + 
@@ -396,50 +388,55 @@ export class Block {
                         .text(`Transaction hash : ${instruction.hash().toString("hex")}`);
                     
                     const hash = instruction.instanceID.toString("hex");
-                    const hashBlockie = blockies.create({ seed: hash});
-                    divInstruction
-                        .append("p")
-                        .text(`Instance ID: `)
-                        .append("img")
-                        .attr("class", "uk-img")
-                        .attr("src", hashBlockie.toDataURL())
-                        .attr("uk-tooltip", `${hash}`)
-                        .on("click", function() {Utils.copyToClipBoard(hash, self.flash)});
-                    
-                    if(instruction.signerCounter.length != 0 ){
-                        const userSignature = instruction.signerIdentities.pop().toString().slice(8);
-                        console.log("user sig", userSignature)
-                        const userBlockie = blockies.create({seed : userSignature})
-                        divInstruction
+                    if (!coin_invoked){
+                        Utils.addHashBlocky(divInstruction
                             .append("p")
-                            .text("Emmited by ")
-                            .append("img")
-                            .attr("class", 'uk-img')
-                            .attr("src", userBlockie.toDataURL())
-                            .attr("uk-tooltip", ` ${userSignature}`)
-                            .on("click", function() {Utils.copyToClipBoard(userSignature, self.flash)});
+                            .text(`Instance ID: `), hash, self.flash);
+                        
+                        if(instruction.signerCounter.length != 0 ){
+                            const userSignature = instruction.signerIdentities.pop().toString().slice(8);
+                            const emmiterP =divInstruction
+                                .append("p")
+                                .text("Emmited by ");
+                                Utils.addIDBlocky(
+                                    emmiterP,
+                                    userSignature, 
+                                    self.flash)
+                        }
+                        divInstruction.append("p").text("Arguments:");
+                        // Args of the instruction
+                        const ulArgs = divInstruction.append("ul");
+                        ulArgs.attr("uk-accordion", "");
+                        // tslint:disable-next-line
+                        const beautifiedArgs = instruction.beautify().args;
+                        beautifiedArgs.forEach((arg, i) => {
+
+                            const liArgs = ulArgs.append("li");
+                            const aArgs = liArgs.append("a");
+                            aArgs
+                                .attr("class", "uk-accordion-title")
+                                .attr("href", "#");
+                            aArgs.text(`${i}: ${arg.name}`);
+                            const divArgs = liArgs.append("div");
+                            divArgs.attr("class", "uk-accordion-content");
+                            divArgs.append("p").text(`${arg.value}`);
+                            //TODO Add tooltip to get full arg if it exists
+                            //TODO Discriminate coins to displya blockie
+
+                        });
                     }
-                    divInstruction.append("p").text("Arguments:");
-                    // Args of the instruction
-                    const ulArgs = divInstruction.append("ul");
-                    ulArgs.attr("uk-accordion", "");
-                    // tslint:disable-next-line
-                    const beautifiedArgs = instruction.beautify();
-                    beautifiedArgs.args.forEach((arg, i) => {
+                    else{
+                        const beautifiedArgs = instruction.beautify().args;
+                        const userSignature = instruction.signerIdentities.pop().toString().slice(8);
+                        const destinationSignature = beautifiedArgs[1].value;
 
-                        const liArgs = ulArgs.append("li");
-                        const aArgs = liArgs.append("a");
-                        aArgs
-                            .attr("class", "uk-accordion-title")
-                            .attr("href", "#");
-                        aArgs.text(`${i}: ${arg.name}`);
-                        const divArgs = liArgs.append("div");
-                        divArgs.attr("class", "uk-accordion-content");
-                        divArgs.append("p").text(`${arg.value}`);
-                        //TODO Add tooltip to get full arg if it exists
-                        //TODO Discriminate coins to displya blockie
+                        const line = divInstruction.append("p")
+                        Utils.addIDBlocky(line, userSignature,self.flash);
+                        Utils.addIDBlocky(line
+                            .append("span")
+                            .text(` gave ${beautifiedArgs[0].value} to `), destinationSignature, self.flash);
 
-                    });
+                    }
                     // Search button
                     
                     //ANCHOR Browse button  

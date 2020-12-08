@@ -10,6 +10,7 @@ import { Observable } from "rxjs";
 import { DataHeader } from '@dedis/cothority/byzcoin/proto';
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import { Flash } from './flash';
+import * as blockies from "blockies-ts";
 
 export class Utils {
     /**
@@ -143,6 +144,32 @@ export class Utils {
         flash.display(Flash.flashType.INFO,"Copied to clipboard");
     }
 
+    static addHashBlocky(
+        line: d3.Selection<HTMLElement,unknown,HTMLElement,any>, 
+        hash : string,
+        flash : Flash)
+    {
+        const blocky = blockies.create({seed : hash})
+        line
+            .append("img")
+            .attr("class", 'uk-img')
+            .attr("src", blocky.toDataURL())
+            .attr("uk-tooltip", ` ${hash}`)
+            .on("click", function() {Utils.copyToClipBoard(hash, flash)});
+    }
 
+    static addIDBlocky(
+        line: d3.Selection<HTMLElement,unknown,HTMLElement,any>, 
+        hash : string,
+        flash : Flash)
+    {
+        const blocky = blockies.create({seed : hash})
+        line
+            .append("img")
+            .attr("class", 'uk-img clip-blocky')
+            .attr("src", blocky.toDataURL())
+            .attr("uk-tooltip", ` ${hash}`)
+            .on("click", function() {Utils.copyToClipBoard(hash, flash)});
+    }
     
 }
