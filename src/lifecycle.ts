@@ -6,8 +6,9 @@ import {
 } from "@dedis/cothority/byzcoin/proto/stream";
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network";
-import { SkipBlock } from "@dedis/cothority/skipchain";
-import { Subject } from "rxjs";
+import { ForwardLink, SkipBlock } from "@dedis/cothority/skipchain";
+import { Observable, Subject } from "rxjs";
+import { finalize, take } from 'rxjs/operators';
 
 import { Flash } from "./flash";
 import { TotalBlock } from "./totalBlock";
@@ -51,18 +52,19 @@ export class Lifecycle {
      * @param {Roster} roster
      * @param {Flash} flash
      * @param {TotalBlock} totalBlock
+     * @param {string} initialBlockHash
      * @memberof Browsing
      */
     constructor(
         roster: Roster,
         flash: Flash,
         totalBlock: TotalBlock,
-        initialBlock: SkipBlock
+        initialBlockHash: string
     ) {
         this.roster = roster;
 
-        this.pageSize = 15;
-        this.numPages = 15;
+        this.pageSize = 10;
+        this.numPages = 1;
         this.totatBlockNumber = -1;
         this.totalBlocks = totalBlock;
         this.seenBlocks = 0;
@@ -71,7 +73,7 @@ export class Lifecycle {
         this.nextIDB = "";
         this.contractID = "";
         this.instanceSearch = null;
-        this.firstBlockIDStart = Utils.bytes2String(initialBlock.hash);
+        this.firstBlockIDStart = initialBlockHash;
 
         this.flash = flash;
         this.abort = false;
@@ -93,7 +95,7 @@ export class Lifecycle {
      * @memberof Browsing
      */
     getInstructionSubject(
-        instance: Instruction
+        instance: Instruction, maxNumberOfBlocks:number = -1
     ): [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>] {
         const self = this;
         
@@ -124,7 +126,8 @@ export class Lifecycle {
             subjectInstruction,
             subjectProgress,
             [],
-            []
+            [],
+            maxNumberOfBlocks
         );
         return [subjectInstruction, subjectProgress];
     }
@@ -143,6 +146,7 @@ export class Lifecycle {
      * @param {Subject<number[]>} subjectProgress : Subject for the loading
      * @param {SkipBlock[]} skipBlocksSubject : Accumulator for the subjectInstruction
      * @param {Instruction[]} instructionB : Accumulator for the subjectInstruction
+     * @param {number} maxNumberOfBlocks : Max number of blocks requested
      * @memberof Browsing
      */
     private browse(
@@ -152,9 +156,11 @@ export class Lifecycle {
         subjectInstruction: Subject<[SkipBlock[], Instruction[]]>,
         subjectProgress: Subject<number[]>,
         skipBlocksSubject: SkipBlock[],
-        instructionB: Instruction[]
+        instructionB: Instruction[],
+        maxNumberOfBlocks:number
     ) {
         const subjectBrowse = new Subject<[number, SkipBlock]>();
+        const transactionFound = new Subject<number>();
         let pageDone = 0;
         subjectBrowse.subscribe({
             complete: () => {
@@ -164,7 +170,7 @@ export class Lifecycle {
                 );
                 subjectInstruction.next([skipBlocksSubject, instructionB]);
             },
-
+        
             error: (data: PaginateResponse) => {
                 // tslint:disable-next-line
                 if (data.errorcode == 5) {
@@ -177,7 +183,8 @@ export class Lifecycle {
                         subjectInstruction,
                         subjectProgress,
                         skipBlocksSubject,
-                        instructionB
+                        instructionB,
+                        maxNumberOfBlocks
                     );
                 } else {
                     this.flash.display(
@@ -193,32 +200,34 @@ export class Lifecycle {
                     transaction.clientTransaction.instructions.forEach(
                         // tslint:disable-next-line
                         (instruction, _) => {
-                            if (instruction.type === Instruction.typeSpawn) {
-                                if (
-                                    Utils.bytes2String(
-                                        instruction.deriveId("")
-                                    ) === this.contractID
-                                ) {
-                                    skipBlocksSubject.push(skipBlock);
-                                    instructionB.push(instruction);
-                                }
-                            } else if (
+                           if (
                                 Utils.bytes2String(instruction.instanceID) ===
                                 this.contractID
                             ) {
                                 // get the hashes and instruction corresponding to the input instruction
                                 this.nbInstanceFound++;
-                                skipBlocksSubject.push(skipBlock);
-                                instructionB.push(instruction);
+                                transactionFound.next(this.nbInstanceFound);
+
+                                if(this.nbInstanceFound<maxNumberOfBlocks){
+                                    skipBlocksSubject.push(skipBlock);
+                                    instructionB.push(instruction);
+                                 }
+                                // else{
+                                //     subjectBrowse.complete();
+                                //     subjectProgress.complete();
+                                //     subjectInstruction.complete();
+                                // }
+                                console.log("Instance found : ",this.nbInstanceFound, " out of ", maxNumberOfBlocks);
+
                             }
                         }
                     );
                 });
-
                 if (i === pageSizeB) {
                     pageDone++;
-                    if (pageDone === numPagesB) {
+                    if (pageDone >= numPagesB) {
                         // condition to end the browsing
+                        console.log(this.abort)
                         if (
                             skipBlock.forwardLinks.length !== 0 &&
                             !this.abort
@@ -236,14 +245,24 @@ export class Lifecycle {
                             );
                         } else {
                             // complete all subjects at the end of the browsing
+                            console.log("Abort")
                             subjectBrowse.complete();
                             subjectProgress.complete();
                             subjectInstruction.complete();
                         }
                     }
                 }
+                
             },
         });
+        if (maxNumberOfBlocks > 0){
+            transactionFound.pipe(take(maxNumberOfBlocks), finalize(()=>{
+                this.abort=true;
+                console.log("ABORTABORTABORTABORTABORTABORTABORTABORT")
+                }
+            )).subscribe();
+
+        }
         this.getNextBlocks(
             firstBlockID,
             pageSizeB,

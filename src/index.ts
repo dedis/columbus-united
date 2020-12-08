@@ -46,11 +46,13 @@ export function sayHi() {
     }
 
     // Load the first block
-    const initialBlockIndex = 108900; // Change here the first block to display
+    const indexString = window.location.hash.split(':')[1];
+    const initialBlockIndex = indexString !=null ? parseInt(indexString) : 108900;
+    // Change here the first block to display
     //'6bacd57b248c94dc1e2372d62976d8986948f04d727254ffbc0220182f73ab67' block #110997 - problem with nextID
     //that block has no forwards link
     //block #110940 gives as last block 110997
-
+    
     if (initialBlockIndex < 0) {
         flash.display(
             Flash.flashType.ERROR,
@@ -72,7 +74,7 @@ export function sayHi() {
         .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), initialBlockIndex)
         .then(
             (blockReply) => {
-                startColumbus(blockReply.skipblock, roster, flash,i);
+                startColumbus(blockReply.skipblock, roster, flash);
             },
             (e) => {
                 flash.display(
@@ -97,13 +99,12 @@ export function sayHi() {
  * @param roster the roster
  * @param flash the flash class that handles the flash messages
  */
-export function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash,i:number) {
-  
+export function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
     const chain = new Chain(roster, flash, initialBlock);
 
     chain.loadInitialBlocks(initialBlock.hash);
 
-    searchBar(roster, flash, chain.blockClickedSubject,hashBlock0,chain,i);
+    searchBar(roster, flash, chain.blockClickedSubject,hashBlock0, chain);
     
     const lastAddedBlock = new LastAddedBlock(roster,flash,initialBlock,chain)
   
@@ -114,16 +115,19 @@ export function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Fl
 
     // Create the browsing instance, which is used by the detailBlock class when a
     // user wants to get the lifecycle of an instance.
-    const lifecycle = new Lifecycle(roster, flash, totalBlock, initialBlock);
+    const lifecycle = new Lifecycle(roster, flash, totalBlock, hashBlock0);
 
+    // const selectedBlockSubject = new Subject();
+    // selectedBlockSubject.subscribe(chain.getBlockClickedSubject());
+    // window.addEventListener('hashchange', ()=>selectedBlockSubject.next()) //TODO 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
-    if (i==1){
+    
     new Block(
         chain.getBlockClickedSubject(),
         lifecycle,
         flash,
         chain.getNewblocksSubject()
     ).startListen();
-    }
+    
 }

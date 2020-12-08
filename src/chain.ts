@@ -11,12 +11,19 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
 
-import { map, throttleTime } from "rxjs/operators";
+import {
+   
+    map,
+
+    throttleTime,
+ 
+} from "rxjs/operators";
 import * as blockies from "blockies-ts";
 
 import { Flash } from "./flash";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
+import { svg } from 'd3';
 
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
@@ -55,6 +62,8 @@ export class Chain {
     readonly loadedInfo = document.getElementById("loaded-blocks");
     totalLoaded = 0;
 
+  skipBlocks:SkipBlock[];
+
     // The roster defines the blockchain nodes
     roster: Roster;
 
@@ -74,9 +83,11 @@ export class Chain {
     newblocksSubject = new Subject<SkipBlock[]>();
 
     subject = new Subject();
+ 
 
     // Flash is a utiliy class to display flash messages in the view.
-    flash: Flash;
+    flash: Flash; 
+    zoom: any;
 
     // initialBlockIndex is the initial block index, which is used to compute the
     // number of blocks loaded to the left and to the right.
@@ -93,6 +104,8 @@ export class Chain {
         // Blocks observation
         this.flash = flash;
 
+      
+
         this.initalBlock = initialBlock;
 
         this.initialBlockIndex = initialBlock.index;
@@ -105,6 +118,8 @@ export class Chain {
         // that this is a very poor exclusion mechanism.
         let isLoadingLeft = false;
         let isLoadingRight = false;
+
+      
 
         // Main SVG caneva that contains the chain
         const svg = d3.select("#svg-container").attr("height", this.svgHeight);
@@ -125,6 +140,9 @@ export class Chain {
 
         // this subject will be notified when the main SVG caneva in moved by the
         // user
+       // const subject = new Subject();
+
+ 
 
         // the number of block the window can display at normal scale. Used to
         // define the domain the xScale
@@ -137,7 +155,6 @@ export class Chain {
             .scaleLinear()
             .domain([initialBlock.index, initialBlock.index + numblocks])
             .range([0, this.svgWidth]);
-
 
         const xAxis = d3
             .axisBottom(xScale)
@@ -164,16 +181,15 @@ export class Chain {
             });
         svg.call(zoom);
 
-        
+        this.zoom=zoom;
 
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
         // zommed in-out by the user.
 
         this.subject.subscribe({
-            next:(transform: any) => {
+            next: (transform: any) => {
                 lastTransform = transform;
-               
                 // This line disables translate to the left. (for reference)
                 // transform.x = Math.min(0, transform.x);
 
@@ -181,15 +197,12 @@ export class Chain {
                 transform.y = 0;
 
                 // Update the scale
-              
                 const xScaleNew = transform.rescaleX(xScale);
                 xAxis.scale(xScaleNew);
                 xAxisDraw.call(xAxis);
-               
 
                 // Horizontal only transformation on the blocks (sets scale Y to
                 // 1)
-                console.log("after"+ transform.x+transform.k)
                 const transformString =
                     "translate(" +
                     transform.x +
@@ -200,12 +213,20 @@ export class Chain {
                     "1" +
                     ")";
                 gblocks.attr("transform", transformString);
-                console.log("jkhn" + transform.x);
                 // Standard transformation on the text since we need to keep the
                 // original scale
+                //  gblocks.selectAll("circle").attr("r",transform.k*5);
 
-                //   gcircle.selectAll("circle").attr("transform", transformString);
+                gcircle.selectAll("circle").attr("transform", transformString);
 
+                //  console.log("text"+ gtext.selectAll("circle").attr("height").toString());
+                //gtext.attr("r", transform.k*100);
+                // Update the text size
+                // if (transform.k < 1) {
+                //     gtext
+                //         .selectAll("text")
+                //         .attr("font-size", 1 + transform.k + "em");
+                // }
                 // Update the loader. We want to keep them at their original
                 // scale so we only translate them
                 gloader.attr("transform", transform);
@@ -216,7 +237,7 @@ export class Chain {
             },
         });
 
-        // Handler to check if new blocks need to be loaded. We check every 200ms.
+        // Handler to check if new blocks need to be loaded. We check every 300ms.
         this.subject.pipe(throttleTime(200)).subscribe({
             next: (transform: any) => {
                 if (!isLoadingLeft) {
@@ -244,6 +265,8 @@ export class Chain {
                 }
             },
         });
+
+    
 
         // Subscriber to the blockchain server
         this.subjectBrowse.subscribe({
@@ -346,8 +369,98 @@ export class Chain {
                 }
             },
         });
+
+       
     }
 
+
+
+
+
+    scrollChain(lastTransform:any,xScale:any,xAxis:any,xAxisDraw:any, gblocks:any, gloader:any,isLoadingLeft:boolean,isLoadingRight:boolean,lastBlockLeft:any, lastBlockRight:any){
+
+    
+        // this.subject.subscribe({
+        //     next: (transform: any) => {
+        //         lastTransform = transform;
+        //         // This line disables translate to the left. (for reference)
+        //         // transform.x = Math.min(0, transform.x);
+
+        //         // Disable translation up/down
+        //         transform.y = 0;
+
+        //         // Update the scale
+        //         const xScaleNew = transform.rescaleX(xScale);
+        //         xAxis.scale(xScaleNew);
+        //         xAxisDraw.call(xAxis);
+
+        //         // Horizontal only transformation on the blocks (sets scale Y to
+        //         // 1)
+        //         const transformString =
+        //             "translate(" +
+        //             transform.x +
+        //             "," +
+        //             "0) scale(" +
+        //             transform.k +
+        //             "," +
+        //             "1" +
+        //             ")";
+        //         gblocks.attr("transform", transformString);
+        //         // Standard transformation on the text since we need to keep the
+        //         // original scale
+        //         //  gblocks.selectAll("circle").attr("r",transform.k*5);
+
+        //    //     gcircle.selectAll("circle").attr("transform", transformString);
+
+        //         //  console.log("text"+ gtext.selectAll("circle").attr("height").toString());
+        //         //gtext.attr("r", transform.k*100);
+        //         // Update the text size
+        //         // if (transform.k < 1) {
+        //         //     gtext
+        //         //         .selectAll("text")
+        //         //         .attr("font-size", 1 + transform.k + "em");
+        //         // }
+        //         // Update the loader. We want to keep them at their original
+        //         // scale so we only translate them
+        //         gloader.attr("transform", transform);
+        //         // resize the loaders to always have a relative scale of 1
+        //         gloader
+        //             .selectAll("svg")
+        //             .attr("transform", `scale(${1 / transform.k})`);
+        //     },
+        // });
+
+        // // Handler to check if new blocks need to be loaded. We check every 300ms.
+        // this.subject.pipe(throttleTime(200)).subscribe({
+        //     next: (transform: any) => {
+        //         if (!isLoadingLeft) {
+        //             isLoadingLeft = true;
+        //             const isLoading = this.checkAndLoadLeft(
+        //                 transform,
+        //                 lastBlockLeft,
+        //                 gloader
+        //             );
+        //             if (!isLoading) {
+        //                 isLoadingLeft = false;
+        //             }
+        //         }
+
+        //         if (!isLoadingRight) {
+        //             isLoadingRight = true;
+        //             const isLoading = this.checkAndLoadRight(
+        //                 transform,
+        //                 lastBlockRight,
+        //                 gloader
+        //             );
+        //             if (!isLoading) {
+        //                 isLoadingRight = false;
+        //             }
+        //         }
+        //     },
+        // });
+    }
+
+   
 
     /**
      * Load the initial blocks.
@@ -361,6 +474,7 @@ export class Chain {
             false
         );
     }
+
 
     /**
      * Check if new blocks need to be loaded to the left and load them if
@@ -385,6 +499,7 @@ export class Chain {
         const zoomLevel = transform.k;
 
         const nbBlocksLoadedLeft = this.initialBlockIndex - lastBlockLeft.index;
+        console.log("left"+nbBlocksLoadedLeft);
 
         const leftBlockX =
             nbBlocksLoadedLeft *
@@ -452,6 +567,7 @@ export class Chain {
         gloader: any
     ): boolean {
         const self = this;
+
         // x represents to x-axis translation of the caneva. If the block width
         // is 100 and x = -100, then it means the user dragged one block from
         // the initial block on the left.
@@ -580,7 +696,7 @@ export class Chain {
      * case of a backward loading, this number should be negative. -10 means we
      * already loaded 10 blocks on the left from the initial block.
      */
-    private displayBlocks(
+     private displayBlocks(
         listBlocks: SkipBlock[],
         backwards: boolean,
         gblocks: any,
@@ -622,6 +738,7 @@ export class Chain {
      * @param block the block to append
      */
     private appendBlock(xTranslate: number, block: SkipBlock, svgBlocks: any) {
+        //console.log("yoooo "+block.height + " vs  "+ block.forwardLinks.length);
         svgBlocks
             .append("rect")
             .attr("id", block.hash.toString("hex"))
@@ -634,6 +751,7 @@ export class Chain {
             .attr("fill", Chain.getBlockColor(block))
             .on("click", () => {
                 this.blockClickedSubject.next(block);
+                window.location.hash = `index:${block.index}`
             });
     }
 
@@ -646,20 +764,27 @@ export class Chain {
         factor: number
     ) {
         let y: number;
+ 
 
         if (iTo - skipFrom.index == 1) {
-            svgBlocks
-                .append("line")
+            const line = svgBlocks.append("line");
+            line
                 .attr("id", skipFrom.index)
                 .attr("x1", xTrans)
                 .attr("y1", 15 + this.blockHeight / 2)
                 .attr("x2", xTrans - this.blockPadding)
                 .attr("y2", 15 + this.blockHeight / 2)
                 .attr("stroke-width", 2)
-                .attr("stroke", "grey");
+                .attr("stroke", "grey")
+                
+                
+                ;
+            //.attr("marker-end", "url(#triangle)");
         } else {
-            svgBlocks
-                .append("line")
+
+            const line = svgBlocks
+                .append("line");
+            line
                 .attr("x2", xTrans - this.blockPadding)
                 .attr("y1", 40 + factor * 38)
                 .attr(
@@ -674,15 +799,16 @@ export class Chain {
                 .attr("stroke-width", 2)
                 .attr("stroke", "grey")
                 .attr("marker-end", "url(#triangle)")
+
                 .on("click", () => {
                     this.blockClickedSubject.next(block);
                 });
 
-            svgBlocks
+            const triangle = svgBlocks
                 .append("svg:defs")
-                .append("svg:marker")
+                .append("svg:marker");
+            triangle
                 .attr("id", "triangle")
-
                 .attr("refX", 5.5)
                 .attr("refY", 4.5)
                 .attr("markerWidth", 15)
@@ -694,6 +820,25 @@ export class Chain {
                     this.blockClickedSubject.next(block);
                 })
                 .style("fill", "grey");
+            //FIXME can't change the colour of the svg markers like this. Only option I see
+            //is to create anover triangle and witch when needed
+            triangle.on("mouseover", () => {
+                    line.style("stroke", "var(--selected-colour");
+                    triangle.style("fill", "var(--selected-colour");
+                });
+            line.on("mouseover", () => {
+                    line.style("stroke", "var(--selected-colour");
+                    triangle.attr("stroke", "var(--selected-colour");
+                });
+            triangle.on("mouseout", () => {
+                line.style("stroke", "grey");
+                triangle.style("stroke", "grey");
+            });               
+            line.on("mouseout", () => {
+                line.style("stroke", "grey");
+                triangle.style("stroke", "grey");
+            });   
+
         }
     }
 
@@ -704,8 +849,9 @@ export class Chain {
     ) {
         let indexTo: number;
         indexTo = block.index;
-
+       
         for (let i = 0; i < block.backlinks.length; i++) {
+
             let skipFrom = await Utils.getBlock(
                 block.backlinks[i],
                 this.roster
@@ -760,8 +906,7 @@ export class Chain {
      * @param backward false for loading blocks to the right, true for loading
      * blocks to the left
      */
-
-    getNextBlocks(
+     getNextBlocks(
         nextBlockID: string,
         pageSize: number,
         nbPages: number,
@@ -819,7 +964,7 @@ export class Chain {
                 // ws callback "onMessage":
                 complete: () => {
                     this.flash.display(Flash.flashType.ERROR, "closed");
-                    this.ws = undefined;
+                    this.ws=undefined;
                 },
                 error: (err: Error) => {
                     this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
@@ -847,4 +992,5 @@ export class Chain {
             });
         }
     }
+
 }

@@ -11,7 +11,8 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    overflow-y: hidden;
+    overflow-y: auto;
+    //overflow-y: hidden;
    -webkit-appearance: none;
 }
 div.block-infos {
@@ -30,17 +31,16 @@ div.query-answer {
     display: flex;
     flex-grow: 0;
     flex-direction: column;
-    margin-bottom: 36px;
-    min-height: 80px;
+    margin-bottom: 50px;
     text-align: center;
     
     padding: 10px;
 }
 
 #query-card-container {
-    overflow-x: scroll;
-    overflow-y: scroll;
+    overflow: auto;
     outline: 1px solid var(--selected-colour);
+    cursor: grab; 
 }
 
 #query-card-container > .uk-card {
@@ -61,6 +61,14 @@ div.query-answer {
 }
 
 
+.white-icon{
+    width: 32px;
+    height: 32px;
+    display : block;
+    margin-left : 15px;
+    filter: invert(88%) sepia(67%) saturate(0%) hue-rotate(236deg) brightness(111%) contrast(100%);
+}
+
 .topnav {
     display: flex;
     background: #f0eeeece;
@@ -72,8 +80,6 @@ div.query-answer {
   
   /* Change the color of links on hover */
   .topnav a:hover {
-    background-color: rgb(139, 9, 9);
-    border-radius: 15px;
    
     color: black;
   }
@@ -96,17 +102,33 @@ div.query-answer {
     
 
   }
-  .topnav input[type=submit]{
-    
+  .topnav a[type=submit]{
+    padding-top: 10px;
     background:white;
     //margin-right: 35%;
     margin-top: 8px;
     margin-bottom: 8px;
     color: grey;
+    border-right: 1px solid grey !important;
+    padding-right: 8px;
+    height: auto;
+    width: auto;
+    border: none;
+    text-shadow:none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+
+  .topnav>select{
+    background:white;
+    margin-top: 8px;
+    margin-bottom: 8px;
+    color: grey;
     border-radius: 0 15px 15px 0;
     border-color: #f0eeeece;
+    border-left: 1px;
     height: 35px;
-    width: 60px;
+    width: 200px;
     border: none;
     font: 14px arial, sans-serif;
     text-shadow:none;
@@ -344,13 +366,17 @@ div.query-answer {
     text-decoration: none;
     font-family: "Roboto", sans-serif;
     font-weight: 500;
-    font-size: 110%;
+    font-size: 100%;
     color: #ffffff;
     text-shadow: 0 0.04em 0.04em rgba(0, 0, 0, 0.35);
     text-align: center;
     transition: all 0.2s;
     background-color: #0004e2;
-    align-self: center;
+    right : 10%;
+}
+
+#white-icon{
+    filter: invert(100%) sepia(8%) saturate(2%) hue-rotate(87deg) brightness(115%) contrast(100%);
 }
 
 .spinner{
@@ -370,10 +396,25 @@ div.query-answer {
     }
 }
 
+.uk-select{
+    width: 60%;
+}
+
+#button-browse{
+    padding: 8px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+    width : 60%;
+    border-width: 2px;
+}
+
 .logo {
     content: url(https://avatars2.githubusercontent.com/u/3638331?s=200&v=4);
     display: table;
     margin: 0 auto;
+    width: 80px;
+    height: 80px;
 }
 
 /*
@@ -431,6 +472,7 @@ List of classes for the new transaction container
 
 .uk-accordion-content > p {
     margin-left: 10px;
+    
 }
 
 #rejected{
@@ -449,7 +491,7 @@ List of classes for the new transaction container
 
 .block-detail-container p {
     font-size: 16px;
-    overflow: hidden;
+    overflow: auto;
 }
 
 .browse-container p {
@@ -471,6 +513,10 @@ List of classes for the new transaction container
     100% {
         transform: rotate(360deg);
     }
+}
+
+.clip-blocky {
+    clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
 }
 
 @keyframes dash {
@@ -533,6 +579,7 @@ List of classes for the new transaction container
     line{
     
         stroke: #8C764A;
+        
     }
 
     path{

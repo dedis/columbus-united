@@ -11,21 +11,19 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <style>
             /* 1. You define the CSS class like this:  */
-      
-            .custom__color path {
-              color: white;
-            }
-      
-          </style>
-    </head>
 
+            .custom__color path {
+                color: white;
+            }
+        </style>
+    </head>
 
     <body>
         <div class="header">
-       
-            <img src="assets/logo color small.png" alt="logo" />
+            <a href="https://wookiee.ch/columbus-dev/">
+                <img src="assets/logo-color-small.png" alt="logo" />
+            </a>
             
-
             <button class="uk-button uk-button-default" type="button">
                 About
             </button>
@@ -33,13 +31,14 @@
                 The project Columbus is a project aiming to facilitate the
                 visualization of the blockchain of ByzCoin. <br />
                 You can navigate through the different blocks by dragging right
-                or left. You can have more details about one block by clicking
-                on it and select a transaction. You will see all instructions
-                with their respective type (spawn, invoke or delete) of each
-                instruction. <br />
+                or left and by ajusting the zoom with scrollwheel. 
+                You can have more details about one block by clicking
+                on it. If you need to use one of the hash value displayed in a 
+                tooltip, just click on it to copy it to your clipboard.<br />
+                You can also select a transaction. You will see all instructions
+                with their respective type (spawn, invoke or delete). 
                 A button is there to browse the whole blockchain in order to
-                find the evolution of this instance throughout the blockchain.
-                The evolution will be displayed on the bottom right.
+                display the evolution of an instance throughout the blockchain.
             </div>
             <div id="status-info">
                 <!--<div class="info">
@@ -64,25 +63,28 @@
                     type="input"
                     placeholder=" Search by block index or hash " 
                 />
-                <input type="submit" value="Search" id="submit-button">
+                <a uk-search-icon type="submit" id="submit-button"></a>
+                <select class="uk-select" id="search-mode">
+                    <option value="index">Search by block index</option>
+                    <option value="hash">Search by block hash</option>
+                    <option value="id">Search by instance ID</option>
+
+
+                </select>
             </div>
         </div>
 
         <div class="blocks-container">
-    
-           
             <svg id="svg-container"></svg>
 
             <svg id="last-container"></svg>
-            
-            
         </div>
         <div class="block-infos">
             <div class="block-detail-container"></div>
             <div class="browse-container"></div>
         </div>
 
-        <div class= "query-answer"></div>
+        <div class="query-answer"></div>
 
         <footer>
             <span>© DEDIS 2018 - by Anthony Iozzia and Julien von Felten</span>
@@ -94,7 +96,6 @@
     
     </body>
     <script>
-       
         jsapp.sayHi();
 
     
