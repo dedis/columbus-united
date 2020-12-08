@@ -696,7 +696,7 @@ export class Chain {
                 )
 
                 .attr("y2", 40 + factor * 38)
-                .attr("stroke-width", 2)
+                .attr("stroke-width", 3)
                 .attr("stroke", "grey")
                 .attr("marker-end", "url(#triangle)")
 

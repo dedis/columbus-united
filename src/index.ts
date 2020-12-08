@@ -115,9 +115,6 @@ export async function startColumbus(initialBlock: SkipBlock, roster: Roster, fla
     // user wants to get the lifecycle of an instance.
     const lifecycle = new Lifecycle(roster, flash, totalBlock, hashBlock0);
 
-    // const selectedBlockSubject = new Subject();
-    // selectedBlockSubject.subscribe(chain.getBlockClickedSubject());
-    // window.addEventListener('hashchange', ()=>selectedBlockSubject.next()) //TODO 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
     const block = new Block(
@@ -143,5 +140,23 @@ export async function startColumbus(initialBlock: SkipBlock, roster: Roster, fla
             Flash.flashType.ERROR,
             `Block index ${initialBlockIndex} could not be found`);
     }
+
+    window.addEventListener('hashchange', async ()=>{
+        try{
+            console.log("hashchanged")
+            const indexString = window.location.hash.split(':')[1];
+            const initialBlockIndex = indexString !=null ? parseInt(indexString) : 20;
+
+            let block = await Utils.getBlockByIndex(
+                Utils.hex2Bytes(hashBlock0),
+                initialBlockIndex,
+                roster
+            );
+            chain.blockClickedSubject.next(block)  
+        }catch{
+            flash.display(Flash.flashType.ERROR,
+                `Block of index ${initialBlockIndex} fetched from URL can't be found`)
+        }
+    });
 
 }
