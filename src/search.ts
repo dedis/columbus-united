@@ -16,10 +16,23 @@ import {
 import { zoom } from 'd3';
 import { select } from 'd3';
 import { ChainConfig } from '@dedis/cothority/byzcoin';
+import { flatMap, switchMap, takeUntil } from 'rxjs/operators';
 
 
 
-newChain: Chain;
+
+let arrayBlock= new Array();
+
+let activate:boolean;
+
+let subject= new Subject();
+
+export function getActivate(){
+    return this.activate;
+}
+export function getSubj(){
+    return this.activate;
+}
 
 export function searchBar(
     roster: Roster,
@@ -102,20 +115,59 @@ async function searchRequest(
         //try {
             let block = await Utils.getBlockByIndex(
                 Utils.hex2Bytes(hashBlock0),
-                parseInt(input, 10),
+                parseInt(input, 10), 
                 roster
             );
 
-            let arrayBlock= new Array();
+
+
+           //    chain.initialBlockIndex= block.index;
+      //     chain.getNextBlocks(Utils.bytes2String(block.hash),chain.pageSize,chain.nbPages,chain.subjectBrowse,false);
+           //let sub = new Subject<[number, SkipBlock[], boolean]>();
+           
+            // let obs = sub.asObservable();
+
+
+          // chain.subjectBrowse.pipe(takeUntil());
+           
+        //   chain.subjectBrowse.pipe(switchMap(async function () { chain.subjectBrowse.next([chain.nbPages,arrayBlock,false])} )).subscribe();
+    
+          // sub.next([chain.nbPages,arrayBlock,false]);
+            activate=true;
             arrayBlock.push(block);
+            
             let blockByIndex = block.index;
-            let newZoom= d3.zoomIdentity.translate((108900-blockByIndex-1)*110, 0).scale(1);
-            //let newChange= chain.zoom.transform(d3.select("#svgcontainer"),newZoom)
-            //chain.subject.next(newZoom);
-            d3.select("#svg-container").call(chain.zoom.transform,newZoom);
-           chain.getNextBlocks( Utils.bytes2String(block.hash),chain.pageSize,chain.nbPages,chain.subjectBrowse,false);
-           chain.subjectBrowse.next([chain.nbPages,arrayBlock,false]);
-            // chain.subjectBrowse.next([chain.nbPages,arrayBlock,false]);
+            let newZoom= d3.zoomIdentity.translate((108900-blockByIndex+6)*110, 0).scale(1);
+          
+          d3.select("#svg-container").call(chain.zoom.transform,newZoom);
+        
+          
+          let lastBlock = await Utils.getBlockByIndex(Utils.hex2Bytes(hashBlock0),108049,roster);
+          chain.lastBlockRight=lastBlock;
+        
+        //   chain.initialBlock= block;
+        //   chain.initialBlockIndex=block.index;
+        //   //arrayBlock.push(chain.lastBlock);
+        //   chain.initialBlock= block;
+        //   chain.initialBlockIndex=block.index;
+        //   chain.lastBlock=block;
+        //   chain.lastBlockRight=lastBlock;
+        //   console.log("<<<<<<<<<<<<<<<<"+chain.lastBlockRight.index);
+
+   
+        
+        chain.getNextBlocks(Utils.bytes2String(block.hash),chain.pageSize,chain.nbPages,chain.subjectBrowse,false);
+        chain.subjectBrowse.next([chain.nbPages,arrayBlock,false])
+       
+            
+        //   chain.initialBlock= block;
+        //   chain.initialBlockIndex=block.index;
+        //   chain.lastBlock=block;
+        //   chain.lastBlockRight=lastBlock;
+        //   console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>"+chain.lastBlockRight.index);
+
+   
+
 
 
         
@@ -123,7 +175,7 @@ async function searchRequest(
                 Flash.flashType.INFO,
                 "Valid search for block index: " + blockByIndex.toString()
             );
-            blockSubject.next(block);
+      
 
         // } catch (error) {
         //     // try transactions
