@@ -104,7 +104,7 @@ export function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Fl
 
     chain.loadInitialBlocks(initialBlock.hash);
 
-    searchBar(roster, flash, chain.blockClickedSubject,hashBlock0, chain);
+    searchBar(roster, flash, chain.blockClickedSubject,hashBlock0, chain,initialBlock);
     
     const lastAddedBlock = new LastAddedBlock(roster,flash,initialBlock,chain)
   
