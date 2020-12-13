@@ -20,11 +20,11 @@ import { flatMap, last, switchMap, takeUntil } from "rxjs/operators";
 
 let arrayBlock = new Array<SkipBlock>();
 
-let activate =false;
+let activate = false;
 
 let subject = new Subject();
 
-export function getActivate():boolean {
+export function getActivate(): boolean {
     return this.activate;
 }
 export function getSubj() {
@@ -42,7 +42,7 @@ export function searchBar(
     blockSubject: Subject<SkipBlock>,
     hashBlock0: string,
     chain: Chain,
-    initialBlock:SkipBlock
+    initialBlock: SkipBlock
 ) {
     d3.select("#search-input").on("keypress", function () {
         if (d3.event.keyCode === 13) {
@@ -58,7 +58,7 @@ export function searchBar(
                 search_mode,
                 initialBlock
             );
-        } 
+        }
     });
 
     d3.select("#submit-button").on("click", async function () {
@@ -85,89 +85,35 @@ async function searchRequest(
     hashBlock0: string,
     chain: Chain,
     search_mode: string,
-    initialBlock:SkipBlock
+    initialBlock: SkipBlock
 ) {
     if (search_mode == "hash") {
         try {
-            let hi = await Utils.getBlock(Buffer.from(input, "hex"), roster);
+            let block = await Utils.getBlock(Buffer.from(input, "hex"), roster);
+            Utils.scrollOnChain(roster, hashBlock0, block, initialBlock, chain);
 
             flash.display(
                 Flash.flashType.INFO,
-                "Valid search for block index: " + hi.index.toString()
+                "Valid search for block index: " + block.index.toString()
             );
 
-        
-        
-
-            //  chain.getNextBlocks(Utils.bytes2String(hi.hash),chain.pageSize,chain.nbPages,chain.subjectBrowse,false);
         } catch (error) {
             flash.display(Flash.flashType.ERROR, "Block does not exist");
         }
     } else if (search_mode == "id") {
     } else {
         try {
-        let block = await Utils.getBlockByIndex(
-            Utils.hex2Bytes(hashBlock0),
-            parseInt(input, 10)-1, //using subjectBrowse shows one block too far
-            roster
-        );
-        let blockByIndex = block.index;
-        arrayBlock.push(block);
-
-        //    chain.initialBlockIndex= block.index;
-        //     chain.getNextBlocks(Utils.bytes2String(block.hash),chain.pageSize,chain.nbPages,chain.subjectBrowse,false);
-        //let sub = new Subject<[number, SkipBlock[], boolean]>();
-
-       
-
-        // sub.next([chain.nbPages,arrayBlock,false]);
-        //activate = true;
-  //      chain.subjectBrowse.complete();
-
-    
-  chain.subjectBrowse.next([chain.nbPages,arrayBlock,false]);
-
-
-// doesn't display the blocks
-//chain.getNextBlocks(Utils.bytes2String(block.hash),chain.pageSize,chain.nbPages,chain.subjectBrowse,false);
-
- //when zooming or scaling, the view comesback to the original block
-// chain.subject.next(newZoom);
-        
-  //translate the chain to wanted coordinates
-        let newZoom = d3.zoomIdentity
-            .translate((initialBlock.index - blockByIndex-1) * 110 +0.2, 0)  //block+padding =110
-            .scale(1);
-            d3.select("#svg-container").call(chain.zoom.transform, newZoom);
-    
-
-        // let lastBlock = await Utils.getBlockByIndex(
-        //     Utils.hex2Bytes(hashBlock0),
-        //     108049,
-        //     roster
-        // );
-
-        //   chain.lastBlockRight=lastBlock;
-        //   chain.lastBlockLeft=block;
-        //   chain.initialBlock= block;
-        //   chain.initialBlockIndex=block.index;
-        //  //arrayBlock.push(chain.lastBlock);
-        // //   chain.lastBlock=block;
-
-//Trying to replace old Subject with new one, not efficient 
-        // chain.subjectBrowse.complete();
-        // chain.searchSubject.next([chain.nbPages,arrayBlock,false]);
-        
-
-    chain.blockClickedSubject.next(await Utils.getBlockByIndex(Utils.hex2Bytes(hashBlock0),blockByIndex+1,roster));
-        
-        flash.display(
-            Flash.flashType.INFO,
-            "Valid search for block index: " + (blockByIndex+1).toString()
-        );
-
+            let block = await Utils.getBlockByIndex(
+                Utils.hex2Bytes(hashBlock0),
+                parseInt(input, 10) - 1, //using subjectBrowse shows one block too far
+                roster
+            );
+            Utils.scrollOnChain(roster, hashBlock0, block, initialBlock, chain);
+            flash.display(
+                Flash.flashType.INFO,
+                "Valid search for block index: " + (block.index + 1).toString()
+            );
         } catch (error) {
-           
             flash.display(Flash.flashType.ERROR, "Block does not exist");
         }
     }
