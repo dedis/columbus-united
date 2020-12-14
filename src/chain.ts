@@ -15,6 +15,8 @@ import {
    
     map,
 
+    skip,
+
     throttleTime,
  
 } from "rxjs/operators";
@@ -24,6 +26,8 @@ import { Flash } from "./flash";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
 import { svg } from 'd3';
+import { connectableObservableDescriptor } from 'rxjs/internal/observable/ConnectableObservable';
+import { getActivate, getBlock, searchBar, setActivate } from './search';
 
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
@@ -71,12 +75,19 @@ export class Chain {
     // between the different calls instead of creating a new connection each time.
     ws: WebSocketAdapter;
 
+    lastBlockLeft:SkipBlock;
+    lastBlockRight:SkipBlock;
+
+    lastBlock:SkipBlock;
+
     // This subject is notified each time a new page containing new blocks has
     // been loaded from the cothority client.
     subjectBrowse = new Subject<[number, SkipBlock[], boolean]>();
 
     // This subject is notified each time a block is clicked.
     blockClickedSubject = new Subject<SkipBlock>();
+
+    searchSubject = new Subject<[number, SkipBlock[], boolean]>();
 
     // This subject is notified when a new series of block has been added to the
     // view.
@@ -93,7 +104,7 @@ export class Chain {
     // number of blocks loaded to the left and to the right.
     initialBlockIndex: number;
 
-    initalBlock: SkipBlock;
+    initialBlock: SkipBlock;
 
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
         const self = this;
@@ -106,12 +117,16 @@ export class Chain {
 
       
 
-        this.initalBlock = initialBlock;
+        this.initialBlock = initialBlock;
 
         this.initialBlockIndex = initialBlock.index;
 
         let lastBlockLeft = initialBlock;
         let lastBlockRight = initialBlock;
+
+        this.lastBlockLeft=lastBlockLeft;
+        this.lastBlockRight=lastBlockRight;
+        
 
         // to keep track of current requested operations. If we are already loading
         // blocks on the left, then we shouldn't make another same request. Note
@@ -190,6 +205,7 @@ export class Chain {
         this.subject.subscribe({
             next: (transform: any) => {
                 lastTransform = transform;
+           
                 // This line disables translate to the left. (for reference)
                 // transform.x = Math.min(0, transform.x);
 
@@ -237,11 +253,23 @@ export class Chain {
             },
         });
 
-        // Handler to check if new blocks need to be loaded. We check every 300ms.
+
+     
+
+        // Handler to check if new blocks need to be loaded. We check every 200ms.
         this.subject.pipe(throttleTime(200)).subscribe({
             next: (transform: any) => {
-                if (!isLoadingLeft) {
+                
+           
+              
+console.log("======================SUBJECT CALLLEDD  ===========================================================================================================");
+console.log("-----+"+lastBlockRight.index);
+console.log("-----+"+lastBlockLeft.index);
+if (!isLoadingLeft) {
+                  
                     isLoadingLeft = true;
+
+                    
                     const isLoading = this.checkAndLoadLeft(
                         transform,
                         lastBlockLeft,
@@ -251,9 +279,10 @@ export class Chain {
                         isLoadingLeft = false;
                     }
                 }
-
+               
                 if (!isLoadingRight) {
                     isLoadingRight = true;
+       
                     const isLoading = this.checkAndLoadRight(
                         transform,
                         lastBlockRight,
@@ -265,10 +294,7 @@ export class Chain {
                 }
             },
         });
-
-    
-
-        // Subscriber to the blockchain server
+       
         this.subjectBrowse.subscribe({
             complete: () => {
                 this.flash.display(
@@ -287,7 +313,9 @@ export class Chain {
                 isLoadingLeft = false;
                 isLoadingRight = false;
             },
-            next: ([i, skipBlocks, backward]) => {
+            next: ([i, skipBlocks, backward,]) => {
+
+            
                 // i is the page number
                 let isLastPage = false;
                 // tslint:disable-next-line
@@ -300,13 +328,31 @@ export class Chain {
 
                 // If this is the first series of blocks, set the hash of the left first block
                 const firstBlock = skipBlocks[0];
+                console.log("firstBlock  "+firstBlock.index);
+               
+            
+           
                 if (firstBlock.index === this.initialBlockIndex) {
                     lastBlockLeft = firstBlock;
+                    console.log("-------------- lastLeft = firt ")
+    
                 }
 
                 const lastBlock = skipBlocks[skipBlocks.length - 1];
+                this.lastBlock=lastBlock;
+                console.log("lastBlock  "+lastBlock.index)
+
+              //  skipBlocks.forEach((x)=> console.log("hi"+x.index));
+                console.log("lastBlockLeft  "+lastBlockLeft.index);
+                console.log("lastBlockRight  "+lastBlockRight.index);
+                console.log("active++"+getActivate());
+                if(getActivate()){
+                    lastBlockLeft = firstBlock;
+                }
 
                 if (backward) {
+                    console.log("bavckwards");
+               
                     // Load blocks to the left
                     this.displayBlocks(
                         skipBlocks,
@@ -318,6 +364,7 @@ export class Chain {
                     );
 
                     lastBlockLeft = lastBlock;
+                    
 
                     if (isLastPage) {
                         d3.selectAll(".left-loader").remove();
@@ -357,6 +404,129 @@ export class Chain {
                     // tslint:disable-next-line
                     if (isLastPage) {
                         d3.selectAll(".right-loader").remove();
+                      
+                        
+                        const loadMore = this.checkAndLoadRight(
+                            lastTransform,
+                            lastBlockRight,
+                            gloader
+                        );
+                        if (!loadMore) {
+                            isLoadingRight = false;
+                        }
+                    }
+                }
+            },
+        });
+
+           // Subscriber to the blockchain server
+           this.searchSubject.subscribe({
+            complete: () => {
+                this.flash.display(
+                    Flash.flashType.INFO,
+                    "End of the blockchain"
+                );
+            },
+            error: (err: any) => {
+                if (err === 1) {
+                    // To reset the websocket, create a new handler for the next function
+                    // (of getnextblock)
+                    this.ws = undefined;
+                } else {
+                    this.flash.display(Flash.flashType.ERROR, `Error: ${err}`);
+                }
+                isLoadingLeft = false;
+                isLoadingRight = false;
+            },
+            next: ([i, skipBlocks, backward,]) => {
+                console.log("INSIDEEEE<>>>>>>><>>>>>>>>>>>>>>>>>>>>>>>>>>>><");
+            
+                // i is the page number
+                let isLastPage = false;
+                // tslint:disable-next-line
+                if (i == this.nbPages - 1) {
+                    isLastPage = true;
+                }
+
+                this.totalLoaded += skipBlocks.length;
+                this.loadedInfo.innerText = `${this.totalLoaded}`;
+
+                // If this is the first series of blocks, set the hash of the left first block
+                const firstBlock = skipBlocks[0];
+                console.log("firstBlock  "+firstBlock.index);
+               
+            
+           
+                if (firstBlock.index === this.initialBlockIndex) {
+                    lastBlockLeft = firstBlock;
+                    console.log("-------------- lastLeft = firt ")
+    
+                }
+
+                const lastBlock = skipBlocks[skipBlocks.length - 1];
+                this.lastBlock=lastBlock;
+                console.log("lastBlock  "+lastBlock.index)
+
+              //  skipBlocks.forEach((x)=> console.log("hi"+x.index));
+                console.log("lastBlockLeft  "+lastBlockLeft.index);
+                console.log("lastBlockRight  "+lastBlockRight.index);
+
+                if (backward) {
+                    console.log("bavckwards");
+               
+                    // Load blocks to the left
+                    this.displayBlocks(
+                        skipBlocks,
+                        true,
+                        gblocks,
+                        garrow,
+                        gcircle,
+                        lastBlockLeft.index - this.initialBlockIndex
+                    );
+
+                    lastBlockLeft = lastBlock;
+                    
+
+                    if (isLastPage) {
+                        d3.selectAll(".left-loader").remove();
+                        const loadMore = this.checkAndLoadLeft(
+                            lastTransform,
+                            lastBlockLeft,
+                            gloader
+                        );
+                        if (!loadMore) {
+                            isLoadingLeft = false;
+                        }
+                    }
+                } else {
+                    // Load blocks to the right
+
+                    // in the case we haven't loaded any blocks yet we can't use the
+                    // formula "lastBlockRight.index - this.initialBlockIndex + 1" since
+                    // it would equal to one, but the result should be 0.
+                    let nb: number;
+                    if (lastBlockRight.index === this.initialBlockIndex) {
+                        nb = 0;
+                    } else {
+                        nb = lastBlockRight.index - this.initialBlockIndex + 1;
+                    }
+
+                    this.displayBlocks(
+                        skipBlocks,
+                        false,
+                        gblocks,
+                        garrow,
+                        gcircle,
+                        nb
+                    );
+
+                    lastBlockRight = lastBlock;
+
+                    // tslint:disable-next-line
+                    if (isLastPage) {
+                        d3.selectAll(".right-loader").remove();
+                      
+                        
                         const loadMore = this.checkAndLoadRight(
                             lastTransform,
                             lastBlockRight,
@@ -374,92 +544,22 @@ export class Chain {
     }
 
 
-
-
-
-    scrollChain(lastTransform:any,xScale:any,xAxis:any,xAxisDraw:any, gblocks:any, gloader:any,isLoadingLeft:boolean,isLoadingRight:boolean,lastBlockLeft:any, lastBlockRight:any){
-
     
-        // this.subject.subscribe({
-        //     next: (transform: any) => {
-        //         lastTransform = transform;
-        //         // This line disables translate to the left. (for reference)
-        //         // transform.x = Math.min(0, transform.x);
+           
+        
+       
+    
+   
 
-        //         // Disable translation up/down
-        //         transform.y = 0;
 
-        //         // Update the scale
-        //         const xScaleNew = transform.rescaleX(xScale);
-        //         xAxis.scale(xScaleNew);
-        //         xAxisDraw.call(xAxis);
 
-        //         // Horizontal only transformation on the blocks (sets scale Y to
-        //         // 1)
-        //         const transformString =
-        //             "translate(" +
-        //             transform.x +
-        //             "," +
-        //             "0) scale(" +
-        //             transform.k +
-        //             "," +
-        //             "1" +
-        //             ")";
-        //         gblocks.attr("transform", transformString);
-        //         // Standard transformation on the text since we need to keep the
-        //         // original scale
-        //         //  gblocks.selectAll("circle").attr("r",transform.k*5);
 
-        //    //     gcircle.selectAll("circle").attr("transform", transformString);
+   
 
-        //         //  console.log("text"+ gtext.selectAll("circle").attr("height").toString());
-        //         //gtext.attr("r", transform.k*100);
-        //         // Update the text size
-        //         // if (transform.k < 1) {
-        //         //     gtext
-        //         //         .selectAll("text")
-        //         //         .attr("font-size", 1 + transform.k + "em");
-        //         // }
-        //         // Update the loader. We want to keep them at their original
-        //         // scale so we only translate them
-        //         gloader.attr("transform", transform);
-        //         // resize the loaders to always have a relative scale of 1
-        //         gloader
-        //             .selectAll("svg")
-        //             .attr("transform", `scale(${1 / transform.k})`);
-        //     },
-        // });
 
-        // // Handler to check if new blocks need to be loaded. We check every 300ms.
-        // this.subject.pipe(throttleTime(200)).subscribe({
-        //     next: (transform: any) => {
-        //         if (!isLoadingLeft) {
-        //             isLoadingLeft = true;
-        //             const isLoading = this.checkAndLoadLeft(
-        //                 transform,
-        //                 lastBlockLeft,
-        //                 gloader
-        //             );
-        //             if (!isLoading) {
-        //                 isLoadingLeft = false;
-        //             }
-        //         }
 
-        //         if (!isLoadingRight) {
-        //             isLoadingRight = true;
-        //             const isLoading = this.checkAndLoadRight(
-        //                 transform,
-        //                 lastBlockRight,
-        //                 gloader
-        //             );
-        //             if (!isLoading) {
-        //                 isLoadingRight = false;
-        //             }
-        //         }
-        //     },
-        // });
-    }
 
+   
    
 
     /**
@@ -535,6 +635,7 @@ export class Chain {
             );
 
             const hashNextBlockLeft = Utils.getLeftBlockHash(lastBlockLeft);
+    
 
             setTimeout(() => {
                 self.getNextBlocks(
@@ -738,10 +839,10 @@ export class Chain {
      * @param block the block to append
      */
     private appendBlock(xTranslate: number, block: SkipBlock, svgBlocks: any) {
-        //console.log("yoooo "+block.height + " vs  "+ block.forwardLinks.length);
+        
         svgBlocks
             .append("rect")
-            .attr("id", block.hash.toString("hex"))
+            .attr("id", Utils.bytes2String(block.hash))
             .attr("width", this.blockWidth)
 
             .attr("height", block.height * 40)
@@ -914,6 +1015,100 @@ export class Chain {
         backward: boolean
     ) {
         let bid: Buffer;
+        
+
+        try {
+            bid = Utils.hex2Bytes(nextBlockID);
+        } catch (error) {
+            this.flash.display(
+                Flash.flashType.ERROR,
+                `failed to parse the block ID: ${error}`
+            );
+            return;
+        }
+
+        let conn: WebSocketConnection;
+        try {
+            conn = new WebSocketConnection(
+                this.roster.list[0].getWebSocketAddress(),
+                ByzCoinRPC.serviceName
+            );
+        } catch (error) {
+            this.flash.display(
+                Flash.flashType.ERROR,
+                `error creating conn: ${error}`
+            );
+            return;
+        }
+        console.log("+++++++++++++++++++++++++++++++++++");
+
+        if (this.ws !== undefined) {
+            const message = new PaginateRequest({
+                backward,
+                numpages: nbPages,
+                pagesize: pageSize,
+                startid: bid,
+            });
+
+            const messageByte = Buffer.from(
+                message.$type.encode(message).finish()
+            );
+            this.ws.send(messageByte); // fetch next block
+        } else {
+            conn.sendStream<PaginateResponse>( // fetch next block
+                new PaginateRequest({
+                    backward,
+                    numpages: nbPages,
+                    pagesize: pageSize,
+                    startid: bid,
+                }),
+                PaginateResponse
+            ).subscribe({
+                // ws callback "onMessage":
+                complete: () => {
+                    this.flash.display(Flash.flashType.ERROR, "closed");
+                    this.ws=undefined;
+                },
+                error: (err: Error) => {
+                    this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
+                    this.ws = undefined;
+                },
+                next: ([data, ws]) => {
+                    // tslint:disable-next-line
+                    if (data.errorcode != 0) {
+                        this.flash.display(
+                            Flash.flashType.ERROR,
+                            `got an error with code ${data.errorcode} : ${data.errortext}`
+                        );
+                        return 1;
+                    }
+                    if (ws !== undefined) {
+                        this.ws = ws;
+                    }
+                
+                    console.log(data.blocks);
+                
+                   
+                   
+                    subjectBrowse.next([
+                        data.pagenumber,
+                        data.blocks,
+                        data.backward,
+                    ]);
+                    return 0;
+                },
+            });
+        }
+    }
+    getNextBlocksSearch(
+        nextBlockID: string,
+        pageSize: number,
+        nbPages: number,
+        searchSubject: Subject<[number, SkipBlock[], boolean]>,
+        backward: boolean
+    ) {
+        this.subjectBrowse.complete();
+        let bid: Buffer;
 
         try {
             bid = Utils.hex2Bytes(nextBlockID);
@@ -982,7 +1177,12 @@ export class Chain {
                     if (ws !== undefined) {
                         this.ws = ws;
                     }
-                    subjectBrowse.next([
+           
+                    console.log(data.blocks);
+            
+                   console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<NEXT");
+                   
+                    searchSubject.next([
                         data.pagenumber,
                         data.blocks,
                         data.backward,
@@ -992,5 +1192,4 @@ export class Chain {
             });
         }
     }
-
 }
