@@ -7,9 +7,12 @@ import { Roster } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { Observable } from "rxjs";
-import { DataHeader } from '@dedis/cothority/byzcoin/proto';
+import { DataHeader } from "@dedis/cothority/byzcoin/proto";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
-import { Flash } from './flash';
+import { Flash } from "./flash";
+import { Chain } from "./chain";
+import * as d3 from "d3";
+import { Subject } from "rxjs";
 
 export class Utils {
     /**
@@ -54,78 +57,84 @@ export class Utils {
     /**
      * Get the hash of the next (right) block.
      * @param block block of which we want the hash of the right block
-   */
+     */
     static getRightBlockHash(block: SkipBlock): string {
         return this.bytes2String(block.forwardLinks[0].to);
-    } 
+    }
     /**
      * Gets the block index by it's hash and roster
      * @param hash block of which we want the index
      * @param roster roster that validated the block
      */
-    static async getBlockIndex(hash: Buffer, roster:Roster): Promise<number> {
+    static async getBlockIndex(hash: Buffer, roster: Roster): Promise<number> {
         return await new Promise<number>((resolve, reject) => {
             new SkipchainRPC(roster)
-            .getSkipBlock(hash)
-            .then((skipblock) => resolve(skipblock.index)
-            ).catch( e => reject(e));
-        })
+                .getSkipBlock(hash)
+                .then((skipblock) => resolve(skipblock.index))
+                .catch((e) => reject(e));
+        });
     }
 
-     /**
+    /**
      * Gets the block by it's hash and roster
      * @param hash block of which we want the index
      * @param roster roster that validated the block
      */
-    static async getBlock(hash: Buffer, roster:Roster): Promise<SkipBlock> {
+    static async getBlock(hash: Buffer, roster: Roster): Promise<SkipBlock> {
         return await new Promise<SkipBlock>((resolve, reject) => {
             new SkipchainRPC(roster)
-            .getSkipBlock(hash)
-            .then((skipblock) => resolve(skipblock)
-            ).catch( e => reject(e));
-        })
+                .getSkipBlock(hash)
+                .then((skipblock) => resolve(skipblock))
+                .catch((e) => reject(e));
+        });
     }
 
-     /**
+    /**
      * Gets the block by it's hash and roster
      * @param hash block of which we want the index
      * @param roster roster that validated the block
      */
-    static async getBlockByIndex(genesis: Buffer, index :number, roster:Roster): Promise<SkipBlock> {
+    static async getBlockByIndex(
+        genesis: Buffer,
+        index: number,
+        roster: Roster
+    ): Promise<SkipBlock> {
         return await new Promise<SkipBlock>((resolve, reject) => {
             new SkipchainRPC(roster)
-            .getSkipBlockByIndex(genesis,index)
-            .then((skipblock) => resolve(skipblock.skipblock)
-            ).catch( e => reject(e));
-        })
+                .getSkipBlockByIndex(genesis, index)
+                .then((skipblock) => resolve(skipblock.skipblock))
+                .catch((e) => reject(e));
+        });
     }
-
-
-
-
 
     /**
      * Formats and outputs the date at which a block was validated
      * @param block block of which we want the validation time
      */
-    static getTimeString(block : SkipBlock): string{
+    static getTimeString(block: SkipBlock): string {
         var timestamp = Number(DataHeader.decode(block.data).timestamp);
-        const date = new Date(timestamp/1000_000)
+        const date = new Date(timestamp / 1000_000);
         const hours = date.getHours();
         const minutes = "0" + date.getMinutes();
         const seconds = "0" + date.getSeconds();
         const day = date.getDay();
         const month = date.getMonth();
         const year = date.getFullYear();
-        
-        return date.toISOString().slice(0,10)+ " at " + hours + ":" + minutes.substr(-2)+":"+seconds.substr(-2)
+
+        return (
+            date.toISOString().slice(0, 10) +
+            " at " +
+            hours +
+            ":" +
+            minutes.substr(-2) +
+            ":" +
+            seconds.substr(-2)
+        );
     }
 
-    static trigger(id : string): void{
-
+    static trigger(id: string): void {
         alert(id);
     }
-
 
     /**
      * Takes a string and copies it to clipboard, notify it has been done afterwards.
@@ -133,20 +142,71 @@ export class Utils {
      * @param str string to copy to clipboard
      * @param flash flash used to display a notification on
      */
-    static copyToClipBoard(str : string, flash: Flash): void {
-        const dummy = document.createElement('textarea');
+    static copyToClipBoard(str: string, flash: Flash): void {
+        const dummy = document.createElement("textarea");
         dummy.value = str;
         document.body.appendChild(dummy);
         dummy.select();
         document.execCommand("copy");
         document.body.removeChild(dummy);
-        flash.display(Flash.flashType.INFO,"Copied to clipboard");
+        flash.display(Flash.flashType.INFO, "Copied to clipboard");
     }
 
-    static goToBlockOnChain(){
-        
+    static async scrollOnChain(
+        roster: Roster,
+        hashBlock0: string,
+        block: SkipBlock,
+        initialBlock: SkipBlock,
+        chain: Chain,
+    ) {
+        let arrayBlock = Array<SkipBlock>();
+        arrayBlock.push(block);
+
+        //    chain.initialBlockIndex= block.index;
+        //     chain.getNextBlocks(Utils.bytes2String(block.hash),chain.pageSize,chain.nbPages,chain.subjectBrowse,false);
+        //let sub = new Subject<[number, SkipBlock[], boolean]>();
+
+        // sub.next([chain.nbPages,arrayBlock,false]);
+        //activate = true;
+        //   chain.subjectBrowse.complete();
+
+        chain.subjectBrowse.next([chain.nbPages, arrayBlock, false]);
+
+        // doesn't display the blocks
+        //chain.getNextBlocks(Utils.bytes2String(block.hash),chain.pageSize,chain.nbPages,chain.subjectBrowse,false);
+
+        //when zooming or scaling, the view comesback to the original block
+        // chain.subject.next(newZoom);
+
+        //translate the chain to wanted coordinates
+        let newZoom = d3.zoomIdentity
+            .translate((initialBlock.index - block.index - 1) * 110 + 0.2, 0) //block+padding =110
+            .scale(1);
+        d3.select("#svg-container").call(chain.zoom.transform, newZoom);
+
+        // let lastBlock = await Utils.getBlockByIndex(
+        //     Utils.hex2Bytes(hashBlock0),
+        //     108049,
+        //     roster
+        // );
+
+        //   chain.lastBlockRight=lastBlock;
+        //   chain.lastBlockLeft=block;
+        //   chain.initialBlock= block;
+        //   chain.initialBlockIndex=block.index;
+        //  //arrayBlock.push(chain.lastBlock);
+        // //   chain.lastBlock=block;
+
+        //Trying to replace old Subject with new one, not efficient
+        // chain.subjectBrowse.complete();
+        // chain.searchSubject.next([chain.nbPages,arrayBlock,false]);
+
+        chain.blockClickedSubject.next(
+            await Utils.getBlockByIndex(
+                Utils.hex2Bytes(hashBlock0),
+                block.index + 1,
+                roster
+            )
+        );
     }
-
-
-    
 }
