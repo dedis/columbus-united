@@ -61,7 +61,7 @@ async function searchRequest(
             );
             flash.display(
                 Flash.flashType.INFO,
-                "Valid search for block index: " + (block.index + 1).toString()
+                "Valid search for block index: " + (block.index).toString()
             );
         } catch (error) {
             flash.display(Flash.flashType.ERROR, "Block does not exist");
