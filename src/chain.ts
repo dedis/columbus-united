@@ -39,7 +39,7 @@ export class Chain {
     readonly lastHeight = 176;
 
     readonly lastWidth = 200;
-    readonly svgWidth = window.innerWidth; 
+    readonly svgWidth = window.innerWidth;
     readonly svgHeight = 200;
     readonly unitBlockAndPaddingWidth = this.blockPadding + this.blockWidth;
 
@@ -77,11 +77,10 @@ export class Chain {
     // view.
     newblocksSubject = new Subject<SkipBlock[]>();
 
-
     // Flash is a utiliy class to display flash messages in the view.
     flash: Flash;
 
-    //First block disaplyed on the chain
+    //First block displayed on the chain
     initialBlock: SkipBlock;
 
     //Coordinates and scale factor of the view of the chain
@@ -93,13 +92,12 @@ export class Chain {
         // Blockchain properties
         this.roster = roster;
 
-        // Blocks observation
         this.flash = flash;
 
+        //First block displayed on the chain
         this.initialBlock = initialBlock;
 
-        // this subject will be notified when the main SVG caneva in moved by the
-        // user
+        // This subject will be notified when the main SVG caneva in moved by the user
         const subject = new Subject();
 
         // Main SVG caneva that contains the chain
@@ -158,11 +156,9 @@ export class Chain {
             });
         svg.call(zoom);
 
-
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
         // zommed in-out by the user.
-        
 
         subject.subscribe({
             next: (transform: any) => {
@@ -412,8 +408,8 @@ export class Chain {
     /**
      * Helper function to append arrows between two blocks
      * @param xTrans horizontal position where the block should be appended
-     * @param skipBlockFrom starting skipBlock point of the arrow 
-     * @param skipBlockTo the skipBlock the arrow points to 
+     * @param skipBlockFrom starting skipBlock point of the arrow
+     * @param skipBlockTo the skipBlock the arrow points to
      * @param svgBlocks the svg where the block are appended
      * @param height the y coordinate where the arrow is appended on the blocks
      */
@@ -422,10 +418,9 @@ export class Chain {
         skipBlockFrom: SkipBlock,
         skipBlockTo: SkipBlock,
         svgBlocks: any,
-        height:number
+        height: number
     ) {
-
-        if (skipBlockTo.index- skipBlockFrom.index == 1) {
+        if (skipBlockTo.index - skipBlockFrom.index == 1) {
             const line = svgBlocks.append("line");
             line.attr("id", skipBlockFrom.index)
                 .attr("x1", xTrans)
@@ -491,7 +486,7 @@ export class Chain {
         }
     }
     /**
-     * Helper function to get starting point and ending SkipBlocks of the arrow 
+     * Helper function to get starting point and ending SkipBlocks of the arrow
      * @param xTranslate horizontal position where the block should be appended
      * @param skipBlockTo the skipBlock the arrow points to
      * @param svgBlocks the svg where the blocks are appended
@@ -524,10 +519,7 @@ export class Chain {
      * @param text text to display
      * @param textColor color of the text
      */
-    private appendCircleInBlock(
-        xTranslate: number,
-        gtext: any
-    ) {
+    private appendCircleInBlock(xTranslate: number, gtext: any) {
         gtext
             .append("circle")
             .attr("cx", xTranslate + 35)
