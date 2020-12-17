@@ -1,7 +1,5 @@
 import { Roster } from "@dedis/cothority/network";
-
 import { SkipBlock } from "@dedis/cothority/skipchain";
-
 import { DataHeader } from "@dedis/cothority/byzcoin/proto";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import { Flash } from "./flash";
