@@ -1,7 +1,6 @@
 import { Roster } from "@dedis/cothority/network";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import { SkipBlock } from "@dedis/cothority/skipchain/skipblock";
-import * as d3 from "d3";
 import { Block } from "./block";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
@@ -10,13 +9,9 @@ import { getRosterStr } from "./roster";
 import { TotalBlock } from "./totalBlock";
 import { LastAddedBlock } from "./lastAddedBlock";
 import { Utils } from "./utils";
-import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
-
 import "uikit";
 import "./stylesheets/style.scss";
-import { Subject } from "rxjs";
-import { drag } from "d3";
-import { searchBar } from './search';
+import { searchBar } from "./search";
 
 // This is the genesis block, which is also the skipchain identifier
 const hashBlock0 =
@@ -46,13 +41,13 @@ export function sayHi() {
     }
 
     // Load the first block
-    const indexString = window.location.hash.split(':')[1];
-    const initialBlockIndex = indexString !=null ? parseInt(indexString) : 0;
+    const indexString = window.location.hash.split(":")[1];
+    const initialBlockIndex = indexString != null ? parseInt(indexString) : 0;
     // Change here the first block to display
     //'6bacd57b248c94dc1e2372d62976d8986948f04d727254ffbc0220182f73ab67' block #110997 - problem with nextID
     //that block has no forwards link
     //block #110940 gives as last block 110997
-    
+
     if (initialBlockIndex < 0) {
         flash.display(
             Flash.flashType.ERROR,
@@ -70,16 +65,21 @@ export function sayHi() {
     let i = 1;
     // Load the first block at the provided index, and start the visualization
     // once we got that block and the promise resolves.
-    const scRPC = new SkipchainRPC(roster)
+    const scRPC = new SkipchainRPC(roster);
     scRPC
         .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), initialBlockIndex)
         .then(
             (blockReply) => {
-                scRPC.getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), 0).then(
-                    (genesis) => {
-                        startColumbus(genesis.skipblock, blockReply.skipblock, roster, flash);
-                    }
-                )
+                scRPC
+                    .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), 0)
+                    .then((genesis) => {
+                        startColumbus(
+                            genesis.skipblock,
+                            blockReply.skipblock,
+                            roster,
+                            flash
+                        );
+                    });
             },
             (e) => {
                 flash.display(
@@ -91,11 +91,7 @@ export function sayHi() {
                 );
             }
         );
-        
-
 }
-
-
 
 /**
  * startColumbus starts the visualization
@@ -104,36 +100,44 @@ export function sayHi() {
  * @param roster the roster
  * @param flash the flash class that handles the flash messages
  */
-export function startColumbus(genesisBlock: SkipBlock, initialBlock: SkipBlock, roster: Roster, flash: Flash) {
-
+export function startColumbus(
+    genesisBlock: SkipBlock,
+    initialBlock: SkipBlock,
+    roster: Roster,
+    flash: Flash
+) {
     // We load the chain at block 0 and then move it to the desired place.
     const chain = new Chain(roster, flash, genesisBlock);
-    Utils.scrollOnChain(roster, initialBlock.hash.toString("hex"), initialBlock, genesisBlock, chain)   
 
-    searchBar(roster, flash, chain.blockClickedSubject,hashBlock0, chain,initialBlock);
-    
-    const lastAddedBlock = new LastAddedBlock(roster,flash,initialBlock,chain)
-  
+    //We initialise the search bar
+    searchBar(
+        roster,
+        flash,
+        hashBlock0
+    );
+
+
     // The totalBlock utility class allows the browsing class to get the total
     // number of block in the chain. This class is stateful, it will keep each
     // time the last know block instead of browsing the entire chain each time.
     const totalBlock = new TotalBlock(roster, initialBlock);
-
+    
+    //initialise and get the last block on the chain space on canevas 
+    const lastBlock= new LastAddedBlock(roster,flash,initialBlock,chain);
     // Create the browsing instance, which is used by the detailBlock class when a
     // user wants to get the lifecycle of an instance.
     const lifecycle = new Lifecycle(roster, flash, totalBlock, hashBlock0);
 
     // const selectedBlockSubject = new Subject();
     // selectedBlockSubject.subscribe(chain.getBlockClickedSubject());
-    // window.addEventListener('hashchange', ()=>selectedBlockSubject.next()) //TODO 
+    // window.addEventListener('hashchange', ()=>selectedBlockSubject.next()) //TODO
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
-    
+
     new Block(
         chain.getBlockClickedSubject(),
         lifecycle,
         flash,
         chain.getNewblocksSubject()
     ).startListen();
-    
 }
