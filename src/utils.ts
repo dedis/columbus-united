@@ -1,18 +1,12 @@
-import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
-import {
-    PaginateRequest,
-    PaginateResponse,
-} from "@dedis/cothority/byzcoin/proto/stream";
 import { Roster } from "@dedis/cothority/network";
-import { WebSocketConnection } from "@dedis/cothority/network";
+
 import { SkipBlock } from "@dedis/cothority/skipchain";
-import { Observable } from "rxjs";
+
 import { DataHeader } from "@dedis/cothority/byzcoin/proto";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import { Flash } from "./flash";
 import { Chain } from "./chain";
 import * as d3 from "d3";
-import { Subject } from "rxjs";
 
 export class Utils {
     /**
@@ -62,8 +56,8 @@ export class Utils {
         return this.bytes2String(block.forwardLinks[0].to);
     }
     /**
-     * Gets the block index by it's hash and roster
-     * @param hash block of which we want the index
+     * Get the block index by it's hash and roster
+     * @param hash block's hash of which we want the index
      * @param roster roster that validated the block
      */
     static async getBlockIndex(hash: Buffer, roster: Roster): Promise<number> {
@@ -76,8 +70,8 @@ export class Utils {
     }
 
     /**
-     * Gets the block by it's hash and roster
-     * @param hash block of which we want the index
+     * Get the block by its hash and roster
+     * @param hash the hash the requested block 
      * @param roster roster that validated the block
      */
     static async getBlock(hash: Buffer, roster: Roster): Promise<SkipBlock> {
@@ -90,7 +84,8 @@ export class Utils {
     }
 
     /**
-     * Gets the block by it's hash and roster
+     * Gets the block by its hash and roster
+     * @param genesis hash of the first block of the chain
      * @param hash block of which we want the index
      * @param roster roster that validated the block
      */
@@ -152,77 +147,24 @@ export class Utils {
         flash.display(Flash.flashType.INFO, "Copied to clipboard");
     }
 
-    static async scrollOnChain(
-        roster: Roster,
-        hashBlock0: string,
-        block: SkipBlock,
-        initialBlock: SkipBlock,
-        chain: Chain,
-    ) {
-        let arrayBlock = Array<SkipBlock>();
-        arrayBlock.push(block);
-
-        //    chain.initialBlockIndex= block.index;
-        //     chain.getNextBlocks(Utils.bytes2String(block.hash),chain.pageSize,chain.nbPages,chain.subjectBrowse,false);
-        //let sub = new Subject<[number, SkipBlock[], boolean]>();
-
-        // sub.next([chain.nbPages,arrayBlock,false]);
-        //activate = true;
-        //   chain.subjectBrowse.complete();
-
-        chain.subjectBrowse.next([chain.nbPages, arrayBlock, false]);
-
-        // doesn't display the blocks
-        //chain.getNextBlocks(Utils.bytes2String(block.hash),chain.pageSize,chain.nbPages,chain.subjectBrowse,false);
-
-        //when zooming or scaling, the view comesback to the original block
-        // chain.subject.next(newZoom);
-
-        //translate the chain to wanted coordinates
-        let newZoom = d3.zoomIdentity
-            .translate((initialBlock.index - block.index - 1) * 110 + 0.2, 0) //block+padding =110
-            .scale(1);
-        d3.select("#svg-container").call(chain.zoom.transform, newZoom);
-
-        // let lastBlock = await Utils.getBlockByIndex(
-        //     Utils.hex2Bytes(hashBlock0),
-        //     108049,
-        //     roster
-        // );
-
-        //   chain.lastBlockRight=lastBlock;
-        //   chain.lastBlockLeft=block;
-        //   chain.initialBlock= block;
-        //   chain.initialBlockIndex=block.index;
-        //  //arrayBlock.push(chain.lastBlock);
-        // //   chain.lastBlock=block;
-
-        //Trying to replace old Subject with new one, not efficient
-        // chain.subjectBrowse.complete();
-        // chain.searchSubject.next([chain.nbPages,arrayBlock,false]);
-
-        chain.blockClickedSubject.next(
-            await Utils.getBlockByIndex(
-                Utils.hex2Bytes(hashBlock0),
-                block.index + 1,
-                roster
-            )
-        );
-    }
-
     /**
      * Converts a transform to the corresponding block index.
-     * 
+     *
      * @param transform d3 transformation
      * @param blockWidth width of a block, with the padding included
      */
-    static transformToIndexes(transform: any, blockWidth: number, chainWidth: number): {left: number, right: number} {
+    static transformToIndexes(
+        transform: any,
+        blockWidth: number,
+        chainWidth: number
+    ): { left: number; right: number } {
         const x = -transform.x;
         const zoomLevel = transform.k;
 
-        const leftBlockIndex = x / (blockWidth*zoomLevel)
-        const rightBlockIndex = chainWidth / (blockWidth*zoomLevel) + leftBlockIndex
+        const leftBlockIndex = x / (blockWidth * zoomLevel);
+        const rightBlockIndex =
+            chainWidth / (blockWidth * zoomLevel) + leftBlockIndex;
 
-        return {left: Math.max(0,leftBlockIndex), right: rightBlockIndex}
+        return { left: Math.max(0, leftBlockIndex), right: rightBlockIndex };
     }
 }
