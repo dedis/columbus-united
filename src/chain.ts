@@ -86,6 +86,9 @@ export class Chain {
     //Coordinates and scale factor of the view of the chain
     lastTransform = { x: 0, y: 0, k: 1 };
 
+    //
+    zoom: any;
+
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
         const self = this;
 
@@ -155,6 +158,7 @@ export class Chain {
                 subject.next(d3.event.transform);
             });
         svg.call(zoom);
+        this.zoom = zoom;
 
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and

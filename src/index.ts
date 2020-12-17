@@ -113,8 +113,11 @@ export function startColumbus(
     searchBar(
         roster,
         flash,
-        hashBlock0
+        initialBlock,
+        hashBlock0,
+        chain
     );
+    Utils.scrollOnChain(roster, initialBlock.hash.toString("hex"), initialBlock, genesisBlock, chain) 
 
 
     // The totalBlock utility class allows the browsing class to get the total

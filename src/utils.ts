@@ -3,6 +3,8 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import { DataHeader } from "@dedis/cothority/byzcoin/proto";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import { Flash } from "./flash";
+import { Chain } from "./chain";
+import * as d3 from "d3";
 
 export class Utils {
     /**
@@ -67,7 +69,7 @@ export class Utils {
 
     /**
      * Get the block by its hash and roster
-     * @param hash the hash the requested block 
+     * @param hash the hash the requested block
      * @param roster roster that validated the block
      */
     static async getBlock(hash: Buffer, roster: Roster): Promise<SkipBlock> {
@@ -141,6 +143,21 @@ export class Utils {
         document.execCommand("copy");
         document.body.removeChild(dummy);
         flash.display(Flash.flashType.INFO, "Copied to clipboard");
+    }
+    static async scrollOnChain(
+        roster: Roster,
+        hashBlock0: string,
+        block: SkipBlock,
+        initialBlock: SkipBlock,
+        chain: Chain
+    ) {
+        //Set new coordinates on chain
+        let newZoom = d3.zoomIdentity
+            .translate((initialBlock.index - block.index) * 110 + 0.2, 0) //block+padding =110
+            .scale(1);
+        //Set chain to new coordinates
+        d3.select("#svg-container").call(chain.zoom.transform, newZoom);
+
     }
 
     /**
