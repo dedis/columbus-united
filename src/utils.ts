@@ -209,4 +209,20 @@ export class Utils {
             )
         );
     }
+
+    /**
+     * Converts a transform to the corresponding block index.
+     * 
+     * @param transform d3 transformation
+     * @param blockWidth width of a block, with the padding included
+     */
+    static transformToIndexes(transform: any, blockWidth: number, chainWidth: number): {left: number, right: number} {
+        const x = -transform.x;
+        const zoomLevel = transform.k;
+
+        const leftBlockIndex = x / (blockWidth*zoomLevel)
+        const rightBlockIndex = chainWidth / (blockWidth*zoomLevel) + leftBlockIndex
+
+        return {left: Math.max(0,leftBlockIndex), right: rightBlockIndex}
+    }
 }

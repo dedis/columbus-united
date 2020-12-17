@@ -11,23 +11,16 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
 
-import {
-   
-    map,
-
-    skip,
-
-    throttleTime,
- 
-} from "rxjs/operators";
+import { debounceTime, map, skip, throttleTime } from "rxjs/operators";
 import * as blockies from "blockies-ts";
 
 import { Flash } from "./flash";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
-import { svg } from 'd3';
-import { connectableObservableDescriptor } from 'rxjs/internal/observable/ConnectableObservable';
-import { getActivate, getBlock, searchBar, setActivate } from './search';
+import { svg } from "d3";
+import { connectableObservableDescriptor } from "rxjs/internal/observable/ConnectableObservable";
+import { getActivate, getBlock, searchBar, setActivate } from "./search";
+import { Chunk } from "./chunk";
 
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
@@ -66,7 +59,13 @@ export class Chain {
     readonly loadedInfo = document.getElementById("loaded-blocks");
     totalLoaded = 0;
 
-  skipBlocks:SkipBlock[];
+    skipBlocks: SkipBlock[];
+
+    readonly gblocks: any
+    readonly garrow: any
+    readonly gcircle: any
+
+    readonly chunks = new Array<Chunk>();
 
     // The roster defines the blockchain nodes
     roster: Roster;
@@ -75,10 +74,10 @@ export class Chain {
     // between the different calls instead of creating a new connection each time.
     ws: WebSocketAdapter;
 
-    lastBlockLeft:SkipBlock;
-    lastBlockRight:SkipBlock;
+    lastBlockLeft: SkipBlock;
+    lastBlockRight: SkipBlock;
 
-    lastBlock:SkipBlock;
+    lastBlock: SkipBlock;
 
     // This subject is notified each time a new page containing new blocks has
     // been loaded from the cothority client.
@@ -94,10 +93,9 @@ export class Chain {
     newblocksSubject = new Subject<SkipBlock[]>();
 
     subject = new Subject();
- 
 
     // Flash is a utiliy class to display flash messages in the view.
-    flash: Flash; 
+    flash: Flash;
     zoom: any;
 
     // initialBlockIndex is the initial block index, which is used to compute the
@@ -105,6 +103,8 @@ export class Chain {
     initialBlockIndex: number;
 
     initialBlock: SkipBlock;
+
+    lastTransform = { x: 0, y: 0, k: 1 };
 
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
         const self = this;
@@ -115,8 +115,6 @@ export class Chain {
         // Blocks observation
         this.flash = flash;
 
-      
-
         this.initialBlock = initialBlock;
 
         this.initialBlockIndex = initialBlock.index;
@@ -124,9 +122,8 @@ export class Chain {
         let lastBlockLeft = initialBlock;
         let lastBlockRight = initialBlock;
 
-        this.lastBlockLeft=lastBlockLeft;
-        this.lastBlockRight=lastBlockRight;
-        
+        this.lastBlockLeft = lastBlockLeft;
+        this.lastBlockRight = lastBlockRight;
 
         // to keep track of current requested operations. If we are already loading
         // blocks on the left, then we shouldn't make another same request. Note
@@ -134,36 +131,34 @@ export class Chain {
         let isLoadingLeft = false;
         let isLoadingRight = false;
 
-      
-
         // Main SVG caneva that contains the chain
         const svg = d3.select("#svg-container").attr("height", this.svgHeight);
 
         // this group will contain the blocks
         const gblocks = svg.append("g").attr("class", "gblocks");
+        this.gblocks = gblocks;
 
         const garrow = gblocks.append("g").attr("class", "garrow");
+        this.garrow = garrow;
 
         // this group will contain the text. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
         // readable
         const gcircle = svg.append("g").attr("class", "gtext");
+        this.gcircle = gcircle;
 
         // this group will contain the left and right loaders that display a spinner
         // when new blocks are being added
         const gloader = svg.append("g").attr("class", "gloader");
 
-        // this subject will be notified when the main SVG caneva in moved by the
+        // this subject will be notified when the main SVG canvas in moved by the
         // user
-       // const subject = new Subject();
-
- 
+        // const subject = new Subject();
 
         // the number of block the window can display at normal scale. Used to
         // define the domain the xScale
         const numblocks = this.svgWidth / (this.blockWidth + this.blockPadding);
 
-        let lastTransform = { x: 0, y: 0, k: 1 };
         // the xScale displays the block index and allows the user to quickly see
         // where he is in the chain
         const xScale = d3
@@ -196,7 +191,7 @@ export class Chain {
             });
         svg.call(zoom);
 
-        this.zoom=zoom;
+        this.zoom = zoom;
 
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
@@ -204,8 +199,8 @@ export class Chain {
 
         this.subject.subscribe({
             next: (transform: any) => {
-                lastTransform = transform;
-           
+                this.lastTransform = transform;
+
                 // This line disables translate to the left. (for reference)
                 // transform.x = Math.min(0, transform.x);
 
@@ -253,465 +248,94 @@ export class Chain {
             },
         });
 
-
-     
-
-        // Handler to check if new blocks need to be loaded. We check every 200ms.
-        this.subject.pipe(throttleTime(200)).subscribe({
+        this.subject.pipe(debounceTime(50)).subscribe({
             next: (transform: any) => {
-                
-           
-              
-console.log("======================SUBJECT CALLLEDD  ===========================================================================================================");
-console.log("-----+"+lastBlockRight.index);
-console.log("-----+"+lastBlockLeft.index);
-if (!isLoadingLeft) {
-                  
-                    isLoadingLeft = true;
+                const bounds = Utils.transformToIndexes(transform, this.blockWidth+this.blockPadding, this.svgWidth)
+                let alreadyHandled = false;
 
-                    
-                    const isLoading = this.checkAndLoadLeft(
-                        transform,
-                        lastBlockLeft,
-                        gloader
-                    );
-                    if (!isLoading) {
-                        isLoadingLeft = false;
+                let leftNei: Chunk = undefined;
+                let rightNei: Chunk = undefined;
+
+                let leftNeiIndex = 0;
+                let rightNeiIndex = 0;
+
+                console.log("bounds:", bounds, "chunks:", this.chunks)
+
+                for (let i = 0; i < this.chunks.length; i++) {
+                    const chunk = this.chunks[i]
+
+                    // the chunk is "fully inside"
+                    // ---[--***--]---
+                    if (chunk.left >= bounds.left && chunk.right <= bounds.right) {
+                        alreadyHandled = true;
+                        break;
                     }
-                }
-               
-                if (!isLoadingRight) {
-                    isLoadingRight = true;
-       
-                    const isLoading = this.checkAndLoadRight(
-                        transform,
-                        lastBlockRight,
-                        gloader
-                    );
-                    if (!isLoading) {
-                        isLoadingRight = false;
+
+                    // the chunk is "partially inside, from the left"
+                    // --*[**----]---
+                    if (chunk.left < bounds.left && chunk.right > bounds.left) {
+                        alreadyHandled = true;
+                        break;
                     }
-                }
-            },
-        });
-       
-        this.subjectBrowse.subscribe({
-            complete: () => {
-                this.flash.display(
-                    Flash.flashType.INFO,
-                    "End of the blockchain"
-                );
-            },
-            error: (err: any) => {
-                if (err === 1) {
-                    // To reset the websocket, create a new handler for the next function
-                    // (of getnextblock)
-                    this.ws = undefined;
-                } else {
-                    this.flash.display(Flash.flashType.ERROR, `Error: ${err}`);
-                }
-                isLoadingLeft = false;
-                isLoadingRight = false;
-            },
-            next: ([i, skipBlocks, backward,]) => {
 
-            
-                // i is the page number
-                let isLastPage = false;
-                // tslint:disable-next-line
-                if (i == this.nbPages - 1) {
-                    isLastPage = true;
-                }
+                    // the chunk is "partially inside, from the right"
+                    // ---[----**]*--
+                    if (chunk.left < bounds.right && chunk.right > bounds.right) {
+                        alreadyHandled = true;
+                        break;
+                    }
 
-                this.totalLoaded += skipBlocks.length;
-                this.loadedInfo.innerText = `${this.totalLoaded}`;
+                    // the chuck is "overly inside"
+                    // ---*[***]*---
+                    if (chunk.left < bounds.left && chunk.right > bounds.right) {
+                        alreadyHandled = true;
+                        break;
+                    }
 
-                // If this is the first series of blocks, set the hash of the left first block
-                const firstBlock = skipBlocks[0];
-                console.log("firstBlock  "+firstBlock.index);
-               
-            
-           
-                if (firstBlock.index === this.initialBlockIndex) {
-                    lastBlockLeft = firstBlock;
-                    console.log("-------------- lastLeft = firt ")
-    
-                }
-
-                const lastBlock = skipBlocks[skipBlocks.length - 1];
-                this.lastBlock=lastBlock;
-                console.log("lastBlock  "+lastBlock.index)
-
-              //  skipBlocks.forEach((x)=> console.log("hi"+x.index));
-                console.log("lastBlockLeft  "+lastBlockLeft.index);
-                console.log("lastBlockRight  "+lastBlockRight.index);
-                console.log("active++"+getActivate());
-                if(getActivate()){
-                    lastBlockLeft = firstBlock;
-                }
-
-                if (backward) {
-                    console.log("bavckwards");
-               
-                    // Load blocks to the left
-                    this.displayBlocks(
-                        skipBlocks,
-                        true,
-                        gblocks,
-                        garrow,
-                        gcircle,
-                        lastBlockLeft.index - this.initialBlockIndex
-                    );
-
-                    lastBlockLeft = lastBlock;
-                    
-
-                    if (isLastPage) {
-                        d3.selectAll(".left-loader").remove();
-                        const loadMore = this.checkAndLoadLeft(
-                            lastTransform,
-                            lastBlockLeft,
-                            gloader
-                        );
-                        if (!loadMore) {
-                            isLoadingLeft = false;
+                    // --**-[---]-----
+                    if (chunk.right < bounds.left) {
+                        if (leftNei === undefined || chunk.right > leftNei.right) {
+                            leftNei = chunk
+                            leftNeiIndex = i
                         }
                     }
-                } else {
-                    // Load blocks to the right
 
-                    // in the case we haven't loaded any blocks yet we can't use the
-                    // formula "lastBlockRight.index - this.initialBlockIndex + 1" since
-                    // it would equal to one, but the result should be 0.
-                    let nb: number;
-                    if (lastBlockRight.index === this.initialBlockIndex) {
-                        nb = 0;
-                    } else {
-                        nb = lastBlockRight.index - this.initialBlockIndex + 1;
-                    }
-
-                    this.displayBlocks(
-                        skipBlocks,
-                        false,
-                        gblocks,
-                        garrow,
-                        gcircle,
-                        nb
-                    );
-
-                    lastBlockRight = lastBlock;
-
-                    // tslint:disable-next-line
-                    if (isLastPage) {
-                        d3.selectAll(".right-loader").remove();
-                      
-                        
-                        const loadMore = this.checkAndLoadRight(
-                            lastTransform,
-                            lastBlockRight,
-                            gloader
-                        );
-                        if (!loadMore) {
-                            isLoadingRight = false;
+                    // -----[---]-**--
+                    if (chunk.left > bounds.right) {
+                        if (rightNei === undefined || chunk.left < rightNei.left) {
+                            rightNei = chunk
+                            rightNeiIndex = i
                         }
                     }
-                }
-            },
-        });
-
-           // Subscriber to the blockchain server
-           this.searchSubject.subscribe({
-            complete: () => {
-                this.flash.display(
-                    Flash.flashType.INFO,
-                    "End of the blockchain"
-                );
-            },
-            error: (err: any) => {
-                if (err === 1) {
-                    // To reset the websocket, create a new handler for the next function
-                    // (of getnextblock)
-                    this.ws = undefined;
-                } else {
-                    this.flash.display(Flash.flashType.ERROR, `Error: ${err}`);
-                }
-                isLoadingLeft = false;
-                isLoadingRight = false;
-            },
-            next: ([i, skipBlocks, backward,]) => {
-                console.log("INSIDEEEE<>>>>>>><>>>>>>>>>>>>>>>>>>>>>>>>>>>><");
-            
-                // i is the page number
-                let isLastPage = false;
-                // tslint:disable-next-line
-                if (i == this.nbPages - 1) {
-                    isLastPage = true;
-                }
-
-                this.totalLoaded += skipBlocks.length;
-                this.loadedInfo.innerText = `${this.totalLoaded}`;
-
-                // If this is the first series of blocks, set the hash of the left first block
-                const firstBlock = skipBlocks[0];
-                console.log("firstBlock  "+firstBlock.index);
-               
-            
-           
-                if (firstBlock.index === this.initialBlockIndex) {
-                    lastBlockLeft = firstBlock;
-                    console.log("-------------- lastLeft = firt ")
-    
-                }
-
-                const lastBlock = skipBlocks[skipBlocks.length - 1];
-                this.lastBlock=lastBlock;
-                console.log("lastBlock  "+lastBlock.index)
-
-              //  skipBlocks.forEach((x)=> console.log("hi"+x.index));
-                console.log("lastBlockLeft  "+lastBlockLeft.index);
-                console.log("lastBlockRight  "+lastBlockRight.index);
-
-                if (backward) {
-                    console.log("bavckwards");
-               
-                    // Load blocks to the left
-                    this.displayBlocks(
-                        skipBlocks,
-                        true,
-                        gblocks,
-                        garrow,
-                        gcircle,
-                        lastBlockLeft.index - this.initialBlockIndex
-                    );
-
-                    lastBlockLeft = lastBlock;
-                    
-
-                    if (isLastPage) {
-                        d3.selectAll(".left-loader").remove();
-                        const loadMore = this.checkAndLoadLeft(
-                            lastTransform,
-                            lastBlockLeft,
-                            gloader
-                        );
-                        if (!loadMore) {
-                            isLoadingLeft = false;
-                        }
-                    }
-                } else {
-                    // Load blocks to the right
-
-                    // in the case we haven't loaded any blocks yet we can't use the
-                    // formula "lastBlockRight.index - this.initialBlockIndex + 1" since
-                    // it would equal to one, but the result should be 0.
-                    let nb: number;
-                    if (lastBlockRight.index === this.initialBlockIndex) {
-                        nb = 0;
-                    } else {
-                        nb = lastBlockRight.index - this.initialBlockIndex + 1;
-                    }
-
-                    this.displayBlocks(
-                        skipBlocks,
-                        false,
-                        gblocks,
-                        garrow,
-                        gcircle,
-                        nb
-                    );
-
-                    lastBlockRight = lastBlock;
-
-                    // tslint:disable-next-line
-                    if (isLastPage) {
-                        d3.selectAll(".right-loader").remove();
-                      
-                        
-                        const loadMore = this.checkAndLoadRight(
-                            lastTransform,
-                            lastBlockRight,
-                            gloader
-                        );
-                        if (!loadMore) {
-                            isLoadingRight = false;
-                        }
-                    }
-                }
-            },
-        });
-
-       
-    }
-
-
-    
-           
+                };
         
-       
-    
-   
+                if (!alreadyHandled) {
+                    const c = new Chunk(this.subject, leftNei, rightNei, bounds.left+(bounds.right-bounds.left)/2, bounds.left+(bounds.right-bounds.left)/2+20, this, this.lastTransform)
+                    
+                    if (leftNei !== undefined) {
+                        leftNei.rightNeighbor = c
+                    }
+                    
+                    if (rightNei !== undefined) {
+                        rightNei.leftNeighbor = c
+                    }
 
-
-
-
-   
-
-
-
-
-   
-   
-
-    /**
-     * Load the initial blocks.
-     */
-    loadInitialBlocks(initialBlockHash: Buffer) {
-        this.getNextBlocks(
-            Utils.bytes2String(initialBlockHash),
-            this.pageSize,
-            this.nbPages,
-            this.subjectBrowse,
-            false
-        );
+                    // keep the chunks sorted
+                    this.chunks.splice(leftNeiIndex+1, 0, c)
+                    console.log(this.printChunks())
+                }
+            }
+        });
     }
 
+    printChunks(): string {
+        let res = "";
 
-    /**
-     * Check if new blocks need to be loaded to the left and load them if
-     * necessary.
-     * @param transform the transform object that contain the x,y,k
-     * transformations
-     * @param lastBlockLeft the last block loaded to the left
-     * @param gloader the svg container that should welcome the loader
-     * @returns a boolean that tells if a request to load new blocks has been sent
-     */
-    checkAndLoadLeft(
-        transform: any,
-        lastBlockLeft: SkipBlock,
-        gloader: any
-    ): boolean {
-        const self = this;
-
-        // x represents the x-axis translation of the caneva. If the block width
-        // is 100 and x = -100, then it means the user dragged one block from
-        // the initial block on the left.
-        const x = -transform.x;
-        const zoomLevel = transform.k;
-
-        const nbBlocksLoadedLeft = this.initialBlockIndex - lastBlockLeft.index;
-        console.log("left"+nbBlocksLoadedLeft);
-
-        const leftBlockX =
-            nbBlocksLoadedLeft *
-            (this.blockWidth + this.blockPadding) *
-            -1 *
-            zoomLevel;
-
-        // Check if we need to load blocks on the left. We check that we haven't
-        // yet loaded all the possible blocks from the left and that the user
-        // has moved enought to the left. The -50 is to give a small margin
-        // because we want to let the user drag a bit before we trigger the
-        // load.
-        if (
-            this.initialBlockIndex - nbBlocksLoadedLeft > 0 &&
-            x < leftBlockX - 50
-        ) {
-            let nbBlocksToLoad = self.pageSize;
-            // In the case there are less remaining blocks than the page size we
-            // load all the remaining blocks. If we are currently at block 3 and
-            // the page size is 10, we must then load only 3 blocks: [0, 1, 2]
-            nbBlocksToLoad = Math.min(
-                nbBlocksToLoad,
-                this.initialBlockIndex - nbBlocksLoadedLeft
-            );
-
-            this.addLoader(
-                true,
-                gloader,
-                -(nbBlocksLoadedLeft + 1) * this.unitBlockAndPaddingWidth +
-                    this.blockPadding +
-                    this.blockWidth / 2,
-                transform.k
-            );
-
-            const hashNextBlockLeft = Utils.getLeftBlockHash(lastBlockLeft);
-    
-
-            setTimeout(() => {
-                self.getNextBlocks(
-                    hashNextBlockLeft,
-                    nbBlocksToLoad,
-                    self.nbPages,
-                    self.subjectBrowse,
-                    true
-                );
-            }, 250);
-
-            return true;
+        for (let chunk of this.chunks) {
+            res += `[${chunk.left},${chunk.right}] `
         }
 
-        return false;
-    }
-
-    /**
-     * Check if new blocks need to be loaded to the right and load them if
-     * necessary.
-     * @param transform the transform object that contain the x,y,k
-     * transformations
-     * @param lastBlockLeft the last block loaded to the right
-     * @param gloader the svg container that should welcome the loader
-     * @returns a boolean that tells if a request to load new blocks has been sent
-     */
-    checkAndLoadRight(
-        transform: any,
-        lastBlockRight: SkipBlock,
-        gloader: any
-    ): boolean {
-        const self = this;
-
-        // x represents to x-axis translation of the caneva. If the block width
-        // is 100 and x = -100, then it means the user dragged one block from
-        // the initial block on the left.
-        const x = -transform.x;
-        const zoomLevel = transform.k;
-
-        const nbBlocksLoadedRight =
-            lastBlockRight.index - this.initialBlockIndex + 1;
-
-        const rightBlockX =
-            nbBlocksLoadedRight *
-            (this.blockWidth + this.blockPadding) *
-            zoomLevel;
-
-        // Check if we need to load blocks on the right. (x + this.svgWidth)
-        // represents the actual rightmost x coordinate on the svg caneva. +50
-        // is to allow a margin before loading a new block, because we want to
-        // allow a bit of blank space before triggering the load.
-        if (x + this.svgWidth > rightBlockX + 50) {
-            const hashNextBlockRight = Utils.getRightBlockHash(lastBlockRight);
-
-            this.addLoader(
-                false,
-                gloader,
-                nbBlocksLoadedRight * this.unitBlockAndPaddingWidth +
-                    this.blockPadding +
-                    this.blockWidth / 2,
-                transform.k
-            );
-            setTimeout(() => {
-                self.getNextBlocks(
-                    hashNextBlockRight,
-                    self.pageSize,
-                    self.nbPages,
-                    self.subjectBrowse,
-                    false
-                );
-            }, 250);
-
-            return true;
-        }
-
-        return false;
+        return res;
     }
 
     /**
@@ -732,63 +356,6 @@ if (!isLoadingLeft) {
     }
 
     /**
-     * Create a loader.
-     * @param backwards true for a left loader, false for a right loader
-     * @param zoomLevel zoom of the blocks (needed to compute the position of
-     *                  the loader)
-     */
-    private addLoader(
-        backwards: boolean,
-        gloader: any,
-        xPos: number,
-        k: number
-    ) {
-        let className = "right-loader";
-
-        if (backwards) {
-            className = "left-loader";
-        }
-
-        // Some loaders: https://codepen.io/aurer/pen/jEGbA
-        gloader
-            .append("svg")
-            .attr("class", `${className}`)
-            .attr("viewBox", "0, 0, 24, 30")
-            .attr("x", xPos - 24)
-            .attr("y", this.blockHeight / 2 - 30)
-            .attr("width", "48px")
-            .attr("height", "60px")
-            .attr("transform-origin", `${xPos}px 0px`)
-            .attr("enable-background", "new 0 0 50 50")
-            .attr("transform", `scale(${1 / k})`).html(`
-         <rect x="0" y="13" width="4" height="5" fill="#333">
-           <animate attributeName="height" attributeType="XML"
-             values="5;21;5"
-             begin="0s" dur="0.6s" repeatCount="indefinite" />
-           <animate attributeName="y" attributeType="XML"
-             values="13; 5; 13"
-             begin="0s" dur="0.6s" repeatCount="indefinite" />
-         </rect>
-         <rect x="10" y="13" width="4" height="5" fill="#333">
-           <animate attributeName="height" attributeType="XML"
-             values="5;21;5"
-             begin="0.15s" dur="0.6s" repeatCount="indefinite" />
-           <animate attributeName="y" attributeType="XML"
-             values="13; 5; 13"
-             begin="0.15s" dur="0.6s" repeatCount="indefinite" />
-         </rect>
-         <rect x="20" y="13" width="4" height="5" fill="#333">
-           <animate attributeName="height" attributeType="XML"
-             values="5;21;5"
-             begin="0.3s" dur="0.6s" repeatCount="indefinite" />
-           <animate attributeName="y" attributeType="XML"
-             values="13; 5; 13"
-             begin="0.3s" dur="0.6s" repeatCount="indefinite" />
-         </rect>
-      `);
-    }
-
-    /**
      * Append the given blocks to the blockchain.
      * @param listBlocks list of blocks to append
      * @param backwards  false for loading blocks to the right, true for loading
@@ -797,7 +364,7 @@ if (!isLoadingLeft) {
      * case of a backward loading, this number should be negative. -10 means we
      * already loaded 10 blocks on the left from the initial block.
      */
-     private displayBlocks(
+     displayBlocks(
         listBlocks: SkipBlock[],
         backwards: boolean,
         gblocks: any,
@@ -825,7 +392,8 @@ if (!isLoadingLeft) {
 
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
-            this.getToAndFrom(xTranslateBlock, block, garrow);
+            // this.getToAndFrom(xTranslateBlock, block, garrow);
+
             //this.appendCircleInBlock(xTranslateBlock, gcircle);
         }
 
@@ -839,7 +407,6 @@ if (!isLoadingLeft) {
      * @param block the block to append
      */
     private appendBlock(xTranslate: number, block: SkipBlock, svgBlocks: any) {
-        
         svgBlocks
             .append("rect")
             .attr("id", Utils.bytes2String(block.hash))
@@ -852,7 +419,7 @@ if (!isLoadingLeft) {
             .attr("fill", Chain.getBlockColor(block))
             .on("click", () => {
                 this.blockClickedSubject.next(block);
-                window.location.hash = `index:${block.index}`
+                window.location.hash = `index:${block.index}`;
             });
     }
 
@@ -865,28 +432,20 @@ if (!isLoadingLeft) {
         factor: number
     ) {
         let y: number;
- 
 
         if (iTo - skipFrom.index == 1) {
             const line = svgBlocks.append("line");
-            line
-                .attr("id", skipFrom.index)
+            line.attr("id", skipFrom.index)
                 .attr("x1", xTrans)
                 .attr("y1", 15 + this.blockHeight / 2)
                 .attr("x2", xTrans - this.blockPadding)
                 .attr("y2", 15 + this.blockHeight / 2)
                 .attr("stroke-width", 2)
-                .attr("stroke", "grey")
-                
-                
-                ;
+                .attr("stroke", "grey");
             //.attr("marker-end", "url(#triangle)");
         } else {
-
-            const line = svgBlocks
-                .append("line");
-            line
-                .attr("x2", xTrans - this.blockPadding)
+            const line = svgBlocks.append("line");
+            line.attr("x2", xTrans - this.blockPadding)
                 .attr("y1", 40 + factor * 38)
                 .attr(
                     "x1",
@@ -905,9 +464,7 @@ if (!isLoadingLeft) {
                     this.blockClickedSubject.next(block);
                 });
 
-            const triangle = svgBlocks
-                .append("svg:defs")
-                .append("svg:marker");
+            const triangle = svgBlocks.append("svg:defs").append("svg:marker");
             triangle
                 .attr("id", "triangle")
                 .attr("refX", 5.5)
@@ -924,22 +481,21 @@ if (!isLoadingLeft) {
             //FIXME can't change the colour of the svg markers like this. Only option I see
             //is to create anover triangle and witch when needed
             triangle.on("mouseover", () => {
-                    line.style("stroke", "var(--selected-colour");
-                    triangle.style("fill", "var(--selected-colour");
-                });
+                line.style("stroke", "var(--selected-colour");
+                triangle.style("fill", "var(--selected-colour");
+            });
             line.on("mouseover", () => {
-                    line.style("stroke", "var(--selected-colour");
-                    triangle.attr("stroke", "var(--selected-colour");
-                });
+                line.style("stroke", "var(--selected-colour");
+                triangle.attr("stroke", "var(--selected-colour");
+            });
             triangle.on("mouseout", () => {
                 line.style("stroke", "grey");
                 triangle.style("stroke", "grey");
-            });               
+            });
             line.on("mouseout", () => {
                 line.style("stroke", "grey");
                 triangle.style("stroke", "grey");
-            });   
-
+            });
         }
     }
 
@@ -950,9 +506,8 @@ if (!isLoadingLeft) {
     ) {
         let indexTo: number;
         indexTo = block.index;
-       
-        for (let i = 0; i < block.backlinks.length; i++) {
 
+        for (let i = 0; i < block.backlinks.length; i++) {
             let skipFrom = await Utils.getBlock(
                 block.backlinks[i],
                 this.roster
@@ -1007,7 +562,7 @@ if (!isLoadingLeft) {
      * @param backward false for loading blocks to the right, true for loading
      * blocks to the left
      */
-     getNextBlocks(
+    getNextBlocks(
         nextBlockID: string,
         pageSize: number,
         nbPages: number,
@@ -1015,7 +570,6 @@ if (!isLoadingLeft) {
         backward: boolean
     ) {
         let bid: Buffer;
-        
 
         try {
             bid = Utils.hex2Bytes(nextBlockID);
@@ -1040,7 +594,6 @@ if (!isLoadingLeft) {
             );
             return;
         }
-        console.log("+++++++++++++++++++++++++++++++++++");
 
         if (this.ws !== undefined) {
             const message = new PaginateRequest({
@@ -1067,7 +620,7 @@ if (!isLoadingLeft) {
                 // ws callback "onMessage":
                 complete: () => {
                     this.flash.display(Flash.flashType.ERROR, "closed");
-                    this.ws=undefined;
+                    this.ws = undefined;
                 },
                 error: (err: Error) => {
                     this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
@@ -1085,104 +638,8 @@ if (!isLoadingLeft) {
                     if (ws !== undefined) {
                         this.ws = ws;
                     }
-                
-                    console.log(data.blocks);
-                
-                   
-                   
+
                     subjectBrowse.next([
-                        data.pagenumber,
-                        data.blocks,
-                        data.backward,
-                    ]);
-                    return 0;
-                },
-            });
-        }
-    }
-    getNextBlocksSearch(
-        nextBlockID: string,
-        pageSize: number,
-        nbPages: number,
-        searchSubject: Subject<[number, SkipBlock[], boolean]>,
-        backward: boolean
-    ) {
-        this.subjectBrowse.complete();
-        let bid: Buffer;
-
-        try {
-            bid = Utils.hex2Bytes(nextBlockID);
-        } catch (error) {
-            this.flash.display(
-                Flash.flashType.ERROR,
-                `failed to parse the block ID: ${error}`
-            );
-            return;
-        }
-
-        let conn: WebSocketConnection;
-        try {
-            conn = new WebSocketConnection(
-                this.roster.list[0].getWebSocketAddress(),
-                ByzCoinRPC.serviceName
-            );
-        } catch (error) {
-            this.flash.display(
-                Flash.flashType.ERROR,
-                `error creating conn: ${error}`
-            );
-            return;
-        }
-
-        if (this.ws !== undefined) {
-            const message = new PaginateRequest({
-                backward,
-                numpages: nbPages,
-                pagesize: pageSize,
-                startid: bid,
-            });
-
-            const messageByte = Buffer.from(
-                message.$type.encode(message).finish()
-            );
-            this.ws.send(messageByte); // fetch next block
-        } else {
-            conn.sendStream<PaginateResponse>( // fetch next block
-                new PaginateRequest({
-                    backward,
-                    numpages: nbPages,
-                    pagesize: pageSize,
-                    startid: bid,
-                }),
-                PaginateResponse
-            ).subscribe({
-                // ws callback "onMessage":
-                complete: () => {
-                    this.flash.display(Flash.flashType.ERROR, "closed");
-                    this.ws=undefined;
-                },
-                error: (err: Error) => {
-                    this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
-                    this.ws = undefined;
-                },
-                next: ([data, ws]) => {
-                    // tslint:disable-next-line
-                    if (data.errorcode != 0) {
-                        this.flash.display(
-                            Flash.flashType.ERROR,
-                            `got an error with code ${data.errorcode} : ${data.errortext}`
-                        );
-                        return 1;
-                    }
-                    if (ws !== undefined) {
-                        this.ws = ws;
-                    }
-           
-                    console.log(data.blocks);
-            
-                   console.log("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<NEXT");
-                   
-                    searchSubject.next([
                         data.pagenumber,
                         data.blocks,
                         data.backward,
