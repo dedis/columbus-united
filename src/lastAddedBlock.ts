@@ -1,9 +1,9 @@
 import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
+import { SkipchainRPC } from "@dedis/cothority/skipchain";
 
 import * as d3 from "d3";
-import {  Subject } from "rxjs";
 
 import {
     map,
@@ -16,42 +16,42 @@ import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
 import { Chain } from "./chain";
 
-
+/**
+ * Class for the last added block of the chain
+ *
+ * @author Sophia Artioli <sophia.artioli@epfl.ch>
+ *
+ */
 export class LastAddedBlock {
-    readonly lastHeight = 176;
-    readonly lastWidth = 200;
+    readonly lastBlockHeight = 176;
+    readonly lastBlockWidth = 200;
     readonly svgHeight = 200;
 
-    lastSubject = new Subject();
-
+   
+    //The current chain
     chain: Chain;
 
+    // Flash is a utiliy class to display flash messages in the view.
     flash: Flash;
-
-    
 
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock,chain: Chain ){
         
         this.chain = chain;
         this.flash=flash;
-        //Main SVG caneva that contains the last added block
 
-        const last = d3
+        //Main SVG caneva that contains the last added block
+        const svgLast = d3
             .select("#last-container")
             .attr("height", this.svgHeight)
             .attr("z-index", -1);
 
+        //We fetch the last block
+        let lastBlock = new SkipchainRPC(roster).getLatestBlock(initialBlock.hash, false).then(
+            (resp) =>  this.displayLastAddedBlock(resp,svgLast,resp.hash)
+        );
+       
 
-        let lastBlock = new TotalBlock(roster, initialBlock);
-        lastBlock
-            .getTotalBlock()
-            .pipe(
-                map((s: SkipBlock) =>
-                    this.displayLastAddedBlock(s, last, s.hash)
-                )
-            )
-            .subscribe();
-
+       
     }
 
     /**
@@ -61,21 +61,18 @@ export class LastAddedBlock {
      * @param hashLast the hash of the last added block
      *
      */
-
     private displayLastAddedBlock(
         lastBlock: SkipBlock,
         svgLast: any,
         hashLast: Buffer
     ) {
-
         svgLast
             .append("rect")
             .attr("id", hashLast.toString("hex"))
-            .attr("width", this.lastWidth)
-            .attr("height", this.lastHeight)
+            .attr("width", this.lastBlockWidth)
+            .attr("height", this.lastBlockHeight)
             .attr("x", 20)
             .attr("y", 20)
-
             .style("filter", "url(#drop-shadow)")
             .attr("fill", Chain.getBlockColor(lastBlock))
             .on("click", () => { 
@@ -130,6 +127,7 @@ export class LastAddedBlock {
             .attr("fill", "#808080")
             .attr("pointer-events", "none");
 
+        //block index text on last added block
         gtextLast
             .append("text")
             .attr("x", 63)
@@ -139,9 +137,8 @@ export class LastAddedBlock {
             .attr("font-size", "17px")
             .attr("fill", "#ffffff")
             .attr("pointer-events", "none");
-        // .attr("font-weight", "bold")
 
-        
+        //tooltip for block hash on top of block index 
         const self = this;
         gtextLast
             .append("rect")
@@ -157,9 +154,16 @@ export class LastAddedBlock {
 
         this.lastAddedBlockInfo(lastBlock, svgLast, lastBlock);
     }
-
+    /**
+     * Helper function to display on hand information on the last added block
+     * We display: # validated tx, # rejected tx, roster hash and participating conodes, block index and hash
+     * @param lastBlock 
+     * @param svgLast 
+     * @param block 
+     */
     lastAddedBlockInfo(lastBlock: SkipBlock, svgLast: any, block: SkipBlock) {
-        //validated transactions number
+
+        //validated transactions
         var accepted = svgLast
             .append("g")
             .attr("class", "gaccepted")
@@ -194,6 +198,7 @@ export class LastAddedBlock {
             .attr("fill", "#65E1A7")
             .attr("pointer-events", "none");
 
+        //rejected transactions
         var rejected = svgLast
             .append("g")
             .attr("class", "grefused")
@@ -216,12 +221,12 @@ export class LastAddedBlock {
             .attr("y", 104)
             .attr("href", "assets/information-button-red.svg");
 
-        //text for number of validated tx
+        //text for number of rejecteds tx
         rejected
             .append("text")
             .attr("x", 74)
             .attr("y", 120)
-            .text(this.getTransactionRatio(lastBlock)[1].toString()) //add number of validated transacitons
+            .text(this.getTransactionRatio(lastBlock)[1].toString()) //add number of rejected transacitons
             .attr("font-family", "Arial")
             .attr("font-size", "18px")
             .attr("font-weight", "bold")
@@ -229,19 +234,28 @@ export class LastAddedBlock {
             .attr("pointer-events", "none");
 
         //Roster
-
+        //Get list of participating conodes in the roster
         let descList: Array<String> = [];
         for (let i = 0; i < block.roster.list.length; i++) {
             descList[i] = block.roster.list[i].description;
         }
-
-        var roster1 = svgLast
+        //tooltip for list of participating conodes in the roster
+        var roster = svgLast
             .append("g")
             .attr("class", "groster")
             .attr("uk-tooltip", descList.join("<br/>"));
 
+        roster
+        .append("text")
+        .text("Roster")
+        .attr("x", 48)
+        .attr("y", 157)
+        .attr("font-family", "Arial")
+        .attr("font-size", "16px")
+        .attr("fill", "#ffffff")
+        .attr("pointer-events", "none");
 
-        roster1
+        roster
             .append("rect")
             .attr("x", 43)
             .attr("y", 137)
@@ -251,16 +265,7 @@ export class LastAddedBlock {
             .attr("fill-opacity", "0.5")
             .attr("rx", "7px");
 
-        roster1
-            .append("text")
-            .text("Roster")
-            .attr("x", 48)
-            .attr("y", 157)
-            .attr("font-family", "Arial")
-            .attr("font-size", "16px")
-            .attr("fill", "#ffffff")
-            .attr("pointer-events", "none");
-
+        //blockie to illustrate hash of the roster
         const blockie = blockies.create({
             seed: lastBlock.hash.toString("hex"),
         });
@@ -275,15 +280,18 @@ export class LastAddedBlock {
             .attr("uk-tooltip", block.hash.toString("hex"));
         
         const self = this;
+        //blockie made clickable to copy to clipboard
         imBlockies.on("click", function () {
             Utils.copyToClipBoard(block.hash.toString("hex"),self.flash);
         });
     }
-
-    getTransactionRatio(block: SkipBlock): [Number, Number] {
+    /**
+     * Helper function to count the number of validated and rejected transactions
+     * @param block the block from which we want the transactions
+     */
+    private getTransactionRatio(block: SkipBlock): [Number, Number] {
         let accepted = 0;
         let rejected = 0;
-
         const body = DataBody.decode(block.payload);
         body.txResults.forEach((transaction, i) => {
             if (transaction.accepted) {
