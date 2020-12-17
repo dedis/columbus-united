@@ -7,19 +7,11 @@ import {
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
-
 import * as d3 from "d3";
 import { Subject } from "rxjs";
-
 import { debounceTime, map, skip, throttleTime } from "rxjs/operators";
-import * as blockies from "blockies-ts";
-
 import { Flash } from "./flash";
-import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
-import { svg } from "d3";
-import { connectableObservableDescriptor } from "rxjs/internal/observable/ConnectableObservable";
-import { getActivate, getBlock, searchBar, setActivate } from "./search";
 import { Chunk } from "./chunk";
 
 export class Chain {
@@ -47,7 +39,7 @@ export class Chain {
     readonly lastHeight = 176;
 
     readonly lastWidth = 200;
-    readonly svgWidth = window.innerWidth; //1039;
+    readonly svgWidth = window.innerWidth; 
     readonly svgHeight = 200;
     readonly unitBlockAndPaddingWidth = this.blockPadding + this.blockWidth;
 
@@ -61,9 +53,9 @@ export class Chain {
 
     skipBlocks: SkipBlock[];
 
-    readonly gblocks: any
-    readonly garrow: any
-    readonly gcircle: any
+    readonly gblocks: any;
+    readonly garrow: any;
+    readonly gcircle: any;
 
     readonly chunks = new Array<Chunk>();
 
@@ -74,11 +66,6 @@ export class Chain {
     // between the different calls instead of creating a new connection each time.
     ws: WebSocketAdapter;
 
-    lastBlockLeft: SkipBlock;
-    lastBlockRight: SkipBlock;
-
-    lastBlock: SkipBlock;
-
     // This subject is notified each time a new page containing new blocks has
     // been loaded from the cothority client.
     subjectBrowse = new Subject<[number, SkipBlock[], boolean]>();
@@ -86,24 +73,18 @@ export class Chain {
     // This subject is notified each time a block is clicked.
     blockClickedSubject = new Subject<SkipBlock>();
 
-    searchSubject = new Subject<[number, SkipBlock[], boolean]>();
-
     // This subject is notified when a new series of block has been added to the
     // view.
     newblocksSubject = new Subject<SkipBlock[]>();
 
-    subject = new Subject();
 
     // Flash is a utiliy class to display flash messages in the view.
     flash: Flash;
-    zoom: any;
 
-    // initialBlockIndex is the initial block index, which is used to compute the
-    // number of blocks loaded to the left and to the right.
-    initialBlockIndex: number;
-
+    //First block disaplyed on the chain
     initialBlock: SkipBlock;
 
+    //Coordinates and scale factor of the view of the chain
     lastTransform = { x: 0, y: 0, k: 1 };
 
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
@@ -117,19 +98,9 @@ export class Chain {
 
         this.initialBlock = initialBlock;
 
-        this.initialBlockIndex = initialBlock.index;
-
-        let lastBlockLeft = initialBlock;
-        let lastBlockRight = initialBlock;
-
-        this.lastBlockLeft = lastBlockLeft;
-        this.lastBlockRight = lastBlockRight;
-
-        // to keep track of current requested operations. If we are already loading
-        // blocks on the left, then we shouldn't make another same request. Note
-        // that this is a very poor exclusion mechanism.
-        let isLoadingLeft = false;
-        let isLoadingRight = false;
+        // this subject will be notified when the main SVG caneva in moved by the
+        // user
+        const subject = new Subject();
 
         // Main SVG caneva that contains the chain
         const svg = d3.select("#svg-container").attr("height", this.svgHeight);
@@ -150,10 +121,6 @@ export class Chain {
         // this group will contain the left and right loaders that display a spinner
         // when new blocks are being added
         const gloader = svg.append("g").attr("class", "gloader");
-
-        // this subject will be notified when the main SVG canvas in moved by the
-        // user
-        // const subject = new Subject();
 
         // the number of block the window can display at normal scale. Used to
         // define the domain the xScale
@@ -187,17 +154,17 @@ export class Chain {
             ])
             .scaleExtent([0.0001, 1.4])
             .on("zoom", () => {
-                this.subject.next(d3.event.transform);
+                subject.next(d3.event.transform);
             });
         svg.call(zoom);
 
-        this.zoom = zoom;
 
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
         // zommed in-out by the user.
+        
 
-        this.subject.subscribe({
+        subject.subscribe({
             next: (transform: any) => {
                 this.lastTransform = transform;
 
@@ -230,14 +197,6 @@ export class Chain {
 
                 gcircle.selectAll("circle").attr("transform", transformString);
 
-                //  console.log("text"+ gtext.selectAll("circle").attr("height").toString());
-                //gtext.attr("r", transform.k*100);
-                // Update the text size
-                // if (transform.k < 1) {
-                //     gtext
-                //         .selectAll("text")
-                //         .attr("font-size", 1 + transform.k + "em");
-                // }
                 // Update the loader. We want to keep them at their original
                 // scale so we only translate them
                 gloader.attr("transform", transform);
@@ -248,9 +207,13 @@ export class Chain {
             },
         });
 
-        this.subject.pipe(debounceTime(50)).subscribe({
+        subject.pipe(debounceTime(50)).subscribe({
             next: (transform: any) => {
-                const bounds = Utils.transformToIndexes(transform, this.blockWidth+this.blockPadding, this.svgWidth)
+                const bounds = Utils.transformToIndexes(
+                    transform,
+                    this.blockWidth + this.blockPadding,
+                    this.svgWidth
+                );
                 let alreadyHandled = false;
 
                 let leftNei: Chunk = undefined;
@@ -259,14 +222,17 @@ export class Chain {
                 let leftNeiIndex = 0;
                 let rightNeiIndex = 0;
 
-                console.log("bounds:", bounds, "chunks:", this.chunks)
+                console.log("bounds:", bounds, "chunks:", this.chunks);
 
                 for (let i = 0; i < this.chunks.length; i++) {
-                    const chunk = this.chunks[i]
+                    const chunk = this.chunks[i];
 
                     // the chunk is "fully inside"
                     // ---[--***--]---
-                    if (chunk.left >= bounds.left && chunk.right <= bounds.right) {
+                    if (
+                        chunk.left >= bounds.left &&
+                        chunk.right <= bounds.right
+                    ) {
                         alreadyHandled = true;
                         break;
                     }
@@ -280,51 +246,71 @@ export class Chain {
 
                     // the chunk is "partially inside, from the right"
                     // ---[----**]*--
-                    if (chunk.left < bounds.right && chunk.right > bounds.right) {
+                    if (
+                        chunk.left < bounds.right &&
+                        chunk.right > bounds.right
+                    ) {
                         alreadyHandled = true;
                         break;
                     }
 
                     // the chuck is "overly inside"
                     // ---*[***]*---
-                    if (chunk.left < bounds.left && chunk.right > bounds.right) {
+                    if (
+                        chunk.left < bounds.left &&
+                        chunk.right > bounds.right
+                    ) {
                         alreadyHandled = true;
                         break;
                     }
 
                     // --**-[---]-----
                     if (chunk.right < bounds.left) {
-                        if (leftNei === undefined || chunk.right > leftNei.right) {
-                            leftNei = chunk
-                            leftNeiIndex = i
+                        if (
+                            leftNei === undefined ||
+                            chunk.right > leftNei.right
+                        ) {
+                            leftNei = chunk;
+                            leftNeiIndex = i;
                         }
                     }
 
                     // -----[---]-**--
                     if (chunk.left > bounds.right) {
-                        if (rightNei === undefined || chunk.left < rightNei.left) {
-                            rightNei = chunk
-                            rightNeiIndex = i
+                        if (
+                            rightNei === undefined ||
+                            chunk.left < rightNei.left
+                        ) {
+                            rightNei = chunk;
+                            rightNeiIndex = i;
                         }
                     }
-                };
-        
+                }
+
                 if (!alreadyHandled) {
-                    const c = new Chunk(this.subject, leftNei, rightNei, bounds.left+(bounds.right-bounds.left)/2, bounds.left+(bounds.right-bounds.left)/2+20, this, this.lastTransform)
-                    
+                    const c = new Chunk(
+                        subject,
+                        leftNei,
+                        rightNei,
+                        bounds.left + (bounds.right - bounds.left) / 2,
+                        bounds.left + (bounds.right - bounds.left) / 2 + 20,
+                        this,
+                        this.lastTransform
+                    );
+
                     if (leftNei !== undefined) {
-                        leftNei.rightNeighbor = c
+                        leftNei.rightNeighbor = c;
                     }
-                    
+
                     if (rightNei !== undefined) {
-                        rightNei.leftNeighbor = c
+                        rightNei.leftNeighbor = c;
                     }
 
                     // keep the chunks sorted
-                    this.chunks.splice(leftNeiIndex+1, 0, c)
-                    console.log(this.printChunks())
+                    this.chunks.splice(leftNeiIndex + 1, 0, c);
+                    console.log(this.printChunks());
                 }
-            }
+            },
         });
     }
 
@@ -332,7 +318,7 @@ export class Chain {
         let res = "";
 
         for (let chunk of this.chunks) {
-            res += `[${chunk.left},${chunk.right}] `
+            res += `[${chunk.left},${chunk.right}] `;
         }
 
         return res;
@@ -364,7 +350,7 @@ export class Chain {
      * case of a backward loading, this number should be negative. -10 means we
      * already loaded 10 blocks on the left from the initial block.
      */
-     displayBlocks(
+    displayBlocks(
         listBlocks: SkipBlock[],
         backwards: boolean,
         gblocks: any,
@@ -392,7 +378,7 @@ export class Chain {
 
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
-            // this.getToAndFrom(xTranslateBlock, block, garrow);
+            this.getToAndFromIndexes(xTranslateBlock, block, garrow);
 
             //this.appendCircleInBlock(xTranslateBlock, gcircle);
         }
@@ -423,19 +409,25 @@ export class Chain {
             });
     }
 
+    /**
+     * Helper function to append arrows between two blocks
+     * @param xTrans horizontal position where the block should be appended
+     * @param skipBlockFrom starting skipBlock point of the arrow 
+     * @param skipBlockTo the skipBlock the arrow points to 
+     * @param svgBlocks the svg where the block are appended
+     * @param height the y coordinate where the arrow is appended on the blocks
+     */
     private async appendArrows(
         xTrans: number,
-        skipFrom: SkipBlock,
-        iTo: number,
-        block: SkipBlock,
+        skipBlockFrom: SkipBlock,
+        skipBlockTo: SkipBlock,
         svgBlocks: any,
-        factor: number
+        height:number
     ) {
-        let y: number;
 
-        if (iTo - skipFrom.index == 1) {
+        if (skipBlockTo.index- skipBlockFrom.index == 1) {
             const line = svgBlocks.append("line");
-            line.attr("id", skipFrom.index)
+            line.attr("id", skipBlockFrom.index)
                 .attr("x1", xTrans)
                 .attr("y1", 15 + this.blockHeight / 2)
                 .attr("x2", xTrans - this.blockPadding)
@@ -446,22 +438,22 @@ export class Chain {
         } else {
             const line = svgBlocks.append("line");
             line.attr("x2", xTrans - this.blockPadding)
-                .attr("y1", 40 + factor * 38)
+                .attr("y1", 40 + height * 38)
                 .attr(
                     "x1",
                     xTrans -
-                        (iTo - skipFrom.index) *
+                        (skipBlockTo.index - skipBlockFrom.index) *
                             (this.blockWidth + this.blockPadding) +
                         this.blockWidth
                 )
 
-                .attr("y2", 40 + factor * 38)
+                .attr("y2", 40 + height * 38)
                 .attr("stroke-width", 2)
                 .attr("stroke", "grey")
                 .attr("marker-end", "url(#triangle)")
 
                 .on("click", () => {
-                    this.blockClickedSubject.next(block);
+                    this.blockClickedSubject.next(skipBlockTo);
                 });
 
             const triangle = svgBlocks.append("svg:defs").append("svg:marker");
@@ -475,7 +467,7 @@ export class Chain {
                 .append("path")
                 .attr("d", "M 0 0 L 10 5 L 0 10 z")
                 .on("click", () => {
-                    this.blockClickedSubject.next(block);
+                    this.blockClickedSubject.next(skipBlockTo);
                 })
                 .style("fill", "grey");
             //FIXME can't change the colour of the svg markers like this. Only option I see
@@ -498,26 +490,27 @@ export class Chain {
             });
         }
     }
-
-    private async getToAndFrom(
+    /**
+     * Helper function to get starting point and ending SkipBlocks of the arrow 
+     * @param xTranslate horizontal position where the block should be appended
+     * @param skipBlockTo the skipBlock the arrow points to
+     * @param svgBlocks the svg where the blocks are appended
+     */
+    private async getToAndFromIndexes(
         xTranslate: number,
-        block: SkipBlock,
+        skipBlockTo: SkipBlock,
         svgBlocks: any
     ) {
-        let indexTo: number;
-        indexTo = block.index;
-
-        for (let i = 0; i < block.backlinks.length; i++) {
-            let skipFrom = await Utils.getBlock(
-                block.backlinks[i],
+        for (let i = 0; i < skipBlockTo.backlinks.length; i++) {
+            let skipBlockFrom = await Utils.getBlock(
+                skipBlockTo.backlinks[i],
                 this.roster
             );
 
             this.appendArrows(
                 xTranslate,
-                skipFrom,
-                indexTo,
-                block,
+                skipBlockFrom,
+                skipBlockTo,
                 svgBlocks,
                 i
             );
@@ -533,9 +526,6 @@ export class Chain {
      */
     private appendCircleInBlock(
         xTranslate: number,
-        // textIndex: { index: number },
-        //text: string,
-        //textColor: string,
         gtext: any
     ) {
         gtext
