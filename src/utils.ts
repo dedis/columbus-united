@@ -5,8 +5,6 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import { DataHeader } from "@dedis/cothority/byzcoin/proto";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import { Flash } from "./flash";
-import { Chain } from "./chain";
-import * as d3 from "d3";
 
 export class Utils {
     /**
