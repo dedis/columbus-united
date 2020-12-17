@@ -1,7 +1,6 @@
 // A chunk is an autonomous part of the chain that will update itself when the
 // user drags to one of its edge. It will checks its neighbor and try not to
 // load blocks that would overlap.
-
 import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
 import {
     PaginateRequest,
@@ -13,7 +12,6 @@ import {
 } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
-import { Numeric } from "d3";
 import { Subject } from "rxjs";
 import { debounceTime, throttleTime } from "rxjs/operators";
 import { Chain } from "./chain";
@@ -53,6 +51,9 @@ export class Chunk {
     // container that contains the left and right loaders
     gloader: d3.Selection<SVGElement, {}, HTMLElement, any>;
 
+    totalLoaded: number;
+    readonly loadedInfo = document.getElementById("loaded-blocks");
+
     // The websocket used to talk to the blockchain. We keep it to re-use it
     // between the different calls instead of creating a new connection each
     // time. Each chunk creates a ws connections because we need to have
@@ -68,6 +69,7 @@ export class Chunk {
         chain: Chain,
         transform: any
     ) {
+        this.totalLoaded=0;
         this.chainSubject = chainSubject;
         this.leftNeighbor = leftNei;
         this.rightNeighbor = rightNei;
@@ -193,6 +195,8 @@ export class Chunk {
             },
             next: ([i, skipBlocks, backward]) => {
                 // i is the page number
+                this.totalLoaded += skipBlocks.length;
+                this.loadedInfo.innerText = `${this.totalLoaded}`;
                 let isLastPage = false;
                 // tslint:disable-next-line
                 if (i == this.nbPages - 1) {
@@ -227,7 +231,6 @@ export class Chunk {
                     }
                 } else {
                     // Load blocks to the right
-
                     this.chain.displayBlocks(
                         skipBlocks,
                         false,
