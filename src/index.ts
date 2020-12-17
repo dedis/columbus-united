@@ -47,7 +47,7 @@ export function sayHi() {
 
     // Load the first block
     const indexString = window.location.hash.split(':')[1];
-    const initialBlockIndex = indexString !=null ? parseInt(indexString) : 108900;
+    const initialBlockIndex = indexString !=null ? parseInt(indexString) : 0;
     // Change here the first block to display
     //'6bacd57b248c94dc1e2372d62976d8986948f04d727254ffbc0220182f73ab67' block #110997 - problem with nextID
     //that block has no forwards link
@@ -70,11 +70,16 @@ export function sayHi() {
     let i = 1;
     // Load the first block at the provided index, and start the visualization
     // once we got that block and the promise resolves.
-    new SkipchainRPC(roster)
+    const scRPC = new SkipchainRPC(roster)
+    scRPC
         .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), initialBlockIndex)
         .then(
             (blockReply) => {
-                startColumbus(blockReply.skipblock, roster, flash);
+                scRPC.getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), 0).then(
+                    (genesis) => {
+                        startColumbus(genesis.skipblock, blockReply.skipblock, roster, flash);
+                    }
+                )
             },
             (e) => {
                 flash.display(
@@ -99,10 +104,11 @@ export function sayHi() {
  * @param roster the roster
  * @param flash the flash class that handles the flash messages
  */
-export function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash) {
-    const chain = new Chain(roster, flash, initialBlock);
+export function startColumbus(genesisBlock: SkipBlock, initialBlock: SkipBlock, roster: Roster, flash: Flash) {
 
-    chain.loadInitialBlocks(initialBlock.hash);
+    // We load the chain at block 0 and then move it to the desired place.
+    const chain = new Chain(roster, flash, genesisBlock);
+    Utils.scrollOnChain(roster, initialBlock.hash.toString("hex"), initialBlock, genesisBlock, chain)   
 
     searchBar(roster, flash, chain.blockClickedSubject,hashBlock0, chain,initialBlock);
     
