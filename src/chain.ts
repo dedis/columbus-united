@@ -58,6 +58,8 @@ export class Chain {
     readonly gcircle: any;
 
     readonly chunks = new Array<Chunk>();
+    
+   
 
     // The roster defines the blockchain nodes
     roster: Roster;
@@ -378,7 +380,7 @@ export class Chain {
 
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
-  //this.getToAndFromIndexes(xTranslateBlock, block, garrow);
+            this.getToAndFromIndexes(xTranslateBlock, block, garrow);
 
             //this.appendCircleInBlock(xTranslateBlock, gcircle);
         }
@@ -452,6 +454,7 @@ export class Chain {
                 .attr("marker-end", "url(#triangle)")
 
                 .on("click", () => {
+                    Utils.scrollOnChain(skipBlockTo,this.initialBlock,this)
                     this.blockClickedSubject.next(skipBlockTo);
                 });
 
@@ -466,6 +469,7 @@ export class Chain {
                 .append("path")
                 .attr("d", "M 0 0 L 10 5 L 0 10 z")
                 .on("click", () => {
+                    Utils.scrollOnChain(skipBlockTo,this.initialBlock,this)
                     this.blockClickedSubject.next(skipBlockTo);
                 })
                 .style("fill", "grey");

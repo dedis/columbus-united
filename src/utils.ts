@@ -145,17 +145,15 @@ export class Utils {
         flash.display(Flash.flashType.INFO, "Copied to clipboard");
     }
     static async scrollOnChain(
-        roster: Roster,
-        hashBlock0: string,
-        block: SkipBlock,
+        blockToGo: SkipBlock,
         initialBlock: SkipBlock,
         chain: Chain
     ) {
         //Set new coordinates on chain
         let newZoom = d3.zoomIdentity
-            .translate((initialBlock.index - block.index) * 110 + 0.2, 0) //block+padding =110
+            .translate((initialBlock.index - blockToGo.index) * 110 + 0.2, 0) //block+padding =110
             .scale(1);
-        //Set chain to new coordinates
+        //Set chain to newcoordinates
         d3.select("#svg-container").call(chain.zoom.transform, newZoom);
 
     }
