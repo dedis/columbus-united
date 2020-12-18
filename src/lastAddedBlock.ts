@@ -46,9 +46,18 @@ export class LastAddedBlock {
             .attr("z-index", -1);
 
         //We fetch the last block
-        let lastBlock = new SkipchainRPC(roster).getLatestBlock(initialBlock.hash, false).then(
-            (resp) =>  this.displayLastAddedBlock(resp,svgLast,resp.hash)
-        );
+        // new SkipchainRPC(roster).getLatestBlock(initialBlock.hash, false).then(
+        //     (resp) =>  this.displayLastAddedBlock(resp,svgLast,resp.hash)
+        // );
+        let lastBlock = new TotalBlock(roster, initialBlock);
+        lastBlock
+            .getTotalBlock()
+            .pipe(
+                map((s: SkipBlock) =>
+                    this.displayLastAddedBlock(s, svgLast, s.hash)
+                )
+            )
+            .subscribe();
        
 
        

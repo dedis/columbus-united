@@ -152,6 +152,7 @@ export class Utils {
         initialBlock: SkipBlock,
         chain: Chain,
     ) {
+  
         let arrayBlock = Array<SkipBlock>();
         arrayBlock.push(block);
 
@@ -159,8 +160,9 @@ export class Utils {
         chain.subjectBrowse.next([chain.nbPages, arrayBlock, false]);
 
         //translate the chain to wanted coordinates
+        console.log(initialBlock.index+" "+block.index+"wqe")
         let newZoom = d3.zoomIdentity
-            .translate((initialBlock.index - block.index) * 110 + 0.2, 0) //block+padding =110
+            .translate((initialBlock.index - block.index) * 110 + 0.2- initialBlock.index*110 , 0) //block+padding =110
             .scale(1);
         d3.select("#svg-container").call(chain.zoom.transform, newZoom);
 
