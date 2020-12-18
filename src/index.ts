@@ -117,8 +117,7 @@ export function startColumbus(
         hashBlock0,
         chain
     );
-    Utils.scrollOnChain(initialBlock,genesisBlock, chain) 
-
+    Utils.scrollOnChain(roster, initialBlock.hash.toString("hex"), initialBlock, genesisBlock, chain)  
 
     // The totalBlock utility class allows the browsing class to get the total
     // number of block in the chain. This class is stateful, it will keep each

@@ -48,7 +48,7 @@ async function searchRequest(
     if (search_mode == "hash") {
         try {
             let block = await Utils.getBlock(Buffer.from(input, "hex"), roster);
-            Utils.scrollOnChain( block, initialBlock, chain);
+            Utils.scrollOnChain(roster, hashBlock0, block, initialBlock, chain);
             flash.display(
                 Flash.flashType.INFO,
                 "Valid search for block index: " + block.index.toString()
@@ -64,7 +64,7 @@ async function searchRequest(
                 parseInt(input, 10),
                 roster
             );
-            Utils.scrollOnChain(block, initialBlock, chain);
+            Utils.scrollOnChain(roster, hashBlock0, block, initialBlock, chain);
 
             flash.display(
                 Flash.flashType.INFO,

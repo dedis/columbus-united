@@ -144,19 +144,36 @@ export class Utils {
         document.body.removeChild(dummy);
         flash.display(Flash.flashType.INFO, "Copied to clipboard");
     }
+    
     static async scrollOnChain(
-        blockToGo: SkipBlock,
+        roster: Roster,
+        hashBlock0: string,
+        block: SkipBlock,
         initialBlock: SkipBlock,
-        chain: Chain
+        chain: Chain,
     ) {
-        //Set new coordinates on chain
+        let arrayBlock = Array<SkipBlock>();
+        arrayBlock.push(block);
+
+
+        chain.subjectBrowse.next([chain.nbPages, arrayBlock, false]);
+
+        //translate the chain to wanted coordinates
         let newZoom = d3.zoomIdentity
-            .translate((initialBlock.index - blockToGo.index) * 110 + 0.2, 0) //block+padding =110
+            .translate((initialBlock.index - block.index) * 110 + 0.2, 0) //block+padding =110
             .scale(1);
-        //Set chain to newcoordinates
         d3.select("#svg-container").call(chain.zoom.transform, newZoom);
 
+    
+        chain.blockClickedSubject.next(
+            await Utils.getBlockByIndex(
+                Utils.hex2Bytes(hashBlock0),
+                block.index,
+                roster
+            )
+        );
     }
+
 
     /**
      * Converts a transform to the corresponding block index.
