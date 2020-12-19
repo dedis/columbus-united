@@ -454,7 +454,7 @@ export class Chain {
                 .attr("marker-end", "url(#triangle)")
 
                 .on("click", () => {
-                    //Utils.scrollOnChain(this.roster, this.initialBlock.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
+                    Utils.scrollOnChain(this.roster, this.initialBlock.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
                     this.blockClickedSubject.next(skipBlockTo);
                 });
 
@@ -469,7 +469,7 @@ export class Chain {
                 .append("path")
                 .attr("d", "M 0 0 L 10 5 L 0 10 z")
                 .on("click", () => {
-                //    Utils.scrollOnChain(this.roster, skipBlockTo.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
+                       Utils.scrollOnChain(this.roster, skipBlockTo.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
                     this.blockClickedSubject.next(skipBlockTo);
                 })
                 .style("fill", "grey");
