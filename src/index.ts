@@ -1,17 +1,17 @@
 import { Roster } from "@dedis/cothority/network";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import { SkipBlock } from "@dedis/cothority/skipchain/skipblock";
+import "uikit";
 import { Block } from "./block";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
+import { LastAddedBlock } from "./lastAddedBlock";
 import { Lifecycle } from "./lifecycle";
 import { getRosterStr } from "./roster";
-import { TotalBlock } from "./totalBlock";
-import { LastAddedBlock } from "./lastAddedBlock";
-import { Utils } from "./utils";
-import "uikit";
-import "./stylesheets/style.scss";
 import { searchBar } from "./search";
+import "./stylesheets/style.scss";
+import { TotalBlock } from "./totalBlock";
+import { Utils } from "./utils";
 
 // This is the genesis block, which is also the skipchain identifier
 const hashBlock0 =
@@ -48,6 +48,7 @@ export function sayHi() {
     // Change here the first block to display by default if the user does not input a block index in the url
     // The default block is #118750 because forward links from this point onwards are broken
     const initialBlockIndex =
+        // tslint:disable-next-line:radix
         indexString != null ? parseInt(indexString) : 118750;
 
     // The block index should not be smaller than 0
@@ -58,9 +59,10 @@ export function sayHi() {
                 initialBlockIndex
         );
     }
-    //Block indexes higher that 118750 do not give the proper last added block of the chain
-    //Block #118800 fetches as last block 119685 (which is incorrect)
-    //Forward links from this point are broken
+
+    // Block indexes higher that 118750 do not give the proper last added block of the chain
+    // Block #118800 fetches as last block 119685 (which is incorrect)
+    // Forward links from this point are broken
     if (initialBlockIndex > 118750) {
         flash.display(
             Flash.flashType.ERROR,
@@ -102,6 +104,7 @@ export function sayHi() {
 /**
  * startColumbus starts the visualization
  *
+ * @param genesisBlock the genesis block of the skipchain
  * @param initialBlock the first block that will be displayed
  * @param roster the roster
  * @param flash the flash class that handles the flash messages
@@ -115,13 +118,13 @@ export function startColumbus(
     // We load the chain at block 0 and then move it to the desired place.
     const chain = new Chain(roster, flash, genesisBlock);
 
-    //We intialize the last added block of the chain
+    // We intialize the last added block of the chain
     const lastBlock = new LastAddedBlock(roster, flash, initialBlock, chain);
 
-    //We initialise the search bar
+    // We initialise the search bar
     searchBar(roster, flash, initialBlock, hashBlock0, chain);
 
-    //We start the translation to trigger the load
+    // We start the translation to trigger the load
     Utils.scrollOnChain(
         roster,
         initialBlock.hash.toString("hex"),
@@ -142,9 +145,9 @@ export function startColumbus(
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
     new Block(
-        chain.getBlockClickedSubject(),
+        Chain.blockClickedSubject,
         lifecycle,
         flash,
-        chain.getNewblocksSubject()
+        Chain.newBlocksSubject
     ).startListen();
 }
