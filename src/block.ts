@@ -2,7 +2,7 @@ import { Instruction } from "@dedis/cothority/byzcoin";
 import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
-import { Observable } from "rxjs";
+import { Observable, Subject } from "rxjs";
 import {throttleTime } from "rxjs/operators";
 
 
@@ -25,11 +25,11 @@ import { Utils } from "./utils";
  * @class Block
  */
 export class Block {
+
     // Observable for the clicked block
-    skipBclickedObs: Observable<SkipBlock>;
+    skipBclickedSubject: Subject<SkipBlock>;
     clickedBlock: SkipBlock;
     colorClickedBlock: string;
-
     // Observable that notifies the updated blocks of blocksDiagram
     loadedSkipBObs: Observable<SkipBlock[]>;
 
@@ -51,7 +51,7 @@ export class Block {
 
     /**
      * Creates an instance of DetailBlock.
-     * @param {Observable<SkipBlock>} skipBclickedObs : Observable for the clicked
+     * @param {Observable<SkipBlock>} skipBclickedSubject : Observable for the clicked
      * block. We need this observable to know when a user has clicked on a block,
      * and then display the details of that block.
      * @param {Browsing} browsing
@@ -63,15 +63,15 @@ export class Block {
      * @memberof DetailBlock
      */
     constructor(
-        skipBclickedObs: Observable<SkipBlock>,
+        skipBclickedSubject: Subject<SkipBlock>,
         lifecycle: Lifecycle,
         flash: Flash,
-        loadedSkipBObs: Observable<SkipBlock[]>
+        loadedSkipBObs: Observable<SkipBlock[]>,
     ) {
         const self = this;
 
-        this.skipBclickedObs = skipBclickedObs;
-        this.skipBclickedObs.subscribe({
+        this.skipBclickedSubject = skipBclickedSubject;
+        this.skipBclickedSubject.subscribe({
             next: this.listTransaction.bind(this),
         });
 
@@ -105,11 +105,14 @@ export class Block {
         });
         
     }
+    setSearch(search: void) {
+        throw new Error('Method not implemented.');
+    }
 
     /**
      * Display the list of all the transactions inside the clicked block.
      * It is triggered on click by the blocksDiagram class which notifies the
-     * skipBclickedObs observable. It also displays the details of the block
+     * skipBclickedSubject observable. It also displays the details of the block
      * (verifiers, backlinks, forwardlinks).
      * A browse button to search for the instanceID of the instruction is also
      * displayed
@@ -179,7 +182,7 @@ export class Block {
         const blockCardHeaderDetails = blockCardHeader.append("p");
 
         blockCardHeaderDetails
-            .text(`Hash: ${block.hash.toString("hex")}`)
+            .text(`Hash : ${block.hash.toString("hex")}`)
             .append("p")
             .text(`Validated on the ${Utils.getTimeString(block)}`)
             .append("p")
@@ -206,7 +209,7 @@ export class Block {
         const aVerifier = liVerifier.append("a");
         aVerifier
             .attr("class", "uk-accordion-title")
-            .text(`Verifiers: ${block.verifiers.length}`);
+            .text(`Verifiers : ${block.verifiers.length}`);
         const divVerifier = liVerifier.append("div");
         divVerifier.attr("class", "uk-accordion-content");
         block.verifiers.forEach((uid, j) => {
@@ -223,7 +226,7 @@ export class Block {
         const aBackLink = liBackLink.append("a");
         aBackLink
             .attr("class", "uk-accordion-title")
-            .text(`Back Links: ${block.backlinks.length}`);
+            .text(`Back Links : ${block.backlinks.length}`);
         const divBackLink = liBackLink.append("div");
         divBackLink.attr("class", "uk-accordion-content");
         block.backlinks.forEach((value, j) => {
@@ -235,7 +238,9 @@ export class Block {
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
                 .on("click",function() {Utils.copyToClipBoard(value.toString("hex"), self.flash)})
-                .attr("uk-tooltip", `${value.toString("hex")}`);
+                .attr("uk-tooltip", `${value.toString("hex")}`)
+                .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
+                .on("mouseout", function() {d3.select(this).style("cursor", "default")});;
         });
 
         //ANCHOR ForwardLink
@@ -245,7 +250,7 @@ export class Block {
         const aForwardLink = liForwardLink.append("a");
         aForwardLink
             .attr("class", "uk-accordion-title")
-            .text(`Forward Links: ${block.forwardLinks.length}`);
+            .text(`Forward Links : ${block.forwardLinks.length}`);
 
         const divForwardLink = liForwardLink.append("div");
         divForwardLink.attr("class", "uk-accordion-content");
@@ -258,8 +263,13 @@ export class Block {
                 .append("span")
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
-                .on("click",function() {Utils.copyToClipBoard(fl.to.toString("hex"), self.flash)})
-                .attr("uk-tooltip", `${fl.to.toString("hex")}`);
+                .on("click",function() {
+                    Utils.copyToClipBoard(fl.to.toString("hex"), self.flash);
+                    self.skipBclickedSubject.next()
+                })
+                .attr("uk-tooltip", `${fl.to.toString("hex")}`)
+                .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
+                .on("mouseout", function() {d3.select(this).style("cursor", "default")});
 
             const lockIcon = divForwardLink
                 .append("object");
@@ -388,7 +398,7 @@ export class Block {
                     const hash = instruction.instanceID.toString("hex");
                     Utils.addHashBlocky(divInstruction
                         .append("p")
-                        .text(`Instance ID: `), hash, self.flash);
+                        .text(`Instance ID : `), hash, self.flash);
                     if (!coin_invoked){     
                         if(instruction.signerCounter.length != 0 ){
                             const userSignature = instruction.signerIdentities.pop().toString().slice(8);
@@ -413,7 +423,7 @@ export class Block {
                             aArgs
                                 .attr("class", "uk-accordion-title")
                                 .attr("href", "#");
-                            aArgs.text(`${i}: ${arg.name}`);
+                            aArgs.text(`${i} : ${arg.name}`);
                             const divArgs = liArgs.append("div");
                             divArgs.attr("class", "uk-accordion-content");
                             divArgs.append("p").text(`${arg.value}`);
@@ -670,7 +680,9 @@ export class Block {
                 .attr("class", "uk-badge")
                 .text(`Block ${blocki.index}`) 
                 .on("click",function() {Utils.copyToClipBoard(`${blocki.hash.toString("hex")}`, self.flash)})
-                .attr("uk-tooltip", `${blocki.hash.toString("hex")}`);
+                .attr("uk-tooltip", `${blocki.hash.toString("hex")}`)
+                .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
+                .on("mouseout", function() {d3.select(this).style("cursor", "default")});;
                 
             
             // Add an highlight of the instance which was browsed

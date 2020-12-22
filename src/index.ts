@@ -121,11 +121,13 @@ export async function startColumbus(initialBlock: SkipBlock, roster: Roster, fla
         chain.getBlockClickedSubject(),
         lifecycle,
         flash,
-        chain.getNewblocksSubject()
+        chain.getNewblocksSubject(),
     );
     block.startListen();
 
-    searchBar(roster, flash, chain.blockClickedSubject,hashBlock0, 0, block);
+    const search = searchBar(roster, flash, chain.blockClickedSubject,hashBlock0, 0, block);
+
+    block.setSearch(search);
 
     try{
         let block = await Utils.getBlockByIndex(
