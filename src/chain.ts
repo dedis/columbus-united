@@ -200,7 +200,7 @@ export class Chain {
                 this.gblocks.attr("transform", transformString);
                 // Standard transformation on the text since we need to keep the
                 // original scale
-                //  gblocks.selectAll("circle").attr("r",transform.k*5);
+                // gblocks.selectAll("circle").attr("r",transform.k*5);
 
                 gcircle.selectAll("circle").attr("transform", transformString);
 
