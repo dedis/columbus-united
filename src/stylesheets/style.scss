@@ -96,8 +96,7 @@ div.query-answer {
     width: 35%;
     font-size: 14px;
     font-family: 'Roboto', Arial, sans-serif;
-    border-radius: 15px 0 0 15px;
-  
+    border-radius:  15px 0 0 15px ;
    
     
 
@@ -109,7 +108,6 @@ div.query-answer {
     margin-top: 8px;
     margin-bottom: 8px;
     color: grey;
-    border-right: 1px solid grey !important;
     padding-right: 8px;
     height: auto;
     width: auto;
@@ -117,6 +115,11 @@ div.query-answer {
     text-shadow:none;
     -moz-appearance: none;
     appearance: none;
+    border-radius: 0 15px 15px 0;
+
+  }
+  .topnav>a>svg{
+      padding-bottom: 8px;
   }
 
   .topnav>select{

@@ -6,6 +6,7 @@ import * as d3 from "d3";
 import { Subject } from "rxjs";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
+import * as blockies from "blockies-ts";
 
 export class Utils {
     /**
@@ -186,4 +187,37 @@ export class Utils {
 
         return { left: Math.max(0, leftBlockIndex), right: rightBlockIndex };
     }
+    static addHashBlocky(
+        line: d3.Selection<HTMLElement,unknown,HTMLElement,any>, 
+        hash : string,
+        flash : Flash)
+    {
+        const blocky = blockies.create({seed : hash})
+        line
+            .append("img")
+            .attr("class", 'uk-img')
+            .attr("src", blocky.toDataURL())
+            .attr("uk-tooltip", ` ${hash}`)
+            .on("click", function() {Utils.copyToClipBoard(hash, flash)})
+            .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
+            .on("mouseout", function() {d3.select(this).style("cursor", "default")});
+    }
+
+    static addIDBlocky(
+        line: d3.Selection<HTMLElement,unknown,HTMLElement,any>, 
+        hash : string,
+        flash : Flash)
+    {
+        const blocky = blockies.create({seed : hash})
+        line
+            .append("img")
+            .attr("class", 'uk-img clip-blocky')
+            .attr("src", blocky.toDataURL())
+            .attr("uk-tooltip", ` ${hash}`)
+            .on("click", function() {Utils.copyToClipBoard(hash, flash)})
+            .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
+            .on("mouseout", function() {d3.select(this).style("cursor", "default")});
+    }
+    
+
 }

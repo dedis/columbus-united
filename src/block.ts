@@ -2,10 +2,9 @@ import { Instruction } from "@dedis/cothority/byzcoin";
 import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
-import { Observable } from "rxjs";
-import { throttleTime } from "rxjs/operators";
+import { Observable, Subject } from "rxjs";
+import {throttleTime } from "rxjs/operators";
 
-import * as blockies from "blockies-ts";
 
 import { Chain } from "./chain";
 import { Flash } from "./flash";
@@ -26,11 +25,11 @@ import { Utils } from "./utils";
  * @class Block
  */
 export class Block {
+
     // Observable for the clicked block
-    skipBclickedObs: Observable<SkipBlock>;
+    skipBclickedSubject: Subject<SkipBlock>;
     clickedBlock: SkipBlock;
     colorClickedBlock: string;
-
     // Observable that notifies the updated blocks of blocksDiagram
     loadedSkipBObs: Observable<SkipBlock[]>;
 
@@ -52,7 +51,7 @@ export class Block {
 
     /**
      * Creates an instance of DetailBlock.
-     * @param {Observable<SkipBlock>} skipBclickedObs : Observable for the clicked
+     * @param {Observable<SkipBlock>} skipBclickedSubject : Observable for the clicked
      * block. We need this observable to know when a user has clicked on a block,
      * and then display the details of that block.
      * @param {Browsing} browsing
@@ -64,15 +63,15 @@ export class Block {
      * @memberof DetailBlock
      */
     constructor(
-        skipBclickedObs: Observable<SkipBlock>,
+        skipBclickedSubject: Subject<SkipBlock>,
         lifecycle: Lifecycle,
         flash: Flash,
-        loadedSkipBObs: Observable<SkipBlock[]>
+        loadedSkipBObs: Observable<SkipBlock[]>,
     ) {
         const self = this;
 
-        this.skipBclickedObs = skipBclickedObs;
-        this.skipBclickedObs.subscribe({
+        this.skipBclickedSubject = skipBclickedSubject;
+        this.skipBclickedSubject.subscribe({
             next: this.listTransaction.bind(this),
         });
 
@@ -105,11 +104,14 @@ export class Block {
             },
         });
     }
+    setSearch(search: void) {
+        throw new Error('Method not implemented.');
+    }
 
     /**
      * Display the list of all the transactions inside the clicked block.
      * It is triggered on click by the blocksDiagram class which notifies the
-     * skipBclickedObs observable. It also displays the details of the block
+     * skipBclickedSubject observable. It also displays the details of the block
      * (verifiers, backlinks, forwardlinks).
      * A browse button to search for the instanceID of the instruction is also
      * displayed
@@ -179,7 +181,7 @@ export class Block {
         const blockCardHeaderDetails = blockCardHeader.append("p");
 
         blockCardHeaderDetails
-            .text(`Hash: ${block.hash.toString("hex")}`)
+            .text(`Hash : ${block.hash.toString("hex")}`)
             .append("p")
             .text(`Validated on the ${Utils.getTimeString(block)}`)
             .append("p")
@@ -206,27 +208,14 @@ export class Block {
         const aVerifier = liVerifier.append("a");
         aVerifier
             .attr("class", "uk-accordion-title")
-            .text(`Verifiers: ${block.verifiers.length}`);
+            .text(`Verifiers : ${block.verifiers.length}`);
         const divVerifier = liVerifier.append("div");
         divVerifier.attr("class", "uk-accordion-content");
         block.verifiers.forEach((uid, j) => {
-            const blockie = blockies.create({ seed: uid.toString("hex") });
             
             const verifierLine = divVerifier.append("p");
                 verifierLine.text(` Verifier ${j} , ID:  `);                
-               
-            const imgBlockie = verifierLine.append("img");
-            imgBlockie
-                .attr("class", "uk-img")
-              .attr("src", blockie.toDataURL())
-                .attr("width", 32)
-                .attr("uk-tooltip", `${uid.toString("hex")}`)
-                .append("input")
-                .text(`${uid.toString("hex")}`)
-                .style("height", "0")
-                .style("width", "0");
-
-            imgBlockie.on("click",function() {Utils.copyToClipBoard(uid.toString("hex"), self.flash)});
+            Utils.addIDBlocky(verifierLine, uid.toString("hex"), self.flash)
         });
 
         //ANCHOR BackLink details
@@ -236,7 +225,7 @@ export class Block {
         const aBackLink = liBackLink.append("a");
         aBackLink
             .attr("class", "uk-accordion-title")
-            .text(`Back Links: ${block.backlinks.length}`);
+            .text(`Back Links : ${block.backlinks.length}`);
         const divBackLink = liBackLink.append("div");
         divBackLink.attr("class", "uk-accordion-content");
         block.backlinks.forEach((value, j) => {
@@ -248,7 +237,9 @@ export class Block {
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
                 .on("click",function() {Utils.copyToClipBoard(value.toString("hex"), self.flash)})
-                .attr("uk-tooltip", `${value.toString("hex")}`);
+                .attr("uk-tooltip", `${value.toString("hex")}`)
+                .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
+                .on("mouseout", function() {d3.select(this).style("cursor", "default")});;
         });
 
         //ANCHOR ForwardLink
@@ -258,7 +249,7 @@ export class Block {
         const aForwardLink = liForwardLink.append("a");
         aForwardLink
             .attr("class", "uk-accordion-title")
-            .text(`Forward Links: ${block.forwardLinks.length}`);
+            .text(`Forward Links : ${block.forwardLinks.length}`);
 
         const divForwardLink = liForwardLink.append("div");
         divForwardLink.attr("class", "uk-accordion-content");
@@ -271,15 +262,19 @@ export class Block {
                 .append("span")
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
-                .on("click",function() {Utils.copyToClipBoard(fl.to.toString("hex"), self.flash)})
-                .attr("uk-tooltip", `${fl.to.toString("hex")}`);
+                .on("click",function() {
+                    Utils.copyToClipBoard(fl.to.toString("hex"), self.flash);
+                    self.skipBclickedSubject.next()
+                })
+                .attr("uk-tooltip", `${fl.to.toString("hex")}`)
+                .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
+                .on("mouseout", function() {d3.select(this).style("cursor", "default")});
 
             const lockIcon = divForwardLink
                 .append("a");
 
             const lockContent = `<p>Hash: ${fl.hash().toString("hex")}</p>
             <p>signature: ${fl.signature.sig.toString("hex")}</p>`
-
 
             lockIcon
                 .attr("class", "uk-icon-button")
@@ -360,6 +355,7 @@ export class Block {
             // instructions of the transaction
             transaction.clientTransaction.instructions.forEach(
                 (instruction, j) => {
+                    var coin_invoked = false;
                     let args = null;
                     const liInstruction = ulInstruction.append("li");
                     liInstruction.attr("style", "padding-left:15px");
@@ -380,6 +376,8 @@ export class Block {
                             `Invoked : ${contractName }`
                         );
                         args = instruction.invoke.args;
+                        coin_invoked = (contractName == "Coin" && args.length>1); //Blocks prior to index 45 don't implement coin in the right way unfortunately
+
                     } else if (instruction.type === Instruction.typeDelete) {
                         const contractName = instruction.delete.contractID.charAt(0).toUpperCase() + 
                         instruction.delete.contractID.slice(1);
@@ -396,30 +394,73 @@ export class Block {
                     divInstruction
                         .append("p")
                         .text(`Transaction hash : ${instruction.hash().toString("hex")}`);
-                    divInstruction
+                    
+                    const hash = instruction.instanceID.toString("hex");
+                    Utils.addHashBlocky(divInstruction
                         .append("p")
-                        .text(
-                            `Instance ID: ${instruction.instanceID.toString(
-                                "hex"
-                            )}`
-                        );
-                    divInstruction.append("p").text("Arguments:");
-                    // Args of the instruction
-                    const ulArgs = divInstruction.append("ul");
-                    ulArgs.attr("uk-accordion", "");
-                    // tslint:disable-next-line
-                    args.forEach((arg, i) => {
-                        const liArgs = ulArgs.append("li");
-                        const aArgs = liArgs.append("a");
-                        aArgs
-                            .attr("class", "uk-accordion-title")
+                        .text(`Instance ID : `), hash, self.flash);
+                    if (!coin_invoked){     
+                        if(instruction.signerCounter.length != 0 ){
+                            const userSignature = instruction.signerIdentities.pop().toString().slice(8);
+                            const emmiterP =divInstruction
+                                .append("p")
+                                .text("Emmited by ");
+                                Utils.addIDBlocky(
+                                    emmiterP,
+                                    userSignature, 
+                                    self.flash)
+                        }
+                        divInstruction.append("p").text("Arguments:");
+                        // Args of the instruction
+                        const ulArgs = divInstruction.append("ul");
+                        ulArgs.attr("uk-accordion", "");
+                        // tslint:disable-next-line
+                        const beautifiedArgs = instruction.beautify().args;
+                        beautifiedArgs.forEach((arg, i) => {
 
-                            .attr("href", "#");
-                        aArgs.text(`${i}: ${arg.name}`);
-                        const divArgs = liArgs.append("div");
-                        divArgs.attr("class", "uk-accordion-content");
-                        divArgs.append("p").text(`${arg.value}`);
-                    });
+                            const liArgs = ulArgs.append("li");
+                            const aArgs = liArgs.append("a");
+                            aArgs
+                                .attr("class", "uk-accordion-title")
+                                .attr("href", "#");
+                            aArgs.text(`${i} : ${arg.name}`);
+                            const divArgs = liArgs.append("div");
+                            divArgs.attr("class", "uk-accordion-content");
+                            divArgs.append("p").text(`${arg.value}`);
+                            //TODO Add tooltip to get full arg if it exists
+                            //TODO Discriminate coins to displya blockie
+
+                        });
+                    }
+                    else{
+                        const beautifiedArgs = instruction.beautify().args;
+                        const userSignature = instruction.signerIdentities.pop().toString().slice(8);
+                        const destinationSignature = beautifiedArgs[1].value;
+
+                        const line = divInstruction
+                            .append("p")
+                        Utils.addIDBlocky(line, userSignature,self.flash);
+                        line
+                            .append("span")
+                            .text(` gave ${beautifiedArgs[0].value.split(' ')[0]}`)
+                        line
+                            .append("object")
+                            .attr("class", "white-icon")
+                            .attr("type", "image/svg+xml")
+                            .attr("data", "assets/coin.svg")
+                            .style("display", "inline-block")
+                            .style("position", "relative")
+                            .style("top", "11px");
+                            
+                        line
+                            .append("span")
+                            .text(" to ")
+                        Utils.addIDBlocky(line, destinationSignature, self.flash);
+                        if (beautifiedArgs.length==3){
+                            divInstruction.append("p").text(`Challenge : ${beautifiedArgs[2].value}`)
+                        }
+
+                    }
                     // Search button
                     const searchInstance = divInstruction.append("button");
                     searchInstance
@@ -437,42 +478,7 @@ export class Block {
                         // Confirmation and start browsing on click
                         // tslint:disable-next-line
                         .on("click", function () {
-                            const conf = confirm(
-                                `Do you really want to browse the whole blockchain with the instance ID: ${instruction.instanceID.toString(
-                                    "hex"
-                                )}? \nThis may take a while!`
-                            );
-                            if (conf) {
-                                self.createLoadingScreen();
-                                const subjects = self.lifecycle.getInstructionSubject(
-                                    instruction
-                                );
-                                subjects[0].subscribe({
-                                    next: self.printDataBrowsing.bind(self),
-                                });
-                                // throttleTime: ignores the values for the 100 first ms
-                                subjects[1].pipe(throttleTime(100)).subscribe({
-                                    complete: self.doneLoading,
-                                    next: ([
-                                        percentage,
-                                        seenBlock,
-                                        totalBlock,
-                                        nbInstanceFound,
-                                    ]) => {
-                                        self.updateLoadingScreen(
-                                            percentage,
-                                            seenBlock,
-                                            totalBlock,
-                                            nbInstanceFound
-                                        );
-                                    },
-                                });
-                            } else {
-                                self.flash.display(
-                                    Flash.flashType.INFO,
-                                    "Browsing cancelled"
-                                );
-                            }
+                            self.launchQuery(chosenQuery, instruction.instanceID.toString("hex"))
                         });
                 }
             ); //!SECTION
@@ -482,6 +488,43 @@ export class Block {
 
     }
 
+   /**
+    * 
+    * @public
+    * @param chosenQuery 
+    * @param instruction 
+    * @memberof DetailBlock
+    */
+
+    public launchQuery(chosenQuery : number, instanceID:string)
+    {
+        const self = this;
+        self.createLoadingScreen();
+        const subjects = self.lifecycle
+            .getInstructionSubject(instanceID,chosenQuery);
+        subjects[0].subscribe({
+            next: self.printDataBrowsing.bind(self),
+        });
+        // throttleTime: ignores the values for the 100 first ms
+        subjects[1].pipe(throttleTime(100)).subscribe({
+            complete: self.doneLoading,
+            next: ([
+                percentage,
+                seenBlock,
+                totalBlock,
+                nbInstanceFound,
+            ]) => {
+                console.log("updated")
+                self.updateLoadingScreen(
+                    percentage,
+                    seenBlock,
+                    totalBlock,
+                    nbInstanceFound
+                );
+            },
+        });
+    }
+
     //SECTION Query
     /**
      * Displays the result of the browsing, highlights the
@@ -489,7 +532,7 @@ export class Block {
      *
      * @private
      * @param {[SkipBlock[], Instruction[]]} tuple : value of the observable
-     *                              browsing.getInstructionSubject function
+     browsing.getInstructionSubject function
      * @memberof DetailBlock
      */
     private printDataBrowsing(tuple: [SkipBlock[], Instruction[]]) {
@@ -580,6 +623,30 @@ export class Block {
                 );
                 contractID = instruction.delete.contractID;
             }
+
+            instructionCardHeader
+                .append("span")
+                .attr("class", "uk-badge")
+                .text(`${verb}`) 
+                .on("click",function() {Utils.copyToClipBoard(`${instruction.hash()
+                    .toString("hex")}}`, self.flash)})
+                .attr("uk-tooltip", `${instruction.hash().toString("hex")}`);
+
+            instructionCardHeader
+                .append("span")
+                .text(
+                    ` ${contractID} contract in `
+                );
+            instructionCardHeader
+                .append("span")
+                .attr("class", "uk-badge")
+                .text(`Block ${blocki.index}`) 
+                .on("click",function() {Utils.copyToClipBoard(`${blocki.hash.toString("hex")}`, self.flash)})
+                .attr("uk-tooltip", `${blocki.hash.toString("hex")}`)
+                .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
+                .on("mouseout", function() {d3.select(this).style("cursor", "default")});;
+                
+            
             // Add an highlight of the instance which was browsed
             if (
                 blocki.hash.toString("hex") ===
@@ -721,7 +788,7 @@ export class Block {
             .append("button")
             .attr("class", "cancel-button")
             .attr("id", "cancel-button")
-            .text("Abort research")
+            .text("Abort search")
             // tslint:disable-next-line
             .on("click", function () {
                 const conf = confirm(

@@ -313,7 +313,6 @@ export class LastAddedBlock {
                 rejected++;
             }
         });
-
         return [accepted, rejected];
     }
 

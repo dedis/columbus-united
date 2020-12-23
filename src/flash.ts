@@ -89,7 +89,12 @@ export class Flash {
         }
         const timer = rx.timer(2000);
 
+<<<<<<< HEAD
         const decay = timer.subscribe(() => {
+=======
+        timer.subscribe(()=>{
+            this;
+>>>>>>> 965e408977666c1b19f7685339ca40518b07d455
             Flash.closeAlert(this.span.node().parentElement);
             });
 
