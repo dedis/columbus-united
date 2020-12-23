@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import * as rx from 'rxjs';
+import * as rx from "rxjs";
 
 /**
  * Create flash alerte using flashType, displayed at the top of the page
@@ -8,9 +8,16 @@ import * as rx from 'rxjs';
  * @class Flash
  */
 export class Flash {
+    private static closeAlert(div: HTMLElement) {
+        div.style.opacity = "0";
+        setTimeout(() => {
+            div.style.display = "none";
+        }, 200);
+
+    }
     containerFlash: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
     flashType: Flash.flashType;
-    span : d3.Selection<HTMLSpanElement, unknown, HTMLElement,any>;
+    span: d3.Selection<HTMLSpanElement, unknown, HTMLElement, any>;
     /**
      * Creates an instance of Flash, setting the container
      * @memberof Flash
@@ -31,7 +38,7 @@ export class Flash {
      */
     display(errorCode: Flash.flashType, text: string) {
         let divAlert;
-        
+
         switch (errorCode) {
             case Flash.flashType.ERROR:
                 divAlert = this.containerFlash
@@ -82,7 +89,7 @@ export class Flash {
         }
         const timer = rx.timer(2000);
 
-        const decay = timer.subscribe(()=>{
+        const decay = timer.subscribe(() => {
             Flash.closeAlert(this.span.node().parentElement);
             });
 
@@ -93,15 +100,6 @@ export class Flash {
             Flash.closeAlert(this.parentElement);
         });
     }
-    private static closeAlert(div : HTMLElement){
-        div.style.opacity = "0";
-        setTimeout(function () {
-            div.style.display = "none";
-        }, 200);
-
-    }
-
-
 
 } // tslint:disable-next-line
 
