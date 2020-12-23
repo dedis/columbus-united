@@ -2,6 +2,7 @@ import { DataBody } from "@dedis/cothority/byzcoin/proto";
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
+import { Subject } from "rxjs";
 
 import * as d3 from "d3";
 
@@ -36,10 +37,10 @@ export class LastAddedBlock {
     // The last added block of the chain
     lastBlock: SkipBlock;
 
-    constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock, chain: Chain ) {
+    constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock, blockClickedSubject: Subject<SkipBlock>) {
 
-        this.chain = chain;
         this.flash = flash;
+
 
         // Main SVG caneva that contains the last added block
         const svgLast = d3
@@ -57,7 +58,7 @@ export class LastAddedBlock {
             .getTotalBlock()
             .pipe(
                 map((s: SkipBlock) =>
-                    this.displayLastAddedBlock(s, svgLast, s.hash)
+                    this.displayLastAddedBlock(s, svgLast, s.hash,blockClickedSubject)
                 )
             )
             .subscribe();
@@ -206,7 +207,8 @@ export class LastAddedBlock {
     private displayLastAddedBlock(
         lastBlock: SkipBlock,
         svgLast: any,
-        hashLast: Buffer
+        hashLast: Buffer,
+        blockClickedSubject:Subject<SkipBlock>
     ) {
         svgLast
             .append("rect")
@@ -219,7 +221,7 @@ export class LastAddedBlock {
             .attr("fill", Chain.getBlockColor(lastBlock))
             .on("click", () => {
                 // tslint:disable-next-line:no-unused-expression
-                Chain.blockClickedSubject;
+                blockClickedSubject;
             });
 
         // shadow filter for last added block

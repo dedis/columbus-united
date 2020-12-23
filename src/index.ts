@@ -5,7 +5,6 @@ import "uikit";
 import { Block } from "./block";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
-import { LastAddedBlock } from "./lastAddedBlock";
 import { Lifecycle } from "./lifecycle";
 import { getRosterStr } from "./roster";
 import { searchBar } from "./search";
@@ -31,7 +30,6 @@ const rosterStr = getRosterStr();
  * @returns : only in case of an error
  */
 export function sayHi() {
-
     // Create the roster
     const roster = Roster.fromTOML(rosterStr);
 
@@ -92,7 +90,7 @@ export function sayHi() {
             (e) => {
                 flash.display(
                     Flash.flashType.ERROR,
-                    "unable to find initial block with index " +
+                    "Unable to find initial block with index " +
                         initialBlockIndex +
                         ": " +
                         e
@@ -115,22 +113,19 @@ export function startColumbus(
     roster: Roster,
     flash: Flash
 ) {
-    // We load the chain at block 0 and then move it to the desired place.
+    // The chain is loaded at block 0 and then moved to the desired place.
     const chain = new Chain(roster, flash, genesisBlock);
 
-    // We intialize the last added block of the chain
-    const lastBlock = new LastAddedBlock(roster, flash, initialBlock, chain);
+    // The translation is started to trigger the load
+    Utils.scrollOnChain(initialBlock, genesisBlock, chain.blockClickedSubject);
 
-    // We initialise the search bar
-    searchBar(roster, flash, initialBlock, hashBlock0, chain);
-
-    // We start the translation to trigger the load
-    Utils.scrollOnChain(
+    // The blockchain properties are given to the search bar
+    searchBar(
         roster,
-        initialBlock.hash.toString("hex"),
+        flash,
         initialBlock,
-        genesisBlock,
-        chain
+        hashBlock0,
+        chain.blockClickedSubject
     );
 
     // The totalBlock utility class allows the browsing class to get the total
@@ -145,9 +140,9 @@ export function startColumbus(
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
     new Block(
-        Chain.blockClickedSubject,
+        chain.getBlockClickedSubject,
         lifecycle,
         flash,
-        Chain.newBlocksSubject
+        chain.getNewBlocksSubject
     ).startListen();
 }

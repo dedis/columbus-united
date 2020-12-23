@@ -1,5 +1,5 @@
 import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
-import { DataBody } from "@dedis/cothority/byzcoin/proto";
+import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
 import {
     PaginateRequest,
     PaginateResponse,
@@ -9,21 +9,16 @@ import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
-import { debounceTime } from "rxjs/operators";
-import { Chunk } from "./chunk";
+import { debounceTime, map, skip, throttleTime } from "rxjs/operators";
 import { Flash } from "./flash";
 import { Utils } from "./utils";
+import { Chunk } from "./chunk";
+import { LastAddedBlock } from "./lastAddedBlock";
 
 export class Chain {
     // Go to https://color.adobe.com/create/color-wheel with this base color to
-    // find the palette of colors.
+    // find the palet of colors.
     static readonly blockColor = { r: 23, v: 73, b: 179 }; // #D9BA82
-
-    // This subject is notified each time a block is clicked.
-    static readonly blockClickedSubject = new Subject<SkipBlock>();
-
-    // This subject is notified when a new series of block has been added to the view.
-    static readonly newBlocksSubject = new Subject<SkipBlock[]>();
 
     /**
      * Determine the color of the blocks.
@@ -37,33 +32,31 @@ export class Chain {
         }, ${Chain.blockColor.b * factor})`;
     }
 
-
-    readonly zoom: any;
-    readonly blockPadding = 10;
+    static readonly blockPadding = 10;
     readonly textMargin = 5;
-    readonly blockHeight = 50;
-    readonly blockWidth = 100;
+    static readonly blockHeight = 50;
+    static readonly blockWidth = 100;
 
-    readonly svgWidth = window.innerWidth;
+
+
+    readonly lastWidth = 200;
+    static readonly svgWidth = window.innerWidth;
     readonly svgHeight = 200;
-    readonly unitBlockAndPaddingWidth = this.blockPadding + this.blockWidth;
-
-    // Svg <g> element for the blocks of the chain.
-    readonly gblocks: any;
-    // Svg <g> element for the arrows between blocks the chain.
-    readonly garrow: any;
-
-    // Svg <g> element for shape elements on the blocks
-    // readonly gcircle: any;
+    static readonly unitBlockAndPaddingWidth = Chain.blockPadding + Chain.blockWidth;
 
     // Recomended pageSize / nbPages: 80 / 50
-    readonly pageSize = 50;
-    readonly nbPages = 1;
+    static readonly pageSize = 50;
+    readonly nbPages = 1; // Only works for 1 page. Overflow not verified if multiple pages...
 
     readonly textColor = "black";
+    readonly loadedInfo = document.getElementById("loaded-blocks");
+
+    readonly gblocks: any;
+    readonly garrow: any;
+    readonly gcircle: any;
 
     readonly chunks = new Array<Chunk>();
-
+    
     // The roster defines the blockchain nodes
     roster: Roster;
 
@@ -75,37 +68,52 @@ export class Chain {
     // been loaded from the cothority client.
     subjectBrowse = new Subject<[number, SkipBlock[], boolean]>();
 
-    // Flash is a utility class to display flash messages in the view.
+    // This subject is notified each time a block is clicked.
+    blockClickedSubject = new Subject<SkipBlock>();
+    newBlocksSubject = new Subject<SkipBlock[]>();
+
+
+    // Flash is a utiliy class to display flash messages in the view.
     flash: Flash;
 
-    // First block displayed on the chain
+    //First block displayed on the chain
     initialBlock: SkipBlock;
 
-    // Coordinates and scale factor of the view of the chain
+    //Coordinates and scale factor of the view of the chain
     lastTransform = { x: 0, y: 0, k: 1 };
 
+    //
+    static zoom: any;
+
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
+        const self = this;
+
         // Blockchain properties
         this.roster = roster;
 
         this.flash = flash;
 
-        // First block displayed on the chain
+        //First block displayed on the chain
         this.initialBlock = initialBlock;
 
-        // This subject will be notified when the main SVG canevas in moved by the user
+        // This subject will be notified when the main SVG caneva in moved by the user
         const subject = new Subject();
 
         // Main SVG caneva that contains the chain
         const svg = d3.select("#svg-container").attr("height", this.svgHeight);
 
         // this group will contain the blocks
-        this.gblocks = svg.append("g").attr("class", "gblocks");
+        const gblocks = svg.append("g").attr("class", "gblocks");
+        this.gblocks = gblocks;
+
+        const garrow = gblocks.append("g").attr("class", "garrow");
+        this.garrow = garrow;
 
         // this group will contain the text. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
         // readable
-        // const gcircle = svg.append("g").attr("class", "gtext");
+        const gcircle = svg.append("g").attr("class", "gtext");
+        this.gcircle = gcircle;
 
         // this group will contain the left and right loaders that display a spinner
         // when new blocks are being added
@@ -113,29 +121,44 @@ export class Chain {
 
         // the number of block the window can display at normal scale. Used to
         // define the domain the xScale
-        const numblocks = this.svgWidth / (this.blockWidth + this.blockPadding);
+        const numblocks = Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
 
         // the xScale displays the block index and allows the user to quickly see
         // where he is in the chain
-        const {xScale, xAxis, xAxisDraw} = this.buildAxis(initialBlock, numblocks, svg);
+        const xScale = d3
+            .scaleLinear()
+            .domain([initialBlock.index, initialBlock.index + numblocks])
+            .range([0, Chain.svgWidth]);
+
+        const xAxis = d3
+            .axisBottom(xScale)
+            .ticks(numblocks)
+            .tickFormat(d3.format("d"));
+
+        const xAxisDraw = svg
+            .insert("g", ":first-child")
+            .attr("class", "x-axis")
+            .attr("transform", `translate(${Chain.blockPadding}, 0)`)
+            .attr("fill", "#8C764A")
+            .call(xAxis);
 
         // Update the subject when the view is dragged and zoomed in-out
         const zoom = d3
             .zoom()
             .extent([
                 [0, 0],
-                [this.svgWidth, this.svgHeight],
+                [Chain.svgWidth, this.svgHeight],
             ])
             .scaleExtent([0.0001, 1.4])
             .on("zoom", () => {
                 subject.next(d3.event.transform);
             });
         svg.call(zoom);
-        this.zoom = zoom;
+        Chain.zoom = zoom;
 
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
-        // zoomed in-out by the user.
+        // zommed in-out by the user.
 
         subject.subscribe({
             next: (transform: any) => {
@@ -163,11 +186,13 @@ export class Chain {
                     "," +
                     "1" +
                     ")";
-                this.gblocks.attr("transform", transformString);
-                // Standard transformation on the circles since we need to keep the
+
+                gblocks.attr("transform", transformString);
+                // Standard transformation on the text since we need to keep the
                 // original scale
                 //  gblocks.selectAll("circle").attr("r",transform.k*5);
-                // gcircle.selectAll("circle").attr("transform", transformString);
+
+                gcircle.selectAll("circle").attr("transform", transformString);
 
                 // Update the loader. We want to keep them at their original
                 // scale so we only translate them
@@ -181,331 +206,140 @@ export class Chain {
 
         subject.pipe(debounceTime(50)).subscribe({
             next: (transform: any) => {
-                this.checkAndLoadChunks(transform, subject);
+                const bounds = Utils.transformToIndexes(
+                    transform,
+                    Chain.blockWidth + Chain.blockPadding,
+                    Chain.svgWidth
+                );
+                let alreadyHandled = false;
+
+                let leftNei: Chunk = undefined;
+                let rightNei: Chunk = undefined;
+
+                let leftNeiIndex = 0;
+                let rightNeiIndex = 0;
+
+           
+
+                for (let i = 0; i < this.chunks.length; i++) {
+                    const chunk = this.chunks[i];
+
+                    // the chunk is "fully inside"
+                    // ---[--***--]---
+                    if (
+                        chunk.left >= bounds.left &&
+                        chunk.right <= bounds.right
+                    ) {
+                        alreadyHandled = true;
+                        break;
+                    }
+
+                    // the chunk is "partially inside, from the left"
+                    // --*[**----]---
+                    if (chunk.left < bounds.left && chunk.right > bounds.left) {
+                        alreadyHandled = true;
+                        break;
+                    }
+
+                    // the chunk is "partially inside, from the right"
+                    // ---[----**]*--
+                    if (
+                        chunk.left < bounds.right &&
+                        chunk.right > bounds.right
+                    ) {
+                        alreadyHandled = true;
+                        break;
+                    }
+
+                    // the chuck is "overly inside"
+                    // ---*[***]*---
+                    if (
+                        chunk.left < bounds.left &&
+                        chunk.right > bounds.right
+                    ) {
+                        alreadyHandled = true;
+                        break;
+                    }
+
+                    // --**-[---]-----
+                    if (chunk.right < bounds.left) {
+                        if (
+                            leftNei === undefined ||
+                            chunk.right > leftNei.right
+                        ) {
+                            leftNei = chunk;
+                            leftNeiIndex = i;
+                        }
+                    }
+
+                    // -----[---]-**--
+                    if (chunk.left > bounds.right) {
+                        if (
+                            rightNei === undefined ||
+                            chunk.left < rightNei.left
+                        ) {
+                            rightNei = chunk;
+                            rightNeiIndex = i;
+                        }
+                    }
+                }
+
+                if (!alreadyHandled) {
+                    const c = new Chunk(
+                        subject,
+                        initialBlock,
+                        leftNei,
+                        rightNei,
+                        bounds.left + (bounds.right - bounds.left) / 2,
+                        bounds.left + (bounds.right - bounds.left) / 2 + 20,
+                        this.getNewBlocksSubject,
+                        this.blockClickedSubject,
+                        this.lastTransform,
+                        this.roster,
+                        this.flash,
+                        this.ws,
+                        this.gblocks,
+                        this.garrow
+        
+                    );
+
+                    if (leftNei !== undefined) {
+                        leftNei.rightNeighbor = c;
+                    }
+
+                    if (rightNei !== undefined) {
+                        rightNei.leftNeighbor = c;
+                    }
+
+                    // keep the chunks sorted
+                    this.chunks.splice(leftNeiIndex + 1, 0, c);
+  
+                }
             },
         });
+
+        // We intialize the last added block of the chain
+        const lastAddedBlock = new LastAddedBlock(roster, flash, initialBlock, this.blockClickedSubject);
     }
 
-    private checkAndLoadChunks(transform: any, subject: Subject<unknown>) {
-        const bounds = Utils.transformToIndexes(
-            transform,
-            this.blockWidth + this.blockPadding,
-            this.svgWidth
-        );
-        let alreadyHandled = false;
-
-        let leftNei: Chunk;
-        let rightNei: Chunk;
-
-        let leftNeiIndex = 0;
-        let rightNeiIndex = 0;
-
-        for (let i = 0; i < this.chunks.length; i++) {
-            const chunk = this.chunks[i];
-
-            // the chunk is "fully inside"
-            // ---[--***--]---
-            if (
-                chunk.left >= bounds.left &&
-                chunk.right <= bounds.right
-            ) {
-                alreadyHandled = true;
-                break;
-            }
-
-            // the chunk is "partially inside, from the left"
-            // --*[**----]---
-            if (chunk.left < bounds.left && chunk.right > bounds.left) {
-                alreadyHandled = true;
-                break;
-            }
-
-            // the chunk is "partially inside, from the right"
-            // ---[----**]*--
-            if (
-                chunk.left < bounds.right &&
-                chunk.right > bounds.right
-            ) {
-                alreadyHandled = true;
-                break;
-            }
-
-            // the chuck is "overly inside"
-            // ---*[***]*---
-            if (
-                chunk.left < bounds.left &&
-                chunk.right > bounds.right
-            ) {
-                alreadyHandled = true;
-                break;
-            }
-
-            // --**-[---]-----
-            if (chunk.right < bounds.left) {
-                if (
-                    leftNei === undefined ||
-                    chunk.right > leftNei.right
-                ) {
-                    leftNei = chunk;
-                    leftNeiIndex = i;
-                }
-            }
-
-            // -----[---]-**--
-            if (chunk.left > bounds.right) {
-                if (
-                    rightNei === undefined ||
-                    chunk.left < rightNei.left
-                ) {
-                    rightNei = chunk;
-                    rightNeiIndex = i;
-                }
-            }
-        }
-
-        if (!alreadyHandled) {
-            const c = new Chunk(
-                subject,
-                leftNei,
-                rightNei,
-                bounds.left + (bounds.right - bounds.left) / 2,
-                bounds.left + (bounds.right - bounds.left) / 2 + 20,
-                this,
-                this.lastTransform
-            );
-
-            if (leftNei !== undefined) {
-                leftNei.rightNeighbor = c;
-            }
-
-            if (rightNei !== undefined) {
-                rightNei.leftNeighbor = c;
-            }
-
-            // keep the chunks sorted
-            this.chunks.splice(leftNeiIndex + 1, 0, c);
-        }
-    }
-
-    private buildAxis(initialBlock: SkipBlock, numblocks: number, svg: any) {
-        const xScale = d3
-            .scaleLinear()
-            .domain([initialBlock.index, initialBlock.index + numblocks])
-            .range([0, this.svgWidth]);
-
-        const xAxis = d3
-            .axisBottom(xScale)
-            .ticks(numblocks)
-            .tickFormat(d3.format("d"));
-
-        const xAxisDraw = svg
-            .insert("g", ":first-child")
-            .attr("class", "x-axis")
-            .attr("transform", `translate(${this.blockPadding}, 0)`)
-            .attr("fill", "#8C764A")
-            .call(xAxis);
-        return {xScale, xAxis, xAxisDraw};
-    }
 
     /**
-     * Append the given blocks to the blockchain.
-     * @param listBlocks list of blocks to append
-     * @param backwards  false for loading blocks to the right, true for loading
-     *                   blocks to the left
-     * @param gblocks the svg where the block are appended
-     * @param garrow the svg where the arrows are appended
-     * @param numblocks the number of blocks loaded from the initial block. In the
-     * case of a backward loading, this number should be negative. -10 means we
-     * already loaded 10 blocks on the left from the initial block.
+     * Returns an observable to observe the blocks.
+     * Example use:
+     * ```getBlockClickedSubject().subscribe({
+     *   next: (skipBlock) => {
+     *     // do things
+     *   }
+     * })```
      */
-    displayBlocks(
-        listBlocks: SkipBlock[],
-        backwards: boolean,
-        gblocks: any,
-        garrow: any,
-        // gcircle: any,
-        numblocks: number
-    ) {
-        // Iterate over the blocks to append them
-        // tslint:disable-next-line
-        for (let i = 0; i < listBlocks.length; ++i) {
-            const block = listBlocks[i];
-
-            let xTranslateBlock: number;
-            if (backwards) {
-                xTranslateBlock =
-                    (numblocks - 1 - i) * this.unitBlockAndPaddingWidth +
-                    this.blockPadding;
-            } else {
-                xTranslateBlock =
-                    (numblocks + i) * this.unitBlockAndPaddingWidth +
-                    this.blockPadding;
-            }
-
-            // Append the block inside the svg container
-            this.appendBlock(xTranslateBlock, block, gblocks);
-            this.getToAndFromIndexes(xTranslateBlock, block, garrow);
-            // this.appendCircleInBlock(xTranslateBlock, gcircle);
-
-        }
-
-        Chain.newBlocksSubject.next(listBlocks);
+    get getBlockClickedSubject(): Subject<SkipBlock> {
+        return this.blockClickedSubject;
     }
 
-    /**
-     * Helper for displayBlocks: appends a block to the blockchain and adds it to
-     * the subscriber list.
-     * @param xTranslate horizontal position where the block should be appended
-     * @param block the block to append
-     * @param svgBlocks the svg where the block are appended
-     */
-    private appendBlock(xTranslate: number, block: SkipBlock, svgBlocks: any) {
-        svgBlocks
-            .append("rect")
-            .attr("id", Utils.bytes2String(block.hash))
-            .attr("width", this.blockWidth)
-
-            .attr("height", block.height * 40)
-
-            .attr("x", xTranslate)
-            .attr("y", 20)
-            .attr("fill", Chain.getBlockColor(block))
-            .on("click", () => {
-                Chain.blockClickedSubject.next(block);
-                window.location.hash = `index:${block.index}`;
-            });
+    get getNewBlocksSubject(): Subject<SkipBlock[]> {
+        return this.newBlocksSubject;
     }
 
-    /**
-     * Helper function to append arrows between two blocks
-     * @param xTrans horizontal position where the block should be appended
-     * @param skipBlockFrom starting skipBlock point of the arrow
-     * @param skipBlockTo the skipBlock the arrow points to
-     * @param svgBlocks the svg where the block are appended
-     * @param height the y coordinate where the arrow is appended on the blocks
-     */
-    private async appendArrows(
-        xTrans: number,
-        skipBlockFrom: SkipBlock,
-        skipBlockTo: SkipBlock,
-        svgBlocks: any,
-        height: number
-    ) {
-        if (skipBlockTo.index - skipBlockFrom.index === 1) {
-            const line = svgBlocks.append("line");
-            line.attr("id", skipBlockFrom.index)
-                .attr("x1", xTrans)
-                .attr("y1", 15 + this.blockHeight / 2)
-                .attr("x2", xTrans - this.blockPadding)
-                .attr("y2", 15 + this.blockHeight / 2)
-                .attr("stroke-width", 2)
-                .attr("stroke", "grey");
-            // .attr("marker-end", "url(#triangle)");
-        } else {
-            const line = svgBlocks.append("line");
-            line.attr("x2", xTrans - this.blockPadding)
-                .attr("y1", 40 + height * 38)
-                .attr(
-                    "x1",
-                    xTrans -
-                    (skipBlockTo.index - skipBlockFrom.index) *
-                    (this.blockWidth + this.blockPadding) +
-                    this.blockWidth
-                )
-
-                .attr("y2", 40 + height * 38)
-                .attr("stroke-width", 2)
-                .attr("stroke", "grey")
-                .attr("marker-end", "url(#triangle)")
-                .on("click", () => {
-                    // tslint:disable-next-line:max-line-length
-                    Utils.scrollOnChain(this.roster, this.initialBlock.hash.toString("hex"), skipBlockTo, this.initialBlock, this);
-                    Chain.blockClickedSubject.next(skipBlockTo);
-                });
-
-            const triangle = svgBlocks.append("svg:defs").append("svg:marker");
-            triangle
-                .attr("id", "triangle")
-                .attr("refX", 5.5)
-                .attr("refY", 4.5)
-                .attr("markerWidth", 15)
-                .attr("markerHeight", 15)
-                .attr("orient", "auto-start-reverse")
-                .append("path")
-                .attr("d", "M 0 0 L 10 5 L 0 10 z")
-                .on("click", () => {
-                    // tslint:disable-next-line:max-line-length
-                    Utils.scrollOnChain(this.roster, skipBlockTo.hash.toString("hex"), skipBlockTo, this.initialBlock, this);
-                    Chain.blockClickedSubject.next(skipBlockTo);
-                })
-                .style("fill", "grey");
-            // FIXME can't change the colour of the svg markers like this. Only option I see
-            // is to create another triangle and witch when needed
-            triangle.on("mouseover", () => {
-                line.style("stroke", "var(--selected-colour");
-                triangle.style("fill", "var(--selected-colour");
-            });
-            line.on("mouseover", () => {
-                line.style("stroke", "var(--selected-colour");
-                triangle.attr("stroke", "var(--selected-colour");
-            });
-            triangle.on("mouseout", () => {
-                line.style("stroke", "grey");
-                triangle.style("stroke", "grey");
-            });
-            line.on("mouseout", () => {
-                line.style("stroke", "grey");
-                triangle.style("stroke", "grey");
-            });
-        }
-    }
-    /**
-     * Helper function to get starting point and ending SkipBlocks of the arrow
-     * @param xTranslate horizontal position where the block should be appended
-     * @param skipBlockTo the skipBlock the arrow points to
-     * @param svgBlocks the svg where the blocks are appended
-     */
-    private async getToAndFromIndexes(
-        xTranslate: number,
-        skipBlockTo: SkipBlock,
-        svgBlocks: any
-    ) {
-        for (let i = 0; i < skipBlockTo.backlinks.length; i++) {
-            const skipBlockFrom = await Utils.getBlock(
-                skipBlockTo.backlinks[i],
-                this.roster
-            );
-
-            await this.appendArrows(
-                xTranslate,
-                skipBlockFrom,
-                skipBlockTo,
-                svgBlocks,
-                i
-            );
-        }
-    }
-
-    /**
-     * Helper for displayBlocks: appends a text element in a block.
-     * @param xTranslate horizontal position where the text should be displayed
-     * @param gtext the svg where the text or shapes are appended
-     */
-    private appendCircleInBlock(xTranslate: number, gtext: any) {
-        gtext
-            .append("circle")
-            .attr("cx", xTranslate + 35)
-            .attr("cy", 40)
-            .attr("r", 6)
-            .attr("fill", "#b3ffb3");
-
-        gtext
-            .append("circle")
-            .attr("cx", xTranslate + this.blockWidth - 35)
-            .attr("cy", 40)
-            .attr("r", 6)
-            .attr("fill", "#EF5959");
-    }
 
     /**
      * Requests blocks to the blockchain.
@@ -577,7 +411,7 @@ export class Chain {
                     this.ws = undefined;
                 },
                 error: (err: Error) => {
-                    this.flash.display(Flash.flashType.ERROR, `error 555: ${err}`);
+                    this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
                     this.ws = undefined;
                 },
                 next: ([data, ws]) => {

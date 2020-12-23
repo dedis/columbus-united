@@ -7,6 +7,7 @@ import {
     PaginateResponse,
 } from "@dedis/cothority/byzcoin/proto/stream";
 import {
+    Roster,
     WebSocketAdapter,
     WebSocketConnection,
 } from "@dedis/cothority/network";
@@ -19,11 +20,17 @@ import { Flash } from "./flash";
 import { Utils } from "./utils";
 
 export class Chunk {
+    roster: Roster;
+    flash: Flash;
     leftNeighbor: Chunk;
     rightNeighbor: Chunk;
+    initialBlock: SkipBlock;
 
     leftBlock: SkipBlock;
     rightBlock: SkipBlock;
+
+    gblocks: any;
+    garrows: any;
 
     // Those are the perimeter, set before blocks are loaded
     left: number;
@@ -34,10 +41,10 @@ export class Chunk {
     isLoadingLeft = true; // the first load will then set them to false
     isLoadingRight = true;
 
-    chain: Chain; // this is bad, we should remove this dep
-
     // this subject is called when new blocks are loaded
     subjectBrowse = new Subject<[number, SkipBlock[], boolean]>();
+    newBlocksSubject: Subject<SkipBlock[]>;
+    blockClickedSubject: Subject<SkipBlock>;
 
     loadedFirst = false;
 
@@ -62,20 +69,35 @@ export class Chunk {
 
     constructor(
         chainSubject: Subject<any>,
+        initialBlock: SkipBlock,
         leftNei: Chunk,
         rightNei: Chunk,
         left: number,
         right: number,
-        chain: Chain,
-        transform: any
+        newBlocksSubject: Subject<SkipBlock[]>,
+        blockClickedSubject: Subject<SkipBlock>,
+        transform: any,
+        roster: Roster,
+        flash: Flash,
+        ws: WebSocketAdapter,
+        gblocks: any,
+        garrows: any
     ) {
-        this.totalLoaded=0;
+        this.totalLoaded = 0;
         this.chainSubject = chainSubject;
         this.leftNeighbor = leftNei;
         this.rightNeighbor = rightNei;
-        this.chain = chain;
         this.id = left;
         this.lastTransform = transform;
+        this.newBlocksSubject = newBlocksSubject;
+        this.blockClickedSubject = blockClickedSubject;
+        this.ws = ws;
+        this.initialBlock = initialBlock;
+        this.garrows = garrows;
+        this.gblocks = gblocks;
+
+        this.roster = roster;
+        this.flash = flash;
 
         this.left = left;
         this.right = right;
@@ -141,40 +163,38 @@ export class Chunk {
             },
         });
 
-        this.loadInitial(left, transform);
+        this.loadInitial(left);
     }
 
-    private loadInitial(left: number, transform: any) {
-        Utils.getBlockByIndex(
-            this.chain.initialBlock.hash,
-            left,
-            this.chain.roster
-        ).then((block: SkipBlock) => {
-            this.leftBlock = block;
-            this.rightBlock = block;
+    private loadInitial(left: number) {
+        Utils.getBlockByIndex(this.initialBlock.hash, left, this.roster).then(
+            (block: SkipBlock) => {
+                this.leftBlock = block;
+                this.rightBlock = block;
 
-            if (left != 0) {
-                this.loadLeft(
+                if (left != 0) {
+                    this.loadLeft(
+                        this.lastTransform,
+                        this.gloader,
+                        Utils.getLeftBlockHash(block)
+                    );
+                } else {
+                    this.isLoadingLeft = false;
+                }
+
+                this.loadRight(
                     this.lastTransform,
                     this.gloader,
-                    Utils.getLeftBlockHash(block)
+                    Utils.bytes2String(block.hash)
                 );
-            } else {
-                this.isLoadingLeft = false;
             }
-
-            this.loadRight(
-                this.lastTransform,
-                this.gloader,
-                Utils.bytes2String(block.hash)
-            );
-        });
+        );
     }
 
     private setSubjectBrowse() {
         this.subjectBrowse.subscribe({
             complete: () => {
-                this.chain.flash.display(
+                this.flash.display(
                     Flash.flashType.INFO,
                     "End of the blockchain"
                 );
@@ -183,12 +203,9 @@ export class Chunk {
                 if (err === 1) {
                     // To reset the websocket, create a new handler for the next
                     // function (of getNextBlock)
-                    this.chain.ws = undefined;
+                    this.ws = undefined;
                 } else {
-                    this.chain.flash.display(
-                        Flash.flashType.ERROR,
-                        `Error: ${err}`
-                    );
+                    this.flash.display(Flash.flashType.ERROR, `Error: ${err}`);
                 }
                 this.isLoadingLeft = false;
                 this.isLoadingRight = false;
@@ -205,12 +222,11 @@ export class Chunk {
 
                 if (backward) {
                     // Load blocks to the left
-                    this.chain.displayBlocks(
+                    this.displayBlocks(
                         skipBlocks,
                         true,
-                        this.chain.gblocks,
-                        this.chain.garrow,
-                        this.chain.gcircle,
+                        this.gblocks,
+                        this.garrows,
                         this.leftBlock.index
                     );
 
@@ -231,12 +247,11 @@ export class Chunk {
                     }
                 } else {
                     // Load blocks to the right
-                    this.chain.displayBlocks(
+                    this.displayBlocks(
                         skipBlocks,
                         false,
-                        this.chain.gblocks,
-                        this.chain.garrow,
-                        this.chain.gcircle,
+                        this.gblocks,
+                        this.garrows,
                         this.rightBlock.index
                     );
 
@@ -278,14 +293,11 @@ export class Chunk {
         lastBlockLeft: SkipBlock,
         gloader: any
     ): boolean {
-
         const bounds = Utils.transformToIndexes(
             transform,
-            this.chain.blockWidth + this.chain.blockPadding,
-            this.chain.svgWidth
+            Chain.blockWidth + Chain.blockPadding,
+            Chain.svgWidth
         );
-
-        console.log(this.id, "check and load left, bounds", bounds, "this.leftblock index", this.leftBlock.index)
 
         // Check if we need to load blocks on the left. We check that we haven't
         // yet loaded all the possible blocks from the left and that the user
@@ -329,14 +341,11 @@ export class Chunk {
         lastBlockRight: SkipBlock,
         gloader: any
     ): boolean {
-
         const bounds = Utils.transformToIndexes(
             transform,
-            this.chain.blockWidth + this.chain.blockPadding,
-            this.chain.svgWidth
+            Chain.blockWidth + Chain.blockPadding,
+            Chain.svgWidth
         );
-
-        console.log(this.id, "check and load right, bounds", bounds, "this.rightblock index", this.rightBlock.index)
 
         // Check if we need to load blocks on the right. (x + this.svgWidth)
         // represents the actual rightmost x coordinate on the svg canvas. +50
@@ -367,8 +376,8 @@ export class Chunk {
     loadLeft(transform: any, gloader: any, blockHash: any) {
         // In case we are reaching the beginning of the chain, we should not
         // load more blocks than available.
-        let numblocks = this.chain.pageSize;
-        if (this.left - this.chain.pageSize <= 0) {
+        let numblocks = Chain.pageSize;
+        if (this.left - Chain.pageSize <= 0) {
             numblocks = this.left;
         }
 
@@ -378,9 +387,9 @@ export class Chunk {
             true,
             gloader,
 
-            this.leftBlock.index * this.chain.unitBlockAndPaddingWidth +
-                this.chain.blockPadding +
-                this.chain.blockWidth / 2,
+            this.leftBlock.index * Chain.unitBlockAndPaddingWidth +
+                Chain.blockPadding +
+                Chain.blockWidth / 2,
             transform.k
         );
 
@@ -396,21 +405,21 @@ export class Chunk {
     }
 
     loadRight(transform: any, gloader: any, blockHash: string) {
-        this.right += this.chain.pageSize;
+        this.right += Chain.pageSize;
 
         this.addLoader(
             false,
             gloader,
-            this.rightBlock.index * this.chain.unitBlockAndPaddingWidth +
-                this.chain.blockPadding +
-                this.chain.blockWidth / 2,
+            this.rightBlock.index * Chain.unitBlockAndPaddingWidth +
+                Chain.blockPadding +
+                Chain.blockWidth / 2,
             transform.k
         );
 
         setTimeout(() => {
             this.getNextBlocks(
                 blockHash,
-                this.chain.pageSize,
+                Chain.pageSize,
                 this.nbPages,
                 this.subjectBrowse,
                 false
@@ -437,7 +446,7 @@ export class Chunk {
             .attr("class", `${className}`)
             .attr("viewBox", "0, 0, 24, 30")
             .attr("x", xPos - 24)
-            .attr("y", this.chain.blockHeight / 2 - 30)
+            .attr("y", Chain.blockHeight / 2 - 30)
             .attr("width", "48px")
             .attr("height", "60px")
             .attr("transform-origin", `${xPos}px 0px`)
@@ -469,6 +478,203 @@ export class Chunk {
          </rect>
       `);
     }
+    /**
+     * Append the given blocks to the blockchain.
+     * @param listBlocks list of blocks to append
+     * @param backwards  false for loading blocks to the right, true for loading
+     *                   blocks to the left
+     * @param numblocks the number of blocks loaded from the initial block. In the
+     * case of a backward loading, this number should be negative. -10 means we
+     * already loaded 10 blocks on the left from the initial block.
+     */
+    displayBlocks(
+        listBlocks: SkipBlock[],
+        backwards: boolean,
+        gblocks: any,
+        garrow: any,
+        // gcircle: any,
+        numblocks: number
+    ) {
+        // Iterate over the blocks to append them
+        // tslint:disable-next-line
+        for (let i = 0; i < listBlocks.length; ++i) {
+            const block = listBlocks[i];
+
+            let xTranslateBlock: number;
+            if (backwards) {
+                xTranslateBlock =
+                    (numblocks - 1 - i) * Chain.unitBlockAndPaddingWidth +
+                    Chain.blockPadding;
+            } else {
+                xTranslateBlock =
+                    (numblocks + i) * Chain.unitBlockAndPaddingWidth +
+                    Chain.blockPadding;
+            }
+
+            // Append the block inside the svg container
+            this.appendBlock(xTranslateBlock, block, gblocks);
+            this.getToAndFromIndexes(xTranslateBlock, block, garrow);
+
+            //this.appendCircleInBlock(xTranslateBlock, gcircle);
+        }
+
+        this.newBlocksSubject.next(listBlocks);
+    }
+
+    /**
+     * Helper for displayBlocks: appends a block to the blockchain and adds it to
+     * the subscriber list.
+     * @param xTranslate horizontal position where the block should be appended
+     * @param block the block to append
+     */
+    private appendBlock(xTranslate: number, block: SkipBlock, svgBlocks: any) {
+        svgBlocks
+            .append("rect")
+            .attr("id", Utils.bytes2String(block.hash))
+            .attr("width", Chain.blockWidth)
+
+            .attr("height", block.height * 40)
+
+            .attr("x", xTranslate)
+            .attr("y", 20)
+            .attr("fill", Chain.getBlockColor(block))
+            .on("click", () => {
+                this.blockClickedSubject.next(block);
+                window.location.hash = `index:${block.index}`;
+            });
+    }
+
+    /**
+     * Helper function to append arrows between two blocks
+     * @param xTrans horizontal position where the block should be appended
+     * @param skipBlockFrom starting skipBlock point of the arrow
+     * @param skipBlockTo the skipBlock the arrow points to
+     * @param svgBlocks the svg where the block are appended
+     * @param height the y coordinate where the arrow is appended on the blocks
+     */
+    private async appendArrows(
+        xTrans: number,
+        skipBlockFrom: SkipBlock,
+        skipBlockTo: SkipBlock,
+        svgBlocks: any,
+        height: number
+    ) {
+        if (skipBlockTo.index - skipBlockFrom.index == 1) {
+            const line = svgBlocks.append("line");
+            line.attr("id", skipBlockFrom.index)
+                .attr("x1", xTrans)
+                .attr("y1", 15 + Chain.blockHeight / 2)
+                .attr("x2", xTrans - Chain.blockPadding)
+                .attr("y2", 15 + Chain.blockHeight / 2)
+                .attr("stroke-width", 2)
+                .attr("stroke", "grey");
+            //.attr("marker-end", "url(#triangle)");
+        } else {
+            const line = svgBlocks.append("line");
+            line.attr("x2", xTrans - Chain.blockPadding)
+                .attr("y1", 40 + height * 38)
+                .attr(
+                    "x1",
+                    xTrans -
+                        (skipBlockTo.index - skipBlockFrom.index) *
+                            (Chain.blockWidth + Chain.blockPadding) +
+                        Chain.blockWidth
+                )
+
+                .attr("y2", 40 + height * 38)
+                .attr("stroke-width", 2)
+                .attr("stroke", "grey")
+                .attr("marker-end", "url(#triangle)")
+
+                .on("click", () => {
+                    //Utils.scrollOnChain(this.roster, this.initialBlock.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
+                    this.blockClickedSubject.next(skipBlockTo);
+                });
+
+            const triangle = svgBlocks.append("svg:defs").append("svg:marker");
+            triangle
+                .attr("id", "triangle")
+                .attr("refX", 5.5)
+                .attr("refY", 4.5)
+                .attr("markerWidth", 15)
+                .attr("markerHeight", 15)
+                .attr("orient", "auto-start-reverse")
+                .append("path")
+                .attr("d", "M 0 0 L 10 5 L 0 10 z")
+                .on("click", () => {
+                    //    Utils.scrollOnChain(this.roster, skipBlockTo.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
+                    this.blockClickedSubject.next(skipBlockTo);
+                })
+                .style("fill", "grey");
+            //FIXME can't change the colour of the svg markers like this. Only option I see
+            //is to create anover triangle and witch when needed
+            triangle.on("mouseover", () => {
+                line.style("stroke", "var(--selected-colour");
+                triangle.style("fill", "var(--selected-colour");
+            });
+            line.on("mouseover", () => {
+                line.style("stroke", "var(--selected-colour");
+                triangle.attr("stroke", "var(--selected-colour");
+            });
+            triangle.on("mouseout", () => {
+                line.style("stroke", "grey");
+                triangle.style("stroke", "grey");
+            });
+            line.on("mouseout", () => {
+                line.style("stroke", "grey");
+                triangle.style("stroke", "grey");
+            });
+        }
+    }
+    /**
+     * Helper function to get starting point and ending SkipBlocks of the arrow
+     * @param xTranslate horizontal position where the block should be appended
+     * @param skipBlockTo the skipBlock the arrow points to
+     * @param svgBlocks the svg where the blocks are appended
+     */
+    private async getToAndFromIndexes(
+        xTranslate: number,
+        skipBlockTo: SkipBlock,
+        svgBlocks: any
+    ) {
+        for (let i = 0; i < skipBlockTo.backlinks.length; i++) {
+            let skipBlockFrom = await Utils.getBlock(
+                skipBlockTo.backlinks[i],
+                this.roster
+            );
+
+            this.appendArrows(
+                xTranslate,
+                skipBlockFrom,
+                skipBlockTo,
+                svgBlocks,
+                i
+            );
+        }
+    }
+
+    /**
+     * Helper for displayBlocks: appends a text element in a block.
+     * @param xTranslate horizontal position where the text should be displayed
+     * @param textIndex index of the text in the block
+     * @param text text to display
+     * @param textColor color of the text
+     */
+    private appendCircleInBlock(xTranslate: number, gtext: any) {
+        gtext
+            .append("circle")
+            .attr("cx", xTranslate + 35)
+            .attr("cy", 40)
+            .attr("r", 6)
+            .attr("fill", "#b3ffb3");
+
+        gtext
+            .append("circle")
+            .attr("cx", xTranslate + Chain.blockWidth - 35)
+            .attr("cy", 40)
+            .attr("r", 6)
+            .attr("fill", "#EF5959");
+    }
 
     /**
      * Requests blocks to the blockchain.
@@ -491,7 +697,7 @@ export class Chunk {
         try {
             bid = Utils.hex2Bytes(nextBlockID);
         } catch (error) {
-            this.chain.flash.display(
+            this.flash.display(
                 Flash.flashType.ERROR,
                 `failed to parse the block ID: ${error}`
             );
@@ -501,11 +707,11 @@ export class Chunk {
         let conn: WebSocketConnection;
         try {
             conn = new WebSocketConnection(
-                this.chain.roster.list[0].getWebSocketAddress(),
+                this.roster.list[0].getWebSocketAddress(),
                 ByzCoinRPC.serviceName
             );
         } catch (error) {
-            this.chain.flash.display(
+            this.flash.display(
                 Flash.flashType.ERROR,
                 `error creating conn: ${error}`
             );
@@ -536,20 +742,16 @@ export class Chunk {
             ).subscribe({
                 // ws callback "onMessage":
                 complete: () => {
-                    this.chain.flash.display(Flash.flashType.ERROR, "closed");
+                    this.flash.display(Flash.flashType.ERROR, "closed");
                     this.ws = undefined;
                 },
                 error: (err: Error) => {
-                    this.chain.flash.display(
-                        Flash.flashType.ERROR,
-                        `error: ${err}`
-                    );
+                    this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
                     this.ws = undefined;
                 },
                 next: ([data, ws]) => {
-                    // tslint:disable-next-line
                     if (data.errorcode != 0) {
-                        this.chain.flash.display(
+                        this.flash.display(
                             Flash.flashType.ERROR,
                             `got an error with code ${data.errorcode} : ${data.errortext}`
                         );

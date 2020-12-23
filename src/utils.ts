@@ -4,6 +4,7 @@ import { DataHeader } from "@dedis/cothority/byzcoin/proto";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import { Flash } from "./flash";
 import { Chain } from "./chain";
+import { Subject } from "rxjs";
 import * as d3 from "d3";
 
 export class Utils {
@@ -146,34 +147,18 @@ export class Utils {
     }
     
     static async scrollOnChain(
-        roster: Roster,
-        hashBlock0: string,
         block: SkipBlock,
         initialBlock: SkipBlock,
-        chain: Chain,
+        blockClickedSubject:Subject<SkipBlock>
     ) {
-  
-        let arrayBlock = Array<SkipBlock>();
-        arrayBlock.push(block);
-
-
-        chain.subjectBrowse.next([chain.nbPages, arrayBlock, false]);
-
         //translate the chain to wanted coordinates
-        console.log(initialBlock.index+" "+block.index+"wqe")
         let newZoom = d3.zoomIdentity
             .translate((initialBlock.index - block.index) * 110 + 0.2- initialBlock.index*110 , 0) //block+padding =110
             .scale(1);
-        d3.select("#svg-container").call(chain.zoom.transform, newZoom);
+        d3.select("#svg-container").call(Chain.zoom.transform, newZoom);
 
-    
-        chain.blockClickedSubject.next(
-            await Utils.getBlockByIndex(
-                Utils.hex2Bytes(hashBlock0),
-                block.index,
-                roster
-            )
-        );
+
+
     }
 
 
