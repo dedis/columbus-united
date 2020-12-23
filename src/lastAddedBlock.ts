@@ -41,7 +41,6 @@ export class LastAddedBlock {
 
         this.flash = flash;
 
-
         // Main SVG caneva that contains the last added block
         const svgLast = d3
             .select("#last-container")
@@ -58,7 +57,7 @@ export class LastAddedBlock {
             .getTotalBlock()
             .pipe(
                 map((s: SkipBlock) =>
-                    this.displayLastAddedBlock(s, svgLast, s.hash,blockClickedSubject)
+                    this.displayLastAddedBlock(s, svgLast, s.hash, blockClickedSubject)
                 )
             )
             .subscribe();
@@ -202,13 +201,13 @@ export class LastAddedBlock {
      * @param lastBlock the last added block of the blockchain
      * @param svgLast the svg container that should welcome the block
      * @param hashLast the hash of the last added block
-     *
+     * @param blockClickedSubject the subject that is notified when a block is clicked
      */
     private displayLastAddedBlock(
         lastBlock: SkipBlock,
         svgLast: any,
         hashLast: Buffer,
-        blockClickedSubject:Subject<SkipBlock>
+        blockClickedSubject: Subject<SkipBlock>
     ) {
         svgLast
             .append("rect")
@@ -221,7 +220,7 @@ export class LastAddedBlock {
             .attr("fill", Chain.getBlockColor(lastBlock))
             .on("click", () => {
                 // tslint:disable-next-line:no-unused-expression
-                blockClickedSubject;
+                blockClickedSubject.next(lastBlock);
             });
 
         // shadow filter for last added block

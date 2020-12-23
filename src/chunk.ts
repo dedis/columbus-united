@@ -14,7 +14,7 @@ import {
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
-import { debounceTime, throttleTime } from "rxjs/operators";
+import { debounceTime } from "rxjs/operators";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Utils } from "./utils";
@@ -164,118 +164,6 @@ export class Chunk {
         });
 
         this.loadInitial(left);
-    }
-
-    private loadInitial(left: number) {
-        Utils.getBlockByIndex(this.initialBlock.hash, left, this.roster).then(
-            (block: SkipBlock) => {
-                this.leftBlock = block;
-                this.rightBlock = block;
-
-                if (left != 0) {
-                    this.loadLeft(
-                        this.lastTransform,
-                        this.gloader,
-                        Utils.getLeftBlockHash(block)
-                    );
-                } else {
-                    this.isLoadingLeft = false;
-                }
-
-                this.loadRight(
-                    this.lastTransform,
-                    this.gloader,
-                    Utils.bytes2String(block.hash)
-                );
-            }
-        );
-    }
-
-    private setSubjectBrowse() {
-        this.subjectBrowse.subscribe({
-            complete: () => {
-                this.flash.display(
-                    Flash.flashType.INFO,
-                    "End of the blockchain"
-                );
-            },
-            error: (err: any) => {
-                if (err === 1) {
-                    // To reset the websocket, create a new handler for the next
-                    // function (of getNextBlock)
-                    this.ws = undefined;
-                } else {
-                    this.flash.display(Flash.flashType.ERROR, `Error: ${err}`);
-                }
-                this.isLoadingLeft = false;
-                this.isLoadingRight = false;
-            },
-            next: ([i, skipBlocks, backward]) => {
-                // i is the page number
-                this.totalLoaded += skipBlocks.length;
-                this.loadedInfo.innerText = `${this.totalLoaded}`;
-                let isLastPage = false;
-                // tslint:disable-next-line
-                if (i == this.nbPages - 1) {
-                    isLastPage = true;
-                }
-
-                if (backward) {
-                    // Load blocks to the left
-                    this.displayBlocks(
-                        skipBlocks,
-                        true,
-                        this.gblocks,
-                        this.garrows,
-                        this.leftBlock.index
-                    );
-
-                    this.leftBlock = skipBlocks[skipBlocks.length - 1];
-
-                    if (isLastPage) {
-                        this.gloader.select(".left-loader").remove();
-
-                        const loadMore = this.checkAndLoadLeft(
-                            this.lastTransform,
-                            this.leftBlock,
-                            this.gloader
-                        );
-
-                        if (!loadMore) {
-                            this.isLoadingLeft = false;
-                        }
-                    }
-                } else {
-                    // Load blocks to the right
-                    this.displayBlocks(
-                        skipBlocks,
-                        false,
-                        this.gblocks,
-                        this.garrows,
-                        this.rightBlock.index
-                    );
-
-                    this.rightBlock = skipBlocks[skipBlocks.length - 1];
-
-                    // tslint:disable-next-line
-                    if (isLastPage) {
-                        this.gloader.select(".right-loader").remove();
-
-                        const loadMore = this.checkAndLoadRight(
-                            this.lastTransform,
-                            this.rightBlock,
-                            this.gloader
-                        );
-
-                        if (!loadMore) {
-                            this.isLoadingRight = false;
-                        }
-                    }
-                }
-
-                this.loadedFirst = true;
-            },
-        });
     }
 
     /**
@@ -515,165 +403,10 @@ export class Chunk {
             this.appendBlock(xTranslateBlock, block, gblocks);
             this.getToAndFromIndexes(xTranslateBlock, block, garrow);
 
-            //this.appendCircleInBlock(xTranslateBlock, gcircle);
+            // this.appendCircleInBlock(xTranslateBlock, gcircle);
         }
 
         this.newBlocksSubject.next(listBlocks);
-    }
-
-    /**
-     * Helper for displayBlocks: appends a block to the blockchain and adds it to
-     * the subscriber list.
-     * @param xTranslate horizontal position where the block should be appended
-     * @param block the block to append
-     */
-    private appendBlock(xTranslate: number, block: SkipBlock, svgBlocks: any) {
-        svgBlocks
-            .append("rect")
-            .attr("id", Utils.bytes2String(block.hash))
-            .attr("width", Chain.blockWidth)
-
-            .attr("height", block.height * 40)
-
-            .attr("x", xTranslate)
-            .attr("y", 20)
-            .attr("fill", Chain.getBlockColor(block))
-            .on("click", () => {
-                this.blockClickedSubject.next(block);
-                window.location.hash = `index:${block.index}`;
-            });
-    }
-
-    /**
-     * Helper function to append arrows between two blocks
-     * @param xTrans horizontal position where the block should be appended
-     * @param skipBlockFrom starting skipBlock point of the arrow
-     * @param skipBlockTo the skipBlock the arrow points to
-     * @param svgBlocks the svg where the block are appended
-     * @param height the y coordinate where the arrow is appended on the blocks
-     */
-    private async appendArrows(
-        xTrans: number,
-        skipBlockFrom: SkipBlock,
-        skipBlockTo: SkipBlock,
-        svgBlocks: any,
-        height: number
-    ) {
-        if (skipBlockTo.index - skipBlockFrom.index == 1) {
-            const line = svgBlocks.append("line");
-            line.attr("id", skipBlockFrom.index)
-                .attr("x1", xTrans)
-                .attr("y1", 15 + Chain.blockHeight / 2)
-                .attr("x2", xTrans - Chain.blockPadding)
-                .attr("y2", 15 + Chain.blockHeight / 2)
-                .attr("stroke-width", 2)
-                .attr("stroke", "grey");
-            //.attr("marker-end", "url(#triangle)");
-        } else {
-            const line = svgBlocks.append("line");
-            line.attr("x2", xTrans - Chain.blockPadding)
-                .attr("y1", 40 + height * 38)
-                .attr(
-                    "x1",
-                    xTrans -
-                        (skipBlockTo.index - skipBlockFrom.index) *
-                            (Chain.blockWidth + Chain.blockPadding) +
-                        Chain.blockWidth
-                )
-
-                .attr("y2", 40 + height * 38)
-                .attr("stroke-width", 2)
-                .attr("stroke", "grey")
-                .attr("marker-end", "url(#triangle)")
-
-                .on("click", () => {
-                    //Utils.scrollOnChain(this.roster, this.initialBlock.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
-                    this.blockClickedSubject.next(skipBlockTo);
-                });
-
-            const triangle = svgBlocks.append("svg:defs").append("svg:marker");
-            triangle
-                .attr("id", "triangle")
-                .attr("refX", 5.5)
-                .attr("refY", 4.5)
-                .attr("markerWidth", 15)
-                .attr("markerHeight", 15)
-                .attr("orient", "auto-start-reverse")
-                .append("path")
-                .attr("d", "M 0 0 L 10 5 L 0 10 z")
-                .on("click", () => {
-                    //    Utils.scrollOnChain(this.roster, skipBlockTo.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
-                    this.blockClickedSubject.next(skipBlockTo);
-                })
-                .style("fill", "grey");
-            //FIXME can't change the colour of the svg markers like this. Only option I see
-            //is to create anover triangle and witch when needed
-            triangle.on("mouseover", () => {
-                line.style("stroke", "var(--selected-colour");
-                triangle.style("fill", "var(--selected-colour");
-            });
-            line.on("mouseover", () => {
-                line.style("stroke", "var(--selected-colour");
-                triangle.attr("stroke", "var(--selected-colour");
-            });
-            triangle.on("mouseout", () => {
-                line.style("stroke", "grey");
-                triangle.style("stroke", "grey");
-            });
-            line.on("mouseout", () => {
-                line.style("stroke", "grey");
-                triangle.style("stroke", "grey");
-            });
-        }
-    }
-    /**
-     * Helper function to get starting point and ending SkipBlocks of the arrow
-     * @param xTranslate horizontal position where the block should be appended
-     * @param skipBlockTo the skipBlock the arrow points to
-     * @param svgBlocks the svg where the blocks are appended
-     */
-    private async getToAndFromIndexes(
-        xTranslate: number,
-        skipBlockTo: SkipBlock,
-        svgBlocks: any
-    ) {
-        for (let i = 0; i < skipBlockTo.backlinks.length; i++) {
-            let skipBlockFrom = await Utils.getBlock(
-                skipBlockTo.backlinks[i],
-                this.roster
-            );
-
-            this.appendArrows(
-                xTranslate,
-                skipBlockFrom,
-                skipBlockTo,
-                svgBlocks,
-                i
-            );
-        }
-    }
-
-    /**
-     * Helper for displayBlocks: appends a text element in a block.
-     * @param xTranslate horizontal position where the text should be displayed
-     * @param textIndex index of the text in the block
-     * @param text text to display
-     * @param textColor color of the text
-     */
-    private appendCircleInBlock(xTranslate: number, gtext: any) {
-        gtext
-            .append("circle")
-            .attr("cx", xTranslate + 35)
-            .attr("cy", 40)
-            .attr("r", 6)
-            .attr("fill", "#b3ffb3");
-
-        gtext
-            .append("circle")
-            .attr("cx", xTranslate + Chain.blockWidth - 35)
-            .attr("cy", 40)
-            .attr("r", 6)
-            .attr("fill", "#EF5959");
     }
 
     /**
@@ -770,5 +503,272 @@ export class Chunk {
                 },
             });
         }
+    }
+
+    private loadInitial(left: number) {
+        Utils.getBlockByIndex(this.initialBlock.hash, left, this.roster).then(
+            (block: SkipBlock) => {
+                this.leftBlock = block;
+                this.rightBlock = block;
+
+                if (left != 0) {
+                    this.loadLeft(
+                        this.lastTransform,
+                        this.gloader,
+                        Utils.getLeftBlockHash(block)
+                    );
+                } else {
+                    this.isLoadingLeft = false;
+                }
+
+                this.loadRight(
+                    this.lastTransform,
+                    this.gloader,
+                    Utils.bytes2String(block.hash)
+                );
+            }
+        );
+    }
+
+    private setSubjectBrowse() {
+        this.subjectBrowse.subscribe({
+            complete: () => {
+                this.flash.display(
+                    Flash.flashType.INFO,
+                    "End of the blockchain"
+                );
+            },
+            error: (err: any) => {
+                if (err === 1) {
+                    // To reset the websocket, create a new handler for the next
+                    // function (of getNextBlock)
+                    this.ws = undefined;
+                } else {
+                    this.flash.display(Flash.flashType.ERROR, `Error: ${err}`);
+                }
+                this.isLoadingLeft = false;
+                this.isLoadingRight = false;
+            },
+            next: ([i, skipBlocks, backward]) => {
+                // i is the page number
+                this.totalLoaded += skipBlocks.length;
+                this.loadedInfo.innerText = `${this.totalLoaded}`;
+                let isLastPage = false;
+                // tslint:disable-next-line
+                if (i == this.nbPages - 1) {
+                    isLastPage = true;
+                }
+
+                if (backward) {
+                    // Load blocks to the left
+                    this.displayBlocks(
+                        skipBlocks,
+                        true,
+                        this.gblocks,
+                        this.garrows,
+                        this.leftBlock.index
+                    );
+
+                    this.leftBlock = skipBlocks[skipBlocks.length - 1];
+
+                    if (isLastPage) {
+                        this.gloader.select(".left-loader").remove();
+
+                        const loadMore = this.checkAndLoadLeft(
+                            this.lastTransform,
+                            this.leftBlock,
+                            this.gloader
+                        );
+
+                        if (!loadMore) {
+                            this.isLoadingLeft = false;
+                        }
+                    }
+                } else {
+                    // Load blocks to the right
+                    this.displayBlocks(
+                        skipBlocks,
+                        false,
+                        this.gblocks,
+                        this.garrows,
+                        this.rightBlock.index
+                    );
+
+                    this.rightBlock = skipBlocks[skipBlocks.length - 1];
+
+                    // tslint:disable-next-line
+                    if (isLastPage) {
+                        this.gloader.select(".right-loader").remove();
+
+                        const loadMore = this.checkAndLoadRight(
+                            this.lastTransform,
+                            this.rightBlock,
+                            this.gloader
+                        );
+
+                        if (!loadMore) {
+                            this.isLoadingRight = false;
+                        }
+                    }
+                }
+
+                this.loadedFirst = true;
+            },
+        });
+    }
+
+    /**
+     * Helper for displayBlocks: appends a block to the blockchain and adds it to
+     * the subscriber list.
+     * @param xTranslate horizontal position where the block should be appended
+     * @param block the block to append
+     */
+    private appendBlock(xTranslate: number, block: SkipBlock, svgBlocks: any) {
+        svgBlocks
+            .append("rect")
+            .attr("id", Utils.bytes2String(block.hash))
+            .attr("width", Chain.blockWidth)
+
+            .attr("height", block.height * 40)
+
+            .attr("x", xTranslate)
+            .attr("y", 20)
+            .attr("fill", Chain.getBlockColor(block))
+            .on("click", () => {
+                this.blockClickedSubject.next(block);
+                window.location.hash = `index:${block.index}`;
+            });
+    }
+
+    /**
+     * Helper function to append arrows between two blocks
+     * @param xTrans horizontal position where the block should be appended
+     * @param skipBlockFrom starting skipBlock point of the arrow
+     * @param skipBlockTo the skipBlock the arrow points to
+     * @param svgBlocks the svg where the block are appended
+     * @param height the y coordinate where the arrow is appended on the blocks
+     */
+    private async appendArrows(
+        xTrans: number,
+        skipBlockFrom: SkipBlock,
+        skipBlockTo: SkipBlock,
+        svgBlocks: any,
+        height: number
+    ) {
+        if (skipBlockTo.index - skipBlockFrom.index == 1) {
+            const line = svgBlocks.append("line");
+            line.attr("id", skipBlockFrom.index)
+                .attr("x1", xTrans)
+                .attr("y1", 15 + Chain.blockHeight / 2)
+                .attr("x2", xTrans - Chain.blockPadding)
+                .attr("y2", 15 + Chain.blockHeight / 2)
+                .attr("stroke-width", 2)
+                .attr("stroke", "grey");
+            // .attr("marker-end", "url(#triangle)");
+        } else {
+            const line = svgBlocks.append("line");
+            line.attr("x2", xTrans - Chain.blockPadding)
+                .attr("y1", 40 + height * 38)
+                .attr(
+                    "x1",
+                    xTrans -
+                        (skipBlockTo.index - skipBlockFrom.index) *
+                            (Chain.blockWidth + Chain.blockPadding) +
+                        Chain.blockWidth
+                )
+
+                .attr("y2", 40 + height * 38)
+                .attr("stroke-width", 2)
+                .attr("stroke", "grey")
+                .attr("marker-end", "url(#triangle)")
+
+                .on("click", () => {
+                    // Utils.scrollOnChain(this.roster, this.initialBlock.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
+                    this.blockClickedSubject.next(skipBlockTo);
+                });
+
+            const triangle = svgBlocks.append("svg:defs").append("svg:marker");
+            triangle
+                .attr("id", "triangle")
+                .attr("refX", 5.5)
+                .attr("refY", 4.5)
+                .attr("markerWidth", 15)
+                .attr("markerHeight", 15)
+                .attr("orient", "auto-start-reverse")
+                .append("path")
+                .attr("d", "M 0 0 L 10 5 L 0 10 z")
+                .on("click", () => {
+                    //    Utils.scrollOnChain(this.roster, skipBlockTo.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
+                    this.blockClickedSubject.next(skipBlockTo);
+                })
+                .style("fill", "grey");
+            // FIXME can't change the colour of the svg markers like this. Only option I see
+            // is to create anover triangle and witch when needed
+            triangle.on("mouseover", () => {
+                line.style("stroke", "var(--selected-colour");
+                triangle.style("fill", "var(--selected-colour");
+            });
+            line.on("mouseover", () => {
+                line.style("stroke", "var(--selected-colour");
+                triangle.attr("stroke", "var(--selected-colour");
+            });
+            triangle.on("mouseout", () => {
+                line.style("stroke", "grey");
+                triangle.style("stroke", "grey");
+            });
+            line.on("mouseout", () => {
+                line.style("stroke", "grey");
+                triangle.style("stroke", "grey");
+            });
+        }
+    }
+    /**
+     * Helper function to get starting point and ending SkipBlocks of the arrow
+     * @param xTranslate horizontal position where the block should be appended
+     * @param skipBlockTo the skipBlock the arrow points to
+     * @param svgBlocks the svg where the blocks are appended
+     */
+    private async getToAndFromIndexes(
+        xTranslate: number,
+        skipBlockTo: SkipBlock,
+        svgBlocks: any
+    ) {
+        for (let i = 0; i < skipBlockTo.backlinks.length; i++) {
+            const skipBlockFrom = await Utils.getBlock(
+                skipBlockTo.backlinks[i],
+                this.roster
+            );
+
+            this.appendArrows(
+                xTranslate,
+                skipBlockFrom,
+                skipBlockTo,
+                svgBlocks,
+                i
+            );
+        }
+    }
+
+    /**
+     * Helper for displayBlocks: appends a text element in a block.
+     * @param xTranslate horizontal position where the text should be displayed
+     * @param textIndex index of the text in the block
+     * @param text text to display
+     * @param textColor color of the text
+     */
+    private appendCircleInBlock(xTranslate: number, gtext: any) {
+        gtext
+            .append("circle")
+            .attr("cx", xTranslate + 35)
+            .attr("cy", 40)
+            .attr("r", 6)
+            .attr("fill", "#b3ffb3");
+
+        gtext
+            .append("circle")
+            .attr("cx", xTranslate + Chain.blockWidth - 35)
+            .attr("cy", 40)
+            .attr("r", 6)
+            .attr("fill", "#EF5959");
     }
 }

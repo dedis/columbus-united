@@ -1,5 +1,5 @@
 import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
-import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
+import { DataBody } from "@dedis/cothority/byzcoin/proto";
 import {
     PaginateRequest,
     PaginateResponse,
@@ -9,16 +9,45 @@ import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
-import { debounceTime, map, skip, throttleTime } from "rxjs/operators";
-import { Flash } from "./flash";
-import { Utils } from "./utils";
+import { debounceTime } from "rxjs/operators";
 import { Chunk } from "./chunk";
+import { Flash } from "./flash";
 import { LastAddedBlock } from "./lastAddedBlock";
+import { Utils } from "./utils";
 
 export class Chain {
+
+    /**
+     * Returns an observable to observe the blocks.
+     * Example use:
+     * ```getBlockClickedSubject().subscribe({
+     *   next: (skipBlock) => {
+     *     // do things
+     *   }
+     * })```
+     */
+    get getBlockClickedSubject(): Subject<SkipBlock> {
+        return this.blockClickedSubject;
+    }
+
+    get getNewBlocksSubject(): Subject<SkipBlock[]> {
+        return this.newBlocksSubject;
+    }
     // Go to https://color.adobe.com/create/color-wheel with this base color to
     // find the palet of colors.
     static readonly blockColor = { r: 23, v: 73, b: 179 }; // #D9BA82
+
+    static readonly blockPadding = 10;
+    static readonly blockHeight = 50;
+    static readonly blockWidth = 100;
+    static readonly svgWidth = window.innerWidth;
+    static readonly unitBlockAndPaddingWidth = Chain.blockPadding + Chain.blockWidth;
+
+    // Recommended pageSize / nbPages: 80 / 50
+    static readonly pageSize = 50;
+
+    //
+    static zoom: any;
 
     /**
      * Determine the color of the blocks.
@@ -31,21 +60,10 @@ export class Chain {
             Chain.blockColor.v * factor
         }, ${Chain.blockColor.b * factor})`;
     }
-
-    static readonly blockPadding = 10;
     readonly textMargin = 5;
-    static readonly blockHeight = 50;
-    static readonly blockWidth = 100;
-
-
 
     readonly lastWidth = 200;
-    static readonly svgWidth = window.innerWidth;
     readonly svgHeight = 200;
-    static readonly unitBlockAndPaddingWidth = Chain.blockPadding + Chain.blockWidth;
-
-    // Recomended pageSize / nbPages: 80 / 50
-    static readonly pageSize = 50;
     readonly nbPages = 1; // Only works for 1 page. Overflow not verified if multiple pages...
 
     readonly textColor = "black";
@@ -56,7 +74,7 @@ export class Chain {
     readonly gcircle: any;
 
     readonly chunks = new Array<Chunk>();
-    
+
     // The roster defines the blockchain nodes
     roster: Roster;
 
@@ -72,28 +90,22 @@ export class Chain {
     blockClickedSubject = new Subject<SkipBlock>();
     newBlocksSubject = new Subject<SkipBlock[]>();
 
-
-    // Flash is a utiliy class to display flash messages in the view.
+    // Flash is a utility class to display flash messages in the view.
     flash: Flash;
 
-    //First block displayed on the chain
+    // First block displayed on the chain
     initialBlock: SkipBlock;
 
-    //Coordinates and scale factor of the view of the chain
+    // Coordinates and scale factor of the view of the chain
     lastTransform = { x: 0, y: 0, k: 1 };
 
-    //
-    static zoom: any;
-
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
-        const self = this;
-
         // Blockchain properties
         this.roster = roster;
 
         this.flash = flash;
 
-        //First block displayed on the chain
+        // First block displayed on the chain
         this.initialBlock = initialBlock;
 
         // This subject will be notified when the main SVG caneva in moved by the user
@@ -103,11 +115,9 @@ export class Chain {
         const svg = d3.select("#svg-container").attr("height", this.svgHeight);
 
         // this group will contain the blocks
-        const gblocks = svg.append("g").attr("class", "gblocks");
-        this.gblocks = gblocks;
+        this.gblocks = svg.append("g").attr("class", "gblocks");
 
-        const garrow = gblocks.append("g").attr("class", "garrow");
-        this.garrow = garrow;
+        this.garrow = this.gblocks.append("g").attr("class", "garrow");
 
         // this group will contain the text. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
@@ -158,7 +168,7 @@ export class Chain {
 
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
-        // zommed in-out by the user.
+        // zoomed in-out by the user.
 
         subject.subscribe({
             next: (transform: any) => {
@@ -187,7 +197,7 @@ export class Chain {
                     "1" +
                     ")";
 
-                gblocks.attr("transform", transformString);
+                this.gblocks.attr("transform", transformString);
                 // Standard transformation on the text since we need to keep the
                 // original scale
                 //  gblocks.selectAll("circle").attr("r",transform.k*5);
@@ -213,13 +223,11 @@ export class Chain {
                 );
                 let alreadyHandled = false;
 
-                let leftNei: Chunk = undefined;
-                let rightNei: Chunk = undefined;
+                let leftNei: Chunk;
+                let rightNei: Chunk;
 
                 let leftNeiIndex = 0;
                 let rightNeiIndex = 0;
-
-           
 
                 for (let i = 0; i < this.chunks.length; i++) {
                     const chunk = this.chunks[i];
@@ -300,7 +308,7 @@ export class Chain {
                         this.ws,
                         this.gblocks,
                         this.garrow
-        
+
                     );
 
                     if (leftNei !== undefined) {
@@ -313,7 +321,7 @@ export class Chain {
 
                     // keep the chunks sorted
                     this.chunks.splice(leftNeiIndex + 1, 0, c);
-  
+
                 }
             },
         });
@@ -321,25 +329,6 @@ export class Chain {
         // We intialize the last added block of the chain
         const lastAddedBlock = new LastAddedBlock(roster, flash, initialBlock, this.blockClickedSubject);
     }
-
-
-    /**
-     * Returns an observable to observe the blocks.
-     * Example use:
-     * ```getBlockClickedSubject().subscribe({
-     *   next: (skipBlock) => {
-     *     // do things
-     *   }
-     * })```
-     */
-    get getBlockClickedSubject(): Subject<SkipBlock> {
-        return this.blockClickedSubject;
-    }
-
-    get getNewBlocksSubject(): Subject<SkipBlock[]> {
-        return this.newBlocksSubject;
-    }
-
 
     /**
      * Requests blocks to the blockchain.

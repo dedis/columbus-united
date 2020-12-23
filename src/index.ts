@@ -117,7 +117,7 @@ export function startColumbus(
     const chain = new Chain(roster, flash, genesisBlock);
 
     // The translation is started to trigger the load
-    Utils.scrollOnChain(initialBlock, genesisBlock, chain.blockClickedSubject);
+    Utils.translateOnChain(initialBlock, genesisBlock, chain.blockClickedSubject);
 
     // The blockchain properties are given to the search bar
     searchBar(

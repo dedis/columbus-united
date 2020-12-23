@@ -1,11 +1,11 @@
+import { DataHeader } from "@dedis/cothority/byzcoin/proto";
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
-import { DataHeader } from "@dedis/cothority/byzcoin/proto";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
-import { Flash } from "./flash";
-import { Chain } from "./chain";
-import { Subject } from "rxjs";
 import * as d3 from "d3";
+import { Subject } from "rxjs";
+import { Chain } from "./chain";
+import { Flash } from "./flash";
 
 export class Utils {
     /**
@@ -85,7 +85,7 @@ export class Utils {
     /**
      * Gets the block by its hash and roster
      * @param genesis hash of the first block of the chain
-     * @param hash block of which we want the index
+     * @param index the index of the requested block
      * @param roster roster that validated the block
      */
     static async getBlockByIndex(
@@ -106,14 +106,11 @@ export class Utils {
      * @param block block of which we want the validation time
      */
     static getTimeString(block: SkipBlock): string {
-        var timestamp = Number(DataHeader.decode(block.data).timestamp);
+        const timestamp = Number(DataHeader.decode(block.data).timestamp);
         const date = new Date(timestamp / 1000_000);
         const hours = date.getHours();
         const minutes = "0" + date.getMinutes();
         const seconds = "0" + date.getSeconds();
-        const day = date.getDay();
-        const month = date.getMonth();
-        const year = date.getFullYear();
 
         return (
             date.toISOString().slice(0, 10) +
@@ -145,28 +142,35 @@ export class Utils {
         document.body.removeChild(dummy);
         flash.display(Flash.flashType.INFO, "Copied to clipboard");
     }
-    
-    static async scrollOnChain(
+
+    /**
+     * Translates the chain to the given block and selects it.
+     * @param block
+     * @param initialBlock
+     * @param blockClickedSubject
+     */
+    static async translateOnChain(
         block: SkipBlock,
         initialBlock: SkipBlock,
-        blockClickedSubject:Subject<SkipBlock>
+        blockClickedSubject: Subject<SkipBlock>
     ) {
-        //translate the chain to wanted coordinates
-        let newZoom = d3.zoomIdentity
-            .translate((initialBlock.index - block.index) * 110 + 0.2- initialBlock.index*110 , 0) //block+padding =110
+        // translate the chain to wanted coordinates
+        const newZoom = d3.zoomIdentity
+            .translate((initialBlock.index - block.index) * 110 + 0.2 -
+                initialBlock.index * Chain.unitBlockAndPaddingWidth , 0)
             .scale(1);
         d3.select("#svg-container").call(Chain.zoom.transform, newZoom);
 
-
+        blockClickedSubject.next(block);
 
     }
-
 
     /**
      * Converts a transform to the corresponding block index.
      *
      * @param transform d3 transformation
      * @param blockWidth width of a block, with the padding included
+     * @param chainWidth the width of the chain
      */
     static transformToIndexes(
         transform: any,
