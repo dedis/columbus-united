@@ -638,8 +638,12 @@ export class Chunk {
                 this.blockClickedSubject.next(block);
                 window.location.hash = `index:${block.index}`;
             })
-            .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
-            .on("mouseout", function() {d3.select(this).style("cursor", "default")});
+            .on("mouseover", function () {
+                d3.select(this).style("cursor", "pointer");
+            })
+            .on("mouseout", function () {
+                d3.select(this).style("cursor", "default");
+            });
     }
 
     /**
@@ -684,7 +688,11 @@ export class Chunk {
                 .attr("stroke", "grey")
                 .attr("marker-end", "url(#triangle)")
                 .on("click", () => {
-                    Utils.translateOnChain(skipBlockTo, this.initialBlock, this.blockClickedSubject);
+                    Utils.translateOnChain(
+                        skipBlockTo,
+                        this.initialBlock,
+                        this.blockClickedSubject
+                    );
                 });
 
             const triangle = svgBlocks.append("svg:defs").append("svg:marker");
@@ -699,31 +707,32 @@ export class Chunk {
                 .attr("d", "M 0 0 L 10 5 L 0 10 z")
                 .on("click", () => {
                     //    Utils.scrollOnChain(this.roster, skipBlockTo.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
-                    Utils.translateOnChain(skipBlockTo, this.initialBlock, this.blockClickedSubject);
+                    Utils.translateOnChain(
+                        skipBlockTo,
+                        this.initialBlock,
+                        this.blockClickedSubject
+                    );
                 })
                 .style("fill", "grey");
             // FIXME can't change the colour of the svg markers like this. Only option I see
             // is to create anover triangle and witch when needed
-            triangle.on("mouseover", function()  {
-
-                d3.select(this).style("cursor", "pointer")
+            triangle.on("mouseover", function () {
+                d3.select(this).style("cursor", "pointer");
                 line.style("stroke", "var(--selected-colour");
                 triangle.style("fill", "var(--selected-colour");
             });
 
-            triangle.on("mouseout", function()  {
-                d3.select(this).style("cursor", "default")
+            triangle.on("mouseout", function () {
+                d3.select(this).style("cursor", "default");
                 line.style("stroke", "grey");
                 triangle.style("stroke", "grey");
             });
-            line
-            .on("mouseover", function() {
-                d3.select(this).style("cursor", "pointer")
+            line.on("mouseover", function () {
+                d3.select(this).style("cursor", "pointer");
                 line.style("stroke", "var(--selected-colour");
                 triangle.attr("stroke", "var(--selected-colour");
-            })
-            .on("mouseout", function() {
-                d3.select(this).style("cursor", "default")
+            }).on("mouseout", function () {
+                d3.select(this).style("cursor", "default");
                 line.style("stroke", "grey");
                 triangle.style("stroke", "grey");
             });

@@ -16,7 +16,6 @@ import { LastAddedBlock } from "./lastAddedBlock";
 import { Utils } from "./utils";
 
 export class Chain {
-
     /**
      * Returns an observable to observe the blocks.
      * Example use:
@@ -41,7 +40,8 @@ export class Chain {
     static readonly blockHeight = 50;
     static readonly blockWidth = 100;
     static readonly svgWidth = window.innerWidth;
-    static readonly unitBlockAndPaddingWidth = Chain.blockPadding + Chain.blockWidth;
+    static readonly unitBlockAndPaddingWidth =
+        Chain.blockPadding + Chain.blockWidth;
 
     // Recommended pageSize / nbPages: 80 / 50
     static readonly pageSize = 50;
@@ -131,7 +131,8 @@ export class Chain {
 
         // the number of block the window can display at normal scale. Used to
         // define the domain the xScale
-        const numblocks = Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
+        const numblocks =
+            Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
 
         // the xScale displays the block index and allows the user to quickly see
         // where he is in the chain
@@ -308,7 +309,6 @@ export class Chain {
                         this.ws,
                         this.gblocks,
                         this.garrow
-
                     );
 
                     if (leftNei !== undefined) {
@@ -321,13 +321,17 @@ export class Chain {
 
                     // keep the chunks sorted
                     this.chunks.splice(leftNeiIndex + 1, 0, c);
-
                 }
             },
         });
 
         // We intialize the last added block of the chain
-        const lastAddedBlock = new LastAddedBlock(roster, flash, initialBlock, this.blockClickedSubject);
+        const lastAddedBlock = new LastAddedBlock(
+            roster,
+            flash,
+            initialBlock,
+            this.blockClickedSubject
+        );
     }
 
     /**

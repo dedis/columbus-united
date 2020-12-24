@@ -1,11 +1,10 @@
 import { Instruction } from "@dedis/cothority/byzcoin";
 import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
-import { Roster } from '@dedis/cothority/network';
+import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable, Subject } from "rxjs";
-import {throttleTime } from "rxjs/operators";
-
+import { throttleTime } from "rxjs/operators";
 
 import { Chain } from "./chain";
 import { Flash } from "./flash";
@@ -26,7 +25,6 @@ import { Utils } from "./utils";
  * @class Block
  */
 export class Block {
-
     // Observable for the clicked block
     skipBclickedSubject: Subject<SkipBlock>;
 
@@ -39,7 +37,7 @@ export class Block {
     lifecycle: Lifecycle;
     hashHighligh: SkipBlock[];
 
-    roster : Roster;
+    roster: Roster;
     // progress bar
     progressBarContainer: d3.Selection<
         HTMLDivElement,
@@ -70,7 +68,7 @@ export class Block {
         lifecycle: Lifecycle,
         flash: Flash,
         loadedSkipBObs: Observable<SkipBlock[]>,
-        roster : Roster
+        roster: Roster
     ) {
         const self = this;
 
@@ -78,8 +76,6 @@ export class Block {
         this.skipBclickedSubject.subscribe({
             next: this.listTransaction.bind(this),
         });
-
-
 
         this.clickedBlock = null;
         this.colorClickedBlock = "#006fff";
@@ -111,10 +107,9 @@ export class Block {
                 self.highlightBlocks(this.hashHighligh);
             },
         });
-        
     }
     setSearch(search: void) {
-        throw new Error('Method not implemented.');
+        throw new Error("Method not implemented.");
     }
 
     /**
@@ -221,10 +216,9 @@ export class Block {
         const divVerifier = liVerifier.append("div");
         divVerifier.attr("class", "uk-accordion-content");
         block.verifiers.forEach((uid, j) => {
-            
             const verifierLine = divVerifier.append("p");
-                verifierLine.text(` Verifier ${j} , ID:  `);                
-            Utils.addIDBlocky(verifierLine, uid.toString("hex"), self.flash)
+            verifierLine.text(` Verifier ${j} , ID:  `);
+            Utils.addIDBlocky(verifierLine, uid.toString("hex"), self.flash);
         });
 
         //ANCHOR BackLink details
@@ -245,12 +239,20 @@ export class Block {
                 .append("span")
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
-                .on("click",async function() {
-                    Utils.translateOnChain(await Utils.getBlock(value, self.roster),block, self.skipBclickedSubject)
+                .on("click", async function () {
+                    Utils.translateOnChain(
+                        await Utils.getBlock(value, self.roster),
+                        block,
+                        self.skipBclickedSubject
+                    );
                 })
                 .attr("uk-tooltip", `${value.toString("hex")}`)
-                .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
-                .on("mouseout", function() {d3.select(this).style("cursor", "default")});
+                .on("mouseover", function () {
+                    d3.select(this).style("cursor", "pointer");
+                })
+                .on("mouseout", function () {
+                    d3.select(this).style("cursor", "default");
+                });
         });
 
         //ANCHOR ForwardLink
@@ -273,27 +275,35 @@ export class Block {
                 .append("span")
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
-                .on("click",async function() {
-                    Utils.translateOnChain(await Utils.getBlock(fl.to, self.roster),block, self.skipBclickedSubject);
+                .on("click", async function () {
+                    Utils.translateOnChain(
+                        await Utils.getBlock(fl.to, self.roster),
+                        block,
+                        self.skipBclickedSubject
+                    );
                 })
                 .attr("uk-tooltip", `${fl.to.toString("hex")}`)
-                .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
-                .on("mouseout", function() {d3.select(this).style("cursor", "default")});
+                .on("mouseover", function () {
+                    d3.select(this).style("cursor", "pointer");
+                })
+                .on("mouseout", function () {
+                    d3.select(this).style("cursor", "default");
+                });
 
-            const lockIcon = divForwardLink
-                .append("object");
+            const lockIcon = divForwardLink.append("object");
 
             const lockContent = `<p>Hash: ${fl.hash().toString("hex")}</p>
-            <p>signature: ${fl.signature.sig.toString("hex")}</p>`
+            <p>signature: ${fl.signature.sig.toString("hex")}</p>`;
 
             lockIcon
                 .attr("class", "white-icon")
                 .attr("type", "image/svg+xml")
                 .attr("data", "assets/signature.svg")
 
-                .on("click",function() {Utils.copyToClipBoard(lockContent, self.flash)});
-            const linkDetails = divForwardLink
-                .append("div");
+                .on("click", function () {
+                    Utils.copyToClipBoard(lockContent, self.flash);
+                });
+            const linkDetails = divForwardLink.append("div");
             linkDetails
                 .attr("uk-dropdown", "pos: right-center")
                 .attr("id", "forwardlink-drop")
@@ -319,15 +329,18 @@ export class Block {
             .attr("margin-top", "5px")
             .text(`Transaction details`)
             .style("color", "#666");
-        
+
         const body = DataBody.decode(block.payload);
 
         const totalTransaction = body.txResults.length;
-        
+
         transactionCardHeaderTitle
-        .append("p")
-        .text(`Total of ${totalTransaction} transaction`+ (totalTransaction>1? 's':''))
-        .style("margin-left", "10px");
+            .append("p")
+            .text(
+                `Total of ${totalTransaction} transaction` +
+                    (totalTransaction > 1 ? "s" : "")
+            )
+            .style("margin-left", "10px");
 
         const transactionCardBody = transactionCard.append("div");
         transactionCardBody.attr("class", "uk-card-body uk-padding-small");
@@ -347,8 +360,9 @@ export class Block {
             //TODO Give titles like this an ID and handle the styling in the css
             transactionTitle
                 .html(
-                    `<b>Transaction ${i}</b> ${accepted}, show ${totalInstruction} instruction`
-                    +(totalInstruction>1? `s`:``)+ `:`
+                    `<b>Transaction ${i}</b> ${accepted}, show ${totalInstruction} instruction` +
+                        (totalInstruction > 1 ? `s` : ``) +
+                        `:`
                 )
                 .style("font", "Monospace")
                 .style("color", "#666")
@@ -368,29 +382,32 @@ export class Block {
                     liInstruction.attr("style", "padding-left:15px");
                     const aInstruction = liInstruction.append("a");
                     aInstruction.attr("class", "uk-accordion-title");
-                    
+
                     if (instruction.type === Instruction.typeSpawn) {
-                        const contractName = instruction.spawn.contractID.charAt(0).toUpperCase() + 
-                        instruction.spawn.contractID.slice(1);
-                        aInstruction.text(
-                            `Spawned : ${contractName }`
-                        );
+                        const contractName =
+                            instruction.spawn.contractID
+                                .charAt(0)
+                                .toUpperCase() +
+                            instruction.spawn.contractID.slice(1);
+                        aInstruction.text(`Spawned : ${contractName}`);
                         args = instruction.spawn.args;
                     } else if (instruction.type === Instruction.typeInvoke) {
-                        const contractName = instruction.invoke.contractID.charAt(0).toUpperCase() + 
-                        instruction.invoke.contractID.slice(1);
-                        aInstruction.text(
-                            `Invoked : ${contractName }`
-                        );
+                        const contractName =
+                            instruction.invoke.contractID
+                                .charAt(0)
+                                .toUpperCase() +
+                            instruction.invoke.contractID.slice(1);
+                        aInstruction.text(`Invoked : ${contractName}`);
                         args = instruction.invoke.args;
-                        coin_invoked = (contractName == "Coin" && args.length>1); //Blocks prior to index 45 don't implement coin in the right way unfortunately
-
+                        coin_invoked =
+                            contractName == "Coin" && args.length > 1; //Blocks prior to index 45 don't implement coin in the right way unfortunately
                     } else if (instruction.type === Instruction.typeDelete) {
-                        const contractName = instruction.delete.contractID.charAt(0).toUpperCase() + 
-                        instruction.delete.contractID.slice(1);
-                        aInstruction.text(
-                            `Deleted : ${contractName }`
-                        );
+                        const contractName =
+                            instruction.delete.contractID
+                                .charAt(0)
+                                .toUpperCase() +
+                            instruction.delete.contractID.slice(1);
+                        aInstruction.text(`Deleted : ${contractName}`);
                     }
 
                     const divInstruction = liInstruction.append("div");
@@ -399,25 +416,35 @@ export class Block {
                         .attr("class", "uk-accordion-content")
                         .attr("style", "padding-left:15px");
                     // Detail of one instruction
-                    
+
                     divInstruction
                         .append("p")
-                        .text(`Transaction hash : ${instruction.hash().toString("hex")}`);
-                    
+                        .text(
+                            `Transaction hash : ${instruction
+                                .hash()
+                                .toString("hex")}`
+                        );
+
                     const hash = instruction.instanceID.toString("hex");
-                    Utils.addHashBlocky(divInstruction
-                        .append("p")
-                        .text(`Instance ID : `), hash, self.flash);
-                    if (!coin_invoked){     
-                        if(instruction.signerCounter.length != 0 ){
-                            const userSignature = instruction.signerIdentities.pop().toString().slice(8);
-                            const emmiterP =divInstruction
+                    Utils.addHashBlocky(
+                        divInstruction.append("p").text(`Instance ID : `),
+                        hash,
+                        self.flash
+                    );
+                    if (!coin_invoked) {
+                        if (instruction.signerCounter.length != 0) {
+                            const userSignature = instruction.signerIdentities
+                                .pop()
+                                .toString()
+                                .slice(8);
+                            const emmiterP = divInstruction
                                 .append("p")
                                 .text("Emmited by ");
-                                Utils.addIDBlocky(
-                                    emmiterP,
-                                    userSignature, 
-                                    self.flash)
+                            Utils.addIDBlocky(
+                                emmiterP,
+                                userSignature,
+                                self.flash
+                            );
                         }
                         divInstruction.append("p").text("Arguments:");
                         // Args of the instruction
@@ -426,7 +453,6 @@ export class Block {
                         // tslint:disable-next-line
                         const beautifiedArgs = instruction.beautify().args;
                         beautifiedArgs.forEach((arg, i) => {
-
                             const liArgs = ulArgs.append("li");
                             const aArgs = liArgs.append("a");
                             aArgs
@@ -438,53 +464,49 @@ export class Block {
                             divArgs.append("p").text(`${arg.value}`);
                             //TODO Add tooltip to get full arg if it exists
                             //TODO Discriminate coins to displya blockie
-
                         });
-                    }
-                    else{
+                    } else {
                         const beautifiedArgs = instruction.beautify().args;
-                        const userSignature = instruction.signerIdentities.pop().toString().slice(8);
+                        const userSignature = instruction.signerIdentities
+                            .pop()
+                            .toString()
+                            .slice(8);
                         const destinationSignature = beautifiedArgs[1].value;
 
-                        const line = divInstruction
-                            .append("p")
-                        Utils.addIDBlocky(line, userSignature,self.flash);
-                        line
-                            .append("span")
-                            .text(` gave ${beautifiedArgs[0].value.split(' ')[0]}`)
-                        line
-                            .append("object")
+                        const line = divInstruction.append("p");
+                        Utils.addIDBlocky(line, userSignature, self.flash);
+                        line.append("span").text(
+                            ` gave ${beautifiedArgs[0].value.split(" ")[0]}`
+                        );
+                        line.append("object")
                             .attr("class", "white-icon")
                             .attr("type", "image/svg+xml")
                             .attr("data", "assets/coin.svg")
                             .style("display", "inline-block")
                             .style("position", "relative")
                             .style("top", "11px");
-                            
-                        line
-                            .append("span")
-                            .text(" to ")
-                        Utils.addIDBlocky(line, destinationSignature, self.flash);
-                        if (beautifiedArgs.length==3){
-                            divInstruction.append("p").text(`Challenge : ${beautifiedArgs[2].value}`)
-                        }
 
+                        line.append("span").text(" to ");
+                        Utils.addIDBlocky(
+                            line,
+                            destinationSignature,
+                            self.flash
+                        );
+                        if (beautifiedArgs.length == 3) {
+                            divInstruction
+                                .append("p")
+                                .text(`Challenge : ${beautifiedArgs[2].value}`);
+                        }
                     }
                     // Search button
-                    
-                    //ANCHOR Browse button  
+
+                    //ANCHOR Browse button
                     const searchInstance = divInstruction.append("li");
-                    searchInstance
-                        .attr("id", "button-browse");
+                    searchInstance.attr("id", "button-browse");
                     const searchButton = searchInstance.append("button");
                     searchButton
-                        .attr(
-                            "class",
-                            "uk-button uk-button-default"
-                        )
-                        .text(
-                            `Search `
-                        );
+                        .attr("class", "uk-button uk-button-default")
+                        .text(`Search `);
                     searchInstance.append("span").text(" for ");
 
                     const formTag = searchInstance
@@ -499,72 +521,75 @@ export class Block {
 
                     formSelect
                         .append("option")
-                        .attr("value" , "-1")
-                        .text("All instructions related to this instance"); 
+                        .attr("value", "-1")
+                        .text("All instructions related to this instance");
 
                     formSelect
                         .append("option")
-                        .attr("value" , "100")
-                        .text("The 100 first instructions related to this instance"); 
+                        .attr("value", "100")
+                        .text(
+                            "The 100 first instructions related to this instance"
+                        );
 
                     formSelect
-                       .append("option")
-                       .attr("value" , "50")
-                       .text("The 50 first instructions related to this instance");         
-                       
+                        .append("option")
+                        .attr("value", "50")
+                        .text(
+                            "The 50 first instructions related to this instance"
+                        );
+
                     formSelect
-                       .append("option")
-                       .attr("value" , "10")
-                       .text("The 10 first instructions related to this instance");                          
+                        .append("option")
+                        .attr("value", "10")
+                        .text(
+                            "The 10 first instructions related to this instance"
+                        );
 
                     var chosenQuery = -1;
-     
-                    formSelect.on("change", function(){
-                        chosenQuery = parseInt(this.options[this.selectedIndex].value);
+
+                    formSelect.on("change", function () {
+                        chosenQuery = parseInt(
+                            this.options[this.selectedIndex].value
+                        );
                     });
-                    
-                    
+
                     searchButton
                         // Confirmation and start browsing on click
                         // tslint:disable-next-line
                         .on("click", function () {
-                            self.launchQuery(chosenQuery, instruction.instanceID.toString("hex"))
+                            self.launchQuery(
+                                chosenQuery,
+                                instruction.instanceID.toString("hex")
+                            );
                         });
                 }
             ); //!SECTION
         });
-
-
-
     }
 
-   /**
-    * 
-    * @public
-    * @param chosenQuery 
-    * @param instruction 
-    * @memberof DetailBlock
-    */
+    /**
+     *
+     * @public
+     * @param chosenQuery
+     * @param instruction
+     * @memberof DetailBlock
+     */
 
-    public launchQuery(chosenQuery : number, instanceID:string)
-    {
+    public launchQuery(chosenQuery: number, instanceID: string) {
         const self = this;
         self.createLoadingScreen();
-        const subjects = self.lifecycle
-            .getInstructionSubject(instanceID,chosenQuery);
+        const subjects = self.lifecycle.getInstructionSubject(
+            instanceID,
+            chosenQuery
+        );
         subjects[0].subscribe({
             next: self.printDataBrowsing.bind(self),
         });
         // throttleTime: ignores the values for the 100 first ms
         subjects[1].pipe(throttleTime(100)).subscribe({
             complete: self.doneLoading,
-            next: ([
-                percentage,
-                seenBlock,
-                totalBlock,
-                nbInstanceFound,
-            ]) => {
-                console.log("updated")
+            next: ([percentage, seenBlock, totalBlock, nbInstanceFound]) => {
+                console.log("updated");
                 self.updateLoadingScreen(
                     percentage,
                     seenBlock,
@@ -593,11 +618,11 @@ export class Block {
         const queryContainer = d3.select(".query-answer");
         queryContainer.text("");
         queryContainer
-        .attr("class", "query-answer uk-card uk-card-default")
-        .style("margin-top", "0px")
-        .style("padding-top", "10px");
-            const queryHeader = queryContainer.append("p");
-            queryHeader
+            .attr("class", "query-answer uk-card uk-card-default")
+            .style("margin-top", "0px")
+            .style("padding-top", "10px");
+        const queryHeader = queryContainer.append("p");
+        queryHeader
             .attr("id", "query-header")
             .append("div")
             .text(
@@ -609,25 +634,23 @@ export class Block {
             .style("font-weight", "700")
             .style("color", "#666")
             .style("font-size", "1.3em");
-            
-        
+
         const closeButtonWrap = queryHeader.append("div");
         closeButtonWrap.attr("id", "clear-query-button");
-        closeButtonWrap.append("button")
-        .attr("class", "uk-close-large")
-        .attr("type", "button")
-        .attr("uk-close", "")
-        .on("click", function () {
-            const confir = confirm(
-                "Are you sure you want to clear the query results ?"
-            );
-            if (confir) {
-                self.removeHighlighBlocks(self.hashHighligh);
-                queryContainer.html("");
-                
-            }
-        });
-
+        closeButtonWrap
+            .append("button")
+            .attr("class", "uk-close-large")
+            .attr("type", "button")
+            .attr("uk-close", "")
+            .on("click", function () {
+                const confir = confirm(
+                    "Are you sure you want to clear the query results ?"
+                );
+                if (confir) {
+                    self.removeHighlighBlocks(self.hashHighligh);
+                    queryContainer.html("");
+                }
+            });
 
         const queryCardContainer = queryContainer.append("ul");
         queryCardContainer
@@ -640,9 +663,9 @@ export class Block {
             const instruction = tuple[1][i];
             const instructionCard = queryCardContainer.append("li");
             instructionCard
-            .attr("class", "uk-card uk-card-default")
-            .style("min-width","350px");
-            
+                .attr("class", "uk-card uk-card-default")
+                .style("min-width", "350px");
+
             const instructionCardHeader = instructionCard.append("div");
             instructionCardHeader.attr(
                 "class",
@@ -650,9 +673,8 @@ export class Block {
             );
 
             const instructionCardBody = instructionCard.append("div");
-            instructionCardBody
+            instructionCardBody;
             // .attr("class","uk-card-body uk-padding-small")
-            ;
 
             let args = null;
             let contractID = "";
@@ -662,12 +684,10 @@ export class Block {
                 contractID = instruction.spawn.contractID;
                 verb = "Spawned";
                 args = instruction.spawn.args;
-
             } else if (instruction.type === Instruction.typeInvoke) {
                 verb = "Invoked";
                 contractID = instruction.invoke.contractID;
                 args = instruction.invoke.args;
-
             } else if (instruction.type === Instruction.typeDelete) {
                 verb = "Deleted";
                 contractID = instruction.delete.contractID;
@@ -676,26 +696,36 @@ export class Block {
             instructionCardHeader
                 .append("span")
                 .attr("class", "uk-badge")
-                .text(`${verb}`) 
-                .on("click",function() {Utils.copyToClipBoard(`${instruction.hash()
-                    .toString("hex")}}`, self.flash)})
+                .text(`${verb}`)
+                .on("click", function () {
+                    Utils.copyToClipBoard(
+                        `${instruction.hash().toString("hex")}}`,
+                        self.flash
+                    );
+                })
                 .attr("uk-tooltip", `${instruction.hash().toString("hex")}`);
 
             instructionCardHeader
                 .append("span")
-                .text(
-                    ` ${contractID} contract in `
-                );
+                .text(` ${contractID} contract in `);
             instructionCardHeader
                 .append("span")
                 .attr("class", "uk-badge")
-                .text(`Block ${blocki.index}`) 
-                .on("click",function() {Utils.copyToClipBoard(`${blocki.hash.toString("hex")}`, self.flash)})
+                .text(`Block ${blocki.index}`)
+                .on("click", function () {
+                    Utils.copyToClipBoard(
+                        `${blocki.hash.toString("hex")}`,
+                        self.flash
+                    );
+                })
                 .attr("uk-tooltip", `${blocki.hash.toString("hex")}`)
-                .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
-                .on("mouseout", function() {d3.select(this).style("cursor", "default")});;
-                
-            
+                .on("mouseover", function () {
+                    d3.select(this).style("cursor", "pointer");
+                })
+                .on("mouseout", function () {
+                    d3.select(this).style("cursor", "default");
+                });
+
             // Add an highlight of the instance which was browsed
             if (
                 blocki.hash.toString("hex") ===
@@ -712,8 +742,7 @@ export class Block {
 
             divInstructionB.append("p").text("Arguments: ");
             const ulArgsB = divInstructionB.append("ul");
-            ulArgsB
-            .attr("uk-accordion", "");
+            ulArgsB.attr("uk-accordion", "");
             // tslint:disable-next-line
             const beautifiedArgs = instruction.beautify();
 
@@ -735,44 +764,39 @@ export class Block {
         // Highlights the blocks in the blockchain
         this.highlightBlocks(tuple[0]);
         this.hashHighligh = tuple[0];
-        
+
         //ANCHOR Mouse events handling for clicking and dragging
         //Stores the current scroll position
-        var pos = {left : 0,x : 0};      
+        var pos = { left: 0, x: 0 };
         //When mousedown fires in query card container, we instantiate the other event listener
-        queryCardContainer.on("mousedown", function(e)
-        {
-         queryCardContainer.style("cursor", "grabbing");
-         queryCardContainer.style("user-select", "none")
+        queryCardContainer.on("mousedown", function (e) {
+            queryCardContainer.style("cursor", "grabbing");
+            queryCardContainer.style("user-select", "none");
 
             pos = {
-                left:queryCardContainer.node().scrollLeft,
-                x : d3.event.clientX
+                left: queryCardContainer.node().scrollLeft,
+                x: d3.event.clientX,
             };
-            queryCardContainer.on('mousemove', mouseMoveHandler)
-            queryCardContainer.on('mouseup', mouseUpHandler)
+            queryCardContainer.on("mousemove", mouseMoveHandler);
+            queryCardContainer.on("mouseup", mouseUpHandler);
         });
 
-
         //Fires when the mouse is down and moved, refreshes the scroll position
-        const mouseMoveHandler = function() {
-            const dx = d3.event.clientX-pos.x;
-            queryCardContainer.node().scrollLeft = pos.left-dx
-       }
-       //Fires when the mouse is released.
-       //Removes the move and up event handler and resets cursor properties.
-        const mouseUpHandler = function(){
-            queryCardContainer.style("cursor", 'grab');
-            queryCardContainer.node().style.removeProperty('user-select');
-            queryCardContainer.on('mousemove', null);
-            queryCardContainer.on('mouseup', null);
-    }
+        const mouseMoveHandler = function () {
+            const dx = d3.event.clientX - pos.x;
+            queryCardContainer.node().scrollLeft = pos.left - dx;
+        };
+        //Fires when the mouse is released.
+        //Removes the move and up event handler and resets cursor properties.
+        const mouseUpHandler = function () {
+            queryCardContainer.style("cursor", "grab");
+            queryCardContainer.node().style.removeProperty("user-select");
+            queryCardContainer.on("mousemove", null);
+            queryCardContainer.on("mouseup", null);
+        };
 
-    document.addEventListener("mousemove", mouseMoveHandler)
-    
-
+        document.addEventListener("mousemove", mouseMoveHandler);
     }
-    
 
     /**
      * Highlights the blocks in the blockchain
@@ -845,10 +869,11 @@ export class Block {
         const divLoad = this.loadContainer
             .append("div")
             .attr("class", "div-load");
-        divLoad.append("div") 
-        .attr("class", "spinner")
-        .attr("uk-spinner", "ratio : 2")
-        .style("color", "blue");
+        divLoad
+            .append("div")
+            .attr("class", "spinner")
+            .attr("uk-spinner", "ratio : 2")
+            .style("color", "blue");
 
         this.progressBarContainer = this.loadContainer
             .append("div")
@@ -907,16 +932,6 @@ export class Block {
             );
         }
     }
-
-
-
- 
- 
-
-
-
-
-    
 
     //!SECTION
 

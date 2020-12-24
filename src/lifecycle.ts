@@ -8,7 +8,7 @@ import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network";
 import { ForwardLink, SkipBlock } from "@dedis/cothority/skipchain";
 import { Observable, Subject } from "rxjs";
-import { finalize, take } from 'rxjs/operators';
+import { finalize, take } from "rxjs/operators";
 
 import { Flash } from "./flash";
 import { TotalBlock } from "./totalBlock";
@@ -93,10 +93,11 @@ export class Lifecycle {
      * @memberof Browsing
      */
     getInstructionSubject(
-        instanceID: string, maxNumberOfBlocks:number = -1
+        instanceID: string,
+        maxNumberOfBlocks: number = -1
     ): [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>] {
         const self = this;
-        
+
         const subjectInstruction = new Subject<[SkipBlock[], Instruction[]]>();
         const subjectProgress = new Subject<number[]>();
 
@@ -154,7 +155,7 @@ export class Lifecycle {
         subjectProgress: Subject<number[]>,
         skipBlocksSubject: SkipBlock[],
         instructionB: Instruction[],
-        maxNumberOfBlocks:number
+        maxNumberOfBlocks: number
     ) {
         const subjectBrowse = new Subject<[number, SkipBlock]>();
         const transactionFound = new Subject<number>();
@@ -167,7 +168,7 @@ export class Lifecycle {
                 );
                 subjectInstruction.next([skipBlocksSubject, instructionB]);
             },
-        
+
             error: (data: PaginateResponse) => {
                 // tslint:disable-next-line
                 if (data.errorcode == 5) {
@@ -197,7 +198,7 @@ export class Lifecycle {
                     transaction.clientTransaction.instructions.forEach(
                         // tslint:disable-next-line
                         (instruction, _) => {
-                           if (
+                            if (
                                 Utils.bytes2String(instruction.instanceID) ===
                                 this.contractID
                             ) {
@@ -205,17 +206,24 @@ export class Lifecycle {
                                 this.nbInstanceFound++;
                                 transactionFound.next(this.nbInstanceFound);
 
-                                if(this.nbInstanceFound<maxNumberOfBlocks && !this.abort){
+                                if (
+                                    this.nbInstanceFound < maxNumberOfBlocks &&
+                                    !this.abort
+                                ) {
                                     skipBlocksSubject.push(skipBlock);
                                     instructionB.push(instruction);
-                                 }
+                                }
                                 // else{
                                 //     subjectBrowse.complete();
                                 //     subjectProgress.complete();
                                 //     subjectInstruction.complete();
                                 // }
-                                console.log("Instance found : ",this.nbInstanceFound, " out of ", maxNumberOfBlocks);
-
+                                console.log(
+                                    "Instance found : ",
+                                    this.nbInstanceFound,
+                                    " out of ",
+                                    maxNumberOfBlocks
+                                );
                             }
                         }
                     );
@@ -247,15 +255,17 @@ export class Lifecycle {
                         }
                     }
                 }
-                
             },
         });
-        if (maxNumberOfBlocks > 0){
-            transactionFound.pipe(take(maxNumberOfBlocks), finalize(()=>{
-                this.abort=true;
-                }
-            )).subscribe();
-
+        if (maxNumberOfBlocks > 0) {
+            transactionFound
+                .pipe(
+                    take(maxNumberOfBlocks),
+                    finalize(() => {
+                        this.abort = true;
+                    })
+                )
+                .subscribe();
         }
         this.getNextBlocks(
             firstBlockID,

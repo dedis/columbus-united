@@ -61,10 +61,8 @@ export class TotalBlock {
         roster: Roster
     ): Observable<SkipBlock> {
         return new Observable((sub) => {
-            
-            
             let nextID = Buffer.from(startID, "hex");
-            
+
             try {
                 // tslint:disable-next-line
                 var conn = new WebSocketConnection(
@@ -72,10 +70,9 @@ export class TotalBlock {
                     ByzCoinRPC.serviceName
                 );
             } catch (error) {
-                
                 sub.error(error);
             }
-        
+
             conn.sendStream<PaginateResponse>( // fetch next block
                 new PaginateRequest({
                     startid: nextID,
@@ -99,7 +96,7 @@ export class TotalBlock {
                         console.log("2");
                         sub.error(data.errortext);
                     }
-                 
+
                     const block = data.blocks[0];
 
                     if (block.forwardLinks.length === 0) {
@@ -109,7 +106,7 @@ export class TotalBlock {
                         nextID =
                             block.forwardLinks[block.forwardLinks.length - 1]
                                 .to;
-                                
+
                         const message = new PaginateRequest({
                             startid: nextID,
 

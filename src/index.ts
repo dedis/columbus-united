@@ -117,18 +117,21 @@ export function startColumbus(
     const chain = new Chain(roster, flash, genesisBlock);
 
     // The translation is started to trigger the load
-    Utils.translateOnChain(initialBlock, genesisBlock, chain.blockClickedSubject);
+    Utils.translateOnChain(
+        initialBlock,
+        genesisBlock,
+        chain.blockClickedSubject
+    );
 
-    
     // The totalBlock utility class allows the browsing class to get the total
     // number of block in the chain. This class is stateful, it will keep each
     // time the last know block instead of browsing the entire chain each time.
     const totalBlock = new TotalBlock(roster, initialBlock);
-    
+
     // Create the browsing instance, which is used by the detailBlock class when a
     // user wants to get the lifecycle of an instance.
     const lifecycle = new Lifecycle(roster, flash, totalBlock, hashBlock0);
-    
+
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
     const block = new Block(
@@ -137,16 +140,16 @@ export function startColumbus(
         flash,
         chain.getNewBlocksSubject,
         roster
-        );
-        block.startListen();
+    );
+    block.startListen();
 
-        // The blockchain properties are given to the search bar
-        searchBar(
-            roster,
-            flash,
-            initialBlock,
-            hashBlock0,
-            chain.blockClickedSubject,
-            block
-        );
+    // The blockchain properties are given to the search bar
+    searchBar(
+        roster,
+        flash,
+        initialBlock,
+        hashBlock0,
+        chain.blockClickedSubject,
+        block
+    );
 }

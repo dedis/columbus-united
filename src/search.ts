@@ -3,7 +3,7 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
 import "uikit";
-import { Block } from './block';
+import { Block } from "./block";
 import { Flash } from "./flash";
 import "./stylesheets/style.scss";
 import { Utils } from "./utils";
@@ -17,22 +17,39 @@ import { Utils } from "./utils";
  * @param blockClickedSubject the subject notified each time a block is clicked on
  */
 export function searchBar(
-    roster: Roster, 
-    flash: Flash, 
-    initialBlock: SkipBlock, 
+    roster: Roster,
+    flash: Flash,
+    initialBlock: SkipBlock,
     hashBlock0: string,
     blockClickedSubject: Subject<SkipBlock>,
-    block : Block) {
+    block: Block
+) {
     d3.select("#search-input").on("keypress", () => {
         if (d3.event.keyCode === 13) {
             const input = d3.select("#search-input").property("value");
-            searchRequest(input, roster, flash, hashBlock0, initialBlock, blockClickedSubject, block);
+            searchRequest(
+                input,
+                roster,
+                flash,
+                hashBlock0,
+                initialBlock,
+                blockClickedSubject,
+                block
+            );
         }
     });
 
     d3.select("#submit-button").on("click", async () => {
         const input = d3.select("#search-input").property("value");
-        searchRequest(input, roster, flash, hashBlock0, initialBlock, blockClickedSubject, block);
+        searchRequest(
+            input,
+            roster,
+            flash,
+            hashBlock0,
+            initialBlock,
+            blockClickedSubject,
+            block
+        );
     });
 }
 /**
@@ -51,10 +68,9 @@ async function searchRequest(
     hashBlock0: string,
     initialBlock: SkipBlock,
     blockClickedSubject: Subject<SkipBlock>,
-    block : Block
+    block: Block
 ) {
     if (input.length < 32) {
-
         try {
             const block = await Utils.getBlockByIndex(
                 Utils.hex2Bytes(hashBlock0),
@@ -65,27 +81,38 @@ async function searchRequest(
                 Flash.flashType.INFO,
                 "Valid search for block index: " + block.index.toString()
             );
-            await Utils.translateOnChain(block, initialBlock, blockClickedSubject);
+            await Utils.translateOnChain(
+                block,
+                initialBlock,
+                blockClickedSubject
+            );
             blockClickedSubject.next(block);
         } catch (error) {
             flash.display(Flash.flashType.ERROR, "Block does not exist");
         }
     } else {
         try {
-
-            const block = await Utils.getBlock(Buffer.from(input, "hex"), roster);
+            const block = await Utils.getBlock(
+                Buffer.from(input, "hex"),
+                roster
+            );
 
             flash.display(
                 Flash.flashType.INFO,
                 "Valid search for block index: " + block.index.toString()
             );
-            await Utils.translateOnChain(block, initialBlock, blockClickedSubject);
+            await Utils.translateOnChain(
+                block,
+                initialBlock,
+                blockClickedSubject
+            );
             blockClickedSubject.next(block);
-
         } catch (error) {
-
-            flash.display(Flash.flashType.INFO, `Browsing the chain for instance ID : ${input}`);
-            block.launchQuery(50, input.toString())
+            flash.display(
+                Flash.flashType.INFO,
+                `Browsing the chain for instance ID : ${input}`
+            );
+            block.launchQuery(50, input.toString());
         }
     }
 }
