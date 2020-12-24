@@ -47,7 +47,7 @@ export function sayHi() {
     // The default block is #118750 because forward links from this point onwards are broken
     const initialBlockIndex =
         // tslint:disable-next-line:radix
-        indexString != null ? parseInt(indexString) : 118750;
+        indexString != null ? parseInt(indexString) : 20;
 
     // The block index should not be smaller than 0
     if (initialBlockIndex < 0) {

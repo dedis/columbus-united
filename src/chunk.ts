@@ -683,10 +683,8 @@ export class Chunk {
                 .attr("stroke-width", 2)
                 .attr("stroke", "grey")
                 .attr("marker-end", "url(#triangle)")
-
                 .on("click", () => {
                     Utils.translateOnChain(skipBlockTo, this.initialBlock, this.blockClickedSubject);
-                    this.blockClickedSubject.next(skipBlockTo);
                 });
 
             const triangle = svgBlocks.append("svg:defs").append("svg:marker");
@@ -701,32 +699,34 @@ export class Chunk {
                 .attr("d", "M 0 0 L 10 5 L 0 10 z")
                 .on("click", () => {
                     //    Utils.scrollOnChain(this.roster, skipBlockTo.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
-                    this.blockClickedSubject.next(skipBlockTo);
+                    Utils.translateOnChain(skipBlockTo, this.initialBlock, this.blockClickedSubject);
                 })
                 .style("fill", "grey");
             // FIXME can't change the colour of the svg markers like this. Only option I see
             // is to create anover triangle and witch when needed
-            triangle.on("mouseover", () => {
+            triangle.on("mouseover", function()  {
+                
+                d3.select(this).style("cursor", "pointer")
                 line.style("stroke", "var(--selected-colour");
                 triangle.style("fill", "var(--selected-colour");
             });
 
-            triangle.on("mouseout", () => {
+            triangle.on("mouseout", function()  {
+                d3.select(this).style("cursor", "default")
                 line.style("stroke", "grey");
                 triangle.style("stroke", "grey");
             });
             line
-            .on("mouseover", () => {
+            .on("mouseover", function() {
+                d3.select(this).style("cursor", "pointer")
                 line.style("stroke", "var(--selected-colour");
                 triangle.attr("stroke", "var(--selected-colour");
             })
-            .on("mouseout", () => {
-                
+            .on("mouseout", function() {
+                d3.select(this).style("cursor", "default")
                 line.style("stroke", "grey");
                 triangle.style("stroke", "grey");
-            })
-            .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
-            .on("mouseout", function() {d3.select(this).style("cursor", "default")});
+            });
         }
     }
     /**
