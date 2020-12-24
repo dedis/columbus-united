@@ -221,7 +221,9 @@ export class LastAddedBlock {
             .on("click", () => {
                 // tslint:disable-next-line:no-unused-expression
                 blockClickedSubject.next(lastBlock);
-            });
+            })
+            .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
+            .on("mouseout", function() {d3.select(this).style("cursor", "default")});
 
         // shadow filter for last added block
         const defs = svgLast.append("defs");

@@ -311,68 +311,9 @@ export class Chain {
 
                     );
 
-<<<<<<< HEAD
                     if (leftNei !== undefined) {
                         leftNei.rightNeighbor = c;
                     }
-=======
-            const line = svgBlocks
-                .append("line");
-            line
-                .attr("x2", xTrans - this.blockPadding)
-                .attr("y1", 40 + factor * 38)
-                .attr(
-                    "x1",
-                    xTrans -
-                        (iTo - skipFrom.index) *
-                            (this.blockWidth + this.blockPadding) +
-                        this.blockWidth
-                )
-
-                .attr("y2", 40 + factor * 38)
-                .attr("stroke-width", 3)
-                .attr("stroke", "grey")
-                .attr("marker-end", "url(#triangle)")
-
-                .on("click", () => {
-                    this.blockClickedSubject.next(block);
-                });
-
-            const triangle = svgBlocks
-                .append("svg:defs")
-                .append("svg:marker");
-            triangle
-                .attr("id", "triangle")
-                .attr("refX", 5.5)
-                .attr("refY", 4.5)
-                .attr("markerWidth", 15)
-                .attr("markerHeight", 15)
-                .attr("orient", "auto-start-reverse")
-                .append("path")
-                .attr("d", "M 0 0 L 10 5 L 0 10 z")
-                .on("click", () => {
-                    this.blockClickedSubject.next(block);
-                })
-                .style("fill", "grey");
-            //FIXME can't change the colour of the svg markers like this. Only option I see
-            //is to create anover triangle and witch when needed
-            triangle.on("mouseover", () => {
-                    line.style("stroke", "var(--selected-colour");
-                    triangle.style("fill", "var(--selected-colour");
-                });
-            line.on("mouseover", () => {
-                    line.style("stroke", "var(--selected-colour");
-                    triangle.attr("stroke", "var(--selected-colour");
-                });
-            triangle.on("mouseout", () => {
-                line.style("stroke", "grey");
-                triangle.style("stroke", "grey");
-            });               
-            line.on("mouseout", () => {
-                line.style("stroke", "grey");
-                triangle.style("stroke", "grey");
-            });   
->>>>>>> 965e408977666c1b19f7685339ca40518b07d455
 
                     if (rightNei !== undefined) {
                         rightNei.leftNeighbor = c;

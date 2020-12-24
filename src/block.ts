@@ -103,6 +103,7 @@ export class Block {
                 self.highlightBlocks(this.hashHighligh);
             },
         });
+        
     }
     setSearch(search: void) {
         throw new Error('Method not implemented.');
@@ -239,7 +240,7 @@ export class Block {
                 .on("click",function() {Utils.copyToClipBoard(value.toString("hex"), self.flash)})
                 .attr("uk-tooltip", `${value.toString("hex")}`)
                 .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
-                .on("mouseout", function() {d3.select(this).style("cursor", "default")});;
+                .on("mouseout", function() {d3.select(this).style("cursor", "default")});
         });
 
         //ANCHOR ForwardLink
@@ -271,16 +272,16 @@ export class Block {
                 .on("mouseout", function() {d3.select(this).style("cursor", "default")});
 
             const lockIcon = divForwardLink
-                .append("a");
+                .append("object");
 
             const lockContent = `<p>Hash: ${fl.hash().toString("hex")}</p>
             <p>signature: ${fl.signature.sig.toString("hex")}</p>`
 
             lockIcon
-                .attr("class", "uk-icon-button")
-                .attr("uk-icon", "icon: lock")
-                .attr("href","")
-                .style("margin-left", "15px")
+                .attr("class", "white-icon")
+                .attr("type", "image/svg+xml")
+                .attr("data", "assets/signature.svg")
+
                 .on("click",function() {Utils.copyToClipBoard(lockContent, self.flash)});
             const linkDetails = divForwardLink
                 .append("div");
@@ -316,7 +317,7 @@ export class Block {
         
         transactionCardHeaderTitle
         .append("p")
-        .text(`Total of ${totalTransaction} transactions`)
+        .text(`Total of ${totalTransaction} transaction`+ (totalTransaction>1? 's':''))
         .style("margin-left", "10px");
 
         const transactionCardBody = transactionCard.append("div");
@@ -325,7 +326,7 @@ export class Block {
         body.txResults.forEach((transaction, i) => {
             const accepted: string = transaction.accepted
                 ? "Accepted"
-                : `<span id ="rejected">Not accepted</span>`;
+                : `<span id ="rejected">Rejected</span>`;
             const liTransaction = transactionCardBody.append("ul");
             liTransaction.attr("id", "detail-window");
             liTransaction.attr("class", "uk-open");
@@ -334,14 +335,11 @@ export class Block {
             transaction.clientTransaction.instructions.forEach((_, __) => {
                 totalInstruction++;
             });
-            let s = "";
-            if (totalInstruction > 2) {
-                s = "s";
-            }
             //TODO Give titles like this an ID and handle the styling in the css
             transactionTitle
                 .html(
-                    `<b>Transaction ${i}</b> ${accepted}, show ${totalInstruction} instruction${s}:`
+                    `<b>Transaction ${i}</b> ${accepted}, show ${totalInstruction} instruction`
+                    +(totalInstruction>1? `s`:``)+ `:`
                 )
                 .style("font", "Monospace")
                 .style("color", "#666")
@@ -352,7 +350,7 @@ export class Block {
 
             const ulInstruction = divTransaction.append("ul");
             ulInstruction.attr("uk-accordion", "");
-            // instructions of the transaction
+            // ANCHOR Transaction displaying
             transaction.clientTransaction.instructions.forEach(
                 (instruction, j) => {
                     var coin_invoked = false;
@@ -361,7 +359,7 @@ export class Block {
                     liInstruction.attr("style", "padding-left:15px");
                     const aInstruction = liInstruction.append("a");
                     aInstruction.attr("class", "uk-accordion-title");
-
+                    
                     if (instruction.type === Instruction.typeSpawn) {
                         const contractName = instruction.spawn.contractID.charAt(0).toUpperCase() + 
                         instruction.spawn.contractID.slice(1);
@@ -387,10 +385,12 @@ export class Block {
                     }
 
                     const divInstruction = liInstruction.append("div");
+
                     divInstruction
                         .attr("class", "uk-accordion-content")
                         .attr("style", "padding-left:15px");
                     // Detail of one instruction
+                    
                     divInstruction
                         .append("p")
                         .text(`Transaction hash : ${instruction.hash().toString("hex")}`);
@@ -462,19 +462,58 @@ export class Block {
 
                     }
                     // Search button
-                    const searchInstance = divInstruction.append("button");
+                    
+                    //ANCHOR Browse button  
+                    const searchInstance = divInstruction.append("li");
                     searchInstance
-                        .attr("id", "buttonBrowse")
+                        .attr("id", "button-browse");
+                    const searchButton = searchInstance.append("button");
+                    searchButton
                         .attr(
                             "class",
-                            "uk-button uk-button-default uk-padding-remove-right uk-padding-remove-left"
+                            "uk-button uk-button-default"
                         )
-                        .attr("style", "border:none")
                         .text(
-                            `Search for all instructions related to this instance: "${instruction.instanceID.toString(
-                                "hex"
-                            )}"`
-                        )
+                            `Search `
+                        );
+                    searchInstance.append("span").text(" for ");
+
+                    const formTag = searchInstance
+                        .append("span")
+                        .append("form")
+                        .style("display", "inline");
+                    const formSelect = formTag
+                        .append("select")
+                        .attr("class", "uk-select");
+
+                    formSelect
+                        .append("option")
+                        .attr("value" , "-1")
+                        .text("All instructions related to this instance"); 
+
+                    formSelect
+                        .append("option")
+                        .attr("value" , "100")
+                        .text("The 100 first instructions related to this instance"); 
+
+                    formSelect
+                       .append("option")
+                       .attr("value" , "50")
+                       .text("The 50 first instructions related to this instance");         
+                       
+                    formSelect
+                       .append("option")
+                       .attr("value" , "10")
+                       .text("The 10 first instructions related to this instance");                          
+
+                    var chosenQuery = -1;
+     
+                    formSelect.on("change", function(){
+                        chosenQuery = parseInt(this.options[this.selectedIndex].value);
+                    });
+                    
+                    
+                    searchButton
                         // Confirmation and start browsing on click
                         // tslint:disable-next-line
                         .on("click", function () {
@@ -536,6 +575,7 @@ export class Block {
      * @memberof DetailBlock
      */
     private printDataBrowsing(tuple: [SkipBlock[], Instruction[]]) {
+        //ANCHOR Display and styling
         // removes previous highlighted blocks
         this.removeHighlighBlocks(this.hashHighligh);
         const self = this;
@@ -588,9 +628,10 @@ export class Block {
             const blocki = tuple[0][i];
             const instruction = tuple[1][i];
             const instructionCard = queryCardContainer.append("li");
-
-            instructionCard.attr("class", "uk-card uk-card-default");
-
+            instructionCard
+            .attr("class", "uk-card uk-card-default")
+            .style("min-width","350px");
+            
             const instructionCardHeader = instructionCard.append("div");
             instructionCardHeader.attr(
                 "class",
@@ -598,29 +639,26 @@ export class Block {
             );
 
             const instructionCardBody = instructionCard.append("div");
-            instructionCardBody.attr("class uk-card-body uk-padding-small");
+            instructionCardBody
+            // .attr("class","uk-card-body uk-padding-small")
+            ;
 
             let args = null;
             let contractID = "";
+            instructionCard.attr("id", `buttonInstance${i}`);
+            let verb = "";
             if (instruction.type === Instruction.typeSpawn) {
-                instructionCard.attr("id", `buttonInstance${i}`);
-                instructionCardHeader.text(
-                    `${i}: Spawn in the block ${blocki.index}`
-                );
-                args = instruction.spawn.args;
                 contractID = instruction.spawn.contractID;
+                verb = "Spawned";
+                args = instruction.spawn.args;
+
             } else if (instruction.type === Instruction.typeInvoke) {
-                instructionCard.attr("id", `buttonInstance${i}`);
-                instructionCardHeader.text(
-                    `${i}: Invoke in the block ${blocki.index}`
-                );
-                args = instruction.invoke.args;
+                verb = "Invoked";
                 contractID = instruction.invoke.contractID;
+                args = instruction.invoke.args;
+
             } else if (instruction.type === Instruction.typeDelete) {
-                instructionCard.attr("id", `buttonInstance${i}`);
-                instructionCardHeader.text(
-                    `${i}: Delete in the block ${blocki.index}`
-                );
+                verb = "Deleted";
                 contractID = instruction.delete.contractID;
             }
 
@@ -660,22 +698,15 @@ export class Block {
                 "class",
                 "uk-accordion-content uk-padding-small"
             );
-            divInstructionB
-                .append("p")
-                .text(
-                    `Hash of instanceID is: ${instruction
-                        .hash()
-                        .toString("hex")}`
-                );
-            divInstructionB.append("p").text(`contractID: ${contractID}`);
-            divInstructionB
-                .append("p")
-                .text(`In the block: ${blocki.hash.toString("hex")}`);
+
             divInstructionB.append("p").text("Arguments: ");
             const ulArgsB = divInstructionB.append("ul");
-            ulArgsB.attr("uk-accordion", "");
+            ulArgsB
+            .attr("uk-accordion", "");
             // tslint:disable-next-line
-            args.forEach((arg, i) => {
+            const beautifiedArgs = instruction.beautify();
+
+            beautifiedArgs.args.forEach((arg, i) => {
                 const liArgsB = ulArgsB.append("li");
                 const aArgsB = liArgsB.append("a");
                 aArgsB
@@ -693,7 +724,44 @@ export class Block {
         // Highlights the blocks in the blockchain
         this.highlightBlocks(tuple[0]);
         this.hashHighligh = tuple[0];
+        
+        //ANCHOR Mouse events handling for clicking and dragging
+        //Stores the current scroll position
+        var pos = {left : 0,x : 0};      
+        //When mousedown fires in query card container, we instantiate the other event listener
+        queryCardContainer.on("mousedown", function(e)
+        {
+         queryCardContainer.style("cursor", "grabbing");
+         queryCardContainer.style("user-select", "none")
+
+            pos = {
+                left:queryCardContainer.node().scrollLeft,
+                x : d3.event.clientX
+            };
+            queryCardContainer.on('mousemove', mouseMoveHandler)
+            queryCardContainer.on('mouseup', mouseUpHandler)
+        });
+
+
+        //Fires when the mouse is down and moved, refreshes the scroll position
+        const mouseMoveHandler = function() {
+            const dx = d3.event.clientX-pos.x;
+            queryCardContainer.node().scrollLeft = pos.left-dx
+       }
+       //Fires when the mouse is released.
+       //Removes the move and up event handler and resets cursor properties.
+        const mouseUpHandler = function(){
+            queryCardContainer.style("cursor", 'grab');
+            queryCardContainer.node().style.removeProperty('user-select');
+            queryCardContainer.on('mousemove', null);
+            queryCardContainer.on('mouseup', null);
     }
+
+    document.addEventListener("mousemove", mouseMoveHandler)
+    
+
+    }
+    
 
     /**
      * Highlights the blocks in the blockchain
@@ -768,7 +836,7 @@ export class Block {
             .attr("class", "div-load");
         divLoad.append("div") 
         .attr("class", "spinner")
-        .attr("uk-spinner", "ratio : 3")
+        .attr("uk-spinner", "ratio : 2")
         .style("color", "blue");
 
         this.progressBarContainer = this.loadContainer
@@ -830,6 +898,16 @@ export class Block {
     }
 
 
+
+ 
+ 
+
+
+
+
+    
+
+    //!SECTION
 
     /**
      * Removes the loading screen

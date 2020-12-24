@@ -3,6 +3,7 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
 import "uikit";
+import { Block } from './block';
 import { Flash } from "./flash";
 import "./stylesheets/style.scss";
 import { Utils } from "./utils";
@@ -15,18 +16,23 @@ import { Utils } from "./utils";
  * @param hashBlock0 the hash of the genesis block
  * @param blockClickedSubject the subject notified each time a block is clicked on
  */
-export function searchBar(roster: Roster, flash: Flash, initialBlock: SkipBlock, hashBlock0: string,
-                          blockClickedSubject: Subject<SkipBlock>) {
+export function searchBar(
+    roster: Roster, 
+    flash: Flash, 
+    initialBlock: SkipBlock, 
+    hashBlock0: string,
+    blockClickedSubject: Subject<SkipBlock>,
+    block : Block) {
     d3.select("#search-input").on("keypress", () => {
         if (d3.event.keyCode === 13) {
             const input = d3.select("#search-input").property("value");
-            searchRequest(input, roster, flash, hashBlock0, initialBlock, blockClickedSubject);
+            searchRequest(input, roster, flash, hashBlock0, initialBlock, blockClickedSubject, block);
         }
     });
 
     d3.select("#submit-button").on("click", async () => {
         const input = d3.select("#search-input").property("value");
-        searchRequest(input, roster, flash, hashBlock0, initialBlock, blockClickedSubject);
+        searchRequest(input, roster, flash, hashBlock0, initialBlock, blockClickedSubject, block);
     });
 }
 /**
@@ -45,6 +51,7 @@ async function searchRequest(
     hashBlock0: string,
     initialBlock: SkipBlock,
     blockClickedSubject: Subject<SkipBlock>,
+    block : Block
 ) {
     if (input.length < 32) {
 

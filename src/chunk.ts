@@ -637,7 +637,9 @@ export class Chunk {
             .on("click", () => {
                 this.blockClickedSubject.next(block);
                 window.location.hash = `index:${block.index}`;
-            });
+            })
+            .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
+            .on("mouseout", function() {d3.select(this).style("cursor", "default")});
     }
 
     /**
@@ -708,18 +710,23 @@ export class Chunk {
                 line.style("stroke", "var(--selected-colour");
                 triangle.style("fill", "var(--selected-colour");
             });
-            line.on("mouseover", () => {
-                line.style("stroke", "var(--selected-colour");
-                triangle.attr("stroke", "var(--selected-colour");
-            });
+
             triangle.on("mouseout", () => {
                 line.style("stroke", "grey");
                 triangle.style("stroke", "grey");
             });
-            line.on("mouseout", () => {
+            line
+            .on("mouseover", () => {
+                line.style("stroke", "var(--selected-colour");
+                triangle.attr("stroke", "var(--selected-colour");
+            })
+            .on("mouseout", () => {
+                
                 line.style("stroke", "grey");
                 triangle.style("stroke", "grey");
-            });
+            })
+            .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
+            .on("mouseout", function() {d3.select(this).style("cursor", "default")});
         }
     }
     /**
