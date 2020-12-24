@@ -135,10 +135,11 @@ export function startColumbus(
         chain.getBlockClickedSubject,
         lifecycle,
         flash,
-        chain.getNewBlocksSubject
+        chain.getNewBlocksSubject,
+        roster
         );
         block.startListen();
-        
+
         // The blockchain properties are given to the search bar
         searchBar(
             roster,

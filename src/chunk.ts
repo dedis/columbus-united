@@ -685,7 +685,7 @@ export class Chunk {
                 .attr("marker-end", "url(#triangle)")
 
                 .on("click", () => {
-                    // Utils.scrollOnChain(this.roster, this.initialBlock.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
+                    Utils.translateOnChain(skipBlockTo, this.initialBlock, this.blockClickedSubject);
                     this.blockClickedSubject.next(skipBlockTo);
                 });
 

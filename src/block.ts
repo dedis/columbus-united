@@ -1,5 +1,6 @@
 import { Instruction } from "@dedis/cothority/byzcoin";
 import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
+import { Roster } from '@dedis/cothority/network';
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable, Subject } from "rxjs";
@@ -28,6 +29,7 @@ export class Block {
 
     // Observable for the clicked block
     skipBclickedSubject: Subject<SkipBlock>;
+
     clickedBlock: SkipBlock;
     colorClickedBlock: string;
     // Observable that notifies the updated blocks of blocksDiagram
@@ -37,6 +39,7 @@ export class Block {
     lifecycle: Lifecycle;
     hashHighligh: SkipBlock[];
 
+    roster : Roster;
     // progress bar
     progressBarContainer: d3.Selection<
         HTMLDivElement,
@@ -67,6 +70,7 @@ export class Block {
         lifecycle: Lifecycle,
         flash: Flash,
         loadedSkipBObs: Observable<SkipBlock[]>,
+        roster : Roster
     ) {
         const self = this;
 
@@ -75,8 +79,12 @@ export class Block {
             next: this.listTransaction.bind(this),
         });
 
+
+
         this.clickedBlock = null;
         this.colorClickedBlock = "#006fff";
+
+        this.roster = roster;
 
         this.loadedSkipBObs = loadedSkipBObs;
 
@@ -237,7 +245,9 @@ export class Block {
                 .append("span")
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
-                .on("click",function() {Utils.copyToClipBoard(value.toString("hex"), self.flash)})
+                .on("click",async function() {
+                    Utils.translateOnChain(await Utils.getBlock(value, self.roster),block, self.skipBclickedSubject)
+                })
                 .attr("uk-tooltip", `${value.toString("hex")}`)
                 .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
                 .on("mouseout", function() {d3.select(this).style("cursor", "default")});
@@ -263,9 +273,8 @@ export class Block {
                 .append("span")
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
-                .on("click",function() {
-                    Utils.copyToClipBoard(fl.to.toString("hex"), self.flash);
-                    self.skipBclickedSubject.next()
+                .on("click",async function() {
+                    Utils.translateOnChain(await Utils.getBlock(fl.to, self.roster),block, self.skipBclickedSubject);
                 })
                 .attr("uk-tooltip", `${fl.to.toString("hex")}`)
                 .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
