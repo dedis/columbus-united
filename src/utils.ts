@@ -163,13 +163,14 @@ export class Utils {
             .scale(1);
 
 
-
+        //Adds an animation and then calls the transformation
         d3.select("#svg-container")
         .transition()
         .delay(200)
         .duration(1000)
         .call(Chain.zoom.transform, newZoom);
 
+        //Selects the target block
         blockClickedSubject.next(block);
 
     }

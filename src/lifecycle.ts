@@ -205,7 +205,7 @@ export class Lifecycle {
                                 this.nbInstanceFound++;
                                 transactionFound.next(this.nbInstanceFound);
 
-                                if(this.nbInstanceFound<maxNumberOfBlocks){
+                                if(this.nbInstanceFound<maxNumberOfBlocks && !this.abort){
                                     skipBlocksSubject.push(skipBlock);
                                     instructionB.push(instruction);
                                  }
@@ -224,7 +224,6 @@ export class Lifecycle {
                     pageDone++;
                     if (pageDone >= numPagesB) {
                         // condition to end the browsing
-                        console.log(this.abort)
                         if (
                             skipBlock.forwardLinks.length !== 0 &&
                             !this.abort
@@ -242,7 +241,6 @@ export class Lifecycle {
                             );
                         } else {
                             // complete all subjects at the end of the browsing
-                            console.log("Abort")
                             subjectBrowse.complete();
                             subjectProgress.complete();
                             subjectInstruction.complete();
@@ -255,7 +253,6 @@ export class Lifecycle {
         if (maxNumberOfBlocks > 0){
             transactionFound.pipe(take(maxNumberOfBlocks), finalize(()=>{
                 this.abort=true;
-                console.log("ABORTABORTABORTABORTABORTABORTABORTABORT")
                 }
             )).subscribe();
 

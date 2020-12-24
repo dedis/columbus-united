@@ -87,6 +87,7 @@ export class Flash {
                     .text(`Other error not handled: ${text}`);
                 break;
         }
+        //Removes the flash after 2s
         const timer = rx.timer(2000);
         let bookmark = this.span.node().parentElement;
         timer.subscribe(()=>{

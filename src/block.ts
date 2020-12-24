@@ -491,8 +491,10 @@ export class Block {
                         .append("span")
                         .append("form")
                         .style("display", "inline");
+
                     const formSelect = formTag
                         .append("select")
+                        .attr("value", "10")
                         .attr("class", "uk-select");
 
                     formSelect
