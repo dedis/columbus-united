@@ -705,7 +705,7 @@ export class Chunk {
             // FIXME can't change the colour of the svg markers like this. Only option I see
             // is to create anover triangle and witch when needed
             triangle.on("mouseover", function()  {
-                
+
                 d3.select(this).style("cursor", "pointer")
                 line.style("stroke", "var(--selected-colour");
                 triangle.style("fill", "var(--selected-colour");

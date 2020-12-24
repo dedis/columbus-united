@@ -88,10 +88,9 @@ export class Flash {
                 break;
         }
         const timer = rx.timer(2000);
-
+        let bookmark = this.span.node().parentElement;
         timer.subscribe(()=>{
-            this;
-            Flash.closeAlert(this.span.node().parentElement);
+            Flash.closeAlert(bookmark);
             });
 
         // on click to remove the flash
