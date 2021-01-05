@@ -20,6 +20,8 @@ import { Flash } from "./flash";
 import { Utils } from "./utils";
 
 export class Chunk {
+    readonly maxHeightBlock = 8;
+
     roster: Roster;
     flash: Flash;
     leftNeighbor: Chunk;
@@ -30,7 +32,7 @@ export class Chunk {
     rightBlock: SkipBlock;
 
     gblocks: any;
-    garrows: any;
+    garrow: any;
 
     // Those are the perimeter, set before blocks are loaded
     left: number;
@@ -81,7 +83,7 @@ export class Chunk {
         flash: Flash,
         ws: WebSocketAdapter,
         gblocks: any,
-        garrows: any
+        garrow:any
     ) {
         this.totalLoaded = 0;
         this.chainSubject = chainSubject;
@@ -93,7 +95,7 @@ export class Chunk {
         this.blockClickedSubject = blockClickedSubject;
         this.ws = ws;
         this.initialBlock = initialBlock;
-        this.garrows = garrows;
+        this.garrow = garrow;
         this.gblocks = gblocks;
 
         this.roster = roster;
@@ -366,7 +368,7 @@ export class Chunk {
          </rect>
       `);
     }
-    /**
+    /*
      * Append the given blocks to the blockchain.
      * @param listBlocks list of blocks to append
      * @param backwards  false for loading blocks to the right, true for loading
@@ -374,6 +376,7 @@ export class Chunk {
      * @param numblocks the number of blocks loaded from the initial block. In the
      * case of a backward loading, this number should be negative. -10 means we
      * already loaded 10 blocks on the left from the initial block.
+     *
      */
     displayBlocks(
         listBlocks: SkipBlock[],
@@ -565,7 +568,7 @@ export class Chunk {
                         skipBlocks,
                         true,
                         this.gblocks,
-                        this.garrows,
+                        this.garrow,
                         this.leftBlock.index
                     );
 
@@ -590,7 +593,7 @@ export class Chunk {
                         skipBlocks,
                         false,
                         this.gblocks,
-                        this.garrows,
+                        this.garrow,
                         this.rightBlock.index
                     );
 
@@ -628,9 +631,10 @@ export class Chunk {
             .append("rect")
             .attr("id", Utils.bytes2String(block.hash))
             .attr("width", Chain.blockWidth)
-
-            .attr("height", block.height * 40)
-
+            .attr(
+                "height",
+                block.height * (Chain.svgHeight / this.maxHeightBlock)
+            )
             .attr("x", xTranslate)
             .attr("y", 20)
             .attr("fill", Chain.getBlockColor(block))
@@ -647,6 +651,7 @@ export class Chunk {
      * @param skipBlockTo the skipBlock the arrow points to
      * @param svgBlocks the svg where the block are appended
      * @param height the y coordinate where the arrow is appended on the blocks
+     * @author Sophia Artioli <sophia.artioli@epfl.ch>
      */
     private async appendArrows(
         xTrans: number,
@@ -657,31 +662,40 @@ export class Chunk {
     ) {
         if (skipBlockTo.index - skipBlockFrom.index == 1) {
             const line = svgBlocks.append("line");
-            line.attr("id", skipBlockFrom.index)
+            line
                 .attr("x1", xTrans)
-                .attr("y1", 15 + Chain.blockHeight / 2)
+                .attr("y1", Chain.blockHeight / 2 + Chain.axisPadding)
                 .attr("x2", xTrans - Chain.blockPadding)
-                .attr("y2", 15 + Chain.blockHeight / 2)
+                .attr("y2", Chain.blockHeight / 2 + Chain.axisPadding)
                 .attr("stroke-width", 2)
-                .attr("stroke", "grey");
-            // .attr("marker-end", "url(#triangle)");
+                .attr("stroke", "#808080");
         } else {
             const line = svgBlocks.append("line");
-            line.attr("x2", xTrans - Chain.blockPadding)
-                .attr("y1", 40 + height * 38)
+            line.attr(
+                "x1",
+                xTrans -
+                    (skipBlockTo.index - skipBlockFrom.index) *
+                        (Chain.blockWidth + Chain.blockPadding) +
+                    Chain.blockWidth
+            )
                 .attr(
-                    "x1",
-                    xTrans -
-                        (skipBlockTo.index - skipBlockFrom.index) *
-                            (Chain.blockWidth + Chain.blockPadding) +
-                        Chain.blockWidth
+                    "y1",
+                    Chain.axisPadding +
+                        Chain.svgHeight / this.maxHeightBlock +
+                        height * (Chain.svgHeight / this.maxHeightBlock)
                 )
 
-                .attr("y2", 40 + height * 38)
-                .attr("stroke-width", 2)
-                .attr("stroke", "grey")
+                .attr("x2", xTrans - Chain.blockPadding + 2)
+                .attr(
+                    "y2",
+                    Chain.axisPadding +
+                        Chain.svgHeight / this.maxHeightBlock +
+                        height * (Chain.svgHeight / this.maxHeightBlock) 
+                )
+             
                 .attr("marker-end", "url(#triangle)")
-
+                .attr("stroke-width", 1.5)
+                .attr("stroke", "#A0A0A0")
                 .on("click", () => {
                     // Utils.scrollOnChain(this.roster, this.initialBlock.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
                     this.blockClickedSubject.next(skipBlockTo);
@@ -692,34 +706,42 @@ export class Chunk {
                 .attr("id", "triangle")
                 .attr("refX", 5.5)
                 .attr("refY", 4.5)
-                .attr("markerWidth", 15)
+                .attr("markerWidth", 17)
                 .attr("markerHeight", 15)
+                .attr("fill", "#A0A0A0")
                 .attr("orient", "auto-start-reverse")
                 .append("path")
                 .attr("d", "M 0 0 L 10 5 L 0 10 z")
                 .on("click", () => {
                     //    Utils.scrollOnChain(this.roster, skipBlockTo.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
                     this.blockClickedSubject.next(skipBlockTo);
-                })
-                .style("fill", "grey");
+                });
+                
             // FIXME can't change the colour of the svg markers like this. Only option I see
             // is to create anover triangle and witch when needed
-            triangle.on("mouseover", () => {
-                line.style("stroke", "var(--selected-colour");
-                triangle.style("fill", "var(--selected-colour");
-            });
-            line.on("mouseover", () => {
-                line.style("stroke", "var(--selected-colour");
-                triangle.attr("stroke", "var(--selected-colour");
-            });
-            triangle.on("mouseout", () => {
-                line.style("stroke", "grey");
-                triangle.style("stroke", "grey");
-            });
-            line.on("mouseout", () => {
-                line.style("stroke", "grey");
-                triangle.style("stroke", "grey");
-            });
+                triangle.on("mouseover",
+                    function () {
+                        d3.select(this).style("stroke", "var(--selected-colour");
+                        triangle.attr("stroke", "var(--selected-colour");
+                   
+                });
+                line.on("mouseover",
+                    function () {
+                        d3.select(this).style("stroke", "var(--selected-colour");
+                        triangle.attr("stroke", "var(--selected-colour");
+                   
+                });
+                triangle.on("mouseout", () => {
+                    line.style("stroke", "#A0A0A0");
+                    triangle.style("stroke", "#A0A0A0");
+                   
+                });
+                line.on("mouseout", () => {
+                    line.style("stroke", "#A0A0A0");
+                    triangle.style("stroke", "#A0A0A0");
+                    triangle.style("fill", "#A0A0A0");
+                });
+            
         }
     }
     /**
@@ -727,6 +749,7 @@ export class Chunk {
      * @param xTranslate horizontal position where the block should be appended
      * @param skipBlockTo the skipBlock the arrow points to
      * @param svgBlocks the svg where the blocks are appended
+     * @author Sophia Artioli <sophia.artioli@epfl.ch>
      */
     private async getToAndFromIndexes(
         xTranslate: number,
@@ -755,6 +778,7 @@ export class Chunk {
      * @param textIndex index of the text in the block
      * @param text text to display
      * @param textColor color of the text
+     * @author Sophia Artioli <sophia.artioli@epfl.ch>
      */
     private appendCircleInBlock(xTranslate: number, gtext: any) {
         gtext

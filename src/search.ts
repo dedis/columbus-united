@@ -78,7 +78,7 @@ async function searchRequest(
         } catch (error) {
 
             flash.display(Flash.flashType.INFO, `Browsing the chain for instance ID : ${input}`);
-            block.launchQuery(50, input.toString())
+           // block.launchQuery(50, input.toString())
         }
     }
 }

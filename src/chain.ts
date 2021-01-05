@@ -39,9 +39,11 @@ export class Chain {
 
     static readonly blockPadding = 10;
     static readonly blockHeight = 50;
-    static readonly blockWidth = 100;
+    static readonly blockWidth = 70;
+    static readonly svgHeight = 200;
     static readonly svgWidth = window.innerWidth;
     static readonly unitBlockAndPaddingWidth = Chain.blockPadding + Chain.blockWidth;
+    static readonly axisPadding = 8;
 
     // Recommended pageSize / nbPages: 80 / 50
     static readonly pageSize = 50;
@@ -62,15 +64,14 @@ export class Chain {
     }
     readonly textMargin = 5;
 
-    readonly lastWidth = 200;
-    readonly svgHeight = 200;
+  
     readonly nbPages = 1; // Only works for 1 page. Overflow not verified if multiple pages...
 
     readonly textColor = "black";
     readonly loadedInfo = document.getElementById("loaded-blocks");
 
-    readonly gblocks: any;
-    readonly garrow: any;
+    gblocks: any;
+    garrow: any;
     readonly gcircle: any;
 
     readonly chunks = new Array<Chunk>();
@@ -112,12 +113,12 @@ export class Chain {
         const subject = new Subject();
 
         // Main SVG caneva that contains the chain
-        const svg = d3.select("#svg-container").attr("height", this.svgHeight);
+        const svg = d3.select("#svg-container").attr("height", Chain.svgHeight).attr("width",Chain.svgWidth);
 
         // this group will contain the blocks
         this.gblocks = svg.append("g").attr("class", "gblocks");
 
-        this.garrow = this.gblocks.append("g").attr("class", "garrow");
+        this.garrow = svg.append("g").attr("class", "garrow");
 
         // this group will contain the text. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
@@ -157,7 +158,7 @@ export class Chain {
             .zoom()
             .extent([
                 [0, 0],
-                [Chain.svgWidth, this.svgHeight],
+                [Chain.svgWidth, Chain.svgHeight],
             ])
             .scaleExtent([0.0001, 1.4])
             .on("zoom", () => {
@@ -198,6 +199,7 @@ export class Chain {
                     ")";
 
                 this.gblocks.attr("transform", transformString);
+                this.garrow.attr("transform", transformString);
                 // Standard transformation on the text since we need to keep the
                 // original scale
                 // gblocks.selectAll("circle").attr("r",transform.k*5);
@@ -221,6 +223,7 @@ export class Chain {
                     Chain.blockWidth + Chain.blockPadding,
                     Chain.svgWidth
                 );
+                console.log(bounds);
                 let alreadyHandled = false;
 
                 let leftNei: Chunk;
@@ -311,68 +314,9 @@ export class Chain {
 
                     );
 
-<<<<<<< HEAD
                     if (leftNei !== undefined) {
                         leftNei.rightNeighbor = c;
                     }
-=======
-            const line = svgBlocks
-                .append("line");
-            line
-                .attr("x2", xTrans - this.blockPadding)
-                .attr("y1", 40 + factor * 38)
-                .attr(
-                    "x1",
-                    xTrans -
-                        (iTo - skipFrom.index) *
-                            (this.blockWidth + this.blockPadding) +
-                        this.blockWidth
-                )
-
-                .attr("y2", 40 + factor * 38)
-                .attr("stroke-width", 3)
-                .attr("stroke", "grey")
-                .attr("marker-end", "url(#triangle)")
-
-                .on("click", () => {
-                    this.blockClickedSubject.next(block);
-                });
-
-            const triangle = svgBlocks
-                .append("svg:defs")
-                .append("svg:marker");
-            triangle
-                .attr("id", "triangle")
-                .attr("refX", 5.5)
-                .attr("refY", 4.5)
-                .attr("markerWidth", 15)
-                .attr("markerHeight", 15)
-                .attr("orient", "auto-start-reverse")
-                .append("path")
-                .attr("d", "M 0 0 L 10 5 L 0 10 z")
-                .on("click", () => {
-                    this.blockClickedSubject.next(block);
-                })
-                .style("fill", "grey");
-            //FIXME can't change the colour of the svg markers like this. Only option I see
-            //is to create anover triangle and witch when needed
-            triangle.on("mouseover", () => {
-                    line.style("stroke", "var(--selected-colour");
-                    triangle.style("fill", "var(--selected-colour");
-                });
-            line.on("mouseover", () => {
-                    line.style("stroke", "var(--selected-colour");
-                    triangle.attr("stroke", "var(--selected-colour");
-                });
-            triangle.on("mouseout", () => {
-                line.style("stroke", "grey");
-                triangle.style("stroke", "grey");
-            });               
-            line.on("mouseout", () => {
-                line.style("stroke", "grey");
-                triangle.style("stroke", "grey");
-            });   
->>>>>>> 965e408977666c1b19f7685339ca40518b07d455
 
                     if (rightNei !== undefined) {
                         rightNei.leftNeighbor = c;

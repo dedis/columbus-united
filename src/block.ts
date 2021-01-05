@@ -478,7 +478,7 @@ export class Block {
                         // Confirmation and start browsing on click
                         // tslint:disable-next-line
                         .on("click", function () {
-                            self.launchQuery(chosenQuery, instruction.instanceID.toString("hex"))
+                           // self.launchQuery(chosenQuery, instruction.instanceID.toString("hex"))
                         });
                 }
             ); //!SECTION
@@ -627,7 +627,7 @@ export class Block {
             instructionCardHeader
                 .append("span")
                 .attr("class", "uk-badge")
-                .text(`${verb}`) 
+                //.text(`${verb}`) 
                 .on("click",function() {Utils.copyToClipBoard(`${instruction.hash()
                     .toString("hex")}}`, self.flash)})
                 .attr("uk-tooltip", `${instruction.hash().toString("hex")}`);

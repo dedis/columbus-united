@@ -45,7 +45,7 @@ export function sayHi() {
 
     // Change here the first block to display by default if the user does not input a block index in the url
     // The default block is #118750 because forward links from this point onwards are broken
-    const initialBlockIndex =
+    let initialBlockIndex =
         // tslint:disable-next-line:radix
         indexString != null ? parseInt(indexString) : 118750;
 
@@ -62,10 +62,10 @@ export function sayHi() {
     // Block #118800 fetches as last block 119685 (which is incorrect)
     // Forward links from this point are broken
     if (initialBlockIndex > 118750) {
+        initialBlockIndex = 118750
         flash.display(
             Flash.flashType.ERROR,
-            "Forward links from block index '118750' are broken " +
-                initialBlockIndex
+            "Forward links from block index '118750' are broken, displaying chain from last possible block"
         );
     }
 
@@ -76,7 +76,6 @@ export function sayHi() {
         .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), initialBlockIndex)
         .then(
             (blockReply) => {
-<<<<<<< HEAD
                 scRPC
                     .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), 0)
                     .then((genesis) => {
@@ -87,9 +86,6 @@ export function sayHi() {
                             flash
                         );
                     });
-=======
-                startColumbus(blockReply.skipblock, roster, flash, initialBlockIndex);
->>>>>>> 965e408977666c1b19f7685339ca40518b07d455
             },
             (e) => {
                 flash.display(
@@ -111,7 +107,6 @@ export function sayHi() {
  * @param roster the roster
  * @param flash the flash class that handles the flash messages
  */
-<<<<<<< HEAD
 export function startColumbus(
     genesisBlock: SkipBlock,
     initialBlock: SkipBlock,
@@ -123,10 +118,6 @@ export function startColumbus(
 
     // The translation is started to trigger the load
     Utils.translateOnChain(initialBlock, genesisBlock, chain.blockClickedSubject);
-=======
-export async function startColumbus(initialBlock: SkipBlock, roster: Roster, flash: Flash, initialBlockIndex : number) {
-    const chain = new Chain(roster, flash, initialBlock);
->>>>>>> 965e408977666c1b19f7685339ca40518b07d455
 
     // The blockchain properties are given to the search bar
     searchBar(
@@ -137,13 +128,6 @@ export async function startColumbus(initialBlock: SkipBlock, roster: Roster, fla
         chain.blockClickedSubject
     );
 
-<<<<<<< HEAD
-=======
-
-    
-    const lastAddedBlock = new LastAddedBlock(roster,flash,initialBlock,chain)
-  
->>>>>>> 965e408977666c1b19f7685339ca40518b07d455
     // The totalBlock utility class allows the browsing class to get the total
     // number of block in the chain. This class is stateful, it will keep each
     // time the last know block instead of browsing the entire chain each time.
@@ -155,57 +139,10 @@ export async function startColumbus(initialBlock: SkipBlock, roster: Roster, fla
 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
-<<<<<<< HEAD
     new Block(
         chain.getBlockClickedSubject,
         lifecycle,
         flash,
         chain.getNewBlocksSubject
     ).startListen();
-=======
-    const block = new Block(
-        chain.getBlockClickedSubject(),
-        lifecycle,
-        flash,
-        chain.getNewblocksSubject(),
-    );
-    block.startListen();
-
-    const search = searchBar(roster, flash, chain.blockClickedSubject,hashBlock0, 0, block);
-
-    block.setSearch(search);
-
-    try{
-        let block = await Utils.getBlockByIndex(
-                Utils.hex2Bytes(hashBlock0),
-                initialBlockIndex,
-                roster
-            );
-
-            chain.blockClickedSubject.next(block);
-    }catch{
-        flash.display(
-            Flash.flashType.ERROR,
-            `Block index ${initialBlockIndex} could not be found`);
-    }
-
-    window.addEventListener('hashchange', async ()=>{
-        try{
-            console.log("hashchanged")
-            const indexString = window.location.hash.split(':')[1];
-            const initialBlockIndex = indexString !=null ? parseInt(indexString) : 20;
-
-            let block = await Utils.getBlockByIndex(
-                Utils.hex2Bytes(hashBlock0),
-                initialBlockIndex,
-                roster
-            );
-            chain.blockClickedSubject.next(block)  
-        }catch{
-            flash.display(Flash.flashType.ERROR,
-                `Block of index ${initialBlockIndex} fetched from URL can't be found`)
-        }
-    });
-
->>>>>>> 965e408977666c1b19f7685339ca40518b07d455
 }

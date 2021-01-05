@@ -157,7 +157,7 @@ export class Utils {
     ) {
         // translate the chain to wanted coordinates
         const newZoom = d3.zoomIdentity
-            .translate((initialBlock.index - block.index) * 110 + 0.2 -
+            .translate((initialBlock.index - block.index) * Chain.unitBlockAndPaddingWidth + 0.2 -
                 initialBlock.index * Chain.unitBlockAndPaddingWidth , 0)
             .scale(1);
         d3.select("#svg-container").call(Chain.zoom.transform, newZoom);
