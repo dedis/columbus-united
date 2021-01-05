@@ -568,10 +568,11 @@ export class Block {
     }
 
     /**
-     *
+     * Launches a query for all instructions that are related to an instance ID
+     * This method is called in search.ts at the moment, it could be refactored into something nicer
      * @public
-     * @param chosenQuery
-     * @param instruction
+     * @param {number} chosenQuery : The number of results we want to display
+     * @param {string} instruction : The id of the instance we're interested in
      * @memberof DetailBlock
      */
 
@@ -600,7 +601,7 @@ export class Block {
         });
     }
 
-    //SECTION Query
+    //SECTION Instance tracking
     /**
      * Displays the result of the browsing, highlights the
      * blocks found.
@@ -612,17 +613,19 @@ export class Block {
      */
     private printDataBrowsing(tuple: [SkipBlock[], Instruction[]]) {
         //ANCHOR Display and styling
-        // removes previous highlighted blocks
+        // Removes previous highlighted blocks
         this.removeHighlighBlocks(this.hashHighligh);
         const self = this;
+        // Creates the container for the query results
         const queryContainer = d3.select(".query-answer");
         queryContainer.text("");
         queryContainer
             .attr("class", "query-answer uk-card uk-card-default")
             .style("margin-top", "0px")
             .style("padding-top", "10px");
+        // Creates the header used to display the instance ID and the "clear results" button
         const queryHeader = queryContainer.append("p");
-        queryHeader
+            queryHeader
             .attr("id", "query-header")
             .append("div")
             .text(
@@ -634,38 +637,39 @@ export class Block {
             .style("font-weight", "700")
             .style("color", "#666")
             .style("font-size", "1.3em");
-
+            
+        // Clears the results of a previous query
         const closeButtonWrap = queryHeader.append("div");
         closeButtonWrap.attr("id", "clear-query-button");
-        closeButtonWrap
-            .append("button")
-            .attr("class", "uk-close-large")
-            .attr("type", "button")
-            .attr("uk-close", "")
-            .on("click", function () {
-                const confir = confirm(
-                    "Are you sure you want to clear the query results ?"
-                );
-                if (confir) {
-                    self.removeHighlighBlocks(self.hashHighligh);
-                    queryContainer.html("");
-                }
-            });
+        closeButtonWrap.append("button")
+        .attr("class", "uk-close-large")
+        .attr("type", "button")
+        .attr("uk-close", "")
+        .on("click", function () {
+            const confir = confirm(
+                "Are you sure you want to clear the query results ?"
+            );
+            if (confir) {
+                self.removeHighlighBlocks(self.hashHighligh);
+                queryContainer.html("");
+            }
+        });
 
+        // Creates a container in which we'll put the cards
         const queryCardContainer = queryContainer.append("ul");
         queryCardContainer
             .attr("id", "query-card-container")
             .attr("multiple", "true")
             .attr("class", "uk-flex");
 
+        // Creates a card for each instruction, the header contains a title with references
+        // to both the transaction hash and the block hash.
+        // The body contains the arguments of the instruction
         for (let i = 0; i < tuple[1].length; i++) {
             const blocki = tuple[0][i];
             const instruction = tuple[1][i];
             const instructionCard = queryCardContainer.append("li");
-            instructionCard
-                .attr("class", "uk-card uk-card-default")
-                .style("min-width", "350px");
-
+            instructionCard.attr("class", "uk-card uk-card-default");
             const instructionCardHeader = instructionCard.append("div");
             instructionCardHeader.attr(
                 "class",
@@ -676,18 +680,15 @@ export class Block {
             instructionCardBody;
             // .attr("class","uk-card-body uk-padding-small")
 
-            let args = null;
             let contractID = "";
             instructionCard.attr("id", `buttonInstance${i}`);
             let verb = "";
             if (instruction.type === Instruction.typeSpawn) {
                 contractID = instruction.spawn.contractID;
                 verb = "Spawned";
-                args = instruction.spawn.args;
             } else if (instruction.type === Instruction.typeInvoke) {
                 verb = "Invoked";
                 contractID = instruction.invoke.contractID;
-                args = instruction.invoke.args;
             } else if (instruction.type === Instruction.typeDelete) {
                 verb = "Deleted";
                 contractID = instruction.delete.contractID;
@@ -708,6 +709,7 @@ export class Block {
             instructionCardHeader
                 .append("span")
                 .text(` ${contractID} contract in `);
+            
             instructionCardHeader
                 .append("span")
                 .attr("class", "uk-badge")
@@ -716,8 +718,14 @@ export class Block {
                     Utils.copyToClipBoard(
                         `${blocki.hash.toString("hex")}`,
                         self.flash
-                    );
-                })
+                    )})
+                .on("mouseover", function () {
+                        d3.select(this).style("cursor", "pointer");
+                    })
+                .on("mouseout", function () {
+                        d3.select(this).style("cursor", "default");
+                    })   
+                
                 .attr("uk-tooltip", `${blocki.hash.toString("hex")}`)
                 .on("mouseover", function () {
                     d3.select(this).style("cursor", "pointer");
@@ -848,6 +856,7 @@ export class Block {
     }
 
     /**
+     * ANCHOR Loading screen
      * Creates the loading screen
      *
      * @private
@@ -906,6 +915,7 @@ export class Block {
     }
 
     /**
+     * 
      * Called at each percent by the subject. It updates the loading screen
      *
      * @private
