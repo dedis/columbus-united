@@ -52,15 +52,14 @@ export class LastAddedBlock {
         lastBlock
             .getTotalBlock()
             .pipe(
-                map((s: SkipBlock) =>{
+                map((s: SkipBlock) => {
                     // Display the last added blocks info on load
                     blockClickedSubject.next(s);
-                    this.displayLastAddedBlock(s, svgLast, s.hash, blockClickedSubject)
+                    this.displayLastAddedBlock(s, svgLast, s.hash, blockClickedSubject);
                 }
                 )
             )
             .subscribe();
-       
 
     }
     /**
@@ -296,7 +295,7 @@ export class LastAddedBlock {
             });
 
         this.lastAddedBlockInfo(lastBlock, svgLast, lastBlock);
-      
+
     }
     /**
      * Helper function to count the number of validated and rejected transactions

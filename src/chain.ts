@@ -20,18 +20,6 @@ import { Utils } from "./utils";
  * The core class that builds the chain.
  */
 export class Chain {
-  
-      /**
-     * Determine the color of the blocks.
-     */
-    static getBlockColor(block: SkipBlock): string {
-        const body = DataBody.decode(block.payload);
-        const nbTransactions = body.txResults.length;
-        const factor = 1 - nbTransactions * 0.004;
-        return `rgb(${Chain.blockColor.r * factor}, ${
-            Chain.blockColor.v * factor
-        }, ${Chain.blockColor.b * factor})`;
-    }
     get getBlockClickedSubject(): Subject<SkipBlock> {
         return this.blockClickedSubject;
     }
@@ -39,7 +27,7 @@ export class Chain {
     get getNewBlocksSubject(): Subject<SkipBlock[]> {
         return this.newBlocksSubject;
     }
-  
+
     // Go to https://color.adobe.com/create/color-wheel with this base color to
     // find the palet of colors.
     static readonly blockColor = { r: 23, v: 73, b: 179 }; // #D9BA82
@@ -58,6 +46,18 @@ export class Chain {
 
     // The coordinate transformation on the chain.
     static zoom: any;
+
+    /**
+     * * Determine the color of the blocks.
+     */
+    static getBlockColor(block: SkipBlock): string {
+        const body = DataBody.decode(block.payload);
+        const nbTransactions = body.txResults.length;
+        const factor = 1 - nbTransactions * 0.004;
+        return `rgb(${Chain.blockColor.r * factor}, ${
+            Chain.blockColor.v * factor
+        }, ${Chain.blockColor.b * factor})`;
+    }
 
     readonly textMargin = 5;
     readonly nbPages = 1;
@@ -121,8 +121,8 @@ export class Chain {
         // this group will contain the text. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
         // readable
-        const gcircle = svg.append("g").attr("class", "gtext");
-        this.gcircle = gcircle;
+        // const gcircle = svg.append("g").attr("class", "gtext");
+        // this.gcircle = gcircle;
 
         // this group will contain the left and right loaders that display a spinner
         // when new blocks are being added
@@ -194,14 +194,14 @@ export class Chain {
                     "," +
                     "1" +
                     ")";
-                
+
                 // The blocks and arrows follow the transformations of the chain.
                 this.gblocks.attr("transform", transformString);
                 this.garrow.attr("transform", transformString);
 
                 // Standard transformation on the text since we need to keep the
                 // original scale
-                //gcircle.selectAll("circle").attr("transform", transformString);
+                // gcircle.selectAll("circle").attr("transform", transformString);
 
                 // Update the loader. We want to keep them at their original
                 // scale so we only translate them
@@ -220,7 +220,7 @@ export class Chain {
                     Chain.blockWidth + Chain.blockPadding,
                     Chain.svgWidth
                 );
-                console.log(bounds);
+
                 let alreadyHandled = false;
 
                 let leftNei: Chunk;
@@ -325,7 +325,7 @@ export class Chain {
         });
 
         // We intialize the last added block of the chain
-        const lastAddedBlock = new LastAddedBlock(
+        new LastAddedBlock(
             roster,
             flash,
             initialBlock,
