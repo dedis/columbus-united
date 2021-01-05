@@ -149,7 +149,7 @@ export class Chain {
         const xAxisDraw = svg
             .insert("g", ":first-child")
             .attr("class", "x-axis")
-            .attr("transform", `translate(${Chain.blockPadding}, 0)`)
+            .attr("transform", `0, 0)`)
             .attr("fill", "#8C764A")
             .call(xAxis);
 

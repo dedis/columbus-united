@@ -394,12 +394,10 @@ export class Chunk {
             let xTranslateBlock: number;
             if (backwards) {
                 xTranslateBlock =
-                    (numblocks - 1 - i) * Chain.unitBlockAndPaddingWidth +
-                    Chain.blockPadding;
+                    (numblocks - 1 - i) * Chain.unitBlockAndPaddingWidth;
             } else {
                 xTranslateBlock =
-                    (numblocks + i) * Chain.unitBlockAndPaddingWidth +
-                    Chain.blockPadding;
+                    (numblocks + i) * Chain.unitBlockAndPaddingWidth;
             }
 
             // Append the block inside the svg container

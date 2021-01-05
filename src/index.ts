@@ -44,10 +44,10 @@ export function sayHi() {
     const indexString = window.location.hash.split(":")[1];
 
     // Change here the first block to display by default if the user does not input a block index in the url
-    // The default block is #118750 because forward links from this point onwards are broken
+    // The default block is #119614 because forward links from this point onwards are broken
     let initialBlockIndex =
         // tslint:disable-next-line:radix
-        indexString != null ? parseInt(indexString) : 118750;
+        indexString != null ? parseInt(indexString) : 119614 - Chain.pageSize;
 
     // The block index should not be smaller than 0
     if (initialBlockIndex < 0) {
@@ -58,14 +58,13 @@ export function sayHi() {
         );
     }
 
-    // Block indexes higher that 118750 do not give the proper last added block of the chain
-    // Block #118800 fetches as last block 119685 (which is incorrect)
+    // Block indexes higher that 119614 do not give the proper last added block of the chain
     // Forward links from this point are broken
-    if (initialBlockIndex > 118750) {
-        initialBlockIndex = 118750
+    if (initialBlockIndex > 119614) {
+        initialBlockIndex = 119614 - Chain.pageSize;
         flash.display(
             Flash.flashType.ERROR,
-            "Forward links from block index '118750' are broken, displaying chain from last possible block"
+            "Forward links from block index '119614' are broken, displaying chain from last possible block"
         );
     }
 
