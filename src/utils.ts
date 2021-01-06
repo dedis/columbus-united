@@ -2,11 +2,11 @@ import { DataHeader } from "@dedis/cothority/byzcoin/proto";
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
+import * as blockies from "blockies-ts";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
-import * as blockies from "blockies-ts";
 
 export class Utils {
     /**
@@ -55,21 +55,10 @@ export class Utils {
     static getRightBlockHash(block: SkipBlock): string {
         return this.bytes2String(block.forwardLinks[0].to);
     }
-    /**
-     * Get the block index by it's hash and roster
-     * @param hash block's hash of which we want the index
-     * @param roster roster that validated the block
-     */
-    static async getBlockIndex(hash: Buffer, roster: Roster): Promise<number> {
-        return await new Promise<number>((resolve, reject) => {
-            new SkipchainRPC(roster)
-                .getSkipBlock(hash)
-                .then((skipblock) => resolve(skipblock.index))
-                .catch((e) => reject(e));
-        });
-    }
 
     /**
+     * @author Sophia Artioli (sophia.artioli@epfl.ch)
+     *
      * Get the block by its hash and roster
      * @param hash the hash the requested block
      * @param roster roster that validated the block
@@ -84,6 +73,8 @@ export class Utils {
     }
 
     /**
+     * @author Sophia Artioli (sophia.artioli@epfl.ch)
+     *
      * Gets the block by its hash and roster
      * @param genesis hash of the first block of the chain
      * @param index the index of the requested block
@@ -145,6 +136,8 @@ export class Utils {
     }
 
     /**
+     * @author Sophia Artioli (sophia.artioli@epfl.ch)
+     *
      * Translates the chain to the given block and selects it.
      * @param block
      * @param initialBlock
@@ -157,13 +150,8 @@ export class Utils {
     ) {
         // translate the chain to wanted coordinates
         const newZoom = d3.zoomIdentity
-
-            .translate(
-                (initialBlock.index - block.index) * 110 +
-                    0.2 -
-                    initialBlock.index * Chain.unitBlockAndPaddingWidth,
-                0
-            )
+            .translate((initialBlock.index - block.index) * Chain.unitBlockAndPaddingWidth + 0.2 -
+                initialBlock.index * Chain.unitBlockAndPaddingWidth , 0)
             .scale(1);
 
         //Adds an animation and then calls the transformation
@@ -201,42 +189,31 @@ export class Utils {
     static addHashBlocky(
         line: d3.Selection<HTMLElement, unknown, HTMLElement, any>,
         hash: string,
-        flash: Flash
-    ) {
-        const blocky = blockies.create({ seed: hash });
-        line.append("img")
+        flash: Flash) {
+        const blocky = blockies.create({seed : hash});
+        line
+            .append("img")
             .attr("class", "uk-img")
             .attr("src", blocky.toDataURL())
             .attr("uk-tooltip", ` ${hash}`)
-            .on("click", function () {
-                Utils.copyToClipBoard(hash, flash);
-            })
-            .on("mouseover", function () {
-                d3.select(this).style("cursor", "pointer");
-            })
-            .on("mouseout", function () {
-                d3.select(this).style("cursor", "default");
-            });
+            .on("click", function() {Utils.copyToClipBoard(hash, flash); })
+            .on("mouseover", function() {d3.select(this).style("cursor", "pointer"); })
+            .on("mouseout", function() {d3.select(this).style("cursor", "default"); });
     }
 
     static addIDBlocky(
         line: d3.Selection<HTMLElement, unknown, HTMLElement, any>,
         hash: string,
-        flash: Flash
-    ) {
-        const blocky = blockies.create({ seed: hash });
-        line.append("img")
+        flash: Flash) {
+        const blocky = blockies.create({seed : hash});
+        line
+            .append("img")
             .attr("class", "uk-img clip-blocky")
             .attr("src", blocky.toDataURL())
             .attr("uk-tooltip", ` ${hash}`)
-            .on("click", function () {
-                Utils.copyToClipBoard(hash, flash);
-            })
-            .on("mouseover", function () {
-                d3.select(this).style("cursor", "pointer");
-            })
-            .on("mouseout", function () {
-                d3.select(this).style("cursor", "default");
-            });
+            .on("click", function() {Utils.copyToClipBoard(hash, flash); })
+            .on("mouseover", function() {d3.select(this).style("cursor", "pointer"); })
+            .on("mouseout", function() {d3.select(this).style("cursor", "default"); });
     }
+
 }

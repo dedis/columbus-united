@@ -25,9 +25,6 @@ export class LastAddedBlock {
     readonly lastBlockWidth = 200;
     readonly svgHeight = 200;
 
-    // The current chain
-    chain: Chain;
-
     // Flash is a utility class to display flash messages in the view.
     flash: Flash;
 
@@ -45,28 +42,14 @@ export class LastAddedBlock {
         // Main SVG caneva that contains the last added block
         const svgLast = d3
             .select("#last-container")
-            .attr("height", this.svgHeight)
-            .attr("z-index", -1);
+            .attr("height", this.svgHeight);
 
-        // We fetch the last block
-        // new SkipchainRPC(roster).getLatestBlock(initialBlock.hash, false).then(
-        //     (resp) =>  this.displayLastAddedBlock(resp,svgLast,resp.hash)
-        // );
-        const lastBlock = new TotalBlock(roster, initialBlock);
-
-        lastBlock
-            .getTotalBlock()
-            .pipe(
-                map((s: SkipBlock) =>
-                    this.displayLastAddedBlock(
-                        s,
-                        svgLast,
-                        s.hash,
-                        blockClickedSubject
-                    )
-                )
-            )
-            .subscribe();
+       // We fetch the last block
+       new SkipchainRPC(roster).getLatestBlock(initialBlock.hash, false, true).then(
+        (resp) => {this.displayLastAddedBlock(resp,svgLast,resp.hash,blockClickedSubject);
+            blockClickedSubject.next(resp);
+        }
+    );
     }
     /**
      * Helper function to display on hand information on the last added block
@@ -87,8 +70,8 @@ export class LastAddedBlock {
             .attr("x", 65)
             .attr("y", 74)
             .attr("width", 21)
-            .attr("fill-opacity", "0")
-            .attr("height", 19);
+            .attr("height", 19)
+            .attr("fill-opacity", "0");
 
         accepted
             .append("image")
@@ -101,7 +84,6 @@ export class LastAddedBlock {
         // text for number of validated tx
         accepted
             .append("text")
-            .attr("class", "gaccepted")
             .attr("x", 73)
             .attr("y", 90)
             .text(this.getTransactionRatio(lastBlock)[0].toString()) // add number of validated transactions
@@ -122,8 +104,8 @@ export class LastAddedBlock {
             .attr("x", 65)
             .attr("y", 104)
             .attr("width", 21)
-            .attr("fill-opacity", "0")
             .attr("height", 19)
+            .attr("fill-opacity", "0")
             .attr("uk-tooltip", `Rejected transactions`);
 
         rejected
@@ -310,6 +292,7 @@ export class LastAddedBlock {
             });
 
         this.lastAddedBlockInfo(lastBlock, svgLast, lastBlock);
+
     }
     /**
      * Helper function to count the number of validated and rejected transactions

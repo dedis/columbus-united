@@ -5,6 +5,7 @@ import "uikit";
 import { Block } from "./block";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
+import { LastAddedBlock } from "./lastAddedBlock";
 import { Lifecycle } from "./lifecycle";
 import { getRosterStr } from "./roster";
 import { searchBar } from "./search";
@@ -40,63 +41,62 @@ export function sayHi() {
         return;
     }
 
-    // Load the first block
-    const indexString = window.location.hash.split(":")[1];
-
     // Change here the first block to display by default if the user does not input a block index in the url
-    // The default block is #118750 because forward links from this point onwards are broken
-    const initialBlockIndex =
-        // tslint:disable-next-line:radix
-        indexString != null ? parseInt(indexString) : 20;
+    console.log(Chain.numblocks);
+    Utils.getBlock(Utils.hex2Bytes(hashBlock0), roster)
+        .then((s) =>
+            new SkipchainRPC(roster).getLatestBlock(s.hash, false, true)
+        )
+        .then((resp) => {
+            // Load the first block
+            const indexString = window.location.hash.split(":")[1];
 
-    // The block index should not be smaller than 0
-    if (initialBlockIndex < 0) {
-        flash.display(
-            Flash.flashType.ERROR,
-            "index of initial block cannot be negative, specified index is " +
-                initialBlockIndex
-        );
-    }
+            // Change here the first block to display by default if the user does not input a block index in the url
+            // The default block is #119614 because forward links from this point onwards are broken
+            let initialBlockIndex =
+                // tslint:disable-next-line:radix
+                indexString != null ? parseInt(indexString) : 134800;
 
-    // Block indexes higher that 118750 do not give the proper last added block of the chain
-    // Block #118800 fetches as last block 119685 (which is incorrect)
-    // Forward links from this point are broken
-    if (initialBlockIndex > 118750) {
-        flash.display(
-            Flash.flashType.ERROR,
-            "Forward links from block index '118750' are broken " +
-                initialBlockIndex
-        );
-    }
-
-    // Load the first block at the provided index, and start the visualization
-    // once we got that block and the promise resolves
-    const scRPC = new SkipchainRPC(roster);
-    scRPC
-        .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), initialBlockIndex)
-        .then(
-            (blockReply) => {
-                scRPC
-                    .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), 0)
-                    .then((genesis) => {
-                        startColumbus(
-                            genesis.skipblock,
-                            blockReply.skipblock,
-                            roster,
-                            flash
-                        );
-                    });
-            },
-            (e) => {
+            // The block index should not be smaller than 0
+            if (resp.index < 0) {
                 flash.display(
                     Flash.flashType.ERROR,
-                    "Unable to find initial block with index " +
-                        initialBlockIndex +
-                        ": " +
-                        e
+                    "index of initial block cannot be negative, specified index is " +
+                        initialBlockIndex
                 );
             }
-        );
+            // Load the first block at the provided index, and start the visualization
+            // once we got that block and the promise resolves
+            const scRPC = new SkipchainRPC(roster);
+            scRPC
+                .getSkipBlockByIndex(
+                    Utils.hex2Bytes(hashBlock0),
+                    initialBlockIndex
+                )
+                .then(
+                    (blockReply) => {
+                        scRPC
+                            .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), 0)
+                            .then((genesis) => {
+                                startColumbus(
+                                    genesis.skipblock,
+                                    blockReply.skipblock,
+                                    roster,
+                                    flash
+                                );
+                            });
+                    },
+                    (e) => {
+                        flash.display(
+                            Flash.flashType.ERROR,
+                            "Unable to find initial block with index " +
+                                initialBlockIndex +
+                                ": " +
+                                e
+                        );
+                    }
+                );
+        });
 }
 
 /**

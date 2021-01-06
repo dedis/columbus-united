@@ -15,16 +15,11 @@ import { Flash } from "./flash";
 import { LastAddedBlock } from "./lastAddedBlock";
 import { Utils } from "./utils";
 
+/**
+ * @author Sophia Artioli (sophia.artioli@epfl.ch)
+ * The core class that builds the chain.
+ */
 export class Chain {
-    /**
-     * Returns an observable to observe the blocks.
-     * Example use:
-     * ```getBlockClickedSubject().subscribe({
-     *   next: (skipBlock) => {
-     *     // do things
-     *   }
-     * })```
-     */
     get getBlockClickedSubject(): Subject<SkipBlock> {
         return this.blockClickedSubject;
     }
@@ -32,25 +27,32 @@ export class Chain {
     get getNewBlocksSubject(): Subject<SkipBlock[]> {
         return this.newBlocksSubject;
     }
+
     // Go to https://color.adobe.com/create/color-wheel with this base color to
     // find the palet of colors.
     static readonly blockColor = { r: 23, v: 73, b: 179 }; // #D9BA82
 
     static readonly blockPadding = 10;
     static readonly blockHeight = 50;
-    static readonly blockWidth = 100;
-    static readonly svgWidth = window.innerWidth;
+    static readonly blockWidth = 70;
+    static readonly svgHeight = 200;
+    static readonly svgWidth = 1270;
     static readonly unitBlockAndPaddingWidth =
         Chain.blockPadding + Chain.blockWidth;
+    static readonly axisPadding = 8;
+     // the number of block the window can display at normal scale. Used to
+        // define the domain the xScale
+    static readonly numblocks =
+            Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
 
     // Recommended pageSize / nbPages: 80 / 50
     static readonly pageSize = 50;
 
-    //
+    // The coordinate transformation on the chain.
     static zoom: any;
 
     /**
-     * Determine the color of the blocks.
+     * * Determine the color of the blocks.
      */
     static getBlockColor(block: SkipBlock): string {
         const body = DataBody.decode(block.payload);
@@ -60,12 +62,9 @@ export class Chain {
             Chain.blockColor.v * factor
         }, ${Chain.blockColor.b * factor})`;
     }
+
     readonly textMargin = 5;
-
-    readonly lastWidth = 200;
-    readonly svgHeight = 200;
-    readonly nbPages = 1; // Only works for 1 page. Overflow not verified if multiple pages...
-
+    readonly nbPages = 1;
     readonly textColor = "black";
     readonly loadedInfo = document.getElementById("loaded-blocks");
 
@@ -102,7 +101,6 @@ export class Chain {
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
         // Blockchain properties
         this.roster = roster;
-
         this.flash = flash;
 
         // First block displayed on the chain
@@ -112,44 +110,43 @@ export class Chain {
         const subject = new Subject();
 
         // Main SVG caneva that contains the chain
-        const svg = d3.select("#svg-container").attr("height", this.svgHeight);
+        const svg = d3
+            .select("#svg-container")
+            .attr("height", Chain.svgHeight)
+            .attr("width", Chain.svgWidth);
 
-        // this group will contain the blocks
+        // This group will contain the blocks
         this.gblocks = svg.append("g").attr("class", "gblocks");
 
-        this.garrow = this.gblocks.append("g").attr("class", "garrow");
+        // This group will contain the arrows between
+        this.garrow = svg.append("g").attr("class", "garrow");
 
         // this group will contain the text. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
         // readable
-        const gcircle = svg.append("g").attr("class", "gtext");
-        this.gcircle = gcircle;
+        // const gcircle = svg.append("g").attr("class", "gtext");
+        // this.gcircle = gcircle;
 
         // this group will contain the left and right loaders that display a spinner
         // when new blocks are being added
         const gloader = svg.append("g").attr("class", "gloader");
 
-        // the number of block the window can display at normal scale. Used to
-        // define the domain the xScale
-        const numblocks =
-            Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
 
         // the xScale displays the block index and allows the user to quickly see
         // where he is in the chain
         const xScale = d3
             .scaleLinear()
-            .domain([initialBlock.index, initialBlock.index + numblocks])
+            .domain([initialBlock.index, initialBlock.index + Chain.numblocks])
             .range([0, Chain.svgWidth]);
 
         const xAxis = d3
             .axisBottom(xScale)
-            .ticks(numblocks)
+            .ticks(Chain.numblocks)
             .tickFormat(d3.format("d"));
 
         const xAxisDraw = svg
             .insert("g", ":first-child")
             .attr("class", "x-axis")
-            .attr("transform", `translate(${Chain.blockPadding}, 0)`)
             .attr("fill", "#8C764A")
             .call(xAxis);
 
@@ -158,7 +155,7 @@ export class Chain {
             .zoom()
             .extent([
                 [0, 0],
-                [Chain.svgWidth, this.svgHeight],
+                [Chain.svgWidth, Chain.svgHeight],
             ])
             .scaleExtent([0.0001, 1.4])
             .on("zoom", () => {
@@ -170,7 +167,6 @@ export class Chain {
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
         // zoomed in-out by the user.
-
         subject.subscribe({
             next: (transform: any) => {
                 this.lastTransform = transform;
@@ -198,12 +194,13 @@ export class Chain {
                     "1" +
                     ")";
 
+                // The blocks and arrows follow the transformations of the chain.
                 this.gblocks.attr("transform", transformString);
+                this.garrow.attr("transform", transformString);
+
                 // Standard transformation on the text since we need to keep the
                 // original scale
-                // gblocks.selectAll("circle").attr("r",transform.k*5);
-
-                gcircle.selectAll("circle").attr("transform", transformString);
+                // gcircle.selectAll("circle").attr("transform", transformString);
 
                 // Update the loader. We want to keep them at their original
                 // scale so we only translate them
@@ -222,6 +219,7 @@ export class Chain {
                     Chain.blockWidth + Chain.blockPadding,
                     Chain.svgWidth
                 );
+
                 let alreadyHandled = false;
 
                 let leftNei: Chunk;
@@ -326,7 +324,7 @@ export class Chain {
         });
 
         // We intialize the last added block of the chain
-        const lastAddedBlock = new LastAddedBlock(
+        new LastAddedBlock(
             roster,
             flash,
             initialBlock,
