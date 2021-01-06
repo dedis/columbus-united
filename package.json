@@ -15,7 +15,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@dedis/cothority": "3.6.3",
+        "@dedis/cothority": "3.6.4-p2012.1814.1317.0",
         "@types/uikit": "^3.3.1",
         "blockies-ts": "^1.0.0",
         "css.gg": "^2.0.0",

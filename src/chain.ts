@@ -36,10 +36,14 @@ export class Chain {
     static readonly blockHeight = 50;
     static readonly blockWidth = 70;
     static readonly svgHeight = 200;
-    static readonly svgWidth = window.innerWidth;
+    static readonly svgWidth = 1270;
     static readonly unitBlockAndPaddingWidth =
         Chain.blockPadding + Chain.blockWidth;
     static readonly axisPadding = 8;
+     // the number of block the window can display at normal scale. Used to
+        // define the domain the xScale
+    static readonly numblocks =
+            Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
 
     // Recommended pageSize / nbPages: 80 / 50
     static readonly pageSize = 50;
@@ -95,7 +99,6 @@ export class Chain {
     lastTransform = { x: 0, y: 0, k: 1 };
 
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
-
         // Blockchain properties
         this.roster = roster;
         this.flash = flash;
@@ -128,21 +131,17 @@ export class Chain {
         // when new blocks are being added
         const gloader = svg.append("g").attr("class", "gloader");
 
-        // the number of block the window can display at normal scale. Used to
-        // define the domain the xScale
-        const numblocks =
-            Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
 
         // the xScale displays the block index and allows the user to quickly see
         // where he is in the chain
         const xScale = d3
             .scaleLinear()
-            .domain([initialBlock.index, initialBlock.index + numblocks])
+            .domain([initialBlock.index, initialBlock.index + Chain.numblocks])
             .range([0, Chain.svgWidth]);
 
         const xAxis = d3
             .axisBottom(xScale)
-            .ticks(numblocks)
+            .ticks(Chain.numblocks)
             .tickFormat(d3.format("d"));
 
         const xAxisDraw = svg

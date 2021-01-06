@@ -44,23 +44,11 @@ export class LastAddedBlock {
             .attr("height", this.svgHeight);
 
        // We fetch the last block
-        // new SkipchainRPC(roster).getLatestBlock(initialBlock.hash, false).then(
-        //     (resp) =>  this.displayLastAddedBlock(resp,svgLast,resp.hash)
-        // );
-        const lastBlock = new TotalBlock(roster, initialBlock);
-
-        lastBlock
-            .getTotalBlock()
-            .pipe(
-                map((s: SkipBlock) => {
-                    // Display the last added blocks info on load
-                    blockClickedSubject.next(s);
-                    this.displayLastAddedBlock(s, svgLast, s.hash, blockClickedSubject);
-                }
-                )
-            )
-            .subscribe();
-
+       new SkipchainRPC(roster).getLatestBlock(initialBlock.hash, false, true).then(
+        (resp) => {this.displayLastAddedBlock(resp,svgLast,resp.hash,blockClickedSubject);
+            blockClickedSubject.next(resp);
+        }
+    );
     }
     /**
      * Helper function to display on hand information on the last added block
