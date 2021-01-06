@@ -83,7 +83,7 @@ export class Chunk {
         flash: Flash,
         ws: WebSocketAdapter,
         gblocks: any,
-        garrow:any
+        garrow: any
     ) {
         this.totalLoaded = 0;
         this.chainSubject = chainSubject;
@@ -666,8 +666,7 @@ export class Chunk {
     ) {
         if (skipBlockTo.index - skipBlockFrom.index == 1) {
             const line = svgBlocks.append("line");
-            line
-                .attr("x1", xTrans)
+            line.attr("x1", xTrans)
                 .attr("y1", Chain.blockHeight / 2 + Chain.axisPadding)
                 .attr("x2", xTrans - Chain.blockPadding)
                 .attr("y2", Chain.blockHeight / 2 + Chain.axisPadding)
@@ -694,9 +693,9 @@ export class Chunk {
                     "y2",
                     Chain.axisPadding +
                         Chain.svgHeight / this.maxHeightBlock +
-                        height * (Chain.svgHeight / this.maxHeightBlock) 
+                        height * (Chain.svgHeight / this.maxHeightBlock)
                 )
-             
+
                 .attr("marker-end", "url(#triangle)")
                 .attr("stroke-width", 1.5)
                 .attr("stroke", "#A0A0A0")
@@ -723,32 +722,26 @@ export class Chunk {
                     //    Utils.scrollOnChain(this.roster, skipBlockTo.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
                     this.blockClickedSubject.next(skipBlockTo);
                 });
-                
+
             // FIXME can't change the colour of the svg markers like this. Only option I see
             // is to create anover triangle and witch when needed
-                triangle.on("mouseover",
-                    function () {
-                        d3.select(this).style("stroke", "var(--selected-colour");
-                        triangle.attr("stroke", "var(--selected-colour");
-                   
-                });
-                line.on("mouseover",
-                    function () {
-                        d3.select(this).style("stroke", "var(--selected-colour");
-                        triangle.attr("stroke", "var(--selected-colour");
-                   
-                });
-                triangle.on("mouseout", () => {
-                    line.style("stroke", "#A0A0A0");
-                    triangle.style("stroke", "#A0A0A0");
-                   
-                });
-                line.on("mouseout", () => {
-                    line.style("stroke", "#A0A0A0");
-                    triangle.style("stroke", "#A0A0A0");
-                    triangle.style("fill", "#A0A0A0");
-                });
-            
+            triangle.on("mouseover", function () {
+                d3.select(this).style("stroke", "var(--selected-colour");
+                triangle.attr("stroke", "var(--selected-colour");
+            });
+            line.on("mouseover", function () {
+                d3.select(this).style("stroke", "var(--selected-colour");
+                triangle.attr("stroke", "var(--selected-colour");
+            });
+            triangle.on("mouseout", () => {
+                line.style("stroke", "#A0A0A0");
+                triangle.style("stroke", "#A0A0A0");
+            });
+            line.on("mouseout", () => {
+                line.style("stroke", "#A0A0A0");
+                triangle.style("stroke", "#A0A0A0");
+                triangle.style("fill", "#A0A0A0");
+            });
         }
     }
     /**

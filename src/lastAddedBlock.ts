@@ -44,12 +44,18 @@ export class LastAddedBlock {
             .select("#last-container")
             .attr("height", this.svgHeight);
 
-       // We fetch the last block
-       new SkipchainRPC(roster).getLatestBlock(initialBlock.hash, false, true).then(
-        (resp) => {this.displayLastAddedBlock(resp,svgLast,resp.hash,blockClickedSubject);
-            blockClickedSubject.next(resp);
-        }
-    );
+        // We fetch the last block
+        new SkipchainRPC(roster)
+            .getLatestBlock(initialBlock.hash, false, true)
+            .then((resp) => {
+                this.displayLastAddedBlock(
+                    resp,
+                    svgLast,
+                    resp.hash,
+                    blockClickedSubject
+                );
+                //blockClickedSubject.next(resp);
+            });
     }
     /**
      * Helper function to display on hand information on the last added block
@@ -292,7 +298,6 @@ export class LastAddedBlock {
             });
 
         this.lastAddedBlockInfo(lastBlock, svgLast, lastBlock);
-
     }
     /**
      * Helper function to count the number of validated and rejected transactions

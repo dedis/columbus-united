@@ -150,8 +150,13 @@ export class Utils {
     ) {
         // translate the chain to wanted coordinates
         const newZoom = d3.zoomIdentity
-            .translate((initialBlock.index - block.index) * Chain.unitBlockAndPaddingWidth + 0.2 -
-                initialBlock.index * Chain.unitBlockAndPaddingWidth , 0)
+            .translate(
+                (initialBlock.index - block.index) *
+                    Chain.unitBlockAndPaddingWidth +
+                    0.2 -
+                    initialBlock.index * Chain.unitBlockAndPaddingWidth,
+                0
+            )
             .scale(1);
 
         //Adds an animation and then calls the transformation
@@ -189,31 +194,42 @@ export class Utils {
     static addHashBlocky(
         line: d3.Selection<HTMLElement, unknown, HTMLElement, any>,
         hash: string,
-        flash: Flash) {
-        const blocky = blockies.create({seed : hash});
-        line
-            .append("img")
+        flash: Flash
+    ) {
+        const blocky = blockies.create({ seed: hash });
+        line.append("img")
             .attr("class", "uk-img")
             .attr("src", blocky.toDataURL())
             .attr("uk-tooltip", ` ${hash}`)
-            .on("click", function() {Utils.copyToClipBoard(hash, flash); })
-            .on("mouseover", function() {d3.select(this).style("cursor", "pointer"); })
-            .on("mouseout", function() {d3.select(this).style("cursor", "default"); });
+            .on("click", function () {
+                Utils.copyToClipBoard(hash, flash);
+            })
+            .on("mouseover", function () {
+                d3.select(this).style("cursor", "pointer");
+            })
+            .on("mouseout", function () {
+                d3.select(this).style("cursor", "default");
+            });
     }
 
     static addIDBlocky(
         line: d3.Selection<HTMLElement, unknown, HTMLElement, any>,
         hash: string,
-        flash: Flash) {
-        const blocky = blockies.create({seed : hash});
-        line
-            .append("img")
+        flash: Flash
+    ) {
+        const blocky = blockies.create({ seed: hash });
+        line.append("img")
             .attr("class", "uk-img clip-blocky")
             .attr("src", blocky.toDataURL())
             .attr("uk-tooltip", ` ${hash}`)
-            .on("click", function() {Utils.copyToClipBoard(hash, flash); })
-            .on("mouseover", function() {d3.select(this).style("cursor", "pointer"); })
-            .on("mouseout", function() {d3.select(this).style("cursor", "default"); });
+            .on("click", function () {
+                Utils.copyToClipBoard(hash, flash);
+            })
+            .on("mouseover", function () {
+                d3.select(this).style("cursor", "pointer");
+            })
+            .on("mouseout", function () {
+                d3.select(this).style("cursor", "default");
+            });
     }
-
 }

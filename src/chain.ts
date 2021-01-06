@@ -40,10 +40,10 @@ export class Chain {
     static readonly unitBlockAndPaddingWidth =
         Chain.blockPadding + Chain.blockWidth;
     static readonly axisPadding = 8;
-     // the number of block the window can display at normal scale. Used to
-        // define the domain the xScale
+    // the number of block the window can display at normal scale. Used to
+    // define the domain the xScale
     static readonly numblocks =
-            Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
+        Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
 
     // Recommended pageSize / nbPages: 80 / 50
     static readonly pageSize = 50;
@@ -130,7 +130,6 @@ export class Chain {
         // this group will contain the left and right loaders that display a spinner
         // when new blocks are being added
         const gloader = svg.append("g").attr("class", "gloader");
-
 
         // the xScale displays the block index and allows the user to quickly see
         // where he is in the chain

@@ -142,7 +142,7 @@ export class Block {
                 this.colorClickedBlock
             );
         }
-        
+
         const self = this;
 
         //Left column of the UI, displays all the block details
@@ -628,7 +628,7 @@ export class Block {
             .style("padding-top", "10px");
         // Creates the header used to display the instance ID and the "clear results" button
         const queryHeader = queryContainer.append("p");
-            queryHeader
+        queryHeader
             .attr("id", "query-header")
             .append("div")
             .text(
@@ -640,23 +640,24 @@ export class Block {
             .style("font-weight", "700")
             .style("color", "#666")
             .style("font-size", "1.3em");
-            
+
         // Clears the results of a previous query
         const closeButtonWrap = queryHeader.append("div");
         closeButtonWrap.attr("id", "clear-query-button");
-        closeButtonWrap.append("button")
-        .attr("class", "uk-close-large")
-        .attr("type", "button")
-        .attr("uk-close", "")
-        .on("click", function () {
-            const confir = confirm(
-                "Are you sure you want to clear the query results ?"
-            );
-            if (confir) {
-                self.removeHighlighBlocks(self.hashHighligh);
-                queryContainer.html("");
-            }
-        });
+        closeButtonWrap
+            .append("button")
+            .attr("class", "uk-close-large")
+            .attr("type", "button")
+            .attr("uk-close", "")
+            .on("click", function () {
+                const confir = confirm(
+                    "Are you sure you want to clear the query results ?"
+                );
+                if (confir) {
+                    self.removeHighlighBlocks(self.hashHighligh);
+                    queryContainer.html("");
+                }
+            });
 
         // Creates a container in which we'll put the cards
         const queryCardContainer = queryContainer.append("ul");
@@ -674,7 +675,7 @@ export class Block {
             const instructionCard = queryCardContainer.append("li");
             instructionCard
                 .attr("class", "uk-card uk-card-default")
-                .style("min-width","350px");
+                .style("min-width", "350px");
 
             const instructionCardHeader = instructionCard.append("div");
             instructionCardHeader.attr(
@@ -715,7 +716,7 @@ export class Block {
             instructionCardHeader
                 .append("span")
                 .text(` ${contractID} contract in `);
-            
+
             instructionCardHeader
                 .append("span")
                 .attr("class", "uk-badge")
@@ -724,14 +725,15 @@ export class Block {
                     Utils.copyToClipBoard(
                         `${blocki.hash.toString("hex")}`,
                         self.flash
-                    )})
+                    );
+                })
                 .on("mouseover", function () {
-                        d3.select(this).style("cursor", "pointer");
-                    })
+                    d3.select(this).style("cursor", "pointer");
+                })
                 .on("mouseout", function () {
-                        d3.select(this).style("cursor", "default");
-                    })   
-                
+                    d3.select(this).style("cursor", "default");
+                })
+
                 .attr("uk-tooltip", `${blocki.hash.toString("hex")}`)
                 .on("mouseover", function () {
                     d3.select(this).style("cursor", "pointer");
@@ -921,7 +923,7 @@ export class Block {
     }
 
     /**
-     * 
+     *
      * Called at each percent by the subject. It updates the loading screen
      *
      * @private

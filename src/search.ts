@@ -27,7 +27,7 @@ export function searchBar(
     d3.select("#search-input").on("keypress", () => {
         if (d3.event.keyCode === 13) {
             const input = d3.select("#search-input").property("value");
-            const searchMode = d3.select("#search-mode").property("value")
+            const searchMode = d3.select("#search-mode").property("value");
             searchRequest(
                 input,
                 roster,
@@ -43,7 +43,7 @@ export function searchBar(
 
     d3.select("#submit-button").on("click", async () => {
         const input = d3.select("#search-input").property("value");
-        const searchMode = d3.select("#search-mode").property("value")
+        const searchMode = d3.select("#search-mode").property("value");
         searchRequest(
             input,
             roster,
@@ -75,7 +75,7 @@ async function searchRequest(
     searchMode: string,
     block: Block
 ) {
-    switch (searchMode){
+    switch (searchMode) {
         case "anything":
             if (input.length < 32) {
                 try {
@@ -86,7 +86,8 @@ async function searchRequest(
                     );
                     flash.display(
                         Flash.flashType.INFO,
-                        "Valid search for block index: " + block.index.toString()
+                        "Valid search for block index: " +
+                            block.index.toString()
                     );
                     await Utils.translateOnChain(
                         block,
@@ -95,7 +96,10 @@ async function searchRequest(
                     );
                     blockClickedSubject.next(block);
                 } catch (error) {
-                    flash.display(Flash.flashType.ERROR, "Block does not exist");
+                    flash.display(
+                        Flash.flashType.ERROR,
+                        "Block does not exist"
+                    );
                 }
             } else {
                 try {
@@ -103,10 +107,11 @@ async function searchRequest(
                         Buffer.from(input, "hex"),
                         roster
                     );
-        
+
                     flash.display(
                         Flash.flashType.INFO,
-                        "Valid search for block index: " + block.index.toString()
+                        "Valid search for block index: " +
+                            block.index.toString()
                     );
                     await Utils.translateOnChain(
                         block,
@@ -150,7 +155,7 @@ async function searchRequest(
                     Buffer.from(input, "hex"),
                     roster
                 );
-    
+
                 flash.display(
                     Flash.flashType.INFO,
                     "Valid search for block index: " + block.index.toString()
@@ -162,9 +167,7 @@ async function searchRequest(
                 );
                 blockClickedSubject.next(block);
             } catch (error) {
-                flash.display(
-                    Flash.flashType.ERROR,
-                    `Block does not exist`);
+                flash.display(Flash.flashType.ERROR, `Block does not exist`);
             }
             break;
         case "id":
@@ -174,6 +177,5 @@ async function searchRequest(
             );
             block.launchQuery(50, input.toString());
             break;
-
     }
 }
