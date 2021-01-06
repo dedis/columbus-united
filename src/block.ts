@@ -136,11 +136,13 @@ export class Block {
             }
 
             this.clickedBlock = block;
+
             d3.select(`[id = "${block.hash.toString("hex")}"]`).attr(
                 "fill",
                 this.colorClickedBlock
             );
         }
+        
         const self = this;
 
         //Left column of the UI, displays all the block details
@@ -462,8 +464,6 @@ export class Block {
                             const divArgs = liArgs.append("div");
                             divArgs.attr("class", "uk-accordion-content");
                             divArgs.append("p").text(`${arg.value}`);
-                            //TODO Add tooltip to get full arg if it exists
-                            //TODO Discriminate coins to displya blockie
                         });
                     } else {
                         const beautifiedArgs = instruction.beautify().args;
@@ -568,6 +568,8 @@ export class Block {
     }
 
     /**
+     * SECTION Instance tracking
+     * ANCHOR Query Launching
      * Launches a query for all instructions that are related to an instance ID
      * This method is called in search.ts at the moment, it could be refactored into something nicer
      * @public
@@ -601,8 +603,9 @@ export class Block {
         });
     }
 
-    //SECTION Instance tracking
+    //
     /**
+     * ANCHOR Query results rendering
      * Displays the result of the browsing, highlights the
      * blocks found.
      *
