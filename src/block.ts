@@ -672,7 +672,10 @@ export class Block {
             const blocki = tuple[0][i];
             const instruction = tuple[1][i];
             const instructionCard = queryCardContainer.append("li");
-            instructionCard.attr("class", "uk-card uk-card-default");
+            instructionCard
+                .attr("class", "uk-card uk-card-default")
+                .style("min-width","350px");
+
             const instructionCardHeader = instructionCard.append("div");
             instructionCardHeader.attr(
                 "class",
