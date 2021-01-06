@@ -88,18 +88,10 @@ export class Flash {
         }
         //Removes the flash after 2s
         const timer = rx.timer(2000);
-<<<<<<< HEAD
         let bookmark = this.span.node().parentElement;
         timer.subscribe(() => {
             Flash.closeAlert(bookmark);
         });
-=======
-
-        timer.subscribe(()=>{
-            this;
-            Flash.closeAlert(this.span.node().parentElement);
-            });
->>>>>>> origin/Sophia
 
         // on click to remove the flash
         // tslint:disable-next-line
