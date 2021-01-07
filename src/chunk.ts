@@ -21,7 +21,8 @@ import { Utils } from "./utils";
 
 export class Chunk {
     readonly maxHeightBlock = 8;
-    pageSize = 50;
+
+    pageSize =50;
 
     roster: Roster;
     flash: Flash;
@@ -84,7 +85,7 @@ export class Chunk {
         flash: Flash,
         ws: WebSocketAdapter,
         gblocks: any,
-        garrow: any
+        garrow:any
     ) {
         this.totalLoaded = 0;
         this.chainSubject = chainSubject;
@@ -153,7 +154,7 @@ export class Chunk {
 
                 if (!this.isLoadingRight) {
                     this.isLoadingRight = true;
-                    console.log("sdmnfs"+this.rightBlock.index);
+
                     const isLoading = this.checkAndLoadRight(
                         transform,
                         this.rightBlock,
@@ -237,8 +238,8 @@ export class Chunk {
             Chain.blockWidth + Chain.blockPadding,
             Chain.svgWidth
         );
-            console.log(bounds);
-            console.log(this.rightBlock.index);
+        console.log(bounds);
+
         // Check if we need to load blocks on the right. (x + this.svgWidth)
         // represents the actual rightmost x coordinate on the svg canvas. +50
         // is to allow a margin before loading a new block, because we want to
@@ -255,17 +256,11 @@ export class Chunk {
                 return false;
             }
 
-            try {
-                const hashNextBlockRight = Utils.getRightBlockHash(
-                    lastBlockRight
-                );
-                this.loadRight(transform, gloader, hashNextBlockRight);
+            const hashNextBlockRight = Utils.getRightBlockHash(lastBlockRight);
 
-                return true;
-            } catch {
-                this.flash.display(Flash.flashType.WARNING, `End of the chain`);
-                return false;
-            }
+            this.loadRight(transform, gloader, hashNextBlockRight);
+
+            return true;
         }
 
         return false;
@@ -290,7 +285,7 @@ export class Chunk {
                 Chain.blockWidth / 2,
             transform.k
         );
-        console.log("p"+this.pageSize);
+
         setTimeout(() => {
             this.getNextBlocks(
                 blockHash,
@@ -304,6 +299,7 @@ export class Chunk {
 
     loadRight(transform: any, gloader: any, blockHash: string) {
         this.right += this.pageSize;
+
         this.addLoader(
             false,
             gloader,
@@ -312,7 +308,7 @@ export class Chunk {
                 Chain.blockWidth / 2,
             transform.k
         );
-        console.log("p"+this.pageSize);
+
         setTimeout(() => {
             this.getNextBlocks(
                 blockHash,
@@ -460,7 +456,6 @@ export class Chunk {
         }
 
         if (this.ws !== undefined) {
-            console.log("DSFS"+ pageSize)
             const message = new PaginateRequest({
                 backward,
                 numpages: nbPages,
@@ -492,23 +487,17 @@ export class Chunk {
                     this.ws = undefined;
                 },
                 next: ([data, ws]) => {
-               
                     if (data.errorcode != 0) {
-                    
-                        if (data.errorcode == 5) {
-                            this.pageSize = 1;
-                        } else {
-                            this.flash.display(
-                                Flash.flashType.ERROR,
-                                `got an error with code ${data.errorcode} : ${data.errortext}`
-                            );
-                            return 1;
-                        }
+                        this.flash.display(
+                            Flash.flashType.ERROR,
+                            `got an error with code ${data.errorcode} : ${data.errortext}`
+                        );
+                        return 1;
                     }
                     if (ws !== undefined) {
                         this.ws = ws;
                     }
-                    console.log(pageSize);
+
                     subjectBrowse.next([
                         data.pagenumber,
                         data.blocks,
@@ -521,7 +510,6 @@ export class Chunk {
     }
 
     private loadInitial(left: number) {
-        console.log(left);
         Utils.getBlockByIndex(this.initialBlock.hash, left, this.roster).then(
             (block: SkipBlock) => {
                 this.leftBlock = block;
@@ -654,6 +642,12 @@ export class Chunk {
             .on("click", () => {
                 this.blockClickedSubject.next(block);
                 window.location.hash = `index:${block.index}`;
+            })
+            .on("mouseover", function () {
+                d3.select(this).style("cursor", "pointer");
+            })
+            .on("mouseout", function () {
+                d3.select(this).style("cursor", "default");
             });
     }
 
@@ -675,7 +669,8 @@ export class Chunk {
     ) {
         if (skipBlockTo.index - skipBlockFrom.index == 1) {
             const line = svgBlocks.append("line");
-            line.attr("x1", xTrans)
+            line
+                .attr("x1", xTrans)
                 .attr("y1", Chain.blockHeight / 2 + Chain.axisPadding)
                 .attr("x2", xTrans - Chain.blockPadding)
                 .attr("y2", Chain.blockHeight / 2 + Chain.axisPadding)
@@ -702,15 +697,18 @@ export class Chunk {
                     "y2",
                     Chain.axisPadding +
                         Chain.svgHeight / this.maxHeightBlock +
-                        height * (Chain.svgHeight / this.maxHeightBlock)
+                        height * (Chain.svgHeight / this.maxHeightBlock) 
                 )
-
+             
                 .attr("marker-end", "url(#triangle)")
                 .attr("stroke-width", 1.5)
                 .attr("stroke", "#A0A0A0")
                 .on("click", () => {
-                    // Utils.scrollOnChain(this.roster, this.initialBlock.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
-                    this.blockClickedSubject.next(skipBlockTo);
+                    Utils.translateOnChain(
+                        skipBlockTo,
+                        this.initialBlock,
+                        this.blockClickedSubject
+                    );
                 });
 
             const triangle = svgBlocks.append("svg:defs").append("svg:marker");
@@ -728,26 +726,32 @@ export class Chunk {
                     //    Utils.scrollOnChain(this.roster, skipBlockTo.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
                     this.blockClickedSubject.next(skipBlockTo);
                 });
-
+                
             // FIXME can't change the colour of the svg markers like this. Only option I see
             // is to create anover triangle and witch when needed
-            triangle.on("mouseover", function () {
-                d3.select(this).style("stroke", "var(--selected-colour");
-                triangle.attr("stroke", "var(--selected-colour");
-            });
-            line.on("mouseover", function () {
-                d3.select(this).style("stroke", "var(--selected-colour");
-                triangle.attr("stroke", "var(--selected-colour");
-            });
-            triangle.on("mouseout", () => {
-                line.style("stroke", "#A0A0A0");
-                triangle.style("stroke", "#A0A0A0");
-            });
-            line.on("mouseout", () => {
-                line.style("stroke", "#A0A0A0");
-                triangle.style("stroke", "#A0A0A0");
-                triangle.style("fill", "#A0A0A0");
-            });
+                triangle.on("mouseover",
+                    function () {
+                        d3.select(this).style("stroke", "var(--selected-colour");
+                        triangle.attr("stroke", "var(--selected-colour");
+                   
+                });
+                line.on("mouseover",
+                    function () {
+                        d3.select(this).style("stroke", "var(--selected-colour");
+                        triangle.attr("stroke", "var(--selected-colour");
+                   
+                });
+                triangle.on("mouseout", () => {
+                    line.style("stroke", "#A0A0A0");
+                    triangle.style("stroke", "#A0A0A0");
+                   
+                });
+                line.on("mouseout", () => {
+                    line.style("stroke", "#A0A0A0");
+                    triangle.style("stroke", "#A0A0A0");
+                    triangle.style("fill", "#A0A0A0");
+                });
+            
         }
     }
     /**

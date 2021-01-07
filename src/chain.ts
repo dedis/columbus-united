@@ -46,7 +46,7 @@ export class Chain {
             Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
 
     // Recommended pageSize / nbPages: 80 / 50
-    static pageSize = 50;
+    static readonly pageSize = 50;
 
     // The coordinate transformation on the chain.
     static zoom: any;
@@ -130,6 +130,7 @@ export class Chain {
         // this group will contain the left and right loaders that display a spinner
         // when new blocks are being added
         const gloader = svg.append("g").attr("class", "gloader");
+
 
         // the xScale displays the block index and allows the user to quickly see
         // where he is in the chain
@@ -218,7 +219,6 @@ export class Chain {
                     Chain.blockWidth + Chain.blockPadding,
                     Chain.svgWidth
                 );
-                console.log(bounds);
 
                 let alreadyHandled = false;
 
@@ -290,15 +290,14 @@ export class Chain {
                         }
                     }
                 }
-                console.log("dnfmw" + (bounds.left + (bounds.right - bounds.left) / 2 + 20));
-                // Need to 
+
                 if (!alreadyHandled) {
                     const c = new Chunk(
                         subject,
                         initialBlock,
                         leftNei,
                         rightNei,
-                        bounds.left + (bounds.right - bounds.left) / 2 ,
+                        bounds.left + (bounds.right - bounds.left) / 2,
                         bounds.left + (bounds.right - bounds.left) / 2 + 20,
                         this.getNewBlocksSubject,
                         this.blockClickedSubject,
@@ -324,14 +323,13 @@ export class Chain {
             },
         });
 
-         // We intialize the last added block of the chain
+        // We intialize the last added block of the chain
         new LastAddedBlock(
-        roster,
-        flash,
-        initialBlock,
-        this.blockClickedSubject
-    );
-
+            roster,
+            flash,
+            initialBlock,
+            this.blockClickedSubject
+        );
     }
 
     /**
@@ -410,27 +408,12 @@ export class Chain {
                 next: ([data, ws]) => {
                     // tslint:disable-next-line
                     if (data.errorcode != 0) {
-                        
-                        if (data.errorcode == 5) {
-                            Chain.pageSize=1;
-                            if (ws !== undefined) {
-                                this.ws = ws;
-                            }
-                            console.log(pageSize);
-                            subjectBrowse.next([
-                                data.pagenumber,
-                                data.blocks,
-                                data.backward,
-                            ]);
-                            return 0;
-                        } else {
-                            this.flash.display(
-                                Flash.flashType.ERROR,
-                                `got an error with code ${data.errorcode} : ${data.errortext}`
-                            );
-                            return 1;
+                        this.flash.display(
+                            Flash.flashType.ERROR,
+                            `got an error with code ${data.errorcode} : ${data.errortext}`
+                        );
+                        return 1;
                     }
-                }
                     if (ws !== undefined) {
                         this.ws = ws;
                     }
