@@ -723,7 +723,7 @@ export class Chunk {
                 .append("path")
                 .attr("d", "M 0 0 L 10 5 L 0 10 z")
                 .on("click", () => {
-                   // Utils.translateOnChain(this.roster, skipBlockTo.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
+                   Utils.translateOnChain(skipBlockTo,this.initialBlock,this.blockClickedSubject);
                     this.blockClickedSubject.next(skipBlockTo);
                 });
                 
