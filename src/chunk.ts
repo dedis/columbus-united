@@ -405,7 +405,7 @@ export class Chunk {
 
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
-           // this.getToAndFromIndexes(xTranslateBlock, block, garrow);
+            this.getToAndFromIndexes(xTranslateBlock, block, garrow);
 
             // this.appendCircleInBlock(xTranslateBlock, gcircle);
         }
@@ -499,12 +499,13 @@ export class Chunk {
                                 data.backward,
                             ]);
                             return 0;
-                        }
+                        }else {
                         this.flash.display(
                             Flash.flashType.ERROR,
                             `got an error with code ${data.errorcode} : ${data.errortext}`
                         );
                         return 1;
+                        }
                     }
                     if (ws !== undefined) {
                         this.ws = ws;
@@ -773,24 +774,24 @@ export class Chunk {
      * @param svgBlocks the svg where the blocks are appended
      * @author Sophia Artioli <sophia.artioli@epfl.ch>
      */
-    private async getToAndFromIndexes(
+    private getToAndFromIndexes(
         xTranslate: number,
         skipBlockTo: SkipBlock,
         svgBlocks: any
     ) {
         for (let i = 0; i < skipBlockTo.backlinks.length; i++) {
-            const skipBlockFrom = await Utils.getBlock(
+            Utils.getBlock(
                 skipBlockTo.backlinks[i],
                 this.roster
-            );
+            ).then((skipBlockFrom)=>{
+                this.appendArrows(
+                    xTranslate,
+                    skipBlockFrom,
+                    skipBlockTo,
+                    svgBlocks,
+                    i
+            );})
 
-            this.appendArrows(
-                xTranslate,
-                skipBlockFrom,
-                skipBlockTo,
-                svgBlocks,
-                i
-            );
         }
     }
 
