@@ -46,7 +46,7 @@ export class Chain {
             Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
 
     // Recommended pageSize / nbPages: 80 / 50
-    static readonly pageSize = 50;
+    static pageSize = 50;
 
     // The coordinate transformation on the chain.
     static zoom: any;
@@ -408,11 +408,27 @@ export class Chain {
                 next: ([data, ws]) => {
                     // tslint:disable-next-line
                     if (data.errorcode != 0) {
-                        this.flash.display(
-                            Flash.flashType.ERROR,
-                            `got an error with code ${data.errorcode} : ${data.errortext}`
-                        );
-                        return 1;
+                        if (data.errorcode != 0) {
+                            if(data.errorcode == 5){
+                                Chain.pageSize=1;
+                                if (ws !== undefined) {
+                                    this.ws = ws;
+                                }
+            
+                                subjectBrowse.next([
+                                    data.pagenumber,
+                                    data.blocks,
+                                    data.backward,
+                                ]);
+                                return 0;
+                            }else {
+                            this.flash.display(
+                                Flash.flashType.ERROR,
+                                `got an error with code ${data.errorcode} : ${data.errortext}`
+                            );
+                            return 1;
+                            }
+                        }
                     }
                     if (ws !== undefined) {
                         this.ws = ws;

@@ -405,7 +405,7 @@ export class Chunk {
 
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
-            this.getToAndFromIndexes(xTranslateBlock, block, garrow);
+           // this.getToAndFromIndexes(xTranslateBlock, block, garrow);
 
             // this.appendCircleInBlock(xTranslateBlock, gcircle);
         }
@@ -479,7 +479,6 @@ export class Chunk {
             ).subscribe({
                 // ws callback "onMessage":
                 complete: () => {
-                    this.flash.display(Flash.flashType.ERROR, "closed");
                     this.ws = undefined;
                 },
                 error: (err: Error) => {
@@ -488,6 +487,19 @@ export class Chunk {
                 },
                 next: ([data, ws]) => {
                     if (data.errorcode != 0) {
+                        if(data.errorcode == 5){
+                            this.pageSize=1;
+                            if (ws !== undefined) {
+                                this.ws = ws;
+                            }
+        
+                            subjectBrowse.next([
+                                data.pagenumber,
+                                data.blocks,
+                                data.backward,
+                            ]);
+                            return 0;
+                        }
                         this.flash.display(
                             Flash.flashType.ERROR,
                             `got an error with code ${data.errorcode} : ${data.errortext}`
