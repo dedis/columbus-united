@@ -13,7 +13,6 @@ export class Flash {
         setTimeout(() => {
             div.style.display = "none";
         }, 200);
-
     }
     containerFlash: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
     flashType: Flash.flashType;
@@ -87,12 +86,12 @@ export class Flash {
                     .text(`Other error not handled: ${text}`);
                 break;
         }
+        //Removes the flash after 2s
         const timer = rx.timer(2000);
-
-        timer.subscribe(()=>{
-            this;
-            Flash.closeAlert(this.span.node().parentElement);
-            });
+        let bookmark = this.span.node().parentElement;
+        timer.subscribe(() => {
+            Flash.closeAlert(bookmark);
+        });
 
         // on click to remove the flash
         // tslint:disable-next-line
@@ -101,7 +100,6 @@ export class Flash {
             Flash.closeAlert(this.parentElement);
         });
     }
-
 } // tslint:disable-next-line
 
 /**

@@ -153,11 +153,16 @@ export class Utils {
             .translate((initialBlock.index - block.index) * Chain.unitBlockAndPaddingWidth + 0.2 -
                 initialBlock.index * Chain.unitBlockAndPaddingWidth , 0)
             .scale(1);
-        d3.select("#svg-container").call(Chain.zoom.transform, newZoom);
 
-        // Select the block to which we translated
+        //Adds an animation and then calls the transformation
+        d3.select("#svg-container")
+            .transition()
+            .delay(200)
+            .duration(1000)
+            .call(Chain.zoom.transform, newZoom);
+
+        //Selects the target block
         blockClickedSubject.next(block);
-
     }
 
     /**

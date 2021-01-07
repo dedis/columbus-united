@@ -1,13 +1,19 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-    
-        <script src="dist/bundle.min.js?v=VERSIONNUMBER" type="text/javascript"></script>
-        <script src="https://d3js.org/d3.v4.min.js"></script>
-     
-        <link href='https://css.gg/css' rel='stylesheet'>
 
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script
+            src="dist/bundle.min.js?v=VERSIONNUMBER"
+            type="text/javascript"
+        ></script>
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+
+        <link href="https://css.gg/css" rel="stylesheet" />
+
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+        />
         <style>
             /* 1. You define the CSS class like this:  */
 
@@ -22,7 +28,7 @@
             <a href="https://wookiee.ch/columbus-dev/">
                 <img src="assets/logo-color-small.png" alt="logo" />
             </a>
-            
+
             <button class="uk-button uk-button-default" type="button">
                 About
             </button>
@@ -30,14 +36,14 @@
                 The project Columbus is a project aiming to facilitate the
                 visualization of the blockchain of ByzCoin. <br />
                 You can navigate through the different blocks by dragging right
-                or left and by ajusting the zoom with scrollwheel. 
-                You can have more details about one block by clicking
-                on it. If you need to use one of the hash value displayed in a 
-                tooltip, just click on it to copy it to your clipboard.<br />
+                or left and by ajusting the zoom with scrollwheel. You can have
+                more details about one block by clicking on it. If you need to
+                use one of the hash value displayed in a tooltip, just click on
+                it to copy it to your clipboard.<br />
                 You can also select a transaction. You will see all instructions
-                with their respective type (spawn, invoke or delete). 
-                A button is there to browse the whole blockchain in order to
-                display the evolution of an instance throughout the blockchain.
+                with their respective type (spawn, invoke or delete). A button
+                is there to browse the whole blockchain in order to display the
+                evolution of an instance throughout the blockchain.
             </div>
             <div id="status-info">
                 <!--<div class="info">
@@ -56,14 +62,19 @@
             </div>
         </div>
         <div class="searchbar-container">
-            <div class="topnav">  
+            <div class="topnav">
                 <input
-                    id = "search-input"
+                    id="search-input"
                     type="input"
-                    placeholder=" Search by block index, hash or instance" 
+                    placeholder=" Search by block index, hash or instance"
                 />
                 <a uk-search-icon type="submit" id="submit-button"></a>
-                
+                <select class="uk-select" id="search-mode">
+                    <option value="anything">Automatic search</option>
+                    <option value="index">Search by block index</option>
+                    <option value="hash">Search by block hash</option>
+                    <option value="id">Search by instance ID</option>
+                </select>
             </div>
         </div>
 
@@ -86,12 +97,8 @@
                 >github repository</a
             >
         </footer>
-    
     </body>
     <script>
         jsapp.sayHi();
-
-    
-
     </script>
 </html>

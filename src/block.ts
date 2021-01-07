@@ -1,10 +1,10 @@
 import { Instruction } from "@dedis/cothority/byzcoin";
 import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
+import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable, Subject } from "rxjs";
-import {throttleTime } from "rxjs/operators";
-
+import { throttleTime } from "rxjs/operators";
 
 import { Chain } from "./chain";
 import { Flash } from "./flash";
@@ -25,9 +25,9 @@ import { Utils } from "./utils";
  * @class Block
  */
 export class Block {
-
     // Observable for the clicked block
     skipBclickedSubject: Subject<SkipBlock>;
+
     clickedBlock: SkipBlock;
     colorClickedBlock: string;
     // Observable that notifies the updated blocks of blocksDiagram
@@ -37,6 +37,7 @@ export class Block {
     lifecycle: Lifecycle;
     hashHighligh: SkipBlock[];
 
+    roster: Roster;
     // progress bar
     progressBarContainer: d3.Selection<
         HTMLDivElement,
@@ -67,6 +68,7 @@ export class Block {
         lifecycle: Lifecycle,
         flash: Flash,
         loadedSkipBObs: Observable<SkipBlock[]>,
+        roster: Roster
     ) {
         const self = this;
 
@@ -77,6 +79,8 @@ export class Block {
 
         this.clickedBlock = null;
         this.colorClickedBlock = "#006fff";
+
+        this.roster = roster;
 
         this.loadedSkipBObs = loadedSkipBObs;
 
@@ -105,7 +109,7 @@ export class Block {
         });
     }
     setSearch(search: void) {
-        throw new Error('Method not implemented.');
+        throw new Error("Method not implemented.");
     }
 
     /**
@@ -132,11 +136,13 @@ export class Block {
             }
 
             this.clickedBlock = block;
+
             d3.select(`[id = "${block.hash.toString("hex")}"]`).attr(
                 "fill",
                 this.colorClickedBlock
             );
         }
+        
         const self = this;
 
         //Left column of the UI, displays all the block details
@@ -212,10 +218,9 @@ export class Block {
         const divVerifier = liVerifier.append("div");
         divVerifier.attr("class", "uk-accordion-content");
         block.verifiers.forEach((uid, j) => {
-            
             const verifierLine = divVerifier.append("p");
-                verifierLine.text(` Verifier ${j} , ID:  `);                
-            Utils.addIDBlocky(verifierLine, uid.toString("hex"), self.flash)
+            verifierLine.text(` Verifier ${j} , ID:  `);
+            Utils.addIDBlocky(verifierLine, uid.toString("hex"), self.flash);
         });
 
         //ANCHOR BackLink details
@@ -236,10 +241,20 @@ export class Block {
                 .append("span")
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
-                .on("click",function() {Utils.copyToClipBoard(value.toString("hex"), self.flash)})
+                .on("click", async function () {
+                    Utils.translateOnChain(
+                        await Utils.getBlock(value, self.roster),
+                        block,
+                        self.skipBclickedSubject
+                    );
+                })
                 .attr("uk-tooltip", `${value.toString("hex")}`)
-                .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
-                .on("mouseout", function() {d3.select(this).style("cursor", "default")});;
+                .on("mouseover", function () {
+                    d3.select(this).style("cursor", "pointer");
+                })
+                .on("mouseout", function () {
+                    d3.select(this).style("cursor", "default");
+                });
         });
 
         //ANCHOR ForwardLink
@@ -262,28 +277,35 @@ export class Block {
                 .append("span")
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
-                .on("click",function() {
-                    Utils.copyToClipBoard(fl.to.toString("hex"), self.flash);
-                    self.skipBclickedSubject.next()
+                .on("click", async function () {
+                    Utils.translateOnChain(
+                        await Utils.getBlock(fl.to, self.roster),
+                        block,
+                        self.skipBclickedSubject
+                    );
                 })
                 .attr("uk-tooltip", `${fl.to.toString("hex")}`)
-                .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
-                .on("mouseout", function() {d3.select(this).style("cursor", "default")});
+                .on("mouseover", function () {
+                    d3.select(this).style("cursor", "pointer");
+                })
+                .on("mouseout", function () {
+                    d3.select(this).style("cursor", "default");
+                });
 
-            const lockIcon = divForwardLink
-                .append("a");
+            const lockIcon = divForwardLink.append("object");
 
             const lockContent = `<p>Hash: ${fl.hash().toString("hex")}</p>
-            <p>signature: ${fl.signature.sig.toString("hex")}</p>`
+            <p>signature: ${fl.signature.sig.toString("hex")}</p>`;
 
             lockIcon
-                .attr("class", "uk-icon-button")
-                .attr("uk-icon", "icon: lock")
-                .attr("href","")
-                .style("margin-left", "15px")
-                .on("click",function() {Utils.copyToClipBoard(lockContent, self.flash)});
-            const linkDetails = divForwardLink
-                .append("div");
+                .attr("class", "white-icon")
+                .attr("type", "image/svg+xml")
+                .attr("data", "assets/signature.svg")
+
+                .on("click", function () {
+                    Utils.copyToClipBoard(lockContent, self.flash);
+                });
+            const linkDetails = divForwardLink.append("div");
             linkDetails
                 .attr("uk-dropdown", "pos: right-center")
                 .attr("id", "forwardlink-drop")
@@ -309,15 +331,18 @@ export class Block {
             .attr("margin-top", "5px")
             .text(`Transaction details`)
             .style("color", "#666");
-        
+
         const body = DataBody.decode(block.payload);
 
         const totalTransaction = body.txResults.length;
-        
+
         transactionCardHeaderTitle
-        .append("p")
-        .text(`Total of ${totalTransaction} transactions`)
-        .style("margin-left", "10px");
+            .append("p")
+            .text(
+                `Total of ${totalTransaction} transaction` +
+                    (totalTransaction > 1 ? "s" : "")
+            )
+            .style("margin-left", "10px");
 
         const transactionCardBody = transactionCard.append("div");
         transactionCardBody.attr("class", "uk-card-body uk-padding-small");
@@ -325,7 +350,7 @@ export class Block {
         body.txResults.forEach((transaction, i) => {
             const accepted: string = transaction.accepted
                 ? "Accepted"
-                : `<span id ="rejected">Not accepted</span>`;
+                : `<span id ="rejected">Rejected</span>`;
             const liTransaction = transactionCardBody.append("ul");
             liTransaction.attr("id", "detail-window");
             liTransaction.attr("class", "uk-open");
@@ -334,14 +359,12 @@ export class Block {
             transaction.clientTransaction.instructions.forEach((_, __) => {
                 totalInstruction++;
             });
-            let s = "";
-            if (totalInstruction > 2) {
-                s = "s";
-            }
             //TODO Give titles like this an ID and handle the styling in the css
             transactionTitle
                 .html(
-                    `<b>Transaction ${i}</b> ${accepted}, show ${totalInstruction} instruction${s}:`
+                    `<b>Transaction ${i}</b> ${accepted}, show ${totalInstruction} instruction` +
+                        (totalInstruction > 1 ? `s` : ``) +
+                        `:`
                 )
                 .style("font", "Monospace")
                 .style("color", "#666")
@@ -352,7 +375,7 @@ export class Block {
 
             const ulInstruction = divTransaction.append("ul");
             ulInstruction.attr("uk-accordion", "");
-            // instructions of the transaction
+            // ANCHOR Transaction displaying
             transaction.clientTransaction.instructions.forEach(
                 (instruction, j) => {
                     var coin_invoked = false;
@@ -363,52 +386,67 @@ export class Block {
                     aInstruction.attr("class", "uk-accordion-title");
 
                     if (instruction.type === Instruction.typeSpawn) {
-                        const contractName = instruction.spawn.contractID.charAt(0).toUpperCase() + 
-                        instruction.spawn.contractID.slice(1);
-                        aInstruction.text(
-                            `Spawned : ${contractName }`
-                        );
+                        const contractName =
+                            instruction.spawn.contractID
+                                .charAt(0)
+                                .toUpperCase() +
+                            instruction.spawn.contractID.slice(1);
+                        aInstruction.text(`Spawned : ${contractName}`);
                         args = instruction.spawn.args;
                     } else if (instruction.type === Instruction.typeInvoke) {
-                        const contractName = instruction.invoke.contractID.charAt(0).toUpperCase() + 
-                        instruction.invoke.contractID.slice(1);
-                        aInstruction.text(
-                            `Invoked : ${contractName }`
-                        );
+                        const contractName =
+                            instruction.invoke.contractID
+                                .charAt(0)
+                                .toUpperCase() +
+                            instruction.invoke.contractID.slice(1);
+                        aInstruction.text(`Invoked : ${contractName}`);
                         args = instruction.invoke.args;
-                        coin_invoked = (contractName == "Coin" && args.length>1); //Blocks prior to index 45 don't implement coin in the right way unfortunately
-
+                        coin_invoked =
+                            contractName == "Coin" && args.length > 1; //Blocks prior to index 45 don't implement coin in the right way unfortunately
                     } else if (instruction.type === Instruction.typeDelete) {
-                        const contractName = instruction.delete.contractID.charAt(0).toUpperCase() + 
-                        instruction.delete.contractID.slice(1);
-                        aInstruction.text(
-                            `Deleted : ${contractName }`
-                        );
+                        const contractName =
+                            instruction.delete.contractID
+                                .charAt(0)
+                                .toUpperCase() +
+                            instruction.delete.contractID.slice(1);
+                        aInstruction.text(`Deleted : ${contractName}`);
                     }
 
                     const divInstruction = liInstruction.append("div");
+
                     divInstruction
                         .attr("class", "uk-accordion-content")
                         .attr("style", "padding-left:15px");
                     // Detail of one instruction
+
                     divInstruction
                         .append("p")
-                        .text(`Transaction hash : ${instruction.hash().toString("hex")}`);
-                    
+                        .text(
+                            `Transaction hash : ${instruction
+                                .hash()
+                                .toString("hex")}`
+                        );
+
                     const hash = instruction.instanceID.toString("hex");
-                    Utils.addHashBlocky(divInstruction
-                        .append("p")
-                        .text(`Instance ID : `), hash, self.flash);
-                    if (!coin_invoked){     
-                        if(instruction.signerCounter.length != 0 ){
-                            const userSignature = instruction.signerIdentities.pop().toString().slice(8);
-                            const emmiterP =divInstruction
+                    Utils.addHashBlocky(
+                        divInstruction.append("p").text(`Instance ID : `),
+                        hash,
+                        self.flash
+                    );
+                    if (!coin_invoked) {
+                        if (instruction.signerCounter.length != 0) {
+                            const userSignature = instruction.signerIdentities
+                                .pop()
+                                .toString()
+                                .slice(8);
+                            const emmiterP = divInstruction
                                 .append("p")
                                 .text("Emmited by ");
-                                Utils.addIDBlocky(
-                                    emmiterP,
-                                    userSignature, 
-                                    self.flash)
+                            Utils.addIDBlocky(
+                                emmiterP,
+                                userSignature,
+                                self.flash
+                            );
                         }
                         divInstruction.append("p").text("Arguments:");
                         // Args of the instruction
@@ -417,7 +455,6 @@ export class Block {
                         // tslint:disable-next-line
                         const beautifiedArgs = instruction.beautify().args;
                         beautifiedArgs.forEach((arg, i) => {
-
                             const liArgs = ulArgs.append("li");
                             const aArgs = liArgs.append("a");
                             aArgs
@@ -427,94 +464,135 @@ export class Block {
                             const divArgs = liArgs.append("div");
                             divArgs.attr("class", "uk-accordion-content");
                             divArgs.append("p").text(`${arg.value}`);
-                            //TODO Add tooltip to get full arg if it exists
-                            //TODO Discriminate coins to displya blockie
-
                         });
-                    }
-                    else{
+                    } else {
                         const beautifiedArgs = instruction.beautify().args;
-                        const userSignature = instruction.signerIdentities.pop().toString().slice(8);
+                        const userSignature = instruction.signerIdentities
+                            .pop()
+                            .toString()
+                            .slice(8);
                         const destinationSignature = beautifiedArgs[1].value;
 
-                        const line = divInstruction
-                            .append("p")
-                        Utils.addIDBlocky(line, userSignature,self.flash);
-                        line
-                            .append("span")
-                            .text(` gave ${beautifiedArgs[0].value.split(' ')[0]}`)
-                        line
-                            .append("object")
+                        const line = divInstruction.append("p");
+                        Utils.addIDBlocky(line, userSignature, self.flash);
+                        line.append("span").text(
+                            ` gave ${beautifiedArgs[0].value.split(" ")[0]}`
+                        );
+                        line.append("object")
                             .attr("class", "white-icon")
                             .attr("type", "image/svg+xml")
                             .attr("data", "assets/coin.svg")
                             .style("display", "inline-block")
                             .style("position", "relative")
                             .style("top", "11px");
-                            
-                        line
-                            .append("span")
-                            .text(" to ")
-                        Utils.addIDBlocky(line, destinationSignature, self.flash);
-                        if (beautifiedArgs.length==3){
-                            divInstruction.append("p").text(`Challenge : ${beautifiedArgs[2].value}`)
-                        }
 
+                        line.append("span").text(" to ");
+                        Utils.addIDBlocky(
+                            line,
+                            destinationSignature,
+                            self.flash
+                        );
+                        if (beautifiedArgs.length == 3) {
+                            divInstruction
+                                .append("p")
+                                .text(`Challenge : ${beautifiedArgs[2].value}`);
+                        }
                     }
                     // Search button
-                    const searchInstance = divInstruction.append("button");
-                    searchInstance
-                        .attr("id", "buttonBrowse")
-                        .attr(
-                            "class",
-                            "uk-button uk-button-default uk-padding-remove-right uk-padding-remove-left"
-                        )
-                        .attr("style", "border:none")
+
+                    //ANCHOR Browse button
+                    const searchInstance = divInstruction.append("li");
+                    searchInstance.attr("id", "button-browse");
+                    const searchButton = searchInstance.append("button");
+                    searchButton
+                        .attr("class", "uk-button uk-button-default")
+                        .text(`Search `);
+                    searchInstance.append("span").text(" for ");
+
+                    const formTag = searchInstance
+                        .append("span")
+                        .append("form")
+                        .style("display", "inline");
+
+                    const formSelect = formTag
+                        .append("select")
+                        .attr("value", "10")
+                        .attr("class", "uk-select");
+
+                    formSelect
+                        .append("option")
+                        .attr("value", "-1")
+                        .text("All instructions related to this instance");
+
+                    formSelect
+                        .append("option")
+                        .attr("value", "100")
                         .text(
-                            `Search for all instructions related to this instance: "${instruction.instanceID.toString(
-                                "hex"
-                            )}"`
-                        )
+                            "The 100 first instructions related to this instance"
+                        );
+
+                    formSelect
+                        .append("option")
+                        .attr("value", "50")
+                        .text(
+                            "The 50 first instructions related to this instance"
+                        );
+
+                    formSelect
+                        .append("option")
+                        .attr("value", "10")
+                        .text(
+                            "The 10 first instructions related to this instance"
+                        );
+
+                    var chosenQuery = -1;
+
+                    formSelect.on("change", function () {
+                        chosenQuery = parseInt(
+                            this.options[this.selectedIndex].value
+                        );
+                    });
+
+                    searchButton
                         // Confirmation and start browsing on click
                         // tslint:disable-next-line
                         .on("click", function () {
-                           // self.launchQuery(chosenQuery, instruction.instanceID.toString("hex"))
+                            self.launchQuery(
+                                chosenQuery,
+                                instruction.instanceID.toString("hex")
+                            );
                         });
                 }
             ); //!SECTION
         });
-
-
-
     }
 
-   /**
-    * 
-    * @public
-    * @param chosenQuery 
-    * @param instruction 
-    * @memberof DetailBlock
-    */
+    /**
+     * SECTION Instance tracking
+     * ANCHOR Query Launching
+     * Launches a query for all instructions that are related to an instance ID
+     * This method is called in search.ts at the moment, it could be refactored into something nicer
+     * @public
+     * @param {number} chosenQuery : The number of results we want to display
+     * @param {string} instruction : The id of the instance we're interested in
+     * @memberof DetailBlock
+     */
 
-    public launchQuery(chosenQuery : number, instanceID:string)
-    {
+    public launchQuery(chosenQuery: number, instanceID: string) {
         const self = this;
         self.createLoadingScreen();
-        const subjects = self.lifecycle
-            .getInstructionSubject(instanceID,chosenQuery);
+        const subjects = self.lifecycle.getInstructionSubject(
+            instanceID,
+            chosenQuery
+        );
         subjects[0].subscribe({
             next: self.printDataBrowsing.bind(self),
         });
         // throttleTime: ignores the values for the 100 first ms
         subjects[1].pipe(throttleTime(100)).subscribe({
             complete: self.doneLoading,
-            next: ([
-                percentage,
-                seenBlock,
-                totalBlock,
-                nbInstanceFound,
-            ]) => {
-                console.log("updated")
+            next: ([percentage, seenBlock, totalBlock, nbInstanceFound]) => {
+                console.log("updated");
                 self.updateLoadingScreen(
                     percentage,
                     seenBlock,
@@ -525,8 +603,9 @@ export class Block {
         });
     }
 
-    //SECTION Query
+    //
     /**
+     * ANCHOR Query results rendering
      * Displays the result of the browsing, highlights the
      * blocks found.
      *
@@ -536,16 +615,19 @@ export class Block {
      * @memberof DetailBlock
      */
     private printDataBrowsing(tuple: [SkipBlock[], Instruction[]]) {
-        // removes previous highlighted blocks
+        //ANCHOR Display and styling
+        // Removes previous highlighted blocks
         this.removeHighlighBlocks(this.hashHighligh);
         const self = this;
+        // Creates the container for the query results
         const queryContainer = d3.select(".query-answer");
         queryContainer.text("");
         queryContainer
-        .attr("class", "query-answer uk-card uk-card-default")
-        .style("margin-top", "0px")
-        .style("padding-top", "10px");
-            const queryHeader = queryContainer.append("p");
+            .attr("class", "query-answer uk-card uk-card-default")
+            .style("margin-top", "0px")
+            .style("padding-top", "10px");
+        // Creates the header used to display the instance ID and the "clear results" button
+        const queryHeader = queryContainer.append("p");
             queryHeader
             .attr("id", "query-header")
             .append("div")
@@ -559,7 +641,7 @@ export class Block {
             .style("color", "#666")
             .style("font-size", "1.3em");
             
-        
+        // Clears the results of a previous query
         const closeButtonWrap = queryHeader.append("div");
         closeButtonWrap.attr("id", "clear-query-button");
         closeButtonWrap.append("button")
@@ -573,23 +655,26 @@ export class Block {
             if (confir) {
                 self.removeHighlighBlocks(self.hashHighligh);
                 queryContainer.html("");
-                
             }
         });
 
-
+        // Creates a container in which we'll put the cards
         const queryCardContainer = queryContainer.append("ul");
         queryCardContainer
             .attr("id", "query-card-container")
             .attr("multiple", "true")
             .attr("class", "uk-flex");
 
+        // Creates a card for each instruction, the header contains a title with references
+        // to both the transaction hash and the block hash.
+        // The body contains the arguments of the instruction
         for (let i = 0; i < tuple[1].length; i++) {
             const blocki = tuple[0][i];
             const instruction = tuple[1][i];
             const instructionCard = queryCardContainer.append("li");
-
-            instructionCard.attr("class", "uk-card uk-card-default");
+            instructionCard
+                .attr("class", "uk-card uk-card-default")
+                .style("min-width","350px");
 
             const instructionCardHeader = instructionCard.append("div");
             instructionCardHeader.attr(
@@ -598,55 +683,63 @@ export class Block {
             );
 
             const instructionCardBody = instructionCard.append("div");
-            instructionCardBody.attr("class uk-card-body uk-padding-small");
+            instructionCardBody;
+            // .attr("class","uk-card-body uk-padding-small")
 
-            let args = null;
             let contractID = "";
+            instructionCard.attr("id", `buttonInstance${i}`);
+            let verb = "";
             if (instruction.type === Instruction.typeSpawn) {
-                instructionCard.attr("id", `buttonInstance${i}`);
-                instructionCardHeader.text(
-                    `${i}: Spawn in the block ${blocki.index}`
-                );
-                args = instruction.spawn.args;
                 contractID = instruction.spawn.contractID;
+                verb = "Spawned";
             } else if (instruction.type === Instruction.typeInvoke) {
-                instructionCard.attr("id", `buttonInstance${i}`);
-                instructionCardHeader.text(
-                    `${i}: Invoke in the block ${blocki.index}`
-                );
-                args = instruction.invoke.args;
+                verb = "Invoked";
                 contractID = instruction.invoke.contractID;
             } else if (instruction.type === Instruction.typeDelete) {
-                instructionCard.attr("id", `buttonInstance${i}`);
-                instructionCardHeader.text(
-                    `${i}: Delete in the block ${blocki.index}`
-                );
+                verb = "Deleted";
                 contractID = instruction.delete.contractID;
             }
 
             instructionCardHeader
                 .append("span")
                 .attr("class", "uk-badge")
-                //.text(`${verb}`) 
-                .on("click",function() {Utils.copyToClipBoard(`${instruction.hash()
-                    .toString("hex")}}`, self.flash)})
+                .text(`${verb}`)
+                .on("click", function () {
+                    Utils.copyToClipBoard(
+                        `${instruction.hash().toString("hex")}}`,
+                        self.flash
+                    );
+                })
                 .attr("uk-tooltip", `${instruction.hash().toString("hex")}`);
 
             instructionCardHeader
                 .append("span")
-                .text(
-                    ` ${contractID} contract in `
-                );
+                .text(` ${contractID} contract in `);
+            
             instructionCardHeader
                 .append("span")
                 .attr("class", "uk-badge")
-                .text(`Block ${blocki.index}`) 
-                .on("click",function() {Utils.copyToClipBoard(`${blocki.hash.toString("hex")}`, self.flash)})
-                .attr("uk-tooltip", `${blocki.hash.toString("hex")}`)
-                .on("mouseover",function() {d3.select(this).style("cursor", "pointer")})
-                .on("mouseout", function() {d3.select(this).style("cursor", "default")});;
+                .text(`Block ${blocki.index}`)
+                .on("click", function () {
+                    Utils.copyToClipBoard(
+                        `${blocki.hash.toString("hex")}`,
+                        self.flash
+                    )})
+                .on("mouseover", function () {
+                        d3.select(this).style("cursor", "pointer");
+                    })
+                .on("mouseout", function () {
+                        d3.select(this).style("cursor", "default");
+                    })   
                 
-            
+                .attr("uk-tooltip", `${blocki.hash.toString("hex")}`)
+                .on("mouseover", function () {
+                    d3.select(this).style("cursor", "pointer");
+                })
+                .on("mouseout", function () {
+                    d3.select(this).style("cursor", "default");
+                });
+
             // Add an highlight of the instance which was browsed
             if (
                 blocki.hash.toString("hex") ===
@@ -660,22 +753,14 @@ export class Block {
                 "class",
                 "uk-accordion-content uk-padding-small"
             );
-            divInstructionB
-                .append("p")
-                .text(
-                    `Hash of instanceID is: ${instruction
-                        .hash()
-                        .toString("hex")}`
-                );
-            divInstructionB.append("p").text(`contractID: ${contractID}`);
-            divInstructionB
-                .append("p")
-                .text(`In the block: ${blocki.hash.toString("hex")}`);
+
             divInstructionB.append("p").text("Arguments: ");
             const ulArgsB = divInstructionB.append("ul");
             ulArgsB.attr("uk-accordion", "");
             // tslint:disable-next-line
-            args.forEach((arg, i) => {
+            const beautifiedArgs = instruction.beautify();
+
+            beautifiedArgs.args.forEach((arg, i) => {
                 const liArgsB = ulArgsB.append("li");
                 const aArgsB = liArgsB.append("a");
                 aArgsB
@@ -693,6 +778,38 @@ export class Block {
         // Highlights the blocks in the blockchain
         this.highlightBlocks(tuple[0]);
         this.hashHighligh = tuple[0];
+
+        //ANCHOR Mouse events handling for clicking and dragging
+        //Stores the current scroll position
+        var pos = { left: 0, x: 0 };
+        //When mousedown fires in query card container, we instantiate the other event listener
+        queryCardContainer.on("mousedown", function (e) {
+            queryCardContainer.style("cursor", "grabbing");
+            queryCardContainer.style("user-select", "none");
+
+            pos = {
+                left: queryCardContainer.node().scrollLeft,
+                x: d3.event.clientX,
+            };
+            queryCardContainer.on("mousemove", mouseMoveHandler);
+            queryCardContainer.on("mouseup", mouseUpHandler);
+        });
+
+        //Fires when the mouse is down and moved, refreshes the scroll position
+        const mouseMoveHandler = function () {
+            const dx = d3.event.clientX - pos.x;
+            queryCardContainer.node().scrollLeft = pos.left - dx;
+        };
+        //Fires when the mouse is released.
+        //Removes the move and up event handler and resets cursor properties.
+        const mouseUpHandler = function () {
+            queryCardContainer.style("cursor", "grab");
+            queryCardContainer.node().style.removeProperty("user-select");
+            queryCardContainer.on("mousemove", null);
+            queryCardContainer.on("mouseup", null);
+        };
+
+        document.addEventListener("mousemove", mouseMoveHandler);
     }
 
     /**
@@ -745,6 +862,7 @@ export class Block {
     }
 
     /**
+     * ANCHOR Loading screen
      * Creates the loading screen
      *
      * @private
@@ -766,10 +884,11 @@ export class Block {
         const divLoad = this.loadContainer
             .append("div")
             .attr("class", "div-load");
-        divLoad.append("div") 
-        .attr("class", "spinner")
-        .attr("uk-spinner", "ratio : 3")
-        .style("color", "blue");
+        divLoad
+            .append("div")
+            .attr("class", "spinner")
+            .attr("uk-spinner", "ratio : 2")
+            .style("color", "blue");
 
         this.progressBarContainer = this.loadContainer
             .append("div")
@@ -802,6 +921,7 @@ export class Block {
     }
 
     /**
+     * 
      * Called at each percent by the subject. It updates the loading screen
      *
      * @private
@@ -829,7 +949,7 @@ export class Block {
         }
     }
 
-
+    //!SECTION
 
     /**
      * Removes the loading screen

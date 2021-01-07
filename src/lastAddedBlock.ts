@@ -7,10 +7,7 @@ import { Subject } from "rxjs";
 import * as d3 from "d3";
 
 import * as blockies from "blockies-ts";
-import {
-    map,
-
-} from "rxjs/operators";
+import { map } from "rxjs/operators";
 
 import { Chain } from "./chain";
 import { Flash } from "./flash";
@@ -34,8 +31,12 @@ export class LastAddedBlock {
     // The last added block of the chain
     lastBlock: SkipBlock;
 
-    constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock, blockClickedSubject: Subject<SkipBlock>) {
-
+    constructor(
+        roster: Roster,
+        flash: Flash,
+        initialBlock: SkipBlock,
+        blockClickedSubject: Subject<SkipBlock>
+    ) {
         this.flash = flash;
 
         // Main SVG caneva that contains the last added block
@@ -58,7 +59,6 @@ export class LastAddedBlock {
      * @param block
      */
     lastAddedBlockInfo(lastBlock: SkipBlock, svgLast: any, block: SkipBlock) {
-
         // validated transactions
         const accepted = svgLast
             .append("g")
@@ -141,14 +141,14 @@ export class LastAddedBlock {
             .attr("uk-tooltip", descList.join("<br/>"));
 
         roster
-        .append("text")
-        .text("Roster")
-        .attr("x", 48)
-        .attr("y", 157)
-        .attr("font-family", "Arial")
-        .attr("font-size", "16px")
-        .attr("fill", "#ffffff")
-        .attr("pointer-events", "none");
+            .append("text")
+            .text("Roster")
+            .attr("x", 48)
+            .attr("y", 157)
+            .attr("font-family", "Arial")
+            .attr("font-size", "16px")
+            .attr("fill", "#ffffff")
+            .attr("pointer-events", "none");
 
         roster
             .append("rect")
@@ -207,6 +207,12 @@ export class LastAddedBlock {
             .on("click", () => {
                 // tslint:disable-next-line:no-unused-expression
                 blockClickedSubject.next(lastBlock);
+            })
+            .on("mouseover", function () {
+                d3.select(this).style("cursor", "pointer");
+            })
+            .on("mouseout", function () {
+                d3.select(this).style("cursor", "default");
             });
 
         // shadow filter for last added block
@@ -279,7 +285,10 @@ export class LastAddedBlock {
             .attr("fill-opacity", "0")
             .attr("uk-tooltip", Utils.bytes2String(lastBlock.hash))
             .on("click", () => {
-                Utils.copyToClipBoard(lastBlock.hash.toString("hex"), self.flash);
+                Utils.copyToClipBoard(
+                    lastBlock.hash.toString("hex"),
+                    self.flash
+                );
             });
 
         this.lastAddedBlockInfo(lastBlock, svgLast, lastBlock);
@@ -302,5 +311,4 @@ export class LastAddedBlock {
         });
         return [accepted, rejected];
     }
-
 }

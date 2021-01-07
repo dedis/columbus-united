@@ -108,6 +108,7 @@ div.query-answer {
     margin-top: 8px;
     margin-bottom: 8px;
     color: grey;
+    border-right: 1px solid grey !important;
     padding-right: 8px;
     height: auto;
     width: auto;
@@ -115,7 +116,6 @@ div.query-answer {
     text-shadow:none;
     -moz-appearance: none;
     appearance: none;
-    border-radius: 0 15px 15px 0;
 
   }
   .topnav>a>svg{

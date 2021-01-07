@@ -123,15 +123,6 @@ export function startColumbus(
         chain.blockClickedSubject
     );
 
-    // The blockchain properties are given to the search bar
-    searchBar(
-        roster,
-        flash,
-        initialBlock,
-        hashBlock0,
-        chain.blockClickedSubject
-    );
-
     // The totalBlock utility class allows the browsing class to get the total
     // number of block in the chain. This class is stateful, it will keep each
     // time the last know block instead of browsing the entire chain each time.
@@ -143,10 +134,22 @@ export function startColumbus(
 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
-    new Block(
+    const block = new Block(
         chain.getBlockClickedSubject,
         lifecycle,
         flash,
-        chain.getNewBlocksSubject
-    ).startListen();
+        chain.getNewBlocksSubject,
+        roster
+    );
+    block.startListen();
+
+    // The blockchain properties are given to the search bar
+    searchBar(
+        roster,
+        flash,
+        initialBlock,
+        hashBlock0,
+        chain.blockClickedSubject,
+        block
+    );
 }

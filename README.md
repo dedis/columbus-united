@@ -1,7 +1,7 @@
 # columbus-united
 
 <div align="center">
-    <img src="assets/logo color small.png">
+    <img src="assets/logo-color-small.png">
 </div>
 
 <div align="center">
