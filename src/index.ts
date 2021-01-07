@@ -57,13 +57,15 @@ export function sayHi() {
                 // tslint:disable-next-line:radix
                 if(indexString != null) {
                     initialBlockIndex =parseInt(indexString);
-                    Chunk.firtPass=false
                  }else {
                          // Change here the first block to display by default if the user does not input a block index in the url
 
                     initialBlockIndex= resp.index-Chain.numblocks;
                  } 
 
+                 if (resp.index - initialBlockIndex > Chain.pageSize){
+                 Chunk.firtPass=false
+                 }
             // The block index should not be smaller than 0
             if (resp.index < 0) {
                 flash.display(
