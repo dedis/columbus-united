@@ -4,6 +4,7 @@ import * as d3 from "d3";
 import { Subject } from "rxjs";
 import "uikit";
 import { Block } from "./block";
+import { Chunk } from "./chunk";
 import { Flash } from "./flash";
 import "./stylesheets/style.scss";
 import { Utils } from "./utils";
@@ -75,6 +76,7 @@ async function searchRequest(
     searchMode: string,
     block: Block
 ) {
+    Chunk.firtPass=false;
     switch (searchMode){
         case "anything":
             if (input.length < 32) {

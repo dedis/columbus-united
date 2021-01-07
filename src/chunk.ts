@@ -24,6 +24,7 @@ export class Chunk {
 
     pageSize =50;
 
+    static firtPass= true;
     roster: Roster;
     flash: Flash;
     leftNeighbor: Chunk;
@@ -70,6 +71,7 @@ export class Chunk {
     // time. Each chunk creates a ws connections because we need to have
     // different callbacks for each of them.
     ws: WebSocketAdapter;
+
 
     constructor(
         chainSubject: Subject<any>,
@@ -119,6 +121,7 @@ export class Chunk {
             .attr("class", "loader")
             .attr("transform", transform);
 
+        
         this.setSubjectBrowse();
 
         this.chainSubject.subscribe({
@@ -154,7 +157,7 @@ export class Chunk {
 
                 if (!this.isLoadingRight) {
                     this.isLoadingRight = true;
-
+                    console.log("RIGH"+ this.rightBlock.index);
                     const isLoading = this.checkAndLoadRight(
                         transform,
                         this.rightBlock,
@@ -255,8 +258,12 @@ export class Chunk {
             ) {
                 return false;
             }
-
-            const hashNextBlockRight = Utils.getRightBlockHash(lastBlockRight);
+            let hashNextBlockRight:any ;
+            try{
+            hashNextBlockRight = Utils.getRightBlockHash(lastBlockRight);
+            }catch{
+                this.flash.display(Flash.flashType.WARNING,"End of blockchain");
+            }
 
             this.loadRight(transform, gloader, hashNextBlockRight);
 
@@ -308,16 +315,31 @@ export class Chunk {
                 Chain.blockWidth / 2,
             transform.k
         );
+        console.log(Chunk.firtPass);
+            if(Chunk.firtPass){
 
         setTimeout(() => {
             this.getNextBlocks(
                 blockHash,
-                this.pageSize,
+                1, // Since we are very close to the end, we send smaller paginate requests
                 this.nbPages,
                 this.subjectBrowse,
                 false
             );
         }, 800);
+     
+    }else {
+        setTimeout(() => {
+            this.getNextBlocks(
+                blockHash,
+                this.pageSize, // Since we are very close to the end, we send smaller paginate requests
+                this.nbPages,
+                this.subjectBrowse,
+                false
+            );
+        }, 800);
+
+    }
     }
 
     /**
@@ -487,7 +509,7 @@ export class Chunk {
                 },
                 next: ([data, ws]) => {
                     if (data.errorcode != 0) {
-                        if(data.errorcode == 5){
+                        if(data.errorcode == 5 || data.errorcode == 4){
                             this.pageSize=1;
                             if (ws !== undefined) {
                                 this.ws = ws;
@@ -499,7 +521,7 @@ export class Chunk {
                                 data.backward,
                             ]);
                             return 0;
-                        }else {
+                         }else {
                         this.flash.display(
                             Flash.flashType.ERROR,
                             `got an error with code ${data.errorcode} : ${data.errortext}`
@@ -523,6 +545,7 @@ export class Chunk {
     }
 
     private loadInitial(left: number) {
+
         Utils.getBlockByIndex(this.initialBlock.hash, left, this.roster).then(
             (block: SkipBlock) => {
                 this.leftBlock = block;
@@ -612,7 +635,8 @@ export class Chunk {
                     );
 
                     this.rightBlock = skipBlocks[skipBlocks.length - 1];
-
+    
+                 
                     // tslint:disable-next-line
                     if (isLastPage) {
                         this.gloader.select(".right-loader").remove();

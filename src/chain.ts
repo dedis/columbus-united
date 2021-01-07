@@ -290,7 +290,7 @@ export class Chain {
                         }
                     }
                 }
-
+                
                 if (!alreadyHandled) {
                     const c = new Chunk(
                         subject,

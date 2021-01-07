@@ -4,6 +4,7 @@ import { SkipBlock } from "@dedis/cothority/skipchain/skipblock";
 import "uikit";
 import { Block } from "./block";
 import { Chain } from "./chain";
+import { Chunk } from "./chunk";
 import { Flash } from "./flash";
 import { LastAddedBlock } from "./lastAddedBlock";
 import { Lifecycle } from "./lifecycle";
@@ -41,8 +42,7 @@ export function sayHi() {
         return;
     }
 
-    // Change here the first block to display by default if the user does not input a block index in the url
-    console.log(Chain.numblocks);
+
     Utils.getBlock(Utils.hex2Bytes(hashBlock0), roster)
         .then((s) =>
             new SkipchainRPC(roster).getLatestBlock(s.hash, false, true)
@@ -53,10 +53,16 @@ export function sayHi() {
 
             // Change here the first block to display by default if the user does not input a block index in the url
             // The default block is #119614 because forward links from this point onwards are broken
-            let initialBlockIndex =
+            let initialBlockIndex:number;
                 // tslint:disable-next-line:radix
-                indexString != null ? parseInt(indexString) : resp.index- 8 * 
-                Chain.pageSize;
+                if(indexString != null) {
+                    initialBlockIndex =parseInt(indexString);
+                    Chunk.firtPass=false
+                 }else {
+                         // Change here the first block to display by default if the user does not input a block index in the url
+
+                    initialBlockIndex= resp.index-Chain.numblocks;
+                 } 
 
             // The block index should not be smaller than 0
             if (resp.index < 0) {
