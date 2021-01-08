@@ -67,22 +67,12 @@ export function sayHi() {
                  Chunk.firtPass=false
                  }
             // The block index should not be smaller than 0
-            if (initialBlockIndex< 0) {
+            if (resp.index < 0) {
                 flash.display(
                     Flash.flashType.ERROR,
                     "index of initial block cannot be negative, specified index is " +
                         initialBlockIndex
                 );
-            } else if (initialBlockIndex>= resp.index) {
-                flash.display(
-                    Flash.flashType.ERROR,
-                    "The chain ends at block" +
-                        resp.index
-                );
-                  // Change here the first block to display by default if the user does not input a block index in the url
-
-                  initialBlockIndex= resp.index-Chain.numblocks;
-
             }
             // Load the first block at the provided index, and start the visualization
             // once we got that block and the promise resolves

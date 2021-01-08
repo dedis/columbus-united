@@ -509,19 +509,12 @@ export class Chunk {
                 },
                 next: ([data, ws]) => {
                     if (data.errorcode != 0) {
+                        console.log(data.errorcode)
                         if(data.errorcode == 5 || data.errorcode == 4){
-                            this.pageSize=1;
-                            if (ws !== undefined) {
-                                this.ws = ws;
-                            }
-        
-                            subjectBrowse.next([
-                                data.pagenumber,
-                                data.blocks,
-                                data.backward,
-                            ]);
+                        
                             return 0;
                          }else {
+                        
                         this.flash.display(
                             Flash.flashType.ERROR,
                             `got an error with code ${data.errorcode} : ${data.errortext}`
