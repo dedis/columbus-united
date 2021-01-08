@@ -22,6 +22,8 @@ import { Utils } from "./utils";
 export class Chunk {
     readonly maxHeightBlock = 8;
 
+    pageSize =50;
+
     roster: Roster;
     flash: Flash;
     leftNeighbor: Chunk;
@@ -236,6 +238,7 @@ export class Chunk {
             Chain.blockWidth + Chain.blockPadding,
             Chain.svgWidth
         );
+        console.log(bounds);
 
         // Check if we need to load blocks on the right. (x + this.svgWidth)
         // represents the actual rightmost x coordinate on the svg canvas. +50
@@ -266,8 +269,8 @@ export class Chunk {
     loadLeft(transform: any, gloader: any, blockHash: any) {
         // In case we are reaching the beginning of the chain, we should not
         // load more blocks than available.
-        let numblocks = Chain.pageSize;
-        if (this.left - Chain.pageSize <= 0) {
+        let numblocks = this.pageSize;
+        if (this.left - this.pageSize <= 0) {
             numblocks = this.left;
         }
 
@@ -295,7 +298,7 @@ export class Chunk {
     }
 
     loadRight(transform: any, gloader: any, blockHash: string) {
-        this.right += Chain.pageSize;
+        this.right += this.pageSize;
 
         this.addLoader(
             false,
@@ -309,7 +312,7 @@ export class Chunk {
         setTimeout(() => {
             this.getNextBlocks(
                 blockHash,
-                Chain.pageSize,
+                this.pageSize,
                 this.nbPages,
                 this.subjectBrowse,
                 false
@@ -719,7 +722,7 @@ export class Chunk {
                 .append("path")
                 .attr("d", "M 0 0 L 10 5 L 0 10 z")
                 .on("click", () => {
-                    //    Utils.scrollOnChain(this.roster, skipBlockTo.hash.toString('hex'), skipBlockTo, this.initialBlock, this);
+                   Utils.translateOnChain(skipBlockTo,this.initialBlock,this.blockClickedSubject);
                     this.blockClickedSubject.next(skipBlockTo);
                 });
 
