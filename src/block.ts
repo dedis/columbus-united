@@ -208,7 +208,7 @@ export class Block {
         divDetails.attr("class", "uk-accordion-content");
 
         //ANCHOR Verifier details
-        const ulVerifier = divDetails.append("ul");
+        const ulVerifier = divDetails.append("ul"); // accordion containing all the verifiers of a block
         ulVerifier.attr("uk-accordion", "");
         const liVerifier = ulVerifier.append("li");
         const aVerifier = liVerifier.append("a");
@@ -216,7 +216,7 @@ export class Block {
             .attr("class", "uk-accordion-title")
             .text(`Verifiers : ${block.verifiers.length}`);
         const divVerifier = liVerifier.append("div");
-        divVerifier.attr("class", "uk-accordion-content");
+        divVerifier.attr("class", "uk-accordion-content"); // content on the accordion
         block.verifiers.forEach((uid, j) => {
             const verifierLine = divVerifier.append("p");
             verifierLine.text(` Verifier ${j} , ID:  `);
@@ -363,9 +363,8 @@ export class Block {
             transactionTitle
                 .html(
                     `<b>Transaction ${i}</b> ${accepted}, show ${totalInstruction} instruction` +
-                        (totalInstruction > 1 ? `s` : ``) +
-                        `:`
-                )
+                        (totalInstruction > 1 ? `s` : ``) + `:`
+                    )
                 .style("font", "Monospace")
                 .style("color", "#666")
                 .style("font-size", "1.3em");
@@ -402,7 +401,8 @@ export class Block {
                         aInstruction.text(`Invoked : ${contractName}`);
                         args = instruction.invoke.args;
                         coin_invoked =
-                            contractName == "Coin" && args.length > 1; //Blocks prior to index 45 don't implement coin in the right way unfortunately
+                            contractName == "Coin" && args.length > 1; 
+                            //Blocks prior to index 45 don't use coin in the right way unfortunately
                     } else if (instruction.type === Instruction.typeDelete) {
                         const contractName =
                             instruction.delete.contractID
@@ -438,7 +438,7 @@ export class Block {
                             const userSignature = instruction.signerIdentities
                                 .pop()
                                 .toString()
-                                .slice(8);
+                                .slice(8); //The 8 first characters are the same for all signers ID
                             const emmiterP = divInstruction
                                 .append("p")
                                 .text("Emmited by ");

@@ -167,6 +167,7 @@ export class Utils {
             .call(Chain.zoom.transform, newZoom);
 
         //Selects the target block
+        
         blockClickedSubject.next(block);
     }
 
@@ -191,6 +192,14 @@ export class Utils {
 
         return { left: Math.max(0, leftBlockIndex), right: rightBlockIndex };
     }
+
+    /**
+     * Adds a clickable squared blocky image to a d3 selection. Should used to represent 
+     * an object in the skipchain (such as an instance)
+     * @param line d3 selection
+     * @param hash seed for the blocky
+     * @param flash flash object used for the copy to clipboard notification.
+     */
     static addHashBlocky(
         line: d3.Selection<HTMLElement, unknown, HTMLElement, any>,
         hash: string,
@@ -212,6 +221,12 @@ export class Utils {
             });
     }
 
+    /**
+     * Adds a clickable rounded blocky image to a d3 selection. Should be used to represent a user.
+     * @param line d3 selection
+     * @param hash seed for the blocky
+     * @param flash flash object used for the copy to clipboard notification.
+     */
     static addIDBlocky(
         line: d3.Selection<HTMLElement, unknown, HTMLElement, any>,
         hash: string,
