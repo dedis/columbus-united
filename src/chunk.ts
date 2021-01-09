@@ -22,7 +22,7 @@ import { Utils } from "./utils";
 export class Chunk {
     readonly maxHeightBlock = 8;
 
-    pageSize =50;
+
 
     static firtPass= true;
     roster: Roster;
@@ -93,7 +93,6 @@ export class Chunk {
         this.chainSubject = chainSubject;
         this.leftNeighbor = leftNei;
         this.rightNeighbor = rightNei;
-        this.id = left;
         this.lastTransform = transform;
         this.newBlocksSubject = newBlocksSubject;
         this.blockClickedSubject = blockClickedSubject;
@@ -241,7 +240,7 @@ export class Chunk {
             Chain.blockWidth + Chain.blockPadding,
             Chain.svgWidth
         );
-        console.log(bounds);
+
 
         // Check if we need to load blocks on the right. (x + this.svgWidth)
         // represents the actual rightmost x coordinate on the svg canvas. +50
@@ -266,7 +265,7 @@ export class Chunk {
             }
 
             this.loadRight(transform, gloader, hashNextBlockRight);
-
+console.log("Load right true")
             return true;
         }
 
@@ -276,12 +275,14 @@ export class Chunk {
     loadLeft(transform: any, gloader: any, blockHash: any) {
         // In case we are reaching the beginning of the chain, we should not
         // load more blocks than available.
-        let numblocks = this.pageSize;
-        if (this.left - this.pageSize <= 0) {
+        let numblocks = Chain.pageSize;
+        if (this.left - Chain.pageSize <= 0) {
             numblocks = this.left;
         }
 
         this.left -= numblocks;
+        console.log("left "+numblocks)
+        console.log("left this.left"+this.left)
 
         this.addLoader(
             true,
@@ -305,8 +306,8 @@ export class Chunk {
     }
 
     loadRight(transform: any, gloader: any, blockHash: string) {
-        this.right += this.pageSize;
-
+        this.right += Chain.pageSize;
+        
         this.addLoader(
             false,
             gloader,
@@ -315,7 +316,7 @@ export class Chunk {
                 Chain.blockWidth / 2,
             transform.k
         );
-        console.log(Chunk.firtPass);
+      
             if(Chunk.firtPass){
 
         setTimeout(() => {
@@ -332,7 +333,7 @@ export class Chunk {
         setTimeout(() => {
             this.getNextBlocks(
                 blockHash,
-                this.pageSize, // Since we are very close to the end, we send smaller paginate requests
+                Chain.pageSize, // Since we are very close to the end, we send smaller paginate requests
                 this.nbPages,
                 this.subjectBrowse,
                 false
@@ -420,9 +421,12 @@ export class Chunk {
             if (backwards) {
                 xTranslateBlock =
                     (numblocks - 1 - i) * Chain.unitBlockAndPaddingWidth;
+                    console.log(block.index + "  display blocks   " + xTranslateBlock);
             } else {
                 xTranslateBlock =
-                    (numblocks + i) * Chain.unitBlockAndPaddingWidth;
+                    (numblocks  + i) * Chain.unitBlockAndPaddingWidth;
+                    console.log(block.index + "  numblocks " + numblocks);
+                    console.log( "  i " + i);
             }
 
             // Append the block inside the svg container
@@ -508,10 +512,19 @@ export class Chunk {
                     this.ws = undefined;
                 },
                 next: ([data, ws]) => {
+                    
                     if (data.errorcode != 0) {
-                        console.log(data.errorcode)
+                        
                         if(data.errorcode == 5 || data.errorcode == 4){
                         
+                            if (ws !== undefined) {
+                                this.ws = ws;
+                            }
+                            subjectBrowse.next([
+                                data.pagenumber,
+                                data.blocks,
+                                data.backward,
+                            ]);
                             return 0;
                          }else {
                         
@@ -525,7 +538,6 @@ export class Chunk {
                     if (ws !== undefined) {
                         this.ws = ws;
                     }
-
                     subjectBrowse.next([
                         data.pagenumber,
                         data.blocks,
@@ -538,17 +550,20 @@ export class Chunk {
     }
 
     private loadInitial(left: number) {
+    
+
 
         Utils.getBlockByIndex(this.initialBlock.hash, left, this.roster).then(
             (block: SkipBlock) => {
                 this.leftBlock = block;
                 this.rightBlock = block;
-
+                console.log(block.index);
                 if (left != 0) {
                     this.loadLeft(
                         this.lastTransform,
                         this.gloader,
                         Utils.getLeftBlockHash(block)
+                     
                     );
                 } else {
                     this.isLoadingLeft = false;
@@ -618,17 +633,23 @@ export class Chunk {
                         }
                     }
                 } else {
+                    skipBlocks.forEach((s)=>console.log(s.index));
+                    console.log(this.leftBlock.index +" " + this.rightBlock.index)
+                    let num = this.rightBlock.index;
+                    if(this.rightBlock.index< skipBlocks[0].index){
+                        num = skipBlocks[0].index;
+
+                    }
                     // Load blocks to the right
                     this.displayBlocks(
                         skipBlocks,
                         false,
                         this.gblocks,
                         this.garrow,
-                        this.rightBlock.index
+                        num
                     );
-
+                
                     this.rightBlock = skipBlocks[skipBlocks.length - 1];
-    
                  
                     // tslint:disable-next-line
                     if (isLastPage) {

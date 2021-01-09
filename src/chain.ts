@@ -81,10 +81,6 @@ export class Chain {
     // between the different calls instead of creating a new connection each time.
     ws: WebSocketAdapter;
 
-    // This subject is notified each time a new page containing new blocks has
-    // been loaded from the cothority client.
-    subjectBrowse = new Subject<[number, SkipBlock[], boolean]>();
-
     // This subject is notified each time a block is clicked.
     blockClickedSubject = new Subject<SkipBlock>();
     newBlocksSubject = new Subject<SkipBlock[]>();
@@ -292,6 +288,7 @@ export class Chain {
                 }
                 
                 if (!alreadyHandled) {
+                
                     const c = new Chunk(
                         subject,
                         initialBlock,
@@ -341,107 +338,107 @@ export class Chain {
      * @param backward false for loading blocks to the right, true for loading
      * blocks to the left
      */
-    getNextBlocks(
-        nextBlockID: string,
-        pageSize: number,
-        nbPages: number,
-        subjectBrowse: Subject<[number, SkipBlock[], boolean]>,
-        backward: boolean
-    ) {
-        let bid: Buffer;
+    // getNextBlocks(
+    //     nextBlockID: string,
+    //     pageSize: number,
+    //     nbPages: number,
+    //     subjectBrowse: Subject<[number, SkipBlock[], boolean]>,
+    //     backward: boolean
+    // ) {
+    //     let bid: Buffer;
 
-        try {
-            bid = Utils.hex2Bytes(nextBlockID);
-        } catch (error) {
-            this.flash.display(
-                Flash.flashType.ERROR,
-                `failed to parse the block ID: ${error}`
-            );
-            return;
-        }
+    //     try {
+    //         bid = Utils.hex2Bytes(nextBlockID);
+    //     } catch (error) {
+    //         this.flash.display(
+    //             Flash.flashType.ERROR,
+    //             `failed to parse the block ID: ${error}`
+    //         );
+    //         return;
+    //     }
 
-        let conn: WebSocketConnection;
-        try {
-            conn = new WebSocketConnection(
-                this.roster.list[0].getWebSocketAddress(),
-                ByzCoinRPC.serviceName
-            );
-        } catch (error) {
-            this.flash.display(
-                Flash.flashType.ERROR,
-                `error creating conn: ${error}`
-            );
-            return;
-        }
+    //     let conn: WebSocketConnection;
+    //     try {
+    //         conn = new WebSocketConnection(
+    //             this.roster.list[0].getWebSocketAddress(),
+    //             ByzCoinRPC.serviceName
+    //         );
+    //     } catch (error) {
+    //         this.flash.display(
+    //             Flash.flashType.ERROR,
+    //             `error creating conn: ${error}`
+    //         );
+    //         return;
+    //     }
 
-        if (this.ws !== undefined) {
-            const message = new PaginateRequest({
-                backward,
-                numpages: nbPages,
-                pagesize: pageSize,
-                startid: bid,
-            });
+    //     if (this.ws !== undefined) {
+    //         const message = new PaginateRequest({
+    //             backward,
+    //             numpages: nbPages,
+    //             pagesize: pageSize,
+    //             startid: bid,
+    //         });
 
-            const messageByte = Buffer.from(
-                message.$type.encode(message).finish()
-            );
-            this.ws.send(messageByte); // fetch next block
-        } else {
-            conn.sendStream<PaginateResponse>( // fetch next block
-                new PaginateRequest({
-                    backward,
-                    numpages: nbPages,
-                    pagesize: pageSize,
-                    startid: bid,
-                }),
-                PaginateResponse
-            ).subscribe({
-                // ws callback "onMessage":
-                complete: () => {
-                    this.flash.display(Flash.flashType.ERROR, "closed");
-                    this.ws = undefined;
-                },
-                error: (err: Error) => {
-                    this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
-                    this.ws = undefined;
-                },
-                next: ([data, ws]) => {
-                    // tslint:disable-next-line
-                    if (data.errorcode != 0) {
-                        if (data.errorcode != 0) {
-                            if(data.errorcode == 5){
-                                Chain.pageSize=1;
-                                if (ws !== undefined) {
-                                    this.ws = ws;
-                                }
+    //         const messageByte = Buffer.from(
+    //             message.$type.encode(message).finish()
+    //         );
+    //         this.ws.send(messageByte); // fetch next block
+    //     } else {
+    //         conn.sendStream<PaginateResponse>( // fetch next block
+    //             new PaginateRequest({
+    //                 backward,
+    //                 numpages: nbPages,
+    //                 pagesize: pageSize,
+    //                 startid: bid,
+    //             }),
+    //             PaginateResponse
+    //         ).subscribe({
+    //             // ws callback "onMessage":
+    //             complete: () => {
+    //                 this.flash.display(Flash.flashType.ERROR, "closed");
+    //                 this.ws = undefined;
+    //             },
+    //             error: (err: Error) => {
+    //                 this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
+    //                 this.ws = undefined;
+    //             },
+    //             next: ([data, ws]) => {
+    //                 // tslint:disable-next-line
+    //                 if (data.errorcode != 0) {
+    //                     if (data.errorcode != 0) {
+    //                         if(data.errorcode == 5){
+    //                             Chain.pageSize=1;
+    //                             if (ws !== undefined) {
+    //                                 this.ws = ws;
+    //                             }
             
-                                subjectBrowse.next([
-                                    data.pagenumber,
-                                    data.blocks,
-                                    data.backward,
-                                ]);
-                                return 0;
-                            }else {
-                            this.flash.display(
-                                Flash.flashType.ERROR,
-                                `got an error with code ${data.errorcode} : ${data.errortext}`
-                            );
-                            return 1;
-                            }
-                        }
-                    }
-                    if (ws !== undefined) {
-                        this.ws = ws;
-                    }
+    //                             subjectBrowse.next([
+    //                                 data.pagenumber,
+    //                                 data.blocks,
+    //                                 data.backward,
+    //                             ]);
+    //                             return 0;
+    //                         }else {
+    //                         this.flash.display(
+    //                             Flash.flashType.ERROR,
+    //                             `got an error with code ${data.errorcode} : ${data.errortext}`
+    //                         );
+    //                         return 1;
+    //                         }
+    //                     }
+    //                 }
+    //                 if (ws !== undefined) {
+    //                     this.ws = ws;
+    //                 }
 
-                    subjectBrowse.next([
-                        data.pagenumber,
-                        data.blocks,
-                        data.backward,
-                    ]);
-                    return 0;
-                },
-            });
-        }
-    }
+    //                 subjectBrowse.next([
+    //                     data.pagenumber,
+    //                     data.blocks,
+    //                     data.backward,
+    //                 ]);
+    //                 return 0;
+    //             },
+    //         });
+    //     }
+    // }
 }
