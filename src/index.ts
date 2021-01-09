@@ -67,7 +67,7 @@ export function sayHi() {
                  Chunk.firtPass=false
                  }
             // The block index should not be smaller than 0
-            if (resp.index < 0) {
+            if (initialBlockIndex< 0) {
                 flash.display(
                     Flash.flashType.ERROR,
                     "index of initial block cannot be negative, specified index is " +

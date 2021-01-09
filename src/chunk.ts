@@ -262,6 +262,8 @@ export class Chunk {
             hashNextBlockRight = Utils.getRightBlockHash(lastBlockRight);
             }catch{
                 this.flash.display(Flash.flashType.WARNING,"End of blockchain");
+                this.gloader.select(".right-loader").remove();
+
             }
 
             this.loadRight(transform, gloader, hashNextBlockRight);
