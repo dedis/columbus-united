@@ -156,7 +156,6 @@ export class Chunk {
 
                 if (!this.isLoadingRight) {
                     this.isLoadingRight = true;
-                    console.log("RIGH"+ this.rightBlock.index);
                     const isLoading = this.checkAndLoadRight(
                         transform,
                         this.rightBlock,
@@ -267,7 +266,6 @@ export class Chunk {
             }
 
             this.loadRight(transform, gloader, hashNextBlockRight);
-console.log("Load right true")
             return true;
         }
 
@@ -283,8 +281,7 @@ console.log("Load right true")
         }
 
         this.left -= numblocks;
-        console.log("left "+numblocks)
-        console.log("left this.left"+this.left)
+      
 
         this.addLoader(
             true,
@@ -423,12 +420,11 @@ console.log("Load right true")
             if (backwards) {
                 xTranslateBlock =
                     (numblocks - 1 - i) * Chain.unitBlockAndPaddingWidth;
-                    console.log(block.index + "  display blocks   " + xTranslateBlock);
+                  
             } else {
                 xTranslateBlock =
                     (numblocks  + i) * Chain.unitBlockAndPaddingWidth;
-                    console.log(block.index + "  numblocks " + numblocks);
-                    console.log( "  i " + i);
+               
             }
 
             // Append the block inside the svg container
@@ -559,7 +555,7 @@ console.log("Load right true")
             (block: SkipBlock) => {
                 this.leftBlock = block;
                 this.rightBlock = block;
-                console.log(block.index);
+                
                 if (left != 0) {
                     this.loadLeft(
                         this.lastTransform,
@@ -610,6 +606,8 @@ console.log("Load right true")
                 }
 
                 if (backward) {
+
+                    console.log("load left")
                     // Load blocks to the left
                     this.displayBlocks(
                         skipBlocks,
@@ -618,6 +616,7 @@ console.log("Load right true")
                         this.garrow,
                         this.leftBlock.index
                     );
+                  skipBlocks.forEach((x)=> console.log("list "+ x.index));
 
                     this.leftBlock = skipBlocks[skipBlocks.length - 1];
 
@@ -635,8 +634,7 @@ console.log("Load right true")
                         }
                     }
                 } else {
-                    skipBlocks.forEach((s)=>console.log(s.index));
-                    console.log(this.leftBlock.index +" " + this.rightBlock.index)
+               
                     let num = this.rightBlock.index;
                     if(this.rightBlock.index< skipBlocks[0].index){
                         num = skipBlocks[0].index;
