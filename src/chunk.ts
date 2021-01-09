@@ -24,7 +24,7 @@ export class Chunk {
 
 
 
-    static firtPass= true;
+    static firstPass= true;
     roster: Roster;
     flash: Flash;
     leftNeighbor: Chunk;
@@ -156,6 +156,7 @@ export class Chunk {
 
                 if (!this.isLoadingRight) {
                     this.isLoadingRight = true;
+                    console.log("RIGH"+ this.rightBlock.index);
                     const isLoading = this.checkAndLoadRight(
                         transform,
                         this.rightBlock,
@@ -266,6 +267,7 @@ export class Chunk {
             }
 
             this.loadRight(transform, gloader, hashNextBlockRight);
+console.log("Load right true")
             return true;
         }
 
@@ -281,7 +283,8 @@ export class Chunk {
         }
 
         this.left -= numblocks;
-      
+        console.log("left "+numblocks)
+        console.log("left this.left"+this.left)
 
         this.addLoader(
             true,
@@ -316,7 +319,7 @@ export class Chunk {
             transform.k
         );
       
-            if(Chunk.firtPass){
+            if(Chunk.firstPass){
 
         setTimeout(() => {
             this.getNextBlocks(
@@ -420,11 +423,12 @@ export class Chunk {
             if (backwards) {
                 xTranslateBlock =
                     (numblocks - 1 - i) * Chain.unitBlockAndPaddingWidth;
-                  
+                    console.log(block.index + "  display blocks   " + xTranslateBlock);
             } else {
                 xTranslateBlock =
                     (numblocks  + i) * Chain.unitBlockAndPaddingWidth;
-               
+                    console.log(block.index + "  numblocks " + numblocks);
+                    console.log( "  i " + i);
             }
 
             // Append the block inside the svg container
@@ -555,7 +559,7 @@ export class Chunk {
             (block: SkipBlock) => {
                 this.leftBlock = block;
                 this.rightBlock = block;
-                
+                console.log(block.index);
                 if (left != 0) {
                     this.loadLeft(
                         this.lastTransform,
@@ -606,8 +610,6 @@ export class Chunk {
                 }
 
                 if (backward) {
-
-                    console.log("load left")
                     // Load blocks to the left
                     this.displayBlocks(
                         skipBlocks,
@@ -616,7 +618,6 @@ export class Chunk {
                         this.garrow,
                         this.leftBlock.index
                     );
-                  skipBlocks.forEach((x)=> console.log("list "+ x.index));
 
                     this.leftBlock = skipBlocks[skipBlocks.length - 1];
 
@@ -634,7 +635,8 @@ export class Chunk {
                         }
                     }
                 } else {
-               
+                    skipBlocks.forEach((s)=>console.log(s.index));
+                    console.log(this.leftBlock.index +" " + this.rightBlock.index)
                     let num = this.rightBlock.index;
                     if(this.rightBlock.index< skipBlocks[0].index){
                         num = skipBlocks[0].index;

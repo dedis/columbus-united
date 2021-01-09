@@ -76,7 +76,8 @@ async function searchRequest(
     searchMode: string,
     block: Block
 ) {
-    Chunk.firtPass=false;
+    Chunk.firstPass=false;
+    
     switch (searchMode){
         case "anything":
             if (input.length < 32) {

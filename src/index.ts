@@ -6,7 +6,6 @@ import { Block } from "./block";
 import { Chain } from "./chain";
 import { Chunk } from "./chunk";
 import { Flash } from "./flash";
-import { LastAddedBlock } from "./lastAddedBlock";
 import { Lifecycle } from "./lifecycle";
 import { getRosterStr } from "./roster";
 import { searchBar } from "./search";
@@ -14,7 +13,7 @@ import "./stylesheets/style.scss";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
 
-// This is the genesis block, which is also the skipchain identifier
+// This is the genesis block, which is also the Skipchain identifier
 const hashBlock0 =
     "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
 // The roster configuration, parsed as a string
@@ -26,12 +25,15 @@ const rosterStr = getRosterStr();
  *
  * @author Anthony Iozzia <anthony.iozzia@epfl.ch>
  * @author Julien von Felten <julien.vonfelten@epfl.ch>
+ * @author Sophia Artioli <sophia.artioli@epfl.ch>
+ * @author Lucas Trognon <lucas.trognon@epfl.ch>
  * @author Noémien Kocher <noemien.kocher@epfl.ch>
  *
  * @export
  * @returns : only in case of an error
  */
 export function sayHi() {
+
     // Create the roster
     const roster = Roster.fromTOML(rosterStr);
 
@@ -41,7 +43,6 @@ export function sayHi() {
         flash.display(Flash.flashType.ERROR, "Roster is undefined");
         return;
     }
-
 
     Utils.getBlock(Utils.hex2Bytes(hashBlock0), roster)
         .then((s) =>
@@ -53,21 +54,21 @@ export function sayHi() {
 
             // Change here the first block to display by default if the user does not input a block index in the url
             // The default block is #119614 because forward links from this point onwards are broken
-            let initialBlockIndex:number;
+            let initialBlockIndex: number;
                 // tslint:disable-next-line:radix
-                if(indexString != null) {
-                    initialBlockIndex =parseInt(indexString);
-                 }else {
-                         // Change here the first block to display by default if the user does not input a block index in the url
+            if (indexString != null) {
+                    initialBlockIndex = parseInt(indexString, 10);
+                 } else {
+                // Change here the first block to display by default if the user does not input a block index in the url
 
-                    initialBlockIndex= resp.index-Chain.numblocks;
-                 } 
+                    initialBlockIndex = resp.index - Chain.numBlocks;
+                 }
 
-                 if (resp.index - initialBlockIndex > Chain.pageSize){
-                 Chunk.firtPass=false
+            if (resp.index - initialBlockIndex > Chain.pageSize) {
+                 Chunk.firstPass = false;
                  }
             // The block index should not be smaller than 0
-            if (initialBlockIndex< 0) {
+            if (initialBlockIndex < 0) {
                 flash.display(
                     Flash.flashType.ERROR,
                     "index of initial block cannot be negative, specified index is " +
