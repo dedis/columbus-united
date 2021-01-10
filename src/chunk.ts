@@ -1,6 +1,4 @@
-// A chunk is an autonomous part of the chain that will update itself when the
-// user drags to one of its edge. It will checks its neighbor and try not to
-// load blocks that would overlap.
+
 import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
 import {
     PaginateRequest,
@@ -19,51 +17,74 @@ import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Utils } from "./utils";
 
+/**
+ * A chunk is an autonomous part of the chain that will update itself when the
+ * user drags to one of its edge. It will checks its neighbor and try not to
+ * load blocks that would overlap.
+ *
+ * @author Noémien Kocher (noémien.kocher@epfl.ch)
+ * @author Sophia Artioli (sophia.artioli@epfl.ch)
+ */
 export class Chunk {
+
+    // Set to true when it is the first time loading blocks
+    static firstPass = true;
+
     readonly maxHeightBlock = 8;
 
-
-
-    static firstPass= true;
+    // Blockchain properties
     roster: Roster;
     flash: Flash;
+
+    // Left adjacent neighbour of the Chunk
     leftNeighbor: Chunk;
+    // Right adjacent neighbour of the Chunk
     rightNeighbor: Chunk;
+
+    // First block loaded of the chunk
     initialBlock: SkipBlock;
 
+    // Left-most block of the Chunk
     leftBlock: SkipBlock;
+    // Right-most block of the Chunk
     rightBlock: SkipBlock;
 
+    // svg container for the blocks
     gblocks: any;
+    // svg container for the arrows between blocks
     garrow: any;
+    // container that for the left and right loaders
+    gloader: d3.Selection<SVGElement, {}, HTMLElement, any>;
 
     // Those are the perimeter, set before blocks are loaded
     left: number;
     right: number;
 
+    // Paginate request page number
     nbPages = 1;
 
-    isLoadingLeft = true; // the first load will then set them to false
+    // Indicator to know if blocks should be loaded to the right or/and to the left
+    // The first load will then set them to false
+    isLoadingLeft = true;
     isLoadingRight = true;
-
-    // this subject is called when new blocks are loaded
-    subjectBrowse = new Subject<[number, SkipBlock[], boolean]>();
-    newBlocksSubject: Subject<SkipBlock[]>;
-    blockClickedSubject: Subject<SkipBlock>;
-
     loadedFirst = false;
+
+    // This subject is called when new blocks are loaded
+    subjectBrowse = new Subject<[number, SkipBlock[], boolean]>();
+    // This subject is called when new blocks are added to the view
+    newBlocksSubject: Subject<SkipBlock[]>;
+    // This subject is called when a block is clicked on.
+    blockClickedSubject: Subject<SkipBlock>;
 
     // This subject is called when the user zoom/drag the chain
     chainSubject: Subject<any>;
 
+    // The coordinates of the view.
     lastTransform = { x: 0, y: 0, k: 1 };
 
-    id: number; // for debug purpose, to identity chunks
-
-    // container that contains the left and right loaders
-    gloader: d3.Selection<SVGElement, {}, HTMLElement, any>;
-
+    // The number of total loaded blocks on the chains
     totalLoaded: number;
+    // The container for the total loaded number.
     readonly loadedInfo = document.getElementById("loaded-blocks");
 
     // The websocket used to talk to the blockchain. We keep it to re-use it
@@ -71,7 +92,6 @@ export class Chunk {
     // time. Each chunk creates a ws connections because we need to have
     // different callbacks for each of them.
     ws: WebSocketAdapter;
-
 
     constructor(
         chainSubject: Subject<any>,
@@ -87,22 +107,26 @@ export class Chunk {
         flash: Flash,
         ws: WebSocketAdapter,
         gblocks: any,
-        garrow:any
+        garrow: any
     ) {
-        this.totalLoaded = 0;
+        this.roster = roster;
+        this.flash = flash;
+        this.totalLoaded = 0; // Initilize to 0
+
         this.chainSubject = chainSubject;
-        this.leftNeighbor = leftNei;
-        this.rightNeighbor = rightNei;
-        this.lastTransform = transform;
         this.newBlocksSubject = newBlocksSubject;
         this.blockClickedSubject = blockClickedSubject;
-        this.ws = ws;
+
+        this.leftNeighbor = leftNei;
+        this.rightNeighbor = rightNei;
         this.initialBlock = initialBlock;
+
+        this.lastTransform = transform;
+
         this.garrow = garrow;
         this.gblocks = gblocks;
 
-        this.roster = roster;
-        this.flash = flash;
+        this.ws = ws;
 
         this.left = left;
         this.right = right;
@@ -111,16 +135,16 @@ export class Chunk {
             this.lastTransform = transform;
         });
 
+        // The svg container for the chain
         const svg = d3.select("#svg-container");
 
-        // this group will contain the left and right loaders that display a
+        // This group will contain the left and right loaders that display a
         // spinner when new blocks are being added
         this.gloader = svg
             .append("g")
             .attr("class", "loader")
             .attr("transform", transform);
 
-        
         this.setSubjectBrowse();
 
         this.chainSubject.subscribe({
@@ -156,7 +180,6 @@ export class Chunk {
 
                 if (!this.isLoadingRight) {
                     this.isLoadingRight = true;
-                    console.log("RIGH"+ this.rightBlock.index);
                     const isLoading = this.checkAndLoadRight(
                         transform,
                         this.rightBlock,
@@ -169,6 +192,7 @@ export class Chunk {
             },
         });
 
+        // Load first blocks of the Chunk
         this.loadInitial(left);
     }
 
@@ -241,7 +265,6 @@ export class Chunk {
             Chain.svgWidth
         );
 
-
         // Check if we need to load blocks on the right. (x + this.svgWidth)
         // represents the actual rightmost x coordinate on the svg canvas. +50
         // is to allow a margin before loading a new block, because we want to
@@ -257,17 +280,16 @@ export class Chunk {
             ) {
                 return false;
             }
-            let hashNextBlockRight:any ;
-            try{
+            let hashNextBlockRight: any ;
+            try {
             hashNextBlockRight = Utils.getRightBlockHash(lastBlockRight);
-            }catch{
-                this.flash.display(Flash.flashType.WARNING,"End of blockchain");
+            } catch {
+                this.flash.display(Flash.flashType.WARNING, "End of blockchain");
                 this.gloader.select(".right-loader").remove();
 
             }
 
             this.loadRight(transform, gloader, hashNextBlockRight);
-console.log("Load right true")
             return true;
         }
 
@@ -283,14 +305,12 @@ console.log("Load right true")
         }
 
         this.left -= numblocks;
-        console.log("left "+numblocks)
-        console.log("left this.left"+this.left)
 
         this.addLoader(
             true,
             gloader,
 
-            this.leftBlock.index * Chain.unitBlockAndPaddingWidth +
+            (this.leftBlock.index - 1) * Chain.unitBlockAndPaddingWidth +
                 Chain.blockPadding +
                 Chain.blockWidth / 2,
             transform.k
@@ -309,17 +329,17 @@ console.log("Load right true")
 
     loadRight(transform: any, gloader: any, blockHash: string) {
         this.right += Chain.pageSize;
-        
+
         this.addLoader(
             false,
             gloader,
-            this.rightBlock.index * Chain.unitBlockAndPaddingWidth +
+            (this.rightBlock.index + 1) * Chain.unitBlockAndPaddingWidth +
                 Chain.blockPadding +
                 Chain.blockWidth / 2,
             transform.k
         );
-      
-            if(Chunk.firstPass){
+
+        if (Chunk.firstPass) {
 
         setTimeout(() => {
             this.getNextBlocks(
@@ -330,8 +350,8 @@ console.log("Load right true")
                 false
             );
         }, 800);
-     
-    }else {
+
+    } else {
         setTimeout(() => {
             this.getNextBlocks(
                 blockHash,
@@ -414,27 +434,26 @@ console.log("Load right true")
         // gcircle: any,
         numblocks: number
     ) {
+
         // Iterate over the blocks to append them
-        // tslint:disable-next-line
         for (let i = 0; i < listBlocks.length; ++i) {
             const block = listBlocks[i];
 
             let xTranslateBlock: number;
             if (backwards) {
+                // Blocks are appended to the left
                 xTranslateBlock =
                     (numblocks - 1 - i) * Chain.unitBlockAndPaddingWidth;
-                    console.log(block.index + "  display blocks   " + xTranslateBlock);
             } else {
+                // Blocks are appended to the right
                 xTranslateBlock =
                     (numblocks  + i) * Chain.unitBlockAndPaddingWidth;
-                    console.log(block.index + "  numblocks " + numblocks);
-                    console.log( "  i " + i);
             }
 
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
+            // Append arrows between blocks
             this.getToAndFromIndexes(xTranslateBlock, block, garrow);
-
             // this.appendCircleInBlock(xTranslateBlock, gcircle);
         }
 
@@ -514,11 +533,11 @@ console.log("Load right true")
                     this.ws = undefined;
                 },
                 next: ([data, ws]) => {
-                    
-                    if (data.errorcode != 0) {
-                        
-                        if(data.errorcode == 5 || data.errorcode == 4){
-                        
+
+                    if (data.errorcode !== 0) {
+
+                        if (data.errorcode === 5 || data.errorcode === 4) {
+
                             if (ws !== undefined) {
                                 this.ws = ws;
                             }
@@ -528,8 +547,8 @@ console.log("Load right true")
                                 data.backward,
                             ]);
                             return 0;
-                         }else {
-                        
+                         } else {
+
                         this.flash.display(
                             Flash.flashType.ERROR,
                             `got an error with code ${data.errorcode} : ${data.errortext}`
@@ -551,21 +570,24 @@ console.log("Load right true")
         }
     }
 
+    /**
+     * Helper function: sets up the fist request to load blocks on the chain.
+     *@param left the left-most block index of the chunk
+     */
     private loadInitial(left: number) {
-    
 
-
+        // Fetch the block
         Utils.getBlockByIndex(this.initialBlock.hash, left, this.roster).then(
             (block: SkipBlock) => {
                 this.leftBlock = block;
                 this.rightBlock = block;
-                console.log(block.index);
-                if (left != 0) {
+                if (left !== 0) {
+                    // left is not the first block of the chain
                     this.loadLeft(
                         this.lastTransform,
                         this.gloader,
-                        Utils.getLeftBlockHash(block)
-                     
+                        Utils.getLeftBlockHash(block) // Fetch blocks smaller than left index
+
                     );
                 } else {
                     this.isLoadingLeft = false;
@@ -574,12 +596,15 @@ console.log("Load right true")
                 this.loadRight(
                     this.lastTransform,
                     this.gloader,
-                    Utils.bytes2String(block.hash)
+                    Utils.bytes2String(block.hash) // Fetch block from left index and higher
                 );
             }
         );
     }
 
+    /**
+     * @private Helper function to define methods of the subjectBrowse subject
+     */
     private setSubjectBrowse() {
         this.subjectBrowse.subscribe({
             complete: () => {
@@ -635,10 +660,10 @@ console.log("Load right true")
                         }
                     }
                 } else {
-                    skipBlocks.forEach((s)=>console.log(s.index));
-                    console.log(this.leftBlock.index +" " + this.rightBlock.index)
+                    skipBlocks.forEach((s) => console.log(s.index));
+                    console.log(this.leftBlock.index + " " + this.rightBlock.index);
                     let num = this.rightBlock.index;
-                    if(this.rightBlock.index< skipBlocks[0].index){
+                    if (this.rightBlock.index < skipBlocks[0].index) {
                         num = skipBlocks[0].index;
 
                     }
@@ -650,9 +675,9 @@ console.log("Load right true")
                         this.garrow,
                         num
                     );
-                
+
                     this.rightBlock = skipBlocks[skipBlocks.length - 1];
-                 
+
                     // tslint:disable-next-line
                     if (isLastPage) {
                         this.gloader.select(".right-loader").remove();
@@ -696,10 +721,10 @@ console.log("Load right true")
                 this.blockClickedSubject.next(block);
                 window.location.hash = `index:${block.index}`;
             })
-            .on("mouseover", function () {
+            .on("mouseover", function() {
                 d3.select(this).style("cursor", "pointer");
             })
-            .on("mouseout", function () {
+            .on("mouseout", function() {
                 d3.select(this).style("cursor", "default");
             });
     }
@@ -750,9 +775,9 @@ console.log("Load right true")
                     "y2",
                     Chain.axisPadding +
                         Chain.svgHeight / this.maxHeightBlock +
-                        height * (Chain.svgHeight / this.maxHeightBlock) 
+                        height * (Chain.svgHeight / this.maxHeightBlock)
                 )
-             
+
                 .attr("marker-end", "url(#triangle)")
                 .attr("stroke-width", 1.5)
                 .attr("stroke", "#A0A0A0")
@@ -776,35 +801,35 @@ console.log("Load right true")
                 .append("path")
                 .attr("d", "M 0 0 L 10 5 L 0 10 z")
                 .on("click", () => {
-                   Utils.translateOnChain(skipBlockTo,this.initialBlock,this.blockClickedSubject);
-                    this.blockClickedSubject.next(skipBlockTo);
+                   Utils.translateOnChain(skipBlockTo, this.initialBlock, this.blockClickedSubject);
+                   this.blockClickedSubject.next(skipBlockTo);
                 });
-                
+
             // FIXME can't change the colour of the svg markers like this. Only option I see
             // is to create anover triangle and witch when needed
-                triangle.on("mouseover",
-                    function () {
+            triangle.on("mouseover",
+                    function() {
                         d3.select(this).style("stroke", "var(--selected-colour");
                         triangle.attr("stroke", "var(--selected-colour");
-                   
+
                 });
-                line.on("mouseover",
-                    function () {
+            line.on("mouseover",
+                    function() {
                         d3.select(this).style("stroke", "var(--selected-colour");
                         triangle.attr("stroke", "var(--selected-colour");
-                   
+
                 });
-                triangle.on("mouseout", () => {
+            triangle.on("mouseout", () => {
                     line.style("stroke", "#A0A0A0");
                     triangle.style("stroke", "#A0A0A0");
-                   
+
                 });
-                line.on("mouseout", () => {
+            line.on("mouseout", () => {
                     line.style("stroke", "#A0A0A0");
                     triangle.style("stroke", "#A0A0A0");
                     triangle.style("fill", "#A0A0A0");
                 });
-            
+
         }
     }
     /**
@@ -823,14 +848,14 @@ console.log("Load right true")
             Utils.getBlock(
                 skipBlockTo.backlinks[i],
                 this.roster
-            ).then((skipBlockFrom)=>{
+            ).then((skipBlockFrom) => {
                 this.appendArrows(
                     xTranslate,
                     skipBlockFrom,
                     skipBlockTo,
                     svgBlocks,
                     i
-            );})
+            ); });
 
         }
     }

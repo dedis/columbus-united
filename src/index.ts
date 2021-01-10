@@ -43,7 +43,7 @@ export function sayHi() {
         flash.display(Flash.flashType.ERROR, "Roster is undefined");
         return;
     }
-
+console.log("HIIIII");
     Utils.getBlock(Utils.hex2Bytes(hashBlock0), roster)
         .then((s) =>
             new SkipchainRPC(roster).getLatestBlock(s.hash, false, true)
