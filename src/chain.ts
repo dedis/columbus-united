@@ -43,7 +43,7 @@ export class Chain {
             Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
 
     // Recommended pageSize / nbPages: 80 / 50
-    static readonly pageSize = 50;
+    static pageSize = 50;
     static readonly nbPages = 1;
 
     // The coordinate transformation on the chain.

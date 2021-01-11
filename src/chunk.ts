@@ -303,6 +303,7 @@ export class Chunk {
         let numblocks = Chain.pageSize;
         if (this.left - Chain.pageSize <= 0) {
             numblocks = this.left;
+
         }
 
         this.left -= numblocks;
@@ -329,7 +330,15 @@ export class Chunk {
     }
 
     loadRight(transform: any, gloader: any, blockHash: string) {
-        this.right += Chain.pageSize;
+
+        // In case we are reaching the end of the chain, we should not
+        // load more blocks than available.
+        let numblocks = Chain.pageSize;
+        if (this.right + Chain.pageSize > 136693) {
+            numblocks = 1;
+        }
+
+        this.right += numblocks;
 
         this.addLoader(
             false,
@@ -340,31 +349,31 @@ export class Chunk {
             transform.k
         );
 
-        if (Chunk.firstPass) {
-            // First time requesting blocks
-            // In the case we are less than a page size away from the end of the chain
+    //     if (Chunk.firstPass) {
+    //         // First time requesting blocks
+    //         // In the case we are less than a page size away from the end of the chain
 
+    //     setTimeout(() => {
+    //         this.getNextBlocks(
+    //             blockHash,
+    //             1, // Since we are very close to the end, we send smaller paginate requests
+    //             this.nbPages,
+    //             this.subjectBrowse,
+    //             false
+    //         );
+    //     }, 800);
+
+    // } else {
         setTimeout(() => {
             this.getNextBlocks(
                 blockHash,
-                1, // Since we are very close to the end, we send smaller paginate requests
+                numblocks,
                 this.nbPages,
                 this.subjectBrowse,
                 false
             );
         }, 800);
-
-    } else {
-        setTimeout(() => {
-            this.getNextBlocks(
-                blockHash,
-                Chain.pageSize,
-                this.nbPages,
-                this.subjectBrowse,
-                false
-            );
-        }, 800);
-    }
+    // }
     }
 
     /**
@@ -537,19 +546,15 @@ export class Chunk {
                     this.ws = undefined;
                 },
                 next: ([data, ws]) => {
+                   
 
                     if (data.errorcode != 0) {
 
                         if (data.errorcode == 5 || data.errorcode == 4) {
-
                             if (ws != undefined) {
                                 this.ws = ws;
                             }
-                            subjectBrowse.next([
-                                data.pagenumber,
-                                data.blocks,
-                                data.backward,
-                            ]);
+                    
                             return 0;
                          } else {
 
@@ -675,19 +680,22 @@ export class Chunk {
                    // Load blocks to the right
 
                     let num = this.rightBlock.index;
-                    if (this.rightBlock.index < skipBlocks[0].index) {
+                    if (skipBlocks[0]== undefined){
+                        this.isLoadingRight =false;
+                    }else{
+                    if (this.rightBlock.index != skipBlocks[0].index) {
                         // Update the first block to load to the right
                         num = skipBlocks[0].index;
-
                     }
 
-                    this.displayBlocks(
-                        skipBlocks,
-                        false,
-                        this.gblocks,
-                        this.garrow,
-                        num
-                    );
+          
+                  this.displayBlocks(
+                    skipBlocks,
+                    false,
+                    this.gblocks,
+                    this.garrow,
+                    num
+                );
                     // Right-most block
                     this.rightBlock = skipBlocks[skipBlocks.length - 1];
 
@@ -705,9 +713,10 @@ export class Chunk {
                         }
                     }
                 }
+                
 
                 this.loadedFirst = true;
-            },
+             } },
         });
     }
 
