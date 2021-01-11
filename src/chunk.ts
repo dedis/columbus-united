@@ -249,8 +249,8 @@ export class Chunk {
      * necessary.
      * @param transform the transform object that contain the x,y,k
      * transformations
-     * @param lastBlockLeft the last block loaded to the right
-     * @param gloader the svg container that should welcome the loader
+     * @param lastBlockRight right-most block
+     * @param gloader the svg container for the loader
      * @returns a boolean that tells if a request to load new blocks has been
      * sent
      */
@@ -284,9 +284,9 @@ export class Chunk {
             try {
             hashNextBlockRight = Utils.getRightBlockHash(lastBlockRight);
             } catch {
+                // If no forward links exist, it is the last block of the chain
                 this.flash.display(Flash.flashType.WARNING, "End of blockchain");
                 this.gloader.select(".right-loader").remove();
-
             }
 
             this.loadRight(transform, gloader, hashNextBlockRight);
@@ -297,6 +297,7 @@ export class Chunk {
     }
 
     loadLeft(transform: any, gloader: any, blockHash: any) {
+
         // In case we are reaching the beginning of the chain, we should not
         // load more blocks than available.
         let numblocks = Chain.pageSize;
@@ -340,6 +341,8 @@ export class Chunk {
         );
 
         if (Chunk.firstPass) {
+            // First time requesting blocks
+            // In the case we are less than a page size away from the end of the chain
 
         setTimeout(() => {
             this.getNextBlocks(
@@ -355,21 +358,22 @@ export class Chunk {
         setTimeout(() => {
             this.getNextBlocks(
                 blockHash,
-                Chain.pageSize, // Since we are very close to the end, we send smaller paginate requests
+                Chain.pageSize,
                 this.nbPages,
                 this.subjectBrowse,
                 false
             );
         }, 800);
-
     }
     }
 
     /**
      * Create a loader.
      * @param backwards true for a left loader, false for a right loader
-     * @param zoomLevel zoom of the blocks (needed to compute the position of
-     *                  the loader)
+     * @param gloader the svg container for the loaders
+     * @param xPos the horizontal position
+     * @param k the scale level
+     *
      */
     addLoader(backwards: boolean, gloader: any, xPos: number, k: number) {
         let className = "right-loader";
@@ -502,7 +506,7 @@ export class Chunk {
             return;
         }
 
-        if (this.ws !== undefined) {
+        if (this.ws != undefined) {
             const message = new PaginateRequest({
                 backward,
                 numpages: nbPages,
@@ -534,11 +538,11 @@ export class Chunk {
                 },
                 next: ([data, ws]) => {
 
-                    if (data.errorcode !== 0) {
+                    if (data.errorcode != 0) {
 
-                        if (data.errorcode === 5 || data.errorcode === 4) {
+                        if (data.errorcode == 5 || data.errorcode == 4) {
 
-                            if (ws !== undefined) {
+                            if (ws != undefined) {
                                 this.ws = ws;
                             }
                             subjectBrowse.next([
@@ -556,7 +560,7 @@ export class Chunk {
                         return 1;
                         }
                     }
-                    if (ws !== undefined) {
+                    if (ws != undefined) {
                         this.ws = ws;
                     }
                     subjectBrowse.next([
@@ -572,7 +576,8 @@ export class Chunk {
 
     /**
      * Helper function: sets up the fist request to load blocks on the chain.
-     *@param left the left-most block index of the chunk
+     * @param left the left-most block index of the chunk
+     * @private
      */
     private loadInitial(left: number) {
 
@@ -581,7 +586,7 @@ export class Chunk {
             (block: SkipBlock) => {
                 this.leftBlock = block;
                 this.rightBlock = block;
-                if (left !== 0) {
+                if (left != 0) {
                     // left is not the first block of the chain
                     this.loadLeft(
                         this.lastTransform,
@@ -614,22 +619,29 @@ export class Chunk {
                 );
             },
             error: (err: any) => {
-                if (err === 1) {
+                if (err == 1) {
                     // To reset the websocket, create a new handler for the next
                     // function (of getNextBlock)
                     this.ws = undefined;
                 } else {
                     this.flash.display(Flash.flashType.ERROR, `Error: ${err}`);
                 }
+                // Stop loading the blocks
                 this.isLoadingLeft = false;
                 this.isLoadingRight = false;
             },
+            /**
+             * Displaying blocks on the chain once blocks are fetched from the cothority client
+             * @param i page number
+             * @param skipBlocks list of blocks to display
+             * @param backward true to append blocks to the left, false to append to the right
+             */
             next: ([i, skipBlocks, backward]) => {
-                // i is the page number
+
                 this.totalLoaded += skipBlocks.length;
                 this.loadedInfo.innerText = `${this.totalLoaded}`;
                 let isLastPage = false;
-                // tslint:disable-next-line
+
                 if (i == this.nbPages - 1) {
                     isLastPage = true;
                 }
@@ -660,14 +672,15 @@ export class Chunk {
                         }
                     }
                 } else {
-                    skipBlocks.forEach((s) => console.log(s.index));
-                    console.log(this.leftBlock.index + " " + this.rightBlock.index);
+                   // Load blocks to the right
+
                     let num = this.rightBlock.index;
                     if (this.rightBlock.index < skipBlocks[0].index) {
+                        // Update the first block to load to the right
                         num = skipBlocks[0].index;
 
                     }
-                    // Load blocks to the right
+
                     this.displayBlocks(
                         skipBlocks,
                         false,
@@ -675,10 +688,9 @@ export class Chunk {
                         this.garrow,
                         num
                     );
-
+                    // Right-most block
                     this.rightBlock = skipBlocks[skipBlocks.length - 1];
 
-                    // tslint:disable-next-line
                     if (isLastPage) {
                         this.gloader.select(".right-loader").remove();
 
@@ -704,18 +716,21 @@ export class Chunk {
      * the subscriber list.
      * @param xTranslate horizontal position where the block should be appended
      * @param block the block to append
+     * @param svgBlocks the svg container for the blocks
      */
     private appendBlock(xTranslate: number, block: SkipBlock, svgBlocks: any) {
         svgBlocks
             .append("rect")
             .attr("id", Utils.bytes2String(block.hash))
             .attr("width", Chain.blockWidth)
+            // Heights are described by level
+            // (Chain.svgHeight / this.maxHeightBlock) is the height a level to fit the chain height
             .attr(
                 "height",
                 block.height * (Chain.svgHeight / this.maxHeightBlock)
             )
             .attr("x", xTranslate)
-            .attr("y", 20)
+            .attr("y", 20) // Blocks are appended below the axis
             .attr("fill", Chain.getBlockColor(block))
             .on("click", () => {
                 this.blockClickedSubject.next(block);
@@ -746,6 +761,7 @@ export class Chunk {
         height: number
     ) {
         if (skipBlockTo.index - skipBlockFrom.index == 1) {
+            // Consecutive blocks
             const line = svgBlocks.append("line");
             line
                 .attr("x1", xTrans)
@@ -755,21 +771,23 @@ export class Chunk {
                 .attr("stroke-width", 2)
                 .attr("stroke", "#808080");
         } else {
+            // Blocks that are minimum two indexes away
             const line = svgBlocks.append("line");
+
+            // Starting point of the arrow: Right side of the block
             line.attr(
                 "x1",
                 xTrans -
                     (skipBlockTo.index - skipBlockFrom.index) *
                         (Chain.blockWidth + Chain.blockPadding) +
                     Chain.blockWidth
-            )
+            ) // Arrows are appended to each height level
                 .attr(
                     "y1",
                     Chain.axisPadding +
                         Chain.svgHeight / this.maxHeightBlock +
                         height * (Chain.svgHeight / this.maxHeightBlock)
-                )
-
+                ) // Ending point of the arrow: left-side of the block
                 .attr("x2", xTrans - Chain.blockPadding + 2)
                 .attr(
                     "y2",
@@ -777,10 +795,10 @@ export class Chunk {
                         Chain.svgHeight / this.maxHeightBlock +
                         height * (Chain.svgHeight / this.maxHeightBlock)
                 )
-
                 .attr("marker-end", "url(#triangle)")
                 .attr("stroke-width", 1.5)
                 .attr("stroke", "#A0A0A0")
+                // Enables translation to the block the arrow is pointing to
                 .on("click", () => {
                     Utils.translateOnChain(
                         skipBlockTo,
@@ -789,6 +807,7 @@ export class Chunk {
                     );
                 });
 
+            // Triangle end of the arrow
             const triangle = svgBlocks.append("svg:defs").append("svg:marker");
             triangle
                 .attr("id", "triangle")
@@ -805,8 +824,7 @@ export class Chunk {
                    this.blockClickedSubject.next(skipBlockTo);
                 });
 
-            // FIXME can't change the colour of the svg markers like this. Only option I see
-            // is to create anover triangle and witch when needed
+            // Arrows change color on hover
             triangle.on("mouseover",
                     function() {
                         d3.select(this).style("stroke", "var(--selected-colour");
@@ -844,9 +862,10 @@ export class Chunk {
         skipBlockTo: SkipBlock,
         svgBlocks: any
     ) {
+        // Iterate through all blocks
         for (let i = 0; i < skipBlockTo.backlinks.length; i++) {
             Utils.getBlock(
-                skipBlockTo.backlinks[i],
+                skipBlockTo.backlinks[i], // Get all blocks that point to skipBlockTo
                 this.roster
             ).then((skipBlockFrom) => {
                 this.appendArrows(
@@ -863,20 +882,18 @@ export class Chunk {
     /**
      * Helper for displayBlocks: appends a text element in a block.
      * @param xTranslate horizontal position where the text should be displayed
-     * @param textIndex index of the text in the block
-     * @param text text to display
-     * @param textColor color of the text
+     * @param gcircle the svg container for the circles
      * @author Sophia Artioli <sophia.artioli@epfl.ch>
      */
-    private appendCircleInBlock(xTranslate: number, gtext: any) {
-        gtext
+    private appendCircleInBlock(xTranslate: number, gcircle: any) {
+        gcircle
             .append("circle")
             .attr("cx", xTranslate + 35)
             .attr("cy", 40)
             .attr("r", 6)
             .attr("fill", "#b3ffb3");
 
-        gtext
+        gcircle
             .append("circle")
             .attr("cx", xTranslate + Chain.blockWidth - 35)
             .attr("cy", 40)
