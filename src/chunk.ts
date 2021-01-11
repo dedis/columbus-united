@@ -874,7 +874,7 @@ export class Chunk {
                     skipBlockTo,
                     svgBlocks,
                     i
-            ); });
+            ); }).catch((e) => { this.flash.display((Flash.flashType.INFO), "Start of the blockchain"); });
 
         }
     }
