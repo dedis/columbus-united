@@ -14,7 +14,6 @@ import { Utils } from "./utils";
  * The core class that builds the chain.
  */
 export class Chain {
-
     // Getter for the subject that is notified when a block is clicked on.
     get getBlockClickedSubject(): Subject<SkipBlock> {
         return this.blockClickedSubject;
@@ -40,7 +39,7 @@ export class Chain {
     // The number of block the window can display at normal scale. Used to
     // define the domain the xScale
     static readonly numBlocks =
-            Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
+        Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
 
     // Recommended pageSize / nbPages: 80 / 50
     static pageSize = 50;
@@ -97,7 +96,6 @@ export class Chain {
     lastTransform = { x: 0, y: 0, k: 1 };
 
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
-
         // Blockchain properties
         this.roster = roster;
         this.flash = flash;
@@ -194,10 +192,17 @@ export class Chain {
                 // Standard transformation on the text since we need to keep the
                 // original scale
                 // gcircle.selectAll("circle").attr("transform", transformString);
-
             },
         });
 
+        // Initialize the last added block of the chain.
+        const lastAddedBlock = new LastAddedBlock(
+            roster,
+            flash,
+            initialBlock,
+            this.blockClickedSubject
+        );
+        
         subject.pipe(debounceTime(50)).subscribe({
             next: (transform: any) => {
                 const bounds = Utils.transformToIndexes(
@@ -280,10 +285,11 @@ export class Chain {
                 }
 
                 if (!alreadyHandled) {
-                // A new Chunk is created,
+                    // A new Chunk is created,
                     const c = new Chunk(
                         subject,
                         initialBlock,
+                        lastAddedBlock,
                         leftNei,
                         rightNei,
                         bounds.left + (bounds.right - bounds.left) / 2,
@@ -311,14 +317,5 @@ export class Chain {
                 }
             },
         });
-
-        // Initialize the last added block of the chain.
-        new LastAddedBlock(
-            roster,
-            flash,
-            initialBlock,
-            this.blockClickedSubject
-        );
     }
-
 }

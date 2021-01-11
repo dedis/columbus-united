@@ -40,8 +40,9 @@ export class LastAddedBlock {
             .attr("height", this.svgHeight);
 
        // We fetch the last block
-        new SkipchainRPC(roster).getLatestBlock(initialBlock.hash, false, true).then(
-        (resp) => {this.displayLastAddedBlock(resp, svgLast, resp.hash, blockClickedSubject);
+       new SkipchainRPC(roster).getLatestBlock(initialBlock.hash, false, true).then(
+        (resp) => {this.lastBlock=resp;
+            this.displayLastAddedBlock(resp, svgLast, resp.hash, blockClickedSubject);
            // blockClickedSubject.next(resp);
         }
     );

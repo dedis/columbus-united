@@ -15,6 +15,7 @@ import { Subject } from "rxjs";
 import { debounceTime } from "rxjs/operators";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
+import { LastAddedBlock } from "./lastAddedBlock";
 import { Utils } from "./utils";
 
 /**
@@ -43,6 +44,9 @@ export class Chunk {
 
     // First block loaded of the chunk
     initialBlock: SkipBlock;
+
+    // Last added block of the chain
+    lastAddedBlock:SkipBlock;
 
     // Left-most block of the Chunk
     leftBlock: SkipBlock;
@@ -96,6 +100,7 @@ export class Chunk {
     constructor(
         chainSubject: Subject<any>,
         initialBlock: SkipBlock,
+        lastAddedBlock:LastAddedBlock,
         leftNei: Chunk,
         rightNei: Chunk,
         left: number,
@@ -120,6 +125,7 @@ export class Chunk {
         this.leftNeighbor = leftNei;
         this.rightNeighbor = rightNei;
         this.initialBlock = initialBlock;
+        this.lastAddedBlock= lastAddedBlock.lastBlock;
 
         this.lastTransform = transform;
 
@@ -334,7 +340,7 @@ export class Chunk {
         // In case we are reaching the end of the chain, we should not
         // load more blocks than available.
         let numblocks = Chain.pageSize;
-        if (this.right + Chain.pageSize > 136693) {
+        if (this.right + Chain.pageSize >= this.lastAddedBlock.index) {
             numblocks = 1;
         }
 
