@@ -874,7 +874,11 @@ export class Chunk {
                     skipBlockTo,
                     svgBlocks,
                     i
-            ); }).catch((e) => { this.flash.display((Flash.flashType.INFO), "Start of the blockchain"); });
+            ); }).catch((e) => {}
+            // Catch error and do nothing
+            // Specifically for block 0 that contains a backward link to block -1
+            // for other blocks it is handled else where
+            );
 
         }
     }

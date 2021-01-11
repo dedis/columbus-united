@@ -2,16 +2,11 @@ import { DataBody } from "@dedis/cothority/byzcoin/proto";
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
-import { Subject } from "rxjs";
-
-import * as d3 from "d3";
-
 import * as blockies from "blockies-ts";
-import { map } from "rxjs/operators";
-
+import * as d3 from "d3";
+import { Subject } from "rxjs";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
-import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
 
 /**
@@ -45,8 +40,8 @@ export class LastAddedBlock {
             .attr("height", this.svgHeight);
 
        // We fetch the last block
-       new SkipchainRPC(roster).getLatestBlock(initialBlock.hash, false, true).then(
-        (resp) => {this.displayLastAddedBlock(resp,svgLast,resp.hash,blockClickedSubject);
+        new SkipchainRPC(roster).getLatestBlock(initialBlock.hash, false, true).then(
+        (resp) => {this.displayLastAddedBlock(resp, svgLast, resp.hash, blockClickedSubject);
            // blockClickedSubject.next(resp);
         }
     );
@@ -195,8 +190,9 @@ export class LastAddedBlock {
         hashLast: Buffer,
         blockClickedSubject: Subject<SkipBlock>
     ) {
-        svgLast
-            .append("rect")
+        const rect =  svgLast
+            .append("rect");
+        rect
             .attr("id", hashLast.toString("hex"))
             .attr("width", this.lastBlockWidth)
             .attr("height", this.lastBlockHeight)
@@ -208,10 +204,10 @@ export class LastAddedBlock {
                 // tslint:disable-next-line:no-unused-expression
                 blockClickedSubject.next(lastBlock);
             })
-            .on("mouseover", function () {
+            .on("mouseover", function() {
                 d3.select(this).style("cursor", "pointer");
             })
-            .on("mouseout", function () {
+            .on("mouseout", function() {
                 d3.select(this).style("cursor", "default");
             });
 
