@@ -285,7 +285,7 @@ export class Chunk {
             hashNextBlockRight = Utils.getRightBlockHash(lastBlockRight);
             } catch {
                 // If no forward links exist, it is the last block of the chain
-                this.flash.display(Flash.flashType.WARNING, "End of blockchain");
+                this.flash.display(Flash.flashType.INFO, "End of blockchain");
                 this.gloader.select(".right-loader").remove();
             }
 
