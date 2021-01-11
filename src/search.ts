@@ -51,7 +51,6 @@ export function searchBar(
 
     // The submit button is pressed
     d3.select("#submit-button").on("click", async () => {
-
         // Text inputted by the user in the search-bar
         const input = d3.select("#search-input").property("value");
         // Mode selected by the user in the drop-down menu
@@ -79,9 +78,14 @@ export function searchBar(
  * @param initialBlock the first block displayed by the chain
  * @param blockClickedSubject the subject that is notified when a block is clicked
  */
-async function indexSearch(hashBlock0: string, input: any, roster: Roster, flash: Flash, initialBlock: SkipBlock,
-                           blockClickedSubject: Subject<SkipBlock>) {
-
+async function indexSearch(
+    hashBlock0: string,
+    input: any,
+    roster: Roster,
+    flash: Flash,
+    initialBlock: SkipBlock,
+    blockClickedSubject: Subject<SkipBlock>
+) {
     try {
         const block = await Utils.getBlockByIndex(
             Utils.hex2Bytes(hashBlock0),
@@ -92,11 +96,7 @@ async function indexSearch(hashBlock0: string, input: any, roster: Roster, flash
             Flash.flashType.INFO,
             "Valid search for block index: " + block.index.toString()
         );
-        await Utils.translateOnChain(
-            block,
-            initialBlock,
-            blockClickedSubject
-        );
+        await Utils.translateOnChain(block, initialBlock, blockClickedSubject);
         blockClickedSubject.next(block);
     } catch (error) {
         flash.display(Flash.flashType.ERROR, "Block does not exist");
@@ -124,16 +124,19 @@ async function searchRequest(
     searchMode: string,
     block: Block
 ) {
-    // Searching for a block disables the fact that it is the first load of blocks
-    Chunk.firstPass = false;
-
     switch (searchMode) {
-
         case "anything":
             if (input.length < 32) {
-                await indexSearch(hashBlock0, input, roster, flash, initialBlock, blockClickedSubject);
-            } else { // The input is in the form of a hash
-
+                await indexSearch(
+                    hashBlock0,
+                    input,
+                    roster,
+                    flash,
+                    initialBlock,
+                    blockClickedSubject
+                );
+            } else {
+                // The input is in the form of a hash
                 try {
                     const block = await Utils.getBlock(
                         Buffer.from(input, "hex"),
@@ -142,7 +145,8 @@ async function searchRequest(
 
                     flash.display(
                         Flash.flashType.INFO,
-                        "Valid search for block index: " + block.index.toString()
+                        "Valid search for block index: " +
+                            block.index.toString()
                     );
                     await Utils.translateOnChain(
                         block,
@@ -163,11 +167,16 @@ async function searchRequest(
             break;
 
         case "index":
-
-            await indexSearch(hashBlock0, input, roster, flash, initialBlock, blockClickedSubject);
+            await indexSearch(
+                hashBlock0,
+                input,
+                roster,
+                flash,
+                initialBlock,
+                blockClickedSubject
+            );
             break;
         case "hash":
-
             try {
                 const block = await Utils.getBlock(
                     Buffer.from(input, "hex"),
@@ -185,9 +194,7 @@ async function searchRequest(
                 );
                 blockClickedSubject.next(block);
             } catch (error) {
-                flash.display(
-                    Flash.flashType.ERROR,
-                    `Block does not exist`);
+                flash.display(Flash.flashType.ERROR, `Block does not exist`);
             }
             break;
 
@@ -198,7 +205,5 @@ async function searchRequest(
             );
             block.launchQuery(50, input.toString());
             break;
-
     }
-
 }

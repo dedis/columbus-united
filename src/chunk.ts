@@ -28,9 +28,6 @@ import { Utils } from "./utils";
  */
 export class Chunk {
 
-    // Set to true when it is the first time loading blocks
-    static firstPass = true;
-
     readonly maxHeightBlock = 8;
 
     // Blockchain properties

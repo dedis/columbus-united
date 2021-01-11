@@ -33,7 +33,6 @@ const rosterStr = getRosterStr();
  * @returns : only in case of an error
  */
 export function sayHi() {
-
     // Create the roster
     const roster = Roster.fromTOML(rosterStr);
 
@@ -45,10 +44,11 @@ export function sayHi() {
     }
 
     Utils.getBlock(Utils.hex2Bytes(hashBlock0), roster)
-        .then((s) =>  // skipBlock of the genesis block
-            new SkipchainRPC(roster).getLatestBlock(s.hash, false, true)
-        )
-        .then((resp) => { // skipBlock of the last added block of the chain
+        .then((
+            s // skipBlock of the genesis block
+        ) => new SkipchainRPC(roster).getLatestBlock(s.hash, false, true))
+        .then((resp) => {
+            // skipBlock of the last added block of the chain
 
             const indexString = window.location.hash.split(":")[1];
 
@@ -56,18 +56,12 @@ export function sayHi() {
 
             if (indexString != null) {
                 // The user does not input a block index
-                    initialBlockIndex = parseInt(indexString, 10);
-
-                 } else {
+                initialBlockIndex = parseInt(indexString, 10);
+            } else {
                 // Change here the first block to display by default if the user does not input a block index in the url
                 initialBlockIndex = resp.index - Chain.numBlocks;
-                 }
+            }
 
-            if (resp.index - initialBlockIndex > Chain.pageSize) {
-                // The requested blocks are more than a pageSize away from the end of the chain
-                // PageSize is 50
-                 Chunk.firstPass = false;
-                 }
             // The block index should not be smaller than 0
             if (initialBlockIndex < 0) {
                 flash.display(
@@ -81,7 +75,7 @@ export function sayHi() {
                 flash.display(
                     Flash.flashType.ERROR,
                     "index of initial block cannot be higher than the last added block of the chain, specified index is " +
-                    initialBlockIndex
+                        initialBlockIndex
                 );
                 // Set initial index at last added block of the chain
                 initialBlockIndex = resp.index - Chain.numBlocks;
