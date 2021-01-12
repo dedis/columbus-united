@@ -469,7 +469,7 @@ export class Chunk {
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
             // Append arrows between blocks
-            this.getToAndFromIndexes(xTranslateBlock, block, garrow);
+           // this.getToAndFromIndexes(xTranslateBlock, block, garrow);
             // this.appendCircleInBlock(xTranslateBlock, gcircle);
         }
 
@@ -553,7 +553,7 @@ export class Chunk {
 
                     if (data.errorcode != 0) {
 
-                        if (data.errorcode == 5 || data.errorcode == 4) {
+                        if (data.errorcode == 5 ) {
                             if (ws != undefined) {
                                 this.ws = ws;
                             }
@@ -886,7 +886,10 @@ export class Chunk {
                     skipBlockTo,
                     svgBlocks,
                     i
-            ); }).catch((e) => {}
+            ); }).catch((e) => {
+
+
+            }
             // Catch error and do nothing
             // Specifically for block 0 that contains a backward link to block -1
             // for other blocks it is handled else where

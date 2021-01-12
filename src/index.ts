@@ -43,23 +43,19 @@ export function sayHi() {
         return;
     }
 
-    Utils.getBlock(Utils.hex2Bytes(hashBlock0), roster)
-        .then((
-            s // skipBlock of the genesis block
-        ) => new SkipchainRPC(roster).getLatestBlock(s.hash, false, true))
-        .then((resp) => {
+    const scRPC = new SkipchainRPC(roster);
+    let initialBlockIndex: number;
+    new SkipchainRPC(roster).getLatestBlock(Utils.hex2Bytes(hashBlock0), false, true).then(
+        (last)=>{
             // skipBlock of the last added block of the chain
-
             const indexString = window.location.hash.split(":")[1];
-
-            let initialBlockIndex: number;
 
             if (indexString != null) {
                 // The user does not input a block index
                 initialBlockIndex = parseInt(indexString, 10);
             } else {
                 // Change here the first block to display by default if the user does not input a block index in the url
-                initialBlockIndex = resp.index - Chain.numBlocks;
+                initialBlockIndex = last.index - Chain.numBlocks;
             }
 
             // The block index should not be smaller than 0
@@ -71,48 +67,107 @@ export function sayHi() {
                 );
             }
 
-            if (initialBlockIndex > resp.index) {
+            if (initialBlockIndex > last.index) {
                 flash.display(
                     Flash.flashType.ERROR,
                     "index of initial block cannot be higher than the last added block of the chain, specified index is " +
                         initialBlockIndex
-                );
+                );     
                 // Set initial index at last added block of the chain
-                initialBlockIndex = resp.index - Chain.numBlocks;
+                initialBlockIndex = last.index - Chain.numBlocks;
             }
+        }).then((last)=>{
 
-            // Load the first block at the provided index, and start the visualization
-            // once we got that block and the promise resolves
-            const scRPC = new SkipchainRPC(roster);
             scRPC
-                .getSkipBlockByIndex(
-                    Utils.hex2Bytes(hashBlock0),
-                    initialBlockIndex
-                )
-                .then(
-                    (blockReply) => {
-                        scRPC
-                            .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), 0)
-                            .then((genesis) => {
-                                startColumbus(
-                                    genesis.skipblock,
-                                    blockReply.skipblock,
-                                    roster,
-                                    flash
-                                );
-                            });
-                    },
-                    (e) => {
-                        flash.display(
-                            Flash.flashType.ERROR,
-                            "Unable to find initial block with index " +
-                                initialBlockIndex +
-                                ": " +
-                                e
-                        );
-                    }
+            .getSkipBlockByIndex(
+                Utils.hex2Bytes(hashBlock0),
+                0
+            ).then((genesis)=>{
+            scRPC
+            .getSkipBlockByIndex(
+                Utils.hex2Bytes(hashBlock0),
+                initialBlockIndex
+            ).then((initialBlock)=> {
+                startColumbus(
+                    genesis.skipblock,
+                    initialBlock.skipblock,
+                    roster,
+                    flash
                 );
-        });
+            });
+
+
+            });
+
+        })
+  
+    
+    // Utils.getBlock(Utils.hex2Bytes(hashBlock0), roster)
+    //     .then((s) =>
+    //         new SkipchainRPC(roster).getLatestBlock(s.hash, false, true)
+    //     )
+    //     .then((resp) => {
+    //         // skipBlock of the last added block of the chain
+    //         const indexString = window.location.hash.split(":")[1];
+
+    //         let initialBlockIndex: number;
+
+    //         if (indexString != null) {
+    //             // The user does not input a block index
+    //             initialBlockIndex = parseInt(indexString, 10);
+    //         } else {
+    //             // Change here the first block to display by default if the user does not input a block index in the url
+    //             initialBlockIndex = resp.index - Chain.numBlocks;
+    //         }
+
+    //         // The block index should not be smaller than 0
+    //         if (initialBlockIndex < 0) {
+    //             flash.display(
+    //                 Flash.flashType.ERROR,
+    //                 "index of initial block cannot be negative, specified index is " +
+    //                     initialBlockIndex
+    //             );
+    //         }
+
+    //         if (initialBlockIndex > resp.index) {
+    //             flash.display(
+    //                 Flash.flashType.ERROR,
+    //                 "index of initial block cannot be higher than the last added block of the chain, specified index is " +
+    //                     initialBlockIndex
+    //             );
+    //             // Set initial index at last added block of the chain
+    //             initialBlockIndex = resp.index - Chain.numBlocks;
+    //         }
+
+    //         // Load the first block at the provided index, and start the visualization
+    //         // once we got that block and the promise resolves
+    //         const scRPC = new SkipchainRPC(roster);
+    //         scRPC
+    //             .getSkipBlockByIndex(
+    //                 Utils.hex2Bytes(hashBlock0),
+    //                 initialBlockIndex
+    //             )
+    //             .then(
+    //                 (blockReply) => {
+    //                             startColumbus(
+    //                                 s,
+    //                                 blockReply.skipblock,
+    //                                 roster,
+    //                                 flash
+    //                             );
+    //                         });
+    //                 },
+    //                 (e) => {
+    //                     flash.display(
+    //                         Flash.flashType.ERROR,
+    //                         "Unable to find initial block with index " +
+    //                             initialBlockIndex +
+    //                             ": " +
+    //                             e
+    //                     );
+    //                 }
+    //             );
+    //     });
 }
 
 /**

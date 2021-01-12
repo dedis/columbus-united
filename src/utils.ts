@@ -68,7 +68,11 @@ export class Utils {
             new SkipchainRPC(roster)
                 .getSkipBlock(hash)
                 .then((skipblock) => resolve(skipblock))
-                .catch((e) => reject(e));
+                .catch((e) =>
+                 {
+                     console.log("dksnld");
+                    reject(e) 
+                 });
         });
     }
 
@@ -89,7 +93,12 @@ export class Utils {
             new SkipchainRPC(roster)
                 .getSkipBlockByIndex(genesis, index)
                 .then((skipblock) => resolve(skipblock.skipblock))
-                .catch((e) => reject(e));
+                .catch((e) =>{
+                    console.log("dksnldHI");
+                    reject(e)}
+                
+                
+                );
         });
     }
 

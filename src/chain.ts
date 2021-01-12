@@ -1,6 +1,6 @@
 import { DataBody } from "@dedis/cothority/byzcoin/proto";
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
-import { SkipBlock } from "@dedis/cothority/skipchain";
+import { SkipBlock, SkipchainRPC } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
 import { debounceTime } from "rxjs/operators";
@@ -42,7 +42,7 @@ export class Chain {
         Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
 
     // Recommended pageSize / nbPages: 80 / 50
-    static pageSize = 50;
+    static pageSize = 1;
     static readonly nbPages = 1;
 
     // The coordinate transformation on the chain.
