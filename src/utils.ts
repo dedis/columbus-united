@@ -70,7 +70,7 @@ export class Utils {
                 .then((skipblock) => resolve(skipblock))
                 .catch((e) =>
                  {
-                     console.log("dksnld");
+                     console.log(hash);
                     reject(e) 
                  });
         });
@@ -94,9 +94,9 @@ export class Utils {
                 .getSkipBlockByIndex(genesis, index)
                 .then((skipblock) => resolve(skipblock.skipblock))
                 .catch((e) =>{
-                    console.log("dksnldHI");
+                    console.log(index);
                     reject(e)}
-                
+             
                 
                 );
         });

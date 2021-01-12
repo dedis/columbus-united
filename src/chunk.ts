@@ -553,7 +553,7 @@ export class Chunk {
 
                     if (data.errorcode != 0) {
 
-                        if (data.errorcode == 5 ) {
+                        if (data.errorcode == 5 || data.errorcode == 4 ) {
                             if (ws != undefined) {
                                 this.ws = ws;
                             }
