@@ -469,7 +469,7 @@ export class Chunk {
             // Append the block inside the svg container
             this.appendBlock(xTranslateBlock, block, gblocks);
             // Append arrows between blocks
-           // this.getToAndFromIndexes(xTranslateBlock, block, garrow);
+            this.getToAndFromIndexes(xTranslateBlock, block, garrow);
             // this.appendCircleInBlock(xTranslateBlock, gcircle);
         }
 

@@ -4,7 +4,6 @@ import { SkipBlock } from "@dedis/cothority/skipchain/skipblock";
 import "uikit";
 import { Block } from "./block";
 import { Chain } from "./chain";
-import { Chunk } from "./chunk";
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
 import { getRosterStr } from "./roster";
@@ -33,6 +32,7 @@ const rosterStr = getRosterStr();
  * @returns : only in case of an error
  */
 export function sayHi() {
+
     // Create the roster
     const roster = Roster.fromTOML(rosterStr);
 
@@ -46,48 +46,50 @@ export function sayHi() {
     const scRPC = new SkipchainRPC(roster);
     let initialBlockIndex: number;
     new SkipchainRPC(roster).getLatestBlock(Utils.hex2Bytes(hashBlock0), false, true).then(
-        (last)=>{
-            // skipBlock of the last added block of the chain
+        (last) => {    // skipBlock of the last added block of the chain
+
+            // Url input form the user
             const indexString = window.location.hash.split(":")[1];
 
             if (indexString != null) {
                 // The user does not input a block index
                 initialBlockIndex = parseInt(indexString, 10);
             } else {
-                // Change here the first block to display by default if the user does not input a block index in the url
+                // The user does not input a block index in the url
+                // Change here the first block to display by default
                 initialBlockIndex = last.index - Chain.numBlocks;
             }
 
             // The block index should not be smaller than 0
             if (initialBlockIndex < 0) {
+
                 flash.display(
                     Flash.flashType.ERROR,
                     "index of initial block cannot be negative, specified index is " +
                         initialBlockIndex
                 );
             }
-
+            // The block index shhould not be highher than the last added block
             if (initialBlockIndex > last.index) {
                 flash.display(
                     Flash.flashType.ERROR,
                     "index of initial block cannot be higher than the last added block of the chain, specified index is " +
                         initialBlockIndex
-                );     
+                );
                 // Set initial index at last added block of the chain
                 initialBlockIndex = last.index - Chain.numBlocks;
             }
-        }).then((last)=>{
-
+        }).then(() => {
             scRPC
             .getSkipBlockByIndex(
                 Utils.hex2Bytes(hashBlock0),
                 0
-            ).then((genesis)=>{
+            ).then((genesis) => {
             scRPC
             .getSkipBlockByIndex(
                 Utils.hex2Bytes(hashBlock0),
                 initialBlockIndex
-            ).then((initialBlock)=> {
+            ).then((initialBlock) => {
                 startColumbus(
                     genesis.skipblock,
                     initialBlock.skipblock,
@@ -96,78 +98,9 @@ export function sayHi() {
                 );
             });
 
-
             });
 
-        })
-  
-    
-    // Utils.getBlock(Utils.hex2Bytes(hashBlock0), roster)
-    //     .then((s) =>
-    //         new SkipchainRPC(roster).getLatestBlock(s.hash, false, true)
-    //     )
-    //     .then((resp) => {
-    //         // skipBlock of the last added block of the chain
-    //         const indexString = window.location.hash.split(":")[1];
-
-    //         let initialBlockIndex: number;
-
-    //         if (indexString != null) {
-    //             // The user does not input a block index
-    //             initialBlockIndex = parseInt(indexString, 10);
-    //         } else {
-    //             // Change here the first block to display by default if the user does not input a block index in the url
-    //             initialBlockIndex = resp.index - Chain.numBlocks;
-    //         }
-
-    //         // The block index should not be smaller than 0
-    //         if (initialBlockIndex < 0) {
-    //             flash.display(
-    //                 Flash.flashType.ERROR,
-    //                 "index of initial block cannot be negative, specified index is " +
-    //                     initialBlockIndex
-    //             );
-    //         }
-
-    //         if (initialBlockIndex > resp.index) {
-    //             flash.display(
-    //                 Flash.flashType.ERROR,
-    //                 "index of initial block cannot be higher than the last added block of the chain, specified index is " +
-    //                     initialBlockIndex
-    //             );
-    //             // Set initial index at last added block of the chain
-    //             initialBlockIndex = resp.index - Chain.numBlocks;
-    //         }
-
-    //         // Load the first block at the provided index, and start the visualization
-    //         // once we got that block and the promise resolves
-    //         const scRPC = new SkipchainRPC(roster);
-    //         scRPC
-    //             .getSkipBlockByIndex(
-    //                 Utils.hex2Bytes(hashBlock0),
-    //                 initialBlockIndex
-    //             )
-    //             .then(
-    //                 (blockReply) => {
-    //                             startColumbus(
-    //                                 s,
-    //                                 blockReply.skipblock,
-    //                                 roster,
-    //                                 flash
-    //                             );
-    //                         });
-    //                 },
-    //                 (e) => {
-    //                     flash.display(
-    //                         Flash.flashType.ERROR,
-    //                         "Unable to find initial block with index " +
-    //                             initialBlockIndex +
-    //                             ": " +
-    //                             e
-    //                     );
-    //                 }
-    //             );
-    //     });
+        });
 }
 
 /**
@@ -184,7 +117,7 @@ export function startColumbus(
     roster: Roster,
     flash: Flash
 ) {
-    // The chain is loaded at block 0 and then moved to the desired place.
+    // The chain is loaded at block 0 and then moved to the desired place
     const chain = new Chain(roster, flash, genesisBlock);
 
     // The translation is started to trigger the load
