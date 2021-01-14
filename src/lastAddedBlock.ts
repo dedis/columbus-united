@@ -192,9 +192,8 @@ export class LastAddedBlock {
         hashLast: Buffer,
         blockClickedSubject: Subject<SkipBlock>
     ) {
-        const rect =  svgLast
-            .append("rect");
-        rect
+        svgLast
+            .append("rect")
             .attr("id", hashLast.toString("hex"))
             .attr("width", this.lastBlockWidth)
             .attr("height", this.lastBlockHeight)
