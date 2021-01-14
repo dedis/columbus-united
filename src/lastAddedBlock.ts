@@ -44,8 +44,7 @@ export class LastAddedBlock {
        getLatestBlock(initialBlock.hash, false, true).then(
         (resp) => {this.lastBlock = resp;
                    this.displayLastAddedBlock(resp, svgLast, resp.hash, blockClickedSubject);
-                   // Show last block information on load
-                   blockClickedSubject.next(resp);
+
         }
     );
     }
