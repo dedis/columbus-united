@@ -21,9 +21,6 @@ const rosterStr = getRosterStr();
 /**
  *
  * Main file that creates the different objects and subjects.
- *
- * @author Anthony Iozzia <anthony.iozzia@epfl.ch>
- * @author Julien von Felten <julien.vonfelten@epfl.ch>
  * @author Sophia Artioli <sophia.artioli@epfl.ch>
  * @author Lucas Trognon <lucas.trognon@epfl.ch>
  * @author Noémien Kocher <noemien.kocher@epfl.ch>
@@ -48,7 +45,7 @@ export function sayHi() {
     new SkipchainRPC(roster).getLatestBlock(Utils.hex2Bytes(hashBlock0), false, true).then(
         (last) => {    // skipBlock of the last added block of the chain
 
-            // Url input form the user
+            // Url input from the user
             const indexString = window.location.hash.split(":")[1];
 
             if (indexString != null) {
@@ -56,7 +53,7 @@ export function sayHi() {
                 initialBlockIndex = parseInt(indexString, 10);
             } else {
                 // The user does not input a block index in the url
-                // Change here the first block to display by default
+                // Display the correct amount of blocks to fit the end of the chain
                 initialBlockIndex = last.index - Chain.numBlocks;
             }
 

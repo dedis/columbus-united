@@ -70,7 +70,7 @@ export class Utils {
                 .then((skipblock) => resolve(skipblock))
                 .catch((e) =>
                  {
-                     console.log(hash);
+
                     reject(e) 
                  });
         });

@@ -43,7 +43,7 @@ export class Chunk {
     initialBlock: SkipBlock;
 
     // Last added block of the chain
-    lastAddedBlock:SkipBlock;
+    lastAddedBlock: SkipBlock;
 
     // Left-most block of the Chunk
     leftBlock: SkipBlock;
@@ -64,7 +64,7 @@ export class Chunk {
     // Paginate request page number
     nbPages = 1;
 
-    // Indicator to know if blocks should be loaded to the right or/and to the left
+    // Indicators to know if blocks should be loaded to the right or/and to the left
     // The first load will then set them to false
     isLoadingLeft = true;
     isLoadingRight = true;
@@ -97,7 +97,7 @@ export class Chunk {
     constructor(
         chainSubject: Subject<any>,
         initialBlock: SkipBlock,
-        lastAddedBlock:LastAddedBlock,
+        lastAddedBlock: LastAddedBlock,
         leftNei: Chunk,
         rightNei: Chunk,
         left: number,
@@ -122,7 +122,7 @@ export class Chunk {
         this.leftNeighbor = leftNei;
         this.rightNeighbor = rightNei;
         this.initialBlock = initialBlock;
-        this.lastAddedBlock= lastAddedBlock.lastBlock;
+        this.lastAddedBlock = lastAddedBlock.lastBlock;
 
         this.lastTransform = transform;
 
@@ -276,11 +276,12 @@ export class Chunk {
             this.rightBlock.index < bounds.right &&
             this.rightBlock.index + 2 >= bounds.left
         ) {
-            // check if our neighbor has not already loaded the blocks
+
             if (
                 this.rightNeighbor !== undefined &&
                 this.rightNeighbor.left < this.right
             ) {
+                // The neighbor has not already loaded the blocks
                 return false;
             }
             let hashNextBlockRight: any ;
@@ -352,21 +353,6 @@ export class Chunk {
             transform.k
         );
 
-    //     if (Chunk.firstPass) {
-    //         // First time requesting blocks
-    //         // In the case we are less than a page size away from the end of the chain
-
-    //     setTimeout(() => {
-    //         this.getNextBlocks(
-    //             blockHash,
-    //             1, // Since we are very close to the end, we send smaller paginate requests
-    //             this.nbPages,
-    //             this.subjectBrowse,
-    //             false
-    //         );
-    //     }, 800);
-
-    // } else {
         setTimeout(() => {
             this.getNextBlocks(
                 blockHash,
@@ -549,15 +535,14 @@ export class Chunk {
                     this.ws = undefined;
                 },
                 next: ([data, ws]) => {
-                   
 
                     if (data.errorcode != 0) {
-
                         if (data.errorcode == 5 || data.errorcode == 4 ) {
+                            // Reaching the end of the chain
                             if (ws != undefined) {
                                 this.ws = ws;
                             }
-                    
+                            // Continue to load blocks
                             return 0;
                          } else {
 
@@ -589,7 +574,7 @@ export class Chunk {
      */
     private loadInitial(left: number) {
 
-        // Fetch the block
+        // Fetch the initial block
         Utils.getBlockByIndex(this.initialBlock.hash, left, this.roster).then(
             (block: SkipBlock) => {
                 this.leftBlock = block;
@@ -683,16 +668,16 @@ export class Chunk {
                    // Load blocks to the right
 
                     let num = this.rightBlock.index;
-                    if (skipBlocks[0]== undefined){
-                        this.isLoadingRight =false;
-                    }else{
+                    if (skipBlocks[0] == undefined) {
+                        // No more skipblocks can be requested from the client
+                        this.isLoadingRight = false;
+                    } else {
                     if (this.rightBlock.index != skipBlocks[0].index) {
                         // Update the first block to load to the right
                         num = skipBlocks[0].index;
                     }
 
-          
-                  this.displayBlocks(
+                    this.displayBlocks(
                     skipBlocks,
                     false,
                     this.gblocks,
@@ -716,9 +701,7 @@ export class Chunk {
                         }
                     }
                 }
-                
-
-                this.loadedFirst = true;
+                    this.loadedFirst = true;
              } },
         });
     }
@@ -741,7 +724,7 @@ export class Chunk {
                 "height",
                 block.height * (Chain.svgHeight / this.maxHeightBlock)
             )
-            .attr("x", xTranslate)
+            .attr("x", xTranslate) // The blocks are appended following the transform of the chain
             .attr("y", 20) // Blocks are appended below the axis
             .attr("fill", Chain.getBlockColor(block))
             .on("click", () => {
@@ -785,21 +768,20 @@ export class Chunk {
         } else {
             // Blocks that are minimum two indexes away
             const line = svgBlocks.append("line");
-
-            // Starting point of the arrow: Right side of the block
+            // Starting point of the arrow: Right edge of the block
             line.attr(
                 "x1",
                 xTrans -
                     (skipBlockTo.index - skipBlockFrom.index) *
                         (Chain.blockWidth + Chain.blockPadding) +
                     Chain.blockWidth
-            ) // Arrows are appended to each height level
+            ) // Arrows are appended to each level of height
                 .attr(
                     "y1",
                     Chain.axisPadding +
                         Chain.svgHeight / this.maxHeightBlock +
                         height * (Chain.svgHeight / this.maxHeightBlock)
-                ) // Ending point of the arrow: left-side of the block
+                ) // Ending point of the arrow: left-edge of the block
                 .attr("x2", xTrans - Chain.blockPadding + 2)
                 .attr(
                     "y2",
@@ -887,12 +869,10 @@ export class Chunk {
                     svgBlocks,
                     i
             ); }).catch((e) => {
-
-
+                    // Catches an error due the backward link of block 0 that points to block -1
+                    console.error("Fetching backward link of block 0 to block -1 " + e.toString());
             }
-            // Catch error and do nothing
-            // Specifically for block 0 that contains a backward link to block -1
-            // for other blocks it is handled else where
+
             );
 
         }

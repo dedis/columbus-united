@@ -1,6 +1,6 @@
 import { DataBody } from "@dedis/cothority/byzcoin/proto";
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
-import { SkipBlock, SkipchainRPC } from "@dedis/cothority/skipchain";
+import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
 import { debounceTime } from "rxjs/operators";
@@ -10,8 +10,9 @@ import { LastAddedBlock } from "./lastAddedBlock";
 import { Utils } from "./utils";
 
 /**
- * @author Sophia Artioli (sophia.artioli@epfl.ch)
  * The core class that builds the chain.
+ * @author Sophia Artioli (sophia.artioli@epfl.ch)
+ * @author Noémien Kocher (noémien.kocher@epfl.ch)
  */
 export class Chain {
     // Getter for the subject that is notified when a block is clicked on.
@@ -118,7 +119,7 @@ export class Chain {
         // This group will contain the arrows between blocks
         this.garrow = svg.append("g").attr("class", "garrow");
 
-        // this group will contain the text. We need two separate groups because the
+        // this group will contain the circles. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
         // readable
         // this.gcircle = svg.append("g").attr("class", "gcircle");
@@ -202,7 +203,7 @@ export class Chain {
             initialBlock,
             this.blockClickedSubject
         );
-        
+
         subject.pipe(debounceTime(50)).subscribe({
             next: (transform: any) => {
                 const bounds = Utils.transformToIndexes(
