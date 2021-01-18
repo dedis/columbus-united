@@ -28,6 +28,8 @@ import { Utils } from "./utils";
  */
 export class Chunk {
 
+    // Maximum known possible height of block
+    // We fix it to 8 so that all arrows can fit in the canevas
     readonly maxHeightBlock = 8;
 
     // Blockchain properties
@@ -789,8 +791,8 @@ export class Chunk {
                         Chain.svgHeight / this.maxHeightBlock +
                         height * (Chain.svgHeight / this.maxHeightBlock)
                 )
-                .attr("marker-end", "url(#triangle)")
-                .attr("stroke-width", 1.7)
+                .attr("marker-end", "url(#"+skipBlockFrom.index.toString()+"-"+height.toString()+")")
+                .attr("stroke-width", 1.5)
                 .attr("stroke", "#A0A0A0")
                 // Enables translation to the block the arrow is pointing to
                 .on("click", () => {
@@ -802,20 +804,24 @@ export class Chunk {
                 });
 
             // Triangle end of the arrow
+
             const triangle = svgBlocks.append("svg:defs").append("svg:marker");
             triangle
-                .attr("id", "triangle")
-                .attr("refX", 5.5)
+                .attr("id", skipBlockFrom.index.toString()+"-"+height.toString()) // Markers have to have different id's otherwise they will not change color on hover
+                .attr("refX", 5)
                 .attr("refY", 4.5)
                 .attr("markerWidth", 17)
                 .attr("markerHeight", 15)
+                .attr("markerUnits",10)
                 .attr("fill", "#A0A0A0")
                 .attr("orient", "auto-start-reverse")
                 .append("path")
-                .attr("d", "M 0 0 L 10 5 L 0 10 z")
+                .attr("d","M 0 0 L 10 5 L 0 10 z")
+                .style("stroke", "#A0A0A0")
                 .on("click", () => {
                    Utils.translateOnChain(skipBlockTo, this.initialBlock, this.blockClickedSubject);
                    this.blockClickedSubject.next(skipBlockTo);
+                   alert("hi");
                 });
 
             // Arrows change color on hover
@@ -828,7 +834,9 @@ export class Chunk {
             line.on("mouseover",
                     function() {
                         d3.select(this).style("stroke", "var(--selected-colour");
-                        triangle.attr("stroke", "var(--selected-colour");
+                        triangle.style("stroke", "var(--selected-colour");
+                        triangle.style("fill", "var(--selected-colour");
+
 
                 });
             triangle.on("mouseout", () => {

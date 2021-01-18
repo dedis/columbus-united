@@ -68,7 +68,7 @@ export class Chain {
     // The group that contains the arrows between blocks.
     readonly garrow: any;
     // The groups that contains the circles on the blocks of the chain
-    //readonly gcircle: any;
+    // readonly gcircle: any;
 
     // The array that contains all autonomous parts on the chain.
     readonly chunks = new Array<Chunk>();
