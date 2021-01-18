@@ -10,7 +10,7 @@ import { Flash } from "./flash";
 import { Utils } from "./utils";
 
 /**
- * Class for the last added block of the chain
+ * Class to build a dedicated space for the last added block of the chain
  *
  * @author Sophia Artioli <sophia.artioli@epfl.ch>
  *
@@ -39,14 +39,18 @@ export class LastAddedBlock {
             .select("#last-container")
             .attr("height", this.svgHeight);
 
-       // We fetch the last block
-        new SkipchainRPC(roster).
-       getLatestBlock(initialBlock.hash, false, true).then(
-        (resp) => {this.lastBlock = resp;
-                   this.displayLastAddedBlock(resp, svgLast, resp.hash, blockClickedSubject);
-
-        }
-    );
+        // We fetch the last block
+        new SkipchainRPC(roster)
+            .getLatestBlock(initialBlock.hash, false, true)
+            .then((resp) => {
+                this.lastBlock = resp;
+                this.displayLastAddedBlock(
+                    resp,
+                    svgLast,
+                    resp.hash,
+                    blockClickedSubject
+                );
+            });
     }
 
     /**
@@ -56,13 +60,18 @@ export class LastAddedBlock {
      * @param svgLast
      * @param block
      */
-    lastAddedBlockInfo(lastBlock: SkipBlock, svgLast: any, block: SkipBlock) {
+    private lastAddedBlockInfo(
+        lastBlock: SkipBlock,
+        svgLast: any,
+        block: SkipBlock
+    ) {
         // validated transactions
         const accepted = svgLast
             .append("g")
             .attr("class", "gaccepted")
             .attr("uk-tooltip", `Validated transactions`);
-
+        
+        // Builds a rect beneath the transaction detail to make it hoverable for the tooltip
         accepted
             .append("rect")
             .attr("x", 65)
@@ -70,7 +79,8 @@ export class LastAddedBlock {
             .attr("width", 21)
             .attr("height", 19)
             .attr("fill-opacity", "0");
-
+        
+        // Displays the green information icon 
         accepted
             .append("image")
             .attr("width", 20)
@@ -97,15 +107,16 @@ export class LastAddedBlock {
             .attr("class", "grefused")
             .attr("uk-tooltip", `Rejected transactions`);
 
+        // Builds a rect beneath the transaction detail to make it hoverable for the tooltip
         rejected
             .append("rect")
             .attr("x", 65)
             .attr("y", 104)
             .attr("width", 21)
             .attr("height", 19)
-            .attr("fill-opacity", "0")
-            .attr("uk-tooltip", `Rejected transactions`);
+            .attr("fill-opacity", "0");
 
+        // Displays the red information svg icon
         rejected
             .append("image")
             .attr("width", 20)
@@ -132,12 +143,14 @@ export class LastAddedBlock {
         for (let i = 0; i < block.roster.list.length; i++) {
             descList[i] = block.roster.list[i].description;
         }
+
         // tooltip for list of participating conodes in the roster
         const roster = svgLast
             .append("g")
             .attr("class", "groster")
             .attr("uk-tooltip", descList.join("<br/>"));
 
+        // Adds the "Roster" text
         roster
             .append("text")
             .text("Roster")
@@ -148,6 +161,7 @@ export class LastAddedBlock {
             .attr("fill", "#ffffff")
             .attr("pointer-events", "none");
 
+        // Adds the rectangle beneath the text to make it look clickable
         roster
             .append("rect")
             .attr("x", 43)
@@ -174,7 +188,6 @@ export class LastAddedBlock {
 
         const self = this;
         // blockie made clickable to copy to clipboard
-        // tslint:disable-next-line:only-arrow-functions
         imBlockies.on("click", () =>
             Utils.copyToClipBoard(block.hash.toString("hex"), self.flash)
         );
@@ -193,6 +206,7 @@ export class LastAddedBlock {
         hashLast: Buffer,
         blockClickedSubject: Subject<SkipBlock>
     ) {
+        // Display of the last added block
         svgLast
             .append("rect")
             .attr("id", hashLast.toString("hex"))
@@ -206,10 +220,10 @@ export class LastAddedBlock {
                 // tslint:disable-next-line:no-unused-expression
                 blockClickedSubject.next(lastBlock);
             })
-            .on("mouseover", function() {
+            .on("mouseover", function () {
                 d3.select(this).style("cursor", "pointer");
             })
-            .on("mouseout", function() {
+            .on("mouseout", function () {
                 d3.select(this).style("cursor", "default");
             });
 
@@ -242,7 +256,7 @@ export class LastAddedBlock {
             .attr("result", "offsetBlur");
 
         // overlay original SourceGraphic over translated blurred opacity by using
-        // feMerge filter. Order of specifying inputs is important!
+        // feMerge filter.
         const feMerge = filter.append("feMerge");
 
         feMerge.append("feMergeNode").attr("in", "offsetBlur");
@@ -250,10 +264,10 @@ export class LastAddedBlock {
 
         const gtextLast = svgLast.append("g").attr("class", "gtext");
 
-        // add text on top of last added block
+        // Add text on top of last added block
         gtextLast
             .append("text")
-            .attr("x", 72)
+            .attr("x", 72) // Coordinates are used as such as centering text on a rect svg isn't feasible
             .attr("y", 14)
             .text("Last added")
             .attr("font-family", "Arial")
@@ -272,13 +286,13 @@ export class LastAddedBlock {
             .attr("fill", "#ffffff")
             .attr("pointer-events", "none");
 
-        // tooltip for block hash on top of block index
         const self = this;
+        // Tooltip for block hash on top of block index
         gtextLast
             .append("rect")
             .attr("x", 63)
             .attr("y", 40)
-            .attr("width", 120)
+            .attr("width", 110)
             .attr("height", 19)
             .attr("fill-opacity", "0")
             .attr("uk-tooltip", Utils.bytes2String(lastBlock.hash))
@@ -290,7 +304,6 @@ export class LastAddedBlock {
             });
 
         this.lastAddedBlockInfo(lastBlock, svgLast, lastBlock);
-
     }
     /**
      * Helper function to count the number of validated and rejected transactions

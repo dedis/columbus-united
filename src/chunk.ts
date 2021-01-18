@@ -790,7 +790,7 @@ export class Chunk {
                         height * (Chain.svgHeight / this.maxHeightBlock)
                 )
                 .attr("marker-end", "url(#triangle)")
-                .attr("stroke-width", 1.5)
+                .attr("stroke-width", 1.7)
                 .attr("stroke", "#A0A0A0")
                 // Enables translation to the block the arrow is pointing to
                 .on("click", () => {

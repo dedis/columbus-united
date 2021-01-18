@@ -96,6 +96,7 @@ async function indexSearch(
             Flash.flashType.INFO,
             "Valid search for block index: " + block.index.toString()
         );
+        
         await Utils.translateOnChain(block, initialBlock, blockClickedSubject);
         blockClickedSubject.next(block);
     } catch (error) {

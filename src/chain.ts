@@ -68,7 +68,7 @@ export class Chain {
     // The group that contains the arrows between blocks.
     readonly garrow: any;
     // The groups that contains the circles on the blocks of the chain
-    // readonly gcircle: any;
+    //readonly gcircle: any;
 
     // The array that contains all autonomous parts on the chain.
     readonly chunks = new Array<Chunk>();
@@ -122,7 +122,7 @@ export class Chain {
         // this group will contain the circles. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
         // readable
-        // this.gcircle = svg.append("g").attr("class", "gcircle");
+        //this.gcircle = svg.append("g").attr("class", "gcircle");
 
         // the xScale displays the block index and allows the user to quickly see
         // where he is in the chain
@@ -192,7 +192,8 @@ export class Chain {
 
                 // Standard transformation on the text since we need to keep the
                 // original scale
-                // gcircle.selectAll("circle").attr("transform", transformString);
+                // The circles are not scaled correctly on the blocks
+                //this.gcircle.attr("transform", transformString);
             },
         });
 
