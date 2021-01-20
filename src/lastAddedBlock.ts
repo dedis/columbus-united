@@ -67,13 +67,13 @@ export class LastAddedBlock {
         block: SkipBlock
     ) {
         // validated transactions
-        const accepted = svgLast
+        const transactions = svgLast
             .append("g")
-            .attr("class", "gaccepted")
+            .attr("class", "gtransactions")
             .attr("uk-tooltip", `Validated transactions`);
         
         // Builds a rect beneath the transaction detail to make it hoverable for the tooltip
-        accepted
+        transactions
             .append("rect")
             .attr("x", "20%")
             .attr("y", 74)
@@ -82,7 +82,7 @@ export class LastAddedBlock {
             .attr("fill-opacity", "0");
         
         // Displays the green information icon 
-        accepted
+        transactions
             .append("image")
             .attr("x", "10%")
             .attr("y", 75)
@@ -91,7 +91,7 @@ export class LastAddedBlock {
             .attr("href", "assets/information-button-green.svg");
 
         // text for number of validated tx
-        accepted
+        transactions
             .append("text")
             .attr("x", "25%")
             .attr("y", 90)
@@ -103,13 +103,13 @@ export class LastAddedBlock {
             .attr("pointer-events", "none");
 
         // rejected transactions
-        const rejected = svgLast
+        transactions
             .append("g")
             .attr("class", "grefused")
             .attr("uk-tooltip", `Rejected transactions`);
 
         // Builds a rect beneath the transaction detail to make it hoverable for the tooltip
-        rejected
+        transactions
             .append("rect")
             .attr("x", "20%")
             .attr("y", 104)
@@ -118,7 +118,7 @@ export class LastAddedBlock {
             .attr("fill-opacity", "0");
 
         // Displays the red information svg icon
-        rejected
+        transactions
             .append("image")
             .attr("x", "10%")
             .attr("y", 104)
@@ -127,7 +127,7 @@ export class LastAddedBlock {
             .attr("href", "assets/information-button-red.svg");
 
         // text for number of rejected tx
-        rejected
+        transactions
             .append("text")
             .attr("x", "25%")
             .attr("y", 120)
@@ -178,7 +178,7 @@ export class LastAddedBlock {
             seed: lastBlock.hash.toString("hex"),
         });
 
-        const imBlockies = svgLast
+        const imBlockies = roster
             .append("svg:image")
             .attr("xlink:href", blockie.toDataURL())
             .attr("x", "45%")
