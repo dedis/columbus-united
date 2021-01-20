@@ -162,8 +162,6 @@ export class Block {
         //SECTION Block details
         //Big wrapper for all of the Block details
         const ulBlockDetail = block_detail_container.append("ul");
-        //ulBlockDetail.attr("uk-accordion", "");
-        //ulBlockDetail.attr("background-color", "#006fff");
         ulBlockDetail.attr("multiple", "true");
         ulBlockDetail.attr("class", "clickable-detail-block");
 
@@ -173,7 +171,7 @@ export class Block {
             .attr("class", "uk-card uk-card-default")
             .attr("id", "detail-window");
 
-        //The header of the card is used to display the block index and it's hash
+        //ANCHOR Header of the card used to display the block index and it's hash
         const blockCardHeader = blockCard.append("div");
         blockCardHeader.attr("class", "uk-card-header  uk-padding-small");
 
@@ -193,7 +191,7 @@ export class Block {
             .text(`Validated on the ${Utils.getTimeString(block)}`);
         blockCardHeaderDetails.append("p").text(`Height : ${block.height}`);
 
-        //The Body of the card is wrapping all of the Accordions
+        //ANCHOR Body of the card wrapping all of the accordions
         const blockCardBody = blockCard.append("div");
         blockCardBody.attr("class", "uk-card-body uk-padding-small");
 
@@ -232,7 +230,10 @@ export class Block {
         const divBackLink = liBackLink.append("div");
         divBackLink.attr("class", "uk-accordion-content");
         block.backlinks.forEach((value, j) => {
+            // This equation is simply derived from the skipchain topology
             const blockIndex = block.index - Math.pow(block.baseHeight, j);
+
+            // For each linked block, a clickable badge is created
             const divBackLinkBadge = divBackLink
                 .append("p")
                 .text(`Backlink ${j} to `)
@@ -264,8 +265,10 @@ export class Block {
         const divForwardLink = liForwardLink.append("div");
         divForwardLink.attr("class", "uk-accordion-content");
         block.forwardLinks.forEach((fl, j) => {
-            const blockIndex = block.index + Math.pow(block.baseHeight, j);
-
+            // This equation is simply derived from the skipchain topology
+            const blockIndex = block.index + Math.pow(block.baseHeight, j); 
+        
+            // For each linked block, a clickable badge is created
             const divForwardLinkBadge = divForwardLink
                 .append("p")
                 .text(`Forward link ${j} to `)
@@ -284,8 +287,10 @@ export class Block {
                 .attr("uk-tooltip", `${fl.to.toString("hex")}`);
             Utils.clickable(divForwardLinkBadge);
 
-            const lockIcon = divForwardLink.append("object");
 
+            // Because forward links need to be verified, signatures are rendered as well
+            // Here a tooltip is created to sisplay all the data needed 
+            const lockIcon = divForwardLink.append("object");
             const lockContent = `<p>Hash : ${fl.hash().toString("hex")}</p>
             <p>signature: ${fl.signature.sig.toString("hex")}</p>`;
 
@@ -308,8 +313,8 @@ export class Block {
         //SECTION Transaction details
         const ulTransaction = transaction_detail_container.append("ul");
 
-        //This card simply hold the title of the section in its header, and lists all transactions
-        //in its body
+        // This card simply hold the title of the section in its header, and lists all transactions
+        // in its body
         const transactionCard = ulTransaction.append("div");
         transactionCard
             .attr("class", "uk-card uk-card-default")
@@ -319,10 +324,8 @@ export class Block {
         transactionCardHeader.attr("class", "uk-card-header uk-padding-small");
         const transactionCardHeaderTitle = transactionCardHeader.append("h3");
         transactionCardHeaderTitle
-            .style("font-weight", "700")
-            .attr("margin-top", "5px")
-            .text(`Transaction details`)
-            .style("color", "#666");
+            .attr("class", "transaction-card-header-title")
+            .text(`Transaction details`);
 
         const body = DataBody.decode(block.payload);
 
@@ -335,7 +338,8 @@ export class Block {
                     (totalTransaction > 1 ? "s" : "")
             )
             .style("margin-left", "10px");
-
+        
+        
         const transactionCardBody = transactionCard.append("div");
         transactionCardBody.attr("class", "uk-card-body uk-padding-small");
 
@@ -343,11 +347,15 @@ export class Block {
             const accepted: string = transaction.accepted
                 ? "Accepted"
                 : `<span id ="rejected">Rejected</span>`;
+
             const liTransaction = transactionCardBody.append("ul");
-            liTransaction.attr("id", "detail-window");
-            liTransaction.attr("class", "uk-open");
+            liTransaction
+                .attr("id", "detail-window")
+                .attr("class", "uk-open");
             const transactionTitle = liTransaction.append("h3");
             let totalInstruction = 0;
+
+            // Each transaction may hold several instructions
             transaction.clientTransaction.instructions.forEach((_, __) => {
                 totalInstruction++;
             });
@@ -367,6 +375,9 @@ export class Block {
             // ANCHOR Transaction displaying
             transaction.clientTransaction.instructions.forEach(
                 (instruction, j) => {
+
+                    // This variable helps us keep tracks whether or not we should display 
+                    //the instruction is a coin transaction between two users.
                     var coin_invoked = false;
                     let args = null;
                     const liInstruction = ulInstruction.append("li");
@@ -390,9 +401,9 @@ export class Block {
                             instruction.invoke.contractID.slice(1);
                         aInstruction.text(`Invoked : ${contractName}`);
                         args = instruction.invoke.args;
+
                         coin_invoked =
-                            contractName == "Coin" && args.length > 1;
-                        //Blocks prior to index 45 don't use coin in the right way unfortunately
+                            contractName == "Coin" && args.length > 1; 
                     } else if (instruction.type === Instruction.typeDelete) {
                         const contractName =
                             instruction.delete.contractID
@@ -406,9 +417,9 @@ export class Block {
 
                     divInstruction.attr("class", "uk-accordion-content");
                     // Detail of one instruction
-
                     divInstruction
                         .append("p")
+                        .style("font-family", "monospace")
                         .text(
                             `Transaction hash : ${instruction
                                 .hash()
@@ -421,7 +432,11 @@ export class Block {
                         hash,
                         self.flash
                     );
-                    if (!coin_invoked) {
+
+                    //TODO Create a beautifier for Columbus which formats each instruction 
+                    //in a customized way
+                    
+                    if (!coin_invoked) { 
                         if (instruction.signerCounter.length != 0) {
                             const userSignature = instruction.signerIdentities
                                 .pop()
@@ -499,7 +514,8 @@ export class Block {
                         .append("span")
                         .append("form")
                         .style("display", "inline");
-
+                    
+                    //Dropdown menu to select the number of reults the tracker should return.
                     const formSelect = formTag
                         .append("select")
                         .attr("value", "10")
@@ -664,7 +680,6 @@ export class Block {
 
             const instructionCardBody = instructionCard.append("div");
             instructionCardBody;
-            // .attr("class","uk-card-body uk-padding-small")
 
             let contractID = "";
             instructionCard.attr("id", `buttonInstance${i}`);
