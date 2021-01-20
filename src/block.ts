@@ -184,17 +184,14 @@ export class Block {
 
         const blockCardHeaderDetails = blockCardHeader.append("span");
 
-        blockCardHeaderDetails
-            .attr("class", "block-card-header-details");
+        blockCardHeaderDetails.attr("class", "block-card-header-details");
         blockCardHeaderDetails
             .append("p")
             .text(`Hash : ${block.hash.toString("hex")}`);
         blockCardHeaderDetails
             .append("p")
             .text(`Validated on the ${Utils.getTimeString(block)}`);
-        blockCardHeaderDetails
-            .append("p")
-            .text(`Height : ${block.height}`);
+        blockCardHeaderDetails.append("p").text(`Height : ${block.height}`);
 
         //The Body of the card is wrapping all of the Accordions
         const blockCardBody = blockCard.append("div");
@@ -202,7 +199,7 @@ export class Block {
 
         const blockCardBodyTitle = blockCardBody.append("h3");
         blockCardBodyTitle
-            .attr("class","block-card-content")
+            .attr("class", "block-card-content")
             .text("Block details");
 
         const divDetails = blockCardBody.append("div");
@@ -252,7 +249,7 @@ export class Block {
                     );
                 })
                 .attr("uk-tooltip", `${value.toString("hex")}`);
-                Utils.clickable(divBackLinkBadge);
+            Utils.clickable(divBackLinkBadge);
         });
 
         //ANCHOR ForwardLink
@@ -273,7 +270,7 @@ export class Block {
                 .append("p")
                 .text(`Forward link ${j} to `)
                 .append("span");
-                
+
             divForwardLinkBadge
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
@@ -285,7 +282,7 @@ export class Block {
                     );
                 })
                 .attr("uk-tooltip", `${fl.to.toString("hex")}`);
-                Utils.clickable(divForwardLinkBadge);
+            Utils.clickable(divForwardLinkBadge);
 
             const lockIcon = divForwardLink.append("object");
 
@@ -355,11 +352,12 @@ export class Block {
                 totalInstruction++;
             });
             transactionTitle
-                .attr("class","transaction-title")
+                .attr("class", "transaction-title")
                 .html(
                     `<b>Transaction ${i}</b> ${accepted}, show ${totalInstruction} instruction` +
-                        (totalInstruction > 1 ? `s` : ``) + `:`
-                    );
+                        (totalInstruction > 1 ? `s` : ``) +
+                        `:`
+                );
 
             const divTransaction = liTransaction.append("div");
             divTransaction.attr("class", "uk-accordion-content");
@@ -393,8 +391,8 @@ export class Block {
                         aInstruction.text(`Invoked : ${contractName}`);
                         args = instruction.invoke.args;
                         coin_invoked =
-                            contractName == "Coin" && args.length > 1; 
-                            //Blocks prior to index 45 don't use coin in the right way unfortunately
+                            contractName == "Coin" && args.length > 1;
+                        //Blocks prior to index 45 don't use coin in the right way unfortunately
                     } else if (instruction.type === Instruction.typeDelete) {
                         const contractName =
                             instruction.delete.contractID
@@ -406,8 +404,7 @@ export class Block {
 
                     const divInstruction = liInstruction.append("div");
 
-                    divInstruction
-                        .attr("class", "uk-accordion-content");
+                    divInstruction.attr("class", "uk-accordion-content");
                     // Detail of one instruction
 
                     divInstruction
@@ -611,8 +608,7 @@ export class Block {
         // Creates the container for the query results
         const queryContainer = d3.select(".query-answer");
         queryContainer.text("");
-        queryContainer
-            .attr("class", "query-answer uk-card uk-card-default");
+        queryContainer.attr("class", "query-answer uk-card uk-card-default");
         // Creates the header used to display the instance ID and the "clear results" button
         const queryHeader = queryContainer.append("p");
         queryHeader
@@ -700,12 +696,11 @@ export class Block {
                 .append("span")
                 .text(` ${contractID} contract in `);
 
+            //Creates a clickable badge to copy a hash to the clipboard
+            const instructionCardHeaderBadge = instructionCardHeader.append(
+                "span"
+            );
 
-
-            //Creates a clickable badge to copy a hash to the clipboard 
-            const instructionCardHeaderBadge = instructionCardHeader
-                .append("span");
-            
             instructionCardHeaderBadge
                 .attr("class", "uk-badge")
                 .text(`Block ${blocki.index}`)
@@ -716,7 +711,7 @@ export class Block {
                     );
                 })
                 .attr("uk-tooltip", `${blocki.hash.toString("hex")}`);
-                Utils.clickable(instructionCardHeaderBadge);
+            Utils.clickable(instructionCardHeaderBadge);
 
             // Add an highlight of the instance which was browsed
             if (

@@ -4,7 +4,7 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import * as blockies from "blockies-ts";
 import * as d3 from "d3";
-import { line } from 'd3';
+import { line } from "d3";
 import { Subject } from "rxjs";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
@@ -54,9 +54,9 @@ export class Utils {
      * @param block block of which we want the hash of the right block
      */
     static getRightBlockHash(block: SkipBlock): string {
-            return this.bytes2String(block.forwardLinks[0].to);
-         }
-    
+        return this.bytes2String(block.forwardLinks[0].to);
+    }
+
     /**
      * @author Sophia Artioli (sophia.artioli@epfl.ch)
      *
@@ -168,7 +168,7 @@ export class Utils {
             .call(Chain.zoom.transform, newZoom);
 
         //Selects the target block
-        
+
         blockClickedSubject.next(block);
     }
 
@@ -195,7 +195,7 @@ export class Utils {
     }
 
     /**
-     * Adds a clickable squared blocky image to a d3 selection. Should used to represent 
+     * Adds a clickable squared blocky image to a d3 selection. Should used to represent
      * an object in the skipchain (such as an instance)
      * @param line d3 selection
      * @param hash seed for the blocky
@@ -247,20 +247,18 @@ export class Utils {
             .on("mouseout", function () {
                 d3.select(this).style("cursor", "default");
             });
-            
     }
     /**
      * Changes the pointer dynamically when the user hover an element to indicate it is interactive
-     * @param item d3 Selection, preferably of a clickable field. 
+     * @param item d3 Selection, preferably of a clickable field.
      */
-    static clickable(item: d3.Selection<HTMLElement, unknown, HTMLElement, any>){
-        item
-        .on("mouseover", function () {
+    static clickable(
+        item: d3.Selection<HTMLElement, unknown, HTMLElement, any>
+    ) {
+        item.on("mouseover", function () {
             d3.select(this).style("cursor", "pointer");
-        })
-        .on("mouseout", function () {
+        }).on("mouseout", function () {
             d3.select(this).style("cursor", "default");
         });
     }
-
 }

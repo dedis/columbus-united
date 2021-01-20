@@ -22,7 +22,7 @@ import { Utils } from "./utils";
 export class Chunk {
     readonly maxHeightBlock = 8;
 
-    pageSize =50;
+    pageSize = 50;
 
     roster: Roster;
     flash: Flash;
@@ -722,7 +722,11 @@ export class Chunk {
                 .append("path")
                 .attr("d", "M 0 0 L 10 5 L 0 10 z")
                 .on("click", () => {
-                   Utils.translateOnChain(skipBlockTo,this.initialBlock,this.blockClickedSubject);
+                    Utils.translateOnChain(
+                        skipBlockTo,
+                        this.initialBlock,
+                        this.blockClickedSubject
+                    );
                     this.blockClickedSubject.next(skipBlockTo);
                 });
 
