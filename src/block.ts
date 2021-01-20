@@ -177,19 +177,22 @@ export class Block {
         const blockCardHeader = blockCard.append("div");
         blockCardHeader.attr("class", "uk-card-header  uk-padding-small");
 
-        //TODO Give titles like this an ID and handle the styling in the css
         const blockCardHeaderTitle = blockCardHeader.append("h3");
         blockCardHeaderTitle
-            .style("font-weight", "700")
-            .attr("margin-top", "5px")
-            .text(`Block ${block.index}`)
-            .style("color", "#666");
-        const blockCardHeaderDetails = blockCardHeader.append("p");
+            .attr("class", "block-card-content")
+            .text(`Block ${block.index}`);
+
+        const blockCardHeaderDetails = blockCardHeader.append("span");
 
         blockCardHeaderDetails
-            .text(`Hash : ${block.hash.toString("hex")}`)
+            .attr("class", "block-card-header-details");
+        blockCardHeaderDetails
             .append("p")
-            .text(`Validated on the ${Utils.getTimeString(block)}`)
+            .text(`Hash : ${block.hash.toString("hex")}`);
+        blockCardHeaderDetails
+            .append("p")
+            .text(`Validated on the ${Utils.getTimeString(block)}`);
+        blockCardHeaderDetails
             .append("p")
             .text(`Height : ${block.height}`);
 
@@ -197,13 +200,11 @@ export class Block {
         const blockCardBody = blockCard.append("div");
         blockCardBody.attr("class", "uk-card-body uk-padding-small");
 
-        //TODO Give titles like this an ID and handle the styling in the css
         const blockCardBodyTitle = blockCardBody.append("h3");
         blockCardBodyTitle
-            .text("Block details")
-            .style("font-weight", "700")
-            .style("color", "#666")
-            .style("font-size", "1.3em");
+            .attr("class","block-card-content")
+            .text("Block details");
+
         const divDetails = blockCardBody.append("div");
         divDetails.attr("class", "uk-accordion-content");
 
@@ -235,10 +236,12 @@ export class Block {
         divBackLink.attr("class", "uk-accordion-content");
         block.backlinks.forEach((value, j) => {
             const blockIndex = block.index - Math.pow(block.baseHeight, j);
-            divBackLink
+            const divBackLinkBadge = divBackLink
                 .append("p")
                 .text(`Backlink ${j} to `)
-                .append("span")
+                .append("span");
+
+            divBackLinkBadge
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
                 .on("click", async function () {
@@ -248,13 +251,8 @@ export class Block {
                         self.skipBclickedSubject
                     );
                 })
-                .attr("uk-tooltip", `${value.toString("hex")}`)
-                .on("mouseover", function () {
-                    d3.select(this).style("cursor", "pointer");
-                })
-                .on("mouseout", function () {
-                    d3.select(this).style("cursor", "default");
-                });
+                .attr("uk-tooltip", `${value.toString("hex")}`);
+                Utils.clickable(divBackLinkBadge);
         });
 
         //ANCHOR ForwardLink
@@ -271,10 +269,12 @@ export class Block {
         block.forwardLinks.forEach((fl, j) => {
             const blockIndex = block.index + Math.pow(block.baseHeight, j);
 
-            divForwardLink
+            const divForwardLinkBadge = divForwardLink
                 .append("p")
                 .text(`Forward link ${j} to `)
-                .append("span")
+                .append("span");
+                
+            divForwardLinkBadge
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
                 .on("click", async function () {
@@ -284,17 +284,12 @@ export class Block {
                         self.skipBclickedSubject
                     );
                 })
-                .attr("uk-tooltip", `${fl.to.toString("hex")}`)
-                .on("mouseover", function () {
-                    d3.select(this).style("cursor", "pointer");
-                })
-                .on("mouseout", function () {
-                    d3.select(this).style("cursor", "default");
-                });
+                .attr("uk-tooltip", `${fl.to.toString("hex")}`);
+                Utils.clickable(divForwardLinkBadge);
 
             const lockIcon = divForwardLink.append("object");
 
-            const lockContent = `<p>Hash: ${fl.hash().toString("hex")}</p>
+            const lockContent = `<p>Hash : ${fl.hash().toString("hex")}</p>
             <p>signature: ${fl.signature.sig.toString("hex")}</p>`;
 
             lockIcon
@@ -359,15 +354,12 @@ export class Block {
             transaction.clientTransaction.instructions.forEach((_, __) => {
                 totalInstruction++;
             });
-            //TODO Give titles like this an ID and handle the styling in the css
             transactionTitle
+                .attr("class","transaction-title")
                 .html(
                     `<b>Transaction ${i}</b> ${accepted}, show ${totalInstruction} instruction` +
                         (totalInstruction > 1 ? `s` : ``) + `:`
-                    )
-                .style("font", "Monospace")
-                .style("color", "#666")
-                .style("font-size", "1.3em");
+                    );
 
             const divTransaction = liTransaction.append("div");
             divTransaction.attr("class", "uk-accordion-content");
@@ -415,8 +407,7 @@ export class Block {
                     const divInstruction = liInstruction.append("div");
 
                     divInstruction
-                        .attr("class", "uk-accordion-content")
-                        .attr("style", "padding-left:15px");
+                        .attr("class", "uk-accordion-content");
                     // Detail of one instruction
 
                     divInstruction
@@ -482,8 +473,6 @@ export class Block {
                             .attr("class", "white-icon")
                             .attr("type", "image/svg+xml")
                             .attr("data", "assets/coin.svg")
-                            .style("display", "inline-block")
-                            .style("position", "relative")
                             .style("top", "11px");
 
                         line.append("span").text(" to ");
@@ -623,9 +612,7 @@ export class Block {
         const queryContainer = d3.select(".query-answer");
         queryContainer.text("");
         queryContainer
-            .attr("class", "query-answer uk-card uk-card-default")
-            .style("margin-top", "0px")
-            .style("padding-top", "10px");
+            .attr("class", "query-answer uk-card uk-card-default");
         // Creates the header used to display the instance ID and the "clear results" button
         const queryHeader = queryContainer.append("p");
         queryHeader
@@ -635,11 +622,7 @@ export class Block {
                 `Summary of the evolution of the instance: ${tuple[1][0].instanceID.toString(
                     "hex"
                 )}`
-            )
-            .style("padding-left", "2%")
-            .style("font-weight", "700")
-            .style("color", "#666")
-            .style("font-size", "1.3em");
+            );
 
         // Clears the results of a previous query
         const closeButtonWrap = queryHeader.append("div");
@@ -717,8 +700,13 @@ export class Block {
                 .append("span")
                 .text(` ${contractID} contract in `);
 
-            instructionCardHeader
-                .append("span")
+
+
+            //Creates a clickable badge to copy a hash to the clipboard 
+            const instructionCardHeaderBadge = instructionCardHeader
+                .append("span");
+            
+            instructionCardHeaderBadge
                 .attr("class", "uk-badge")
                 .text(`Block ${blocki.index}`)
                 .on("click", function () {
@@ -727,20 +715,8 @@ export class Block {
                         self.flash
                     );
                 })
-                .on("mouseover", function () {
-                    d3.select(this).style("cursor", "pointer");
-                })
-                .on("mouseout", function () {
-                    d3.select(this).style("cursor", "default");
-                })
-
-                .attr("uk-tooltip", `${blocki.hash.toString("hex")}`)
-                .on("mouseover", function () {
-                    d3.select(this).style("cursor", "pointer");
-                })
-                .on("mouseout", function () {
-                    d3.select(this).style("cursor", "default");
-                });
+                .attr("uk-tooltip", `${blocki.hash.toString("hex")}`);
+                Utils.clickable(instructionCardHeaderBadge);
 
             // Add an highlight of the instance which was browsed
             if (

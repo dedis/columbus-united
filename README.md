@@ -176,7 +176,7 @@ git push origin master:production
 Generate the documentation: `npm run doc`
 
 ## Design Guidelines
-Can be found in the most recent report
+Can be found in the most recent report  
 
 ## Contributors
 

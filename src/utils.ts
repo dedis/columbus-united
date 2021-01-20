@@ -4,6 +4,7 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import * as blockies from "blockies-ts";
 import * as d3 from "d3";
+import { line } from 'd3';
 import { Subject } from "rxjs";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
@@ -246,5 +247,20 @@ export class Utils {
             .on("mouseout", function () {
                 d3.select(this).style("cursor", "default");
             });
+            
     }
+    /**
+     * Changes the pointer dynamically when the user hover an element to indicate it is interactive
+     * @param item d3 Selection, preferably of a clickable field. 
+     */
+    static clickable(item: d3.Selection<HTMLElement, unknown, HTMLElement, any>){
+        item
+        .on("mouseover", function () {
+            d3.select(this).style("cursor", "pointer");
+        })
+        .on("mouseout", function () {
+            d3.select(this).style("cursor", "default");
+        });
+    }
+
 }

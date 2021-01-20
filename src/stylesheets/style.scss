@@ -31,6 +31,8 @@ div.query-answer {
     display: flex;
     flex-grow: 0;
     flex-direction: column;
+    margin-top: 0px;
+    padding-top: 10px;
     margin-bottom: 50px;
     text-align: center;
     
@@ -60,13 +62,44 @@ div.query-answer {
     margin-bottom: 0px;
 }
 
+.block-card-header-details > p{
+    font-family: monospace;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
 
+#query-header>div{
+    padding-left: 2%;
+    font-weight: 700;
+    color: #666;
+    font-size: 1.3;
+}
+
+.block-card-content{
+    font-weight: 700;
+    margin-top: 5px;
+    color: #666;
+    font-size: 1.3em;
+    margin-bottom: 15px;
+}
+
+.transaction-title{
+    font-family: monospace;
+    color: #666;
+    font-size: 1.3em;
+}
+
+/* Used to transform black SVGs to white SVGs, as well as displaying them inline*/
 .white-icon{
     width: 32px;
     height: 32px;
-    display : block;
+    display : inline-block;
+    position: relative;
     margin-left : 15px;
     filter: invert(88%) sepia(67%) saturate(0%) hue-rotate(236deg) brightness(111%) contrast(100%);
+
+
+
 }
 
 .topnav {
@@ -470,6 +503,9 @@ List of classes for the new transaction container
 
 }
 
+.uk-accordion-content{
+    padding-left: 15px;
+}
 
 .uk-accordion-content > p {
     margin-left: 10px;
