@@ -4,7 +4,6 @@ import * as d3 from "d3";
 import { Subject } from "rxjs";
 import "uikit";
 import { Block } from "./block";
-import { Chunk } from "./chunk";
 import { Flash } from "./flash";
 import "./stylesheets/style.scss";
 import { Utils } from "./utils";
@@ -33,9 +32,14 @@ export function searchBar(
 
             // Text inputted by the user in the search-bar
             const input = d3.select("#search-input").property("value");
+
             // Mode selected by the user in the drop-down menu
             const searchMode = d3.select("#search-mode").property("value");
-
+            if (input.toString() == "") {
+                // The user hasn't inputted anything
+                // If this check is not done, submitting will look for block 0
+                return;
+            }
             searchRequest(
                 input,
                 roster,
@@ -51,10 +55,17 @@ export function searchBar(
 
     // The submit button is pressed
     d3.select("#submit-button").on("click", async () => {
+
         // Text inputted by the user in the search-bar
         const input = d3.select("#search-input").property("value");
         // Mode selected by the user in the drop-down menu
         const searchMode = d3.select("#search-mode").property("value");
+
+        if (input.toString() == "") {
+            // The user hasn't inputted anything
+            // If this check is not done, submitting will look for block 0
+            return;
+        }
 
         await searchRequest(
             input,
@@ -67,41 +78,6 @@ export function searchBar(
             block
         );
     });
-}
-
-/**
- * Helper function to request for a searched block by index
- * @param hashBlock0 the genesis block's hash
- * @param input user input
- * @param roster
- * @param flash
- * @param initialBlock the first block displayed by the chain
- * @param blockClickedSubject the subject that is notified when a block is clicked
- */
-async function indexSearch(
-    hashBlock0: string,
-    input: any,
-    roster: Roster,
-    flash: Flash,
-    initialBlock: SkipBlock,
-    blockClickedSubject: Subject<SkipBlock>
-) {
-    try {
-        const block = await Utils.getBlockByIndex(
-            Utils.hex2Bytes(hashBlock0),
-            parseInt(input, 10),
-            roster
-        );
-        flash.display(
-            Flash.flashType.INFO,
-            "Valid search for block index: " + block.index.toString()
-        );
-        
-        await Utils.translateOnChain(block, initialBlock, blockClickedSubject);
-        blockClickedSubject.next(block);
-    } catch (error) {
-        flash.display(Flash.flashType.ERROR, "Block does not exist");
-    }
 }
 
 /**
@@ -206,5 +182,40 @@ async function searchRequest(
             );
             block.launchQuery(50, input.toString());
             break;
+    }
+
+    /**
+     * Helper function to request for a searched block by index
+     * @param hashBlock0 the genesis block's hash
+     * @param input user input
+     * @param roster
+     * @param flash
+     * @param initialBlock the first block displayed by the chain
+     * @param blockClickedSubject the subject that is notified when a block is clicked
+     */
+    async function indexSearch(
+        hashBlock0: string,
+        input: any,
+        roster: Roster,
+        flash: Flash,
+        initialBlock: SkipBlock,
+        blockClickedSubject: Subject<SkipBlock>
+    ) {
+        try {
+            const block = await Utils.getBlockByIndex(
+                Utils.hex2Bytes(hashBlock0),
+                parseInt(input, 10),
+                roster
+            );
+            flash.display(
+                Flash.flashType.INFO,
+                "Valid search for block index: " + block.index.toString()
+            );
+
+            await Utils.translateOnChain(block, initialBlock, blockClickedSubject);
+            blockClickedSubject.next(block);
+        } catch (error) {
+            flash.display(Flash.flashType.ERROR, "Block does not exist");
+        }
     }
 }
