@@ -16,11 +16,12 @@ import { Utils } from "./utils";
  *
  */
 export class LastAddedBlock {
+
     readonly lastBlockHeight = 176;
     readonly lastBlockWidth = 200;
     readonly svgHeight = 200;
 
-    // Flash is a utility class to display flash messages in the view.
+    // Flash is a utility class to display flash messages in the view
     flash: Flash;
 
     // The last added block of the chain
@@ -34,12 +35,12 @@ export class LastAddedBlock {
     ) {
         this.flash = flash;
 
-        // Main SVG caneva that contains the last added block
+        // Main SVG canvas that contains the last added block of the chain
         const svgLast = d3
             .select("#last-container")
             .attr("height", this.svgHeight);
 
-        // We fetch the last block
+        // Fetch the last block from the Cothority client
         new SkipchainRPC(roster)
             .getLatestBlock(initialBlock.hash, false, true)
             .then((resp) => {
@@ -79,11 +80,11 @@ export class LastAddedBlock {
             .on("click", () => {
                 blockClickedSubject.next(lastBlock);
             })
-            .on("mouseover", function () {
+            .on("mouseover", function() {
                 // Pointer interaction
                 d3.select(this).style("cursor", "pointer");
             })
-            .on("mouseout", function () {
+            .on("mouseout", function() {
                 d3.select(this).style("cursor", "default");
             });
 

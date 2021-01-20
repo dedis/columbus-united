@@ -53,13 +53,13 @@ export class Chunk {
     rightBlock: SkipBlock;
 
     // svg container for the blocks
-    gblocks: any;
+    readonly gblocks: any;
     // svg container for the arrows between blocks
-    garrow: any;
+    readonly garrow: any;
     // container that for the left and right loaders
-    gloader: d3.Selection<SVGElement, {}, HTMLElement, any>;
+    readonly gloader: d3.Selection<SVGElement, {}, HTMLElement, any>;
 
-    // Those are the perimeter, set before blocks are loaded
+    // These are the perimeters, set before blocks are loaded
     left: number;
     right: number;
 
@@ -85,8 +85,6 @@ export class Chunk {
     // The coordinates of the view.
     lastTransform = { x: 0, y: 0, k: 1 };
 
-    // The number of total loaded blocks on the chains
-    totalLoaded: number;
     // The container for the total loaded number.
     readonly loadedInfo = document.getElementById("loaded-blocks");
 
@@ -115,7 +113,6 @@ export class Chunk {
     ) {
         this.roster = roster;
         this.flash = flash;
-        this.totalLoaded = 0; // Initilize to 0
 
         this.chainSubject = chainSubject;
         this.newBlocksSubject = newBlocksSubject;
@@ -136,10 +133,6 @@ export class Chunk {
         this.left = left;
         this.right = right;
 
-        this.chainSubject.subscribe((transform: any) => {
-            this.lastTransform = transform;
-        });
-
         // The svg container for the chain
         const svg = d3.select("#svg-container");
 
@@ -154,6 +147,7 @@ export class Chunk {
 
         this.chainSubject.subscribe({
             next: (transform: any) => {
+                this.lastTransform = transform;
                 this.gloader.attr("transform", transform);
                 // resize the loaders to always have a relative scale of 1
                 this.gloader
@@ -633,8 +627,8 @@ export class Chunk {
              */
             next: ([i, skipBlocks, backward]) => {
 
-                this.totalLoaded += skipBlocks.length;
-                this.loadedInfo.innerText = `${this.totalLoaded}`;
+                Chain.totalLoaded += skipBlocks.length;
+                this.loadedInfo.innerText = `${Chain.totalLoaded}`;
                 let isLastPage = false;
 
                 if (i == this.nbPages - 1) {
@@ -791,7 +785,7 @@ export class Chunk {
                         Chain.svgHeight / this.maxHeightBlock +
                         height * (Chain.svgHeight / this.maxHeightBlock)
                 )
-                .attr("marker-end", "url(#"+skipBlockFrom.index.toString()+"-"+height.toString()+")")
+                .attr("marker-end", "url(#" + skipBlockFrom.index.toString() + "-" + height.toString() + ")")
                 .attr("stroke-width", 2.5)
                 .attr("stroke", "#A0A0A0")
                 // Enables translation to the block the arrow is pointing to
@@ -807,7 +801,7 @@ export class Chunk {
 
             const triangle = svgBlocks.append("svg:defs").append("svg:marker");
             triangle
-                .attr("id", skipBlockFrom.index.toString()+"-"+height.toString()) // Markers have to have different id's otherwise they will not change color on hover
+                .attr("id", skipBlockFrom.index.toString() + "-" + height.toString()) // Markers have to have different id's otherwise they will not change color on hover
                 .attr("refX", 9.4)
                 .attr("refY", 6.5)
                 .attr("markerWidth", 17)
@@ -817,7 +811,7 @@ export class Chunk {
                 .attr("markerUnits", "userSpaceOnUse") // Makes width of stroke independant from path
                 .attr("orient", "auto-start-reverse")
                 .append("path")
-                .attr("d","M 0 0 L 19 7 L 0 14 z")
+                .attr("d", "M 0 0 L 19 7 L 0 14 z")
                 .on("click", () => {
                    Utils.translateOnChain(skipBlockTo, this.initialBlock, this.blockClickedSubject);
                    this.blockClickedSubject.next(skipBlockTo);
@@ -834,7 +828,6 @@ export class Chunk {
                     function() {
                         d3.select(this).style("stroke", "var(--selected-colour");
                         triangle.style("fill", "var(--selected-colour");
-
 
                 });
             triangle.on("mouseout", () => {

@@ -52,6 +52,10 @@ export class Chain {
     // The coordinate transformation of the chain.
     static zoom: any;
 
+    // The number of total loaded blocks on the chains
+    // Initialized to 0
+    static totalLoaded = 0;
+
     /**
      * Determine the color of the blocks.
      * The darker the block the more transactions it contains.
