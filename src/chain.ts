@@ -10,11 +10,12 @@ import { LastAddedBlock } from "./lastAddedBlock";
 import { Utils } from "./utils";
 
 /**
- * The core class that builds the chain.
+ * The core class that builds the chain and creates autonomous parts on it
  * @author Sophia Artioli (sophia.artioli@epfl.ch)
  * @author Noémien Kocher (noémien.kocher@epfl.ch)
  */
 export class Chain {
+
     // Getter for the subject that is notified when a block is clicked on.
     get getBlockClickedSubject(): Subject<SkipBlock> {
         return this.blockClickedSubject;
@@ -27,7 +28,9 @@ export class Chain {
 
     // Go to https://color.adobe.com/create/color-wheel with this base color to
     // find the palet of colors.
-    static readonly blockColor = { r: 23, v: 73, b: 179 }; // #D9BA82
+    static readonly blockColor = { r: 23, v: 73, b: 179 };
+
+    // Block properties
     static readonly blockPadding = 10;
     static readonly blockHeight = 50;
     static readonly blockWidth = 70;
@@ -37,8 +40,8 @@ export class Chain {
         Chain.blockPadding + Chain.blockWidth;
     static readonly axisPadding = 8;
 
-    // The number of block the window can display at normal scale. Used to
-    // define the domain the xScale
+    // The number of blocks the window can display at normal scale. Used to
+    // define the domain for the xScale
     static readonly numBlocks =
         Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
 
@@ -46,11 +49,11 @@ export class Chain {
     static pageSize = 50;
     static readonly nbPages = 1;
 
-    // The coordinate transformation on the chain.
+    // The coordinate transformation of the chain.
     static zoom: any;
 
     /**
-     * * Determine the color of the blocks.
+     * Determine the color of the blocks.
      * The darker the block the more transactions it contains.
      */
     static getBlockColor(block: SkipBlock): string {
@@ -61,7 +64,6 @@ export class Chain {
             Chain.blockColor.v * factor
         }, ${Chain.blockColor.b * factor})`;
     }
-    readonly nbPages = 1;
 
     // The group that contains the blocks on the chain.
     readonly gblocks: any;
@@ -97,6 +99,7 @@ export class Chain {
     lastTransform = { x: 0, y: 0, k: 1 };
 
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
+
         // Blockchain properties
         this.roster = roster;
         this.flash = flash;
@@ -119,12 +122,12 @@ export class Chain {
         // This group will contain the arrows between blocks
         this.garrow = svg.append("g").attr("class", "garrow");
 
-        // this group will contain the circles. We need two separate groups because the
+        // This group will contain the circles. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
         // readable
-        //this.gcircle = svg.append("g").attr("class", "gcircle");
+        // this.gcircle = svg.append("g").attr("class", "gcircle");
 
-        // the xScale displays the block index and allows the user to quickly see
+        // The xScale displays the block index and allows the user to quickly see
         // where he is in the chain
         const xScale = d3
             .scaleLinear()
@@ -174,8 +177,7 @@ export class Chain {
                 xAxis.scale(xScaleNew);
                 xAxisDraw.call(xAxis);
 
-                // Horizontal only transformation on the blocks (sets scale Y to
-                // 1)
+                // Horizontal transformation on the blocks only (sets Y scale to 1)
                 const transformString =
                     "translate(" +
                     transform.x +
@@ -192,12 +194,13 @@ export class Chain {
 
                 // Standard transformation on the text since we need to keep the
                 // original scale
-                // The circles are not scaled correctly on the blocks
-                //this.gcircle.attr("transform", transformString);
+                // this.gcircle.attr("transform", transformString);
             },
         });
 
-        // Initialize the last added block of the chain.
+        // Initialize the last added block of the chain in its dedicated space
+        // It is initialized here as it takes longer to load.
+        // We need to use it when creating new chunks
         const lastAddedBlock = new LastAddedBlock(
             roster,
             flash,
@@ -205,6 +208,7 @@ export class Chain {
             this.blockClickedSubject
         );
 
+        // Subject that is notified about the transformation on the chain
         subject.pipe(debounceTime(50)).subscribe({
             next: (transform: any) => {
                 const bounds = Utils.transformToIndexes(
