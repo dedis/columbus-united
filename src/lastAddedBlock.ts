@@ -38,6 +38,7 @@ export class LastAddedBlock {
         const svgLast = d3
             .select("#last-container")
             .attr("height", this.svgHeight);
+            
 
         // We fetch the last block
         new SkipchainRPC(roster)
@@ -74,7 +75,7 @@ export class LastAddedBlock {
         // Builds a rect beneath the transaction detail to make it hoverable for the tooltip
         accepted
             .append("rect")
-            .attr("x", 65)
+            .attr("x", "20%")
             .attr("y", 74)
             .attr("width", 21)
             .attr("height", 19)
@@ -83,16 +84,16 @@ export class LastAddedBlock {
         // Displays the green information icon 
         accepted
             .append("image")
+            .attr("x", "10%")
+            .attr("y", 75)
             .attr("width", 20)
             .attr("height", 20)
-            .attr("x", 44)
-            .attr("y", 75)
             .attr("href", "assets/information-button-green.svg");
 
         // text for number of validated tx
         accepted
             .append("text")
-            .attr("x", 73)
+            .attr("x", "25%")
             .attr("y", 90)
             .text(this.getTransactionRatio(lastBlock)[0].toString()) // add number of validated transactions
             .attr("font-family", "Arial")
@@ -110,7 +111,7 @@ export class LastAddedBlock {
         // Builds a rect beneath the transaction detail to make it hoverable for the tooltip
         rejected
             .append("rect")
-            .attr("x", 65)
+            .attr("x", "20%")
             .attr("y", 104)
             .attr("width", 21)
             .attr("height", 19)
@@ -119,16 +120,16 @@ export class LastAddedBlock {
         // Displays the red information svg icon
         rejected
             .append("image")
+            .attr("x", "10%")
+            .attr("y", 104)
             .attr("width", 20)
             .attr("height", 20)
-            .attr("x", 44)
-            .attr("y", 104)
             .attr("href", "assets/information-button-red.svg");
 
         // text for number of rejected tx
         rejected
             .append("text")
-            .attr("x", 74)
+            .attr("x", "25%")
             .attr("y", 120)
             .text(this.getTransactionRatio(lastBlock)[1].toString()) // add number of rejected transactions
             .attr("font-family", "Arial")
@@ -154,7 +155,7 @@ export class LastAddedBlock {
         roster
             .append("text")
             .text("Roster")
-            .attr("x", 48)
+            .attr("x", "12%")
             .attr("y", 157)
             .attr("font-family", "Arial")
             .attr("font-size", "16px")
@@ -164,7 +165,7 @@ export class LastAddedBlock {
         // Adds the rectangle beneath the text to make it look clickable
         roster
             .append("rect")
-            .attr("x", 43)
+            .attr("x", "10%")
             .attr("y", 137)
             .attr("width", 58)
             .attr("height", 27)
@@ -180,7 +181,7 @@ export class LastAddedBlock {
         const imBlockies = svgLast
             .append("svg:image")
             .attr("xlink:href", blockie.toDataURL())
-            .attr("x", 114)
+            .attr("x", "45%")
             .attr("y", 143)
             .attr("width", 18)
             .attr("height", 18)
@@ -212,7 +213,7 @@ export class LastAddedBlock {
             .attr("id", hashLast.toString("hex"))
             .attr("width", this.lastBlockWidth)
             .attr("height", this.lastBlockHeight)
-            .attr("x", 20)
+            .attr("x", 0)
             .attr("y", 20)
             .style("filter", "url(#drop-shadow)")
             .attr("fill", Chain.getBlockColor(lastBlock))
@@ -267,9 +268,10 @@ export class LastAddedBlock {
         // Add text on top of last added block
         gtextLast
             .append("text")
-            .attr("x", 72) // Coordinates are used as such as centering text on a rect svg isn't feasible
-            .attr("y", 14)
+            .attr("x", "50%") // Coordinates are used as such as centering text on a rect svg isn't feasible
+            .attr("y", "8%")
             .text("Last added")
+            .attr("text-anchor","middle")
             .attr("font-family", "Arial")
             .attr("font-size", "17px")
             .attr("fill", "#808080")
@@ -278,8 +280,9 @@ export class LastAddedBlock {
         // block index text on last added block
         gtextLast
             .append("text")
-            .attr("x", 63)
-            .attr("y", 57)
+            .attr("x", "50%")
+            .attr("y", 54)
+            .attr("text-anchor","middle")
             .text("Block " + lastBlock.index.toString())
             .attr("font-family", "Arial")
             .attr("font-size", "17px")
@@ -287,11 +290,12 @@ export class LastAddedBlock {
             .attr("pointer-events", "none");
 
         const self = this;
+
         // Tooltip for block hash on top of block index
         gtextLast
             .append("rect")
-            .attr("x", 63)
-            .attr("y", 40)
+            .attr("x", 50)
+            .attr("y", 37)
             .attr("width", 110)
             .attr("height", 19)
             .attr("fill-opacity", "0")

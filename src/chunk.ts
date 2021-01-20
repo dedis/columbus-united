@@ -814,7 +814,7 @@ export class Chunk {
                 .attr("markerHeight", 15)
                 .attr("strokeWidth", 5)
                 .attr("fill", "#A0A0A0")
-                .attr("markerUnits", "userSpaceOnUse") //Makes width of stroke independant from path
+                .attr("markerUnits", "userSpaceOnUse") // Makes width of stroke independant from path
                 .attr("orient", "auto-start-reverse")
                 .append("path")
                 .attr("d","M 0 0 L 19 7 L 0 14 z")
