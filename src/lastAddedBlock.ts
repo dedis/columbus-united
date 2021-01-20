@@ -69,32 +69,34 @@ export class LastAddedBlock {
         // validated transactions
         const transactions = svgLast
             .append("g")
-            .attr("class", "gtransactions")
-            .attr("uk-tooltip", `Validated transactions`);
+            .attr("class", "gtransactions");
+            
         
         // Builds a rect beneath the transaction detail to make it hoverable for the tooltip
         transactions
             .append("rect")
             .attr("x", "20%")
-            .attr("y", 74)
+            .attr("y", "37%")
             .attr("width", 21)
             .attr("height", 19)
-            .attr("fill-opacity", "0");
+            .attr("fill-opacity", "0")
+            .attr("uk-tooltip", `Validated transactions`);;
         
         // Displays the green information icon 
         transactions
             .append("image")
             .attr("x", "10%")
-            .attr("y", 75)
+            .attr("y", "37%")
             .attr("width", 20)
             .attr("height", 20)
-            .attr("href", "assets/information-button-green.svg");
+            .attr("href", "assets/information-button-green.svg")
+            .attr("uk-tooltip", `Validated transactions`);
 
         // text for number of validated tx
         transactions
             .append("text")
             .attr("x", "25%")
-            .attr("y", 90)
+            .attr("y", "45%")
             .text(this.getTransactionRatio(lastBlock)[0].toString()) // add number of validated transactions
             .attr("font-family", "Arial")
             .attr("font-size", "18px")
@@ -112,25 +114,27 @@ export class LastAddedBlock {
         transactions
             .append("rect")
             .attr("x", "20%")
-            .attr("y", 104)
+            .attr("y", "52%")
             .attr("width", 21)
             .attr("height", 19)
-            .attr("fill-opacity", "0");
+            .attr("fill-opacity", "0")
+            .attr("uk-tooltip", `Rejected transactions`);;
 
         // Displays the red information svg icon
         transactions
             .append("image")
             .attr("x", "10%")
-            .attr("y", 104)
+            .attr("y", "52%")
             .attr("width", 20)
             .attr("height", 20)
-            .attr("href", "assets/information-button-red.svg");
+            .attr("href", "assets/information-button-red.svg")
+            .attr("uk-tooltip", `Rejected transactions`);
 
         // text for number of rejected tx
         transactions
             .append("text")
             .attr("x", "25%")
-            .attr("y", 120)
+            .attr("y", "60%")
             .text(this.getTransactionRatio(lastBlock)[1].toString()) // add number of rejected transactions
             .attr("font-family", "Arial")
             .attr("font-size", "18px")
@@ -156,7 +160,7 @@ export class LastAddedBlock {
             .append("text")
             .text("Roster")
             .attr("x", "12%")
-            .attr("y", 157)
+            .attr("y", "80%")
             .attr("font-family", "Arial")
             .attr("font-size", "16px")
             .attr("fill", "#ffffff")
@@ -166,7 +170,7 @@ export class LastAddedBlock {
         roster
             .append("rect")
             .attr("x", "10%")
-            .attr("y", 137)
+            .attr("y", "70%")
             .attr("width", 58)
             .attr("height", 27)
             .attr("fill", "#1a8cff")
@@ -180,11 +184,11 @@ export class LastAddedBlock {
 
         const imBlockies = roster
             .append("svg:image")
-            .attr("xlink:href", blockie.toDataURL())
             .attr("x", "45%")
-            .attr("y", 143)
+            .attr("y", "72%")
             .attr("width", 18)
             .attr("height", 18)
+            .attr("xlink:href", blockie.toDataURL())
             .attr("uk-tooltip", block.hash.toString("hex"));
 
         const self = this;
@@ -263,7 +267,7 @@ export class LastAddedBlock {
         feMerge.append("feMergeNode").attr("in", "offsetBlur");
         feMerge.append("feMergeNode").attr("in", "SourceGraphic");
 
-        const gtextLast = svgLast.append("g").attr("class", "gtext");
+        const gtextLast = svgLast.append("g").attr("class", "gtextLast");
 
         // Add text on top of last added block
         gtextLast
@@ -281,7 +285,7 @@ export class LastAddedBlock {
         gtextLast
             .append("text")
             .attr("x", "50%")
-            .attr("y", 54)
+            .attr("y", "28%")
             .attr("text-anchor","middle")
             .text("Block " + lastBlock.index.toString())
             .attr("font-family", "Arial")
@@ -294,8 +298,8 @@ export class LastAddedBlock {
         // Tooltip for block hash on top of block index
         gtextLast
             .append("rect")
-            .attr("x", 50)
-            .attr("y", 37)
+            .attr("x", "25%")
+            .attr("y", "20%")
             .attr("width", 110)
             .attr("height", 19)
             .attr("fill-opacity", "0")
