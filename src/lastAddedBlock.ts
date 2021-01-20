@@ -38,7 +38,6 @@ export class LastAddedBlock {
         const svgLast = d3
             .select("#last-container")
             .attr("height", this.svgHeight);
-            
 
         // We fetch the last block
         new SkipchainRPC(roster)
@@ -55,8 +54,80 @@ export class LastAddedBlock {
     }
 
     /**
+     * Display the last added block of the chain in the dedicated space
+     * @param lastBlock the last added block of the chain
+     * @param svgLast the svg container that should welcome the block
+     * @param hashLast the hash of the last added block
+     * @param blockClickedSubject the subject that is notified when a block is clicked
+     */
+    private displayLastAddedBlock(
+        lastBlock: SkipBlock,
+        svgLast: any,
+        hashLast: Buffer,
+        blockClickedSubject: Subject<SkipBlock>
+    ) {
+        /* Display of the last added block  */
+        svgLast
+            .append("rect")
+            .attr("id", hashLast.toString("hex"))
+            .attr("width", this.lastBlockWidth)
+            .attr("height", this.lastBlockHeight)
+            .attr("x", 0)
+            .attr("y", 20)
+            .style("filter", "url(#drop-shadow)")
+            .attr("fill", Chain.getBlockColor(lastBlock))
+            .on("click", () => {
+                blockClickedSubject.next(lastBlock);
+            })
+            .on("mouseover", function () {
+                // Pointer interaction
+                d3.select(this).style("cursor", "pointer");
+            })
+            .on("mouseout", function () {
+                d3.select(this).style("cursor", "default");
+            });
+
+        /* Shadow effect on the last added block */
+
+        // Shadow filter
+        const defs = svgLast.append("defs");
+
+        // height=130% so that the shadow is not clipped
+        const filter = defs
+            .append("filter")
+            .attr("id", "drop-shadow")
+            .attr("height", "130%");
+
+        // SourceAlpha refers to opacity of graphic that this filter will be applied to
+        // convolve that with a Gaussian with standard deviation 3 and store result
+        // in blur
+        filter
+            .append("feGaussianBlur")
+            .attr("in", "SourceAlpha")
+            .attr("stdDeviation", 3)
+            .attr("result", "blur");
+
+        // Translate output of Gaussian blur to the right and downwards with 2px
+        // store result in offsetBlur
+        filter
+            .append("feOffset")
+            .attr("in", "blur")
+            .attr("dx", 2)
+            .attr("dy", 2)
+            .attr("result", "offsetBlur");
+
+        // Overlay original SourceGraphic over translated blurred opacity by using
+        // feMerge filter
+        const feMerge = filter.append("feMerge");
+        feMerge.append("feMergeNode").attr("in", "offsetBlur");
+        feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+        this.lastAddedBlockInfo(lastBlock, svgLast, lastBlock);
+    }
+
+    /**
      * Helper function to display on hand information on the last added block
-     * We display: # validated tx, # rejected tx, roster hash and participating conodes, block index and hash
+     * Is displayed: Block index and hash, # validated tx, # rejected tx, roster hash and participating conodes
      * @param lastBlock
      * @param svgLast
      * @param block
@@ -66,12 +137,55 @@ export class LastAddedBlock {
         svgLast: any,
         block: SkipBlock
     ) {
-        // validated transactions
-        const transactions = svgLast
-            .append("g")
-            .attr("class", "gtransactions");
-            
-        
+        /* Text on the last added block  */
+        const gtextLast = svgLast.append("g").attr("class", "gtextLast");
+
+        // Add text on top of last added block
+        gtextLast
+            .append("text")
+            .attr("x", "50%")
+            .attr("y", "8%")
+            .text("Last added")
+            .attr("text-anchor", "middle")
+            .attr("font-family", "Arial")
+            .attr("font-size", "17px")
+            .attr("fill", "#808080")
+            .attr("pointer-events", "none");
+
+        // Display on the last block's index
+        gtextLast
+            .append("text")
+            .attr("x", "50%")
+            .attr("y", "28%")
+            .attr("text-anchor", "middle")
+            .text("Block " + lastBlock.index.toString())
+            .attr("font-family", "Arial")
+            .attr("font-size", "17px")
+            .attr("fill", "#ffffff")
+            .attr("pointer-events", "none");
+
+        // Tooltip for block hash on top of block index
+        gtextLast
+            .append("rect")
+            .attr("x", "25%")
+            .attr("y", "20%")
+            .attr("width", 110)
+            .attr("height", 19)
+            .attr("fill-opacity", "0")
+            .attr("uk-tooltip", Utils.bytes2String(lastBlock.hash))
+            .on("click", () => {
+                Utils.copyToClipBoard(
+                    lastBlock.hash.toString("hex"),
+                    self.flash
+                );
+            });
+
+        /* Transaction information display */
+
+        // The svg group that will hold
+        const transactions = svgLast.append("g").attr("class", "gtransactions");
+
+        // Accepted transactions
         // Builds a rect beneath the transaction detail to make it hoverable for the tooltip
         transactions
             .append("rect")
@@ -80,9 +194,9 @@ export class LastAddedBlock {
             .attr("width", 21)
             .attr("height", 19)
             .attr("fill-opacity", "0")
-            .attr("uk-tooltip", `Validated transactions`);;
-        
-        // Displays the green information icon 
+            .attr("uk-tooltip", `Validated transactions`);
+
+        // Displays the green information icon
         transactions
             .append("image")
             .attr("x", "10%")
@@ -92,24 +206,19 @@ export class LastAddedBlock {
             .attr("href", "assets/information-button-green.svg")
             .attr("uk-tooltip", `Validated transactions`);
 
-        // text for number of validated tx
+        // Text for number of validated tx
         transactions
             .append("text")
             .attr("x", "25%")
             .attr("y", "45%")
-            .text(this.getTransactionRatio(lastBlock)[0].toString()) // add number of validated transactions
+            .text(this.getTransactionRatio(lastBlock)[0].toString()) // Number of validated transactions
             .attr("font-family", "Arial")
             .attr("font-size", "18px")
             .attr("font-weight", "bold")
             .attr("fill", "#65E1A7")
             .attr("pointer-events", "none");
 
-        // rejected transactions
-        transactions
-            .append("g")
-            .attr("class", "grefused")
-            .attr("uk-tooltip", `Rejected transactions`);
-
+        // Rejected transactions
         // Builds a rect beneath the transaction detail to make it hoverable for the tooltip
         transactions
             .append("rect")
@@ -118,7 +227,7 @@ export class LastAddedBlock {
             .attr("width", 21)
             .attr("height", 19)
             .attr("fill-opacity", "0")
-            .attr("uk-tooltip", `Rejected transactions`);;
+            .attr("uk-tooltip", `Rejected transactions`);
 
         // Displays the red information svg icon
         transactions
@@ -130,26 +239,28 @@ export class LastAddedBlock {
             .attr("href", "assets/information-button-red.svg")
             .attr("uk-tooltip", `Rejected transactions`);
 
-        // text for number of rejected tx
+        // Text for the number of rejected tx
         transactions
             .append("text")
             .attr("x", "25%")
             .attr("y", "60%")
-            .text(this.getTransactionRatio(lastBlock)[1].toString()) // add number of rejected transactions
+            .text(this.getTransactionRatio(lastBlock)[1].toString()) // Number of rejected transactions
             .attr("font-family", "Arial")
             .attr("font-size", "18px")
             .attr("font-weight", "bold")
             .attr("fill", "#EF5959")
             .attr("pointer-events", "none");
 
-        // Roster
-        // Get list of participating conodes in the roster
+        /* Roster */
+
+        // List of participating conodes in the roster
         const descList: string[] = [];
         for (let i = 0; i < block.roster.list.length; i++) {
             descList[i] = block.roster.list[i].description;
         }
 
-        // tooltip for list of participating conodes in the roster
+        // Roster group
+        // Tooltip for list of participating conodes in the roster
         const roster = svgLast
             .append("g")
             .attr("class", "groster")
@@ -177,7 +288,7 @@ export class LastAddedBlock {
             .attr("fill-opacity", "0.5")
             .attr("rx", "7px");
 
-        // blockie to illustrate hash of the roster
+        // Blockie to illustrate hash of the roster
         const blockie = blockies.create({
             seed: lastBlock.hash.toString("hex"),
         });
@@ -198,121 +309,6 @@ export class LastAddedBlock {
         );
     }
 
-    /**
-     * Display the last added block of the chain
-     * @param lastBlock the last added block of the blockchain
-     * @param svgLast the svg container that should welcome the block
-     * @param hashLast the hash of the last added block
-     * @param blockClickedSubject the subject that is notified when a block is clicked
-     */
-    private displayLastAddedBlock(
-        lastBlock: SkipBlock,
-        svgLast: any,
-        hashLast: Buffer,
-        blockClickedSubject: Subject<SkipBlock>
-    ) {
-        // Display of the last added block
-        svgLast
-            .append("rect")
-            .attr("id", hashLast.toString("hex"))
-            .attr("width", this.lastBlockWidth)
-            .attr("height", this.lastBlockHeight)
-            .attr("x", 0)
-            .attr("y", 20)
-            .style("filter", "url(#drop-shadow)")
-            .attr("fill", Chain.getBlockColor(lastBlock))
-            .on("click", () => {
-                // tslint:disable-next-line:no-unused-expression
-                blockClickedSubject.next(lastBlock);
-            })
-            .on("mouseover", function () {
-                d3.select(this).style("cursor", "pointer");
-            })
-            .on("mouseout", function () {
-                d3.select(this).style("cursor", "default");
-            });
-
-        // shadow filter for last added block
-        const defs = svgLast.append("defs");
-
-        // create filter with id #drop-shadow
-        // height=130% so that the shadow is not clipped
-        const filter = defs
-            .append("filter")
-            .attr("id", "drop-shadow")
-            .attr("height", "130%");
-
-        // SourceAlpha refers to opacity of graphic that this filter will be applied to
-        // convolve that with a Gaussian with standard deviation 3 and store result
-        // in blur
-        filter
-            .append("feGaussianBlur")
-            .attr("in", "SourceAlpha")
-            .attr("stdDeviation", 3)
-            .attr("result", "blur");
-
-        // translate output of Gaussian blur to the right and downwards with 2px
-        // store result in offsetBlur
-        filter
-            .append("feOffset")
-            .attr("in", "blur")
-            .attr("dx", 2)
-            .attr("dy", 2)
-            .attr("result", "offsetBlur");
-
-        // overlay original SourceGraphic over translated blurred opacity by using
-        // feMerge filter.
-        const feMerge = filter.append("feMerge");
-
-        feMerge.append("feMergeNode").attr("in", "offsetBlur");
-        feMerge.append("feMergeNode").attr("in", "SourceGraphic");
-
-        const gtextLast = svgLast.append("g").attr("class", "gtextLast");
-
-        // Add text on top of last added block
-        gtextLast
-            .append("text")
-            .attr("x", "50%") // Coordinates are used as such as centering text on a rect svg isn't feasible
-            .attr("y", "8%")
-            .text("Last added")
-            .attr("text-anchor","middle")
-            .attr("font-family", "Arial")
-            .attr("font-size", "17px")
-            .attr("fill", "#808080")
-            .attr("pointer-events", "none");
-
-        // block index text on last added block
-        gtextLast
-            .append("text")
-            .attr("x", "50%")
-            .attr("y", "28%")
-            .attr("text-anchor","middle")
-            .text("Block " + lastBlock.index.toString())
-            .attr("font-family", "Arial")
-            .attr("font-size", "17px")
-            .attr("fill", "#ffffff")
-            .attr("pointer-events", "none");
-
-        const self = this;
-
-        // Tooltip for block hash on top of block index
-        gtextLast
-            .append("rect")
-            .attr("x", "25%")
-            .attr("y", "20%")
-            .attr("width", 110)
-            .attr("height", 19)
-            .attr("fill-opacity", "0")
-            .attr("uk-tooltip", Utils.bytes2String(lastBlock.hash))
-            .on("click", () => {
-                Utils.copyToClipBoard(
-                    lastBlock.hash.toString("hex"),
-                    self.flash
-                );
-            });
-
-        this.lastAddedBlockInfo(lastBlock, svgLast, lastBlock);
-    }
     /**
      * Helper function to count the number of validated and rejected transactions
      * @param block the block from which we want the transactions
