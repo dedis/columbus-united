@@ -289,12 +289,20 @@ div.query-answer {
 #last-container{
     display: flex;
     margin-left: 35px;
+    padding-left: 50px;
+    padding-right: 50px;
     background-color: white;
     animation: 2s ease-out 2s 1 slideInFromRight;
     background: white;
     animation-direction: reverse;
-    border-left: 1px solid gray;
-    overflow: hidden;
+overflow: hidden;
+padding-right: 40px;
+padding-left: 40px;
+width: 316.11111px;
+border-left-color: gray;
+border-left-width: 1px;
+border-left-style: solid;
+
 
 }
 

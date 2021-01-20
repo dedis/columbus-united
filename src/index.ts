@@ -5,7 +5,6 @@ import "uikit";
 import { Block } from "./block";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
-import { LastAddedBlock } from "./lastAddedBlock";
 import { Lifecycle } from "./lifecycle";
 import { getRosterStr } from "./roster";
 import { searchBar } from "./search";
@@ -13,7 +12,16 @@ import "./stylesheets/style.scss";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
 
-// This is the genesis block, which is also the skipchain identifier
+/*
+   ___              _                     _
+  / __|    ___     | |    _  _    _ __   | |__    _  _     ___
+ | (__    / _ \    | |   | +| |  | '  \  | '_ \  | +| |   (_-<
+  \___|   \___/   _|_|_   \_,_|  |_|_|_| |_.__/   \_,_|   /__/_
+_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|
+"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'"`-0-0-'
+ */
+
+// This is the genesis block, which is also the Skipchain identifier
 const hashBlock0 =
     "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
 // The roster configuration, parsed as a string
@@ -22,15 +30,16 @@ const rosterStr = getRosterStr();
 /**
  *
  * Main file that creates the different objects and subjects.
- *
- * @author Anthony Iozzia <anthony.iozzia@epfl.ch>
- * @author Julien von Felten <julien.vonfelten@epfl.ch>
+ * Starts the visualization
+ * @author Sophia Artioli <sophia.artioli@epfl.ch>
+ * @author Lucas Trognon <lucas.trognon@epfl.ch>
  * @author Noémien Kocher <noemien.kocher@epfl.ch>
  *
  * @export
  * @returns : only in case of an error
  */
 export function sayHi() {
+
     // Create the roster
     const roster = Roster.fromTOML(rosterStr);
 
@@ -41,61 +50,65 @@ export function sayHi() {
         return;
     }
 
-    // Change here the first block to display by default if the user does not input a block index in the url
-    console.log(Chain.numblocks);
-    Utils.getBlock(Utils.hex2Bytes(hashBlock0), roster)
-        .then((s) =>
-            new SkipchainRPC(roster).getLatestBlock(s.hash, false, true)
-        )
-        .then((resp) => {
-            // Load the first block
+    let initialBlockIndex: number;
+
+    const scRPC = new SkipchainRPC(roster);
+    new SkipchainRPC(roster).getLatestBlock(Utils.hex2Bytes(hashBlock0), false, true).then(
+        (last) => {    // skipBlock of the last added block of the chain
+
+            // Url input from the user
             const indexString = window.location.hash.split(":")[1];
 
-            // Change here the first block to display by default if the user does not input a block index in the url
-            // The default block is #119614 because forward links from this point onwards are broken
-            let initialBlockIndex =
-                // tslint:disable-next-line:radix
-                indexString != null ? parseInt(indexString) : 20; //resp.index- 8*Chain.pageSize;
+            if (indexString != null) {
+                // A block index is inputted
+                initialBlockIndex = parseInt(indexString, 10);
+            } else {
+                // The user does not input a block index in the url
+                // Display the correct amount of blocks to fit the end of the chain
+                initialBlockIndex = last.index - Chain.numBlocks;
+            }
 
             // The block index should not be smaller than 0
-            if (resp.index < 0) {
+            if (initialBlockIndex < 0) {
                 flash.display(
                     Flash.flashType.ERROR,
                     "index of initial block cannot be negative, specified index is " +
                         initialBlockIndex
                 );
             }
-            // Load the first block at the provided index, and start the visualization
-            // once we got that block and the promise resolves
-            const scRPC = new SkipchainRPC(roster);
-            scRPC
-                .getSkipBlockByIndex(
-                    Utils.hex2Bytes(hashBlock0),
-                    initialBlockIndex
-                )
-                .then(
-                    (blockReply) => {
-                        scRPC
-                            .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), 0)
-                            .then((genesis) => {
-                                startColumbus(
-                                    genesis.skipblock,
-                                    blockReply.skipblock,
-                                    roster,
-                                    flash
-                                );
-                            });
-                    },
-                    (e) => {
-                        flash.display(
-                            Flash.flashType.ERROR,
-                            "Unable to find initial block with index " +
-                                initialBlockIndex +
-                                ": " +
-                                e
-                        );
-                    }
+
+            // The block index should not be higher than the last added block
+            if (initialBlockIndex > last.index) {
+                flash.display(
+                    Flash.flashType.ERROR,
+                    "index of initial block cannot be higher than the last added block of the chain, specified index is " +
+                        initialBlockIndex
                 );
+                // Set initial index at last added block of the chain
+                initialBlockIndex = last.index - Chain.numBlocks;
+            }
+        }).then(() => {
+            scRPC
+            .getSkipBlockByIndex(
+                Utils.hex2Bytes(hashBlock0),
+                0
+            ).then((genesis) => {
+            scRPC
+            .getSkipBlockByIndex(
+                Utils.hex2Bytes(hashBlock0),
+                initialBlockIndex
+            ).then((initialBlock) => {
+                // Start the visualization
+                startColumbus(
+                    genesis.skipblock,
+                    initialBlock.skipblock,
+                    roster,
+                    flash
+                );
+            });
+
+            });
+
         });
 }
 
@@ -113,10 +126,10 @@ export function startColumbus(
     roster: Roster,
     flash: Flash
 ) {
-    // The chain is loaded at block 0 and then moved to the desired place.
+    // The chain is loaded at block 0 and then moved to the desired place
     const chain = new Chain(roster, flash, genesisBlock);
 
-    // The translation is started to trigger the load
+    // The translation is done to the initialBlock
     Utils.translateOnChain(
         initialBlock,
         genesisBlock,

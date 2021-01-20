@@ -54,13 +54,13 @@ export class Utils {
      * @param block block of which we want the hash of the right block
      */
     static getRightBlockHash(block: SkipBlock): string {
-        return this.bytes2String(block.forwardLinks[0].to);
-    }
+            return this.bytes2String(block.forwardLinks[0].to);
+         }
 
     /**
      * @author Sophia Artioli (sophia.artioli@epfl.ch)
      *
-     * Get the block by its hash and roster
+     * Get the skipBlock by its hash and roster
      * @param hash the hash the requested block
      * @param roster roster that validated the block
      */
@@ -69,14 +69,17 @@ export class Utils {
             new SkipchainRPC(roster)
                 .getSkipBlock(hash)
                 .then((skipblock) => resolve(skipblock))
-                .catch((e) => reject(e));
+                .catch((e) => {
+
+                    reject(e);
+                 });
         });
     }
 
     /**
      * @author Sophia Artioli (sophia.artioli@epfl.ch)
      *
-     * Gets the block by its hash and roster
+     * Gets the skipBlock by its hash and roster
      * @param genesis hash of the first block of the chain
      * @param index the index of the requested block
      * @param roster roster that validated the block
@@ -90,7 +93,10 @@ export class Utils {
             new SkipchainRPC(roster)
                 .getSkipBlockByIndex(genesis, index)
                 .then((skipblock) => resolve(skipblock.skipblock))
-                .catch((e) => reject(e));
+                .catch((e) => {
+                    reject(e); }
+
+                );
         });
     }
 
@@ -160,21 +166,24 @@ export class Utils {
             )
             .scale(1);
 
-        //Adds an animation and then calls the transformation
+        /**
+         * Adds an animation and then calls the transformation
+         * @author Lucas Trognon (lucas.trognon@epfl.ch)
+         */
         d3.select("#svg-container")
             .transition()
             .delay(200)
             .duration(1000)
             .call(Chain.zoom.transform, newZoom);
 
-        //Selects the target block
-
+        // Selects the target block and displays its information
         blockClickedSubject.next(block);
     }
 
     /**
-     * Converts a transform to the corresponding block index.
+     * @author Noémien Kocher (noémien.kocher@epfl.ch)
      *
+     * Converts a transform to the corresponding block index.
      * @param transform d3 transformation
      * @param blockWidth width of a block, with the padding included
      * @param chainWidth the width of the chain
@@ -194,13 +203,6 @@ export class Utils {
         return { left: Math.max(0, leftBlockIndex), right: rightBlockIndex };
     }
 
-    /**
-     * Adds a clickable squared blocky image to a d3 selection. Should used to represent
-     * an object in the skipchain (such as an instance)
-     * @param line d3 selection
-     * @param hash seed for the blocky
-     * @param flash flash object used for the copy to clipboard notification.
-     */
     static addHashBlocky(
         line: d3.Selection<HTMLElement, unknown, HTMLElement, any>,
         hash: string,

@@ -1,11 +1,5 @@
-import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
 import { DataBody } from "@dedis/cothority/byzcoin/proto";
-import {
-    PaginateRequest,
-    PaginateResponse,
-} from "@dedis/cothority/byzcoin/proto/stream";
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
-import { WebSocketConnection } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
@@ -16,22 +10,27 @@ import { LastAddedBlock } from "./lastAddedBlock";
 import { Utils } from "./utils";
 
 /**
+ * The core class that builds the chain and creates autonomous parts on it
  * @author Sophia Artioli (sophia.artioli@epfl.ch)
- * The core class that builds the chain.
+ * @author Noémien Kocher (noémien.kocher@epfl.ch)
  */
 export class Chain {
+
+    // Getter for the subject that is notified when a block is clicked on.
     get getBlockClickedSubject(): Subject<SkipBlock> {
         return this.blockClickedSubject;
     }
 
+    // Getter for the subject that is notified when new blocks are loaded from the client.
     get getNewBlocksSubject(): Subject<SkipBlock[]> {
         return this.newBlocksSubject;
     }
 
     // Go to https://color.adobe.com/create/color-wheel with this base color to
     // find the palet of colors.
-    static readonly blockColor = { r: 23, v: 73, b: 179 }; // #D9BA82
+    static readonly blockColor = { r: 23, v: 73, b: 179 };
 
+    // Block properties
     static readonly blockPadding = 10;
     static readonly blockHeight = 50;
     static readonly blockWidth = 70;
@@ -40,19 +39,26 @@ export class Chain {
     static readonly unitBlockAndPaddingWidth =
         Chain.blockPadding + Chain.blockWidth;
     static readonly axisPadding = 8;
-    // the number of block the window can display at normal scale. Used to
-    // define the domain the xScale
-    static readonly numblocks =
+
+    // The number of blocks the window can display at normal scale. Used to
+    // define the domain for the xScale
+    static readonly numBlocks =
         Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
 
     // Recommended pageSize / nbPages: 80 / 50
-    static readonly pageSize = 50;
+    static pageSize = 50;
+    static readonly nbPages = 1;
 
-    // The coordinate transformation on the chain.
+    // The coordinate transformation of the chain.
     static zoom: any;
 
+    // The number of total loaded blocks on the chains
+    // Initialized to 0
+    static totalLoaded = 0;
+
     /**
-     * * Determine the color of the blocks.
+     * Determine the color of the blocks.
+     * The darker the block the more transactions it contains.
      */
     static getBlockColor(block: SkipBlock): string {
         const body = DataBody.decode(block.payload);
@@ -63,15 +69,14 @@ export class Chain {
         }, ${Chain.blockColor.b * factor})`;
     }
 
-    readonly textMargin = 5;
-    readonly nbPages = 1;
-    readonly textColor = "black";
-    readonly loadedInfo = document.getElementById("loaded-blocks");
-
+    // The group that contains the blocks on the chain.
     readonly gblocks: any;
+    // The group that contains the arrows between blocks.
     readonly garrow: any;
-    readonly gcircle: any;
+    // The groups that contains the circles on the blocks of the chain
+    // readonly gcircle: any;
 
+    // The array that contains all autonomous parts on the chain.
     readonly chunks = new Array<Chunk>();
 
     // The roster defines the blockchain nodes
@@ -81,24 +86,24 @@ export class Chain {
     // between the different calls instead of creating a new connection each time.
     ws: WebSocketAdapter;
 
-    // This subject is notified each time a new page containing new blocks has
-    // been loaded from the cothority client.
-    subjectBrowse = new Subject<[number, SkipBlock[], boolean]>();
-
     // This subject is notified each time a block is clicked.
     blockClickedSubject = new Subject<SkipBlock>();
+
+    // This subject is notified when a new series of block has been added to the
+    // view.
     newBlocksSubject = new Subject<SkipBlock[]>();
 
     // Flash is a utility class to display flash messages in the view.
     flash: Flash;
 
-    // First block displayed on the chain
+    // The first block displayed by the chain.
     initialBlock: SkipBlock;
 
     // Coordinates and scale factor of the view of the chain
     lastTransform = { x: 0, y: 0, k: 1 };
 
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
+
         // Blockchain properties
         this.roster = roster;
         this.flash = flash;
@@ -106,10 +111,10 @@ export class Chain {
         // First block displayed on the chain
         this.initialBlock = initialBlock;
 
-        // This subject will be notified when the main SVG caneva in moved by the user
+        // This subject will be notified when the main SVG canvas in moved by the user
         const subject = new Subject();
 
-        // Main SVG caneva that contains the chain
+        // Main SVG canvas that contains the chain
         const svg = d3
             .select("#svg-container")
             .attr("height", Chain.svgHeight)
@@ -118,29 +123,24 @@ export class Chain {
         // This group will contain the blocks
         this.gblocks = svg.append("g").attr("class", "gblocks");
 
-        // This group will contain the arrows between
+        // This group will contain the arrows between blocks
         this.garrow = svg.append("g").attr("class", "garrow");
 
-        // this group will contain the text. We need two separate groups because the
+        // This group will contain the circles. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
         // readable
-        // const gcircle = svg.append("g").attr("class", "gtext");
-        // this.gcircle = gcircle;
+        // this.gcircle = svg.append("g").attr("class", "gcircle");
 
-        // this group will contain the left and right loaders that display a spinner
-        // when new blocks are being added
-        const gloader = svg.append("g").attr("class", "gloader");
-
-        // the xScale displays the block index and allows the user to quickly see
+        // The xScale displays the block index and allows the user to quickly see
         // where he is in the chain
         const xScale = d3
             .scaleLinear()
-            .domain([initialBlock.index, initialBlock.index + Chain.numblocks])
+            .domain([initialBlock.index, initialBlock.index + Chain.numBlocks])
             .range([0, Chain.svgWidth]);
 
         const xAxis = d3
             .axisBottom(xScale)
-            .ticks(Chain.numblocks)
+            .ticks(Chain.numBlocks)
             .tickFormat(d3.format("d"));
 
         const xAxisDraw = svg
@@ -181,8 +181,7 @@ export class Chain {
                 xAxis.scale(xScaleNew);
                 xAxisDraw.call(xAxis);
 
-                // Horizontal only transformation on the blocks (sets scale Y to
-                // 1)
+                // Horizontal transformation on the blocks only (sets Y scale to 1)
                 const transformString =
                     "translate(" +
                     transform.x +
@@ -199,18 +198,21 @@ export class Chain {
 
                 // Standard transformation on the text since we need to keep the
                 // original scale
-                // gcircle.selectAll("circle").attr("transform", transformString);
-
-                // Update the loader. We want to keep them at their original
-                // scale so we only translate them
-                gloader.attr("transform", transform);
-                // resize the loaders to always have a relative scale of 1
-                gloader
-                    .selectAll("svg")
-                    .attr("transform", `scale(${1 / transform.k})`);
+                // this.gcircle.attr("transform", transformString);
             },
         });
 
+        // Initialize the last added block of the chain in its dedicated space
+        // It is initialized here as it takes longer to load.
+        // We need to use it when creating new chunks
+        const lastAddedBlock = new LastAddedBlock(
+            roster,
+            flash,
+            initialBlock,
+            this.blockClickedSubject
+        );
+
+        // Subject that is notified about the transformation on the chain
         subject.pipe(debounceTime(50)).subscribe({
             next: (transform: any) => {
                 const bounds = Utils.transformToIndexes(
@@ -221,9 +223,11 @@ export class Chain {
 
                 let alreadyHandled = false;
 
+                // The adjacent neighbours to the current Chunk
                 let leftNei: Chunk;
                 let rightNei: Chunk;
 
+                // The adjacent neighbours indexes to the current Chunk
                 let leftNeiIndex = 0;
                 let rightNeiIndex = 0;
 
@@ -291,9 +295,11 @@ export class Chain {
                 }
 
                 if (!alreadyHandled) {
+                    // A new Chunk is created,
                     const c = new Chunk(
                         subject,
                         initialBlock,
+                        lastAddedBlock,
                         leftNei,
                         rightNei,
                         bounds.left + (bounds.right - bounds.left) / 2,
@@ -316,115 +322,10 @@ export class Chain {
                         rightNei.leftNeighbor = c;
                     }
 
-                    // keep the chunks sorted
+                    // Keep the chunks sorted.
                     this.chunks.splice(leftNeiIndex + 1, 0, c);
                 }
             },
         });
-
-        // We intialize the last added block of the chain
-        new LastAddedBlock(
-            roster,
-            flash,
-            initialBlock,
-            this.blockClickedSubject
-        );
-    }
-
-    /**
-     * Requests blocks to the blockchain.
-     * @param nextBlockID hash of the first block of the next blocks to get
-     * @param pageSize number of blocks in a page
-     * @param nbPages number of pages to request
-     * @param subjectBrowse observable to get the blocks from the blockchain
-     * @param backward false for loading blocks to the right, true for loading
-     * blocks to the left
-     */
-    getNextBlocks(
-        nextBlockID: string,
-        pageSize: number,
-        nbPages: number,
-        subjectBrowse: Subject<[number, SkipBlock[], boolean]>,
-        backward: boolean
-    ) {
-        let bid: Buffer;
-
-        try {
-            bid = Utils.hex2Bytes(nextBlockID);
-        } catch (error) {
-            this.flash.display(
-                Flash.flashType.ERROR,
-                `failed to parse the block ID: ${error}`
-            );
-            return;
-        }
-
-        let conn: WebSocketConnection;
-        try {
-            conn = new WebSocketConnection(
-                this.roster.list[0].getWebSocketAddress(),
-                ByzCoinRPC.serviceName
-            );
-        } catch (error) {
-            this.flash.display(
-                Flash.flashType.ERROR,
-                `error creating conn: ${error}`
-            );
-            return;
-        }
-
-        if (this.ws !== undefined) {
-            const message = new PaginateRequest({
-                backward,
-                numpages: nbPages,
-                pagesize: pageSize,
-                startid: bid,
-            });
-
-            const messageByte = Buffer.from(
-                message.$type.encode(message).finish()
-            );
-            this.ws.send(messageByte); // fetch next block
-        } else {
-            conn.sendStream<PaginateResponse>( // fetch next block
-                new PaginateRequest({
-                    backward,
-                    numpages: nbPages,
-                    pagesize: pageSize,
-                    startid: bid,
-                }),
-                PaginateResponse
-            ).subscribe({
-                // ws callback "onMessage":
-                complete: () => {
-                    this.flash.display(Flash.flashType.ERROR, "closed");
-                    this.ws = undefined;
-                },
-                error: (err: Error) => {
-                    this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
-                    this.ws = undefined;
-                },
-                next: ([data, ws]) => {
-                    // tslint:disable-next-line
-                    if (data.errorcode != 0) {
-                        this.flash.display(
-                            Flash.flashType.ERROR,
-                            `got an error with code ${data.errorcode} : ${data.errortext}`
-                        );
-                        return 1;
-                    }
-                    if (ws !== undefined) {
-                        this.ws = ws;
-                    }
-
-                    subjectBrowse.next([
-                        data.pagenumber,
-                        data.blocks,
-                        data.backward,
-                    ]);
-                    return 0;
-                },
-            });
-        }
     }
 }

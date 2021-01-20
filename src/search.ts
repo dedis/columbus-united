@@ -15,6 +15,8 @@ import { Utils } from "./utils";
  * @param initialBlock the first block displayed at the load of the chain
  * @param hashBlock0 the hash of the genesis block
  * @param blockClickedSubject the subject notified each time a block is clicked on
+ * @param block Block instance
+ * @author Sophia Artioli (sophia.artioli@epfl.ch)
  */
 export function searchBar(
     roster: Roster,
@@ -26,8 +28,18 @@ export function searchBar(
 ) {
     d3.select("#search-input").on("keypress", () => {
         if (d3.event.keyCode === 13) {
+            // The enter button is pressed
+
+            // Text inputted by the user in the search-bar
             const input = d3.select("#search-input").property("value");
+
+            // Mode selected by the user in the drop-down menu
             const searchMode = d3.select("#search-mode").property("value");
+            if (input.toString() == "") {
+                // The user hasn't inputted anything
+                // If this check is not done, submitting will look for block 0
+                return;
+            }
             searchRequest(
                 input,
                 roster,
@@ -41,10 +53,21 @@ export function searchBar(
         }
     });
 
+    // The submit button is pressed
     d3.select("#submit-button").on("click", async () => {
+
+        // Text inputted by the user in the search-bar
         const input = d3.select("#search-input").property("value");
+        // Mode selected by the user in the drop-down menu
         const searchMode = d3.select("#search-mode").property("value");
-        searchRequest(
+
+        if (input.toString() == "") {
+            // The user hasn't inputted anything
+            // If this check is not done, submitting will look for block 0
+            return;
+        }
+
+        await searchRequest(
             input,
             roster,
             flash,
@@ -56,6 +79,7 @@ export function searchBar(
         );
     });
 }
+
 /**
  * Helper function to search for the blocks
  * @param input the input inserted by the user
@@ -64,6 +88,8 @@ export function searchBar(
  * @param hashBlock0 the hash of the genesis block
  * @param initialBlock the first block displayed at the load of the chain
  * @param blockClickedSubject the subject notified each time a block is clicked on
+ * @param searchMode the element requested (block hash, block index, instance id)
+ * @param block
  */
 async function searchRequest(
     input: any,
@@ -78,30 +104,16 @@ async function searchRequest(
     switch (searchMode) {
         case "anything":
             if (input.length < 32) {
-                try {
-                    const block = await Utils.getBlockByIndex(
-                        Utils.hex2Bytes(hashBlock0),
-                        parseInt(input, 10),
-                        roster
-                    );
-                    flash.display(
-                        Flash.flashType.INFO,
-                        "Valid search for block index: " +
-                            block.index.toString()
-                    );
-                    await Utils.translateOnChain(
-                        block,
-                        initialBlock,
-                        blockClickedSubject
-                    );
-                    blockClickedSubject.next(block);
-                } catch (error) {
-                    flash.display(
-                        Flash.flashType.ERROR,
-                        "Block does not exist"
-                    );
-                }
+                await indexSearch(
+                    hashBlock0,
+                    input,
+                    roster,
+                    flash,
+                    initialBlock,
+                    blockClickedSubject
+                );
             } else {
+                // The input is in the form of a hash
                 try {
                     const block = await Utils.getBlock(
                         Buffer.from(input, "hex"),
@@ -120,6 +132,8 @@ async function searchRequest(
                     );
                     blockClickedSubject.next(block);
                 } catch (error) {
+                    // The inputted hash is not a block
+                    // Try browsing the chain for instances
                     flash.display(
                         Flash.flashType.INFO,
                         `Browsing the chain for instance ID : ${input}`
@@ -128,26 +142,16 @@ async function searchRequest(
                 }
             }
             break;
+
         case "index":
-            try {
-                const block = await Utils.getBlockByIndex(
-                    Utils.hex2Bytes(hashBlock0),
-                    parseInt(input, 10),
-                    roster
-                );
-                flash.display(
-                    Flash.flashType.INFO,
-                    "Valid search for block index: " + block.index.toString()
-                );
-                await Utils.translateOnChain(
-                    block,
-                    initialBlock,
-                    blockClickedSubject
-                );
-                blockClickedSubject.next(block);
-            } catch (error) {
-                flash.display(Flash.flashType.ERROR, "Block does not exist");
-            }
+            await indexSearch(
+                hashBlock0,
+                input,
+                roster,
+                flash,
+                initialBlock,
+                blockClickedSubject
+            );
             break;
         case "hash":
             try {
@@ -170,6 +174,7 @@ async function searchRequest(
                 flash.display(Flash.flashType.ERROR, `Block does not exist`);
             }
             break;
+
         case "id":
             flash.display(
                 Flash.flashType.INFO,
@@ -177,5 +182,40 @@ async function searchRequest(
             );
             block.launchQuery(50, input.toString());
             break;
+    }
+
+    /**
+     * Helper function to request for a searched block by index
+     * @param hashBlock0 the genesis block's hash
+     * @param input user input
+     * @param roster
+     * @param flash
+     * @param initialBlock the first block displayed by the chain
+     * @param blockClickedSubject the subject that is notified when a block is clicked
+     */
+    async function indexSearch(
+        hashBlock0: string,
+        input: any,
+        roster: Roster,
+        flash: Flash,
+        initialBlock: SkipBlock,
+        blockClickedSubject: Subject<SkipBlock>
+    ) {
+        try {
+            const block = await Utils.getBlockByIndex(
+                Utils.hex2Bytes(hashBlock0),
+                parseInt(input, 10),
+                roster
+            );
+            flash.display(
+                Flash.flashType.INFO,
+                "Valid search for block index: " + block.index.toString()
+            );
+
+            await Utils.translateOnChain(block, initialBlock, blockClickedSubject);
+            blockClickedSubject.next(block);
+        } catch (error) {
+            flash.display(Flash.flashType.ERROR, "Block does not exist");
+        }
     }
 }
