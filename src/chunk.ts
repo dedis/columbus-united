@@ -225,22 +225,61 @@ export class Chunk {
             this.leftBlock.index > bounds.left &&
             this.leftBlock.index < bounds.right
         ) {
-            // check if our neighbor has not already loaded the blocks
+            // Check if our neighbor has not already loaded the blocks
             if (
                 this.leftNeighbor !== undefined &&
                 this.leftNeighbor.right > this.left
             ) {
                 return false;
             }
-
+            // Load block to the left
             const hashNextBlockLeft = Utils.getLeftBlockHash(lastBlockLeft);
-
             this.loadLeft(transform, gloader, hashNextBlockLeft);
 
             return true;
         }
 
         return false;
+    }
+    /**
+     * Loads blocks to the left if necessary
+     * @param transform the transform object that contain the x,y,k
+     * transformations
+     * @param gloader the svg container for the loader
+     * @param blockHash the hash of the next block to load to the left
+     *
+     */
+    loadLeft(transform: any, gloader: any, blockHash: any) {
+
+        // In case we are reaching the beginning of the chain, we should not
+        // load more blocks than available.
+        let numblocks = Chain.pageSize;
+        if (this.left - Chain.pageSize <= 0) {
+            numblocks = this.left;
+
+        }
+
+        this.left -= numblocks;
+
+        this.addLoader(
+            true,
+            gloader,
+
+            (this.leftBlock.index - 1) * Chain.unitBlockAndPaddingWidth +
+            Chain.blockPadding +
+            Chain.blockWidth / 2,
+            transform.k
+        );
+
+        setTimeout(() => {
+            this.getNextBlocks(
+                blockHash,
+                numblocks,
+                this.nbPages,
+                this.subjectBrowse,
+                true
+            );
+        }, 800);
     }
 
     /**
@@ -296,39 +335,14 @@ export class Chunk {
         return false;
     }
 
-    loadLeft(transform: any, gloader: any, blockHash: any) {
-
-        // In case we are reaching the beginning of the chain, we should not
-        // load more blocks than available.
-        let numblocks = Chain.pageSize;
-        if (this.left - Chain.pageSize <= 0) {
-            numblocks = this.left;
-
-        }
-
-        this.left -= numblocks;
-
-        this.addLoader(
-            true,
-            gloader,
-
-            (this.leftBlock.index - 1) * Chain.unitBlockAndPaddingWidth +
-                Chain.blockPadding +
-                Chain.blockWidth / 2,
-            transform.k
-        );
-
-        setTimeout(() => {
-            this.getNextBlocks(
-                blockHash,
-                numblocks,
-                this.nbPages,
-                this.subjectBrowse,
-                true
-            );
-        }, 800);
-    }
-
+    /**
+     * Loads blocks to the right if necessary
+     * @param transform the transform object that contain the x,y,k
+     * transformations
+     * @param gloader the svg container for the loader
+     * @param blockHash the hash of the next block to load to the left
+     *
+     */
     loadRight(transform: any, gloader: any, blockHash: string) {
 
         // In case we are reaching the end of the chain, we should not
@@ -413,49 +427,6 @@ export class Chunk {
              begin="0.3s" dur="0.6s" repeatCount="indefinite" />
          </rect>
       `);
-    }
-    /*
-     * Append the given blocks to the blockchain.
-     * @param listBlocks list of blocks to append
-     * @param backwards  false for loading blocks to the right, true for loading
-     *                   blocks to the left
-     * @param numblocks the number of blocks loaded from the initial block. In the
-     * case of a backward loading, this number should be negative. -10 means we
-     * already loaded 10 blocks on the left from the initial block.
-     *
-     */
-    displayBlocks(
-        listBlocks: SkipBlock[],
-        backwards: boolean,
-        gblocks: any,
-        garrow: any,
-        // gcircle: any,
-        numblocks: number
-    ) {
-
-        // Iterate over the blocks to append them
-        for (let i = 0; i < listBlocks.length; ++i) {
-            const block = listBlocks[i];
-
-            let xTranslateBlock: number;
-            if (backwards) {
-                // Blocks are appended to the left
-                xTranslateBlock =
-                    (numblocks - 1 - i) * Chain.unitBlockAndPaddingWidth;
-            } else {
-                // Blocks are appended to the right
-                xTranslateBlock =
-                    (numblocks  + i) * Chain.unitBlockAndPaddingWidth;
-            }
-
-            // Append the block inside the svg container
-            this.appendBlock(xTranslateBlock, block, gblocks);
-            // Append arrows between blocks
-            this.getToAndFromIndexes(xTranslateBlock, block, garrow);
-            // this.appendCircleInBlock(xTranslateBlock, gcircle);
-        }
-
-        this.newBlocksSubject.next(listBlocks);
     }
 
     /**
@@ -564,6 +535,54 @@ export class Chunk {
     }
 
     /**
+     * Append the given blocks to the blockchain.
+     * @param listBlocks list of blocks to append
+     * @param backwards  false for loading blocks to the right, true for loading
+     *                   blocks to the left
+     * @param gblocks the group that hold the blocks
+     * @param garrow the group that hold the arrows
+     * @param numblocks the number of blocks loaded from the initial block. In the
+     * case of a backward loading, this number should be negative. -10 means we
+     * already loaded 10 blocks on the left from the initial block.
+     *
+     */
+    displayBlocks(
+        listBlocks: SkipBlock[],
+        backwards: boolean,
+        gblocks: any,
+        garrow: any,
+        // gcircle: any,
+        numblocks: number
+    ) {
+
+        // Iterate over the blocks to append them
+        for (let i = 0; i < listBlocks.length; ++i) {
+            const block = listBlocks[i];
+
+            let xTranslateBlock: number;
+            if (backwards) {
+                // Blocks are appended to the left
+                xTranslateBlock =
+                    (numblocks - 1 - i) * Chain.unitBlockAndPaddingWidth;
+            } else {
+                // Blocks are appended to the right
+                xTranslateBlock =
+                    (numblocks  + i) * Chain.unitBlockAndPaddingWidth;
+            }
+
+            // Append the block inside the svg container
+            this.appendBlock(xTranslateBlock, block, gblocks);
+            // Append arrows between blocks
+            this.getToAndFromIndexes(xTranslateBlock, block, garrow);
+
+            // this.appendCircleInBlock(xTranslateBlock, gcircle);
+        }
+
+        // Notify the subject that new blocks have been added
+        this.newBlocksSubject.next(listBlocks);
+    }
+
+    /**
      * Helper function: sets up the fist request to load blocks on the chain.
      * @param left the left-most block index of the chunk
      * @private
@@ -661,44 +680,44 @@ export class Chunk {
                         }
                     }
                 } else {
-                   // Load blocks to the right
+                    // Load blocks to the right
 
                     let num = this.rightBlock.index;
                     if (skipBlocks[0] == undefined) {
                         // No more skipblocks can be requested from the client
                         this.isLoadingRight = false;
                     } else {
-                    if (this.rightBlock.index != skipBlocks[0].index) {
-                        // Update the first block to load to the right
-                        num = skipBlocks[0].index;
-                    }
+                        if (this.rightBlock.index != skipBlocks[0].index) {
+                            // Update the first block to load to the right
+                            num = skipBlocks[0].index;
+                        }
 
-                    this.displayBlocks(
-                    skipBlocks,
-                    false,
-                    this.gblocks,
-                    this.garrow,
-                    num
-                );
-                    // Right-most block
-                    this.rightBlock = skipBlocks[skipBlocks.length - 1];
-
-                    if (isLastPage) {
-                        this.gloader.select(".right-loader").remove();
-
-                        const loadMore = this.checkAndLoadRight(
-                            this.lastTransform,
-                            this.rightBlock,
-                            this.gloader
+                        this.displayBlocks(
+                            skipBlocks,
+                            false,
+                            this.gblocks,
+                            this.garrow,
+                            num
                         );
+                        // Right-most block
+                        this.rightBlock = skipBlocks[skipBlocks.length - 1];
 
-                        if (!loadMore) {
-                            this.isLoadingRight = false;
+                        if (isLastPage) {
+                            this.gloader.select(".right-loader").remove();
+
+                            const loadMore = this.checkAndLoadRight(
+                                this.lastTransform,
+                                this.rightBlock,
+                                this.gloader
+                            );
+
+                            if (!loadMore) {
+                                this.isLoadingRight = false;
+                            }
                         }
                     }
-                }
                     this.loadedFirst = true;
-             } },
+                } },
         });
     }
 
@@ -797,8 +816,7 @@ export class Chunk {
                     );
                 });
 
-            // Triangle end of the arrow
-
+            // Arrow head
             const triangle = svgBlocks.append("svg:defs").append("svg:marker");
             triangle
                 .attr("id", skipBlockFrom.index.toString() + "-" + height.toString()) // Markers have to have different id's otherwise they will not change color on hover
@@ -821,7 +839,7 @@ export class Chunk {
             triangle.on("mouseover",
                     function() {
                         d3.select(this).style("stroke", "var(--selected-colour");
-                        triangle.attr("fill", "var(--selected-colour");
+                        triangle.style("fill", "var(--selected-colour");
 
                 });
             line.on("mouseover",
@@ -832,7 +850,7 @@ export class Chunk {
                 });
             triangle.on("mouseout", () => {
                     line.style("stroke", "#A0A0A0");
-                    triangle.style("stroke", "#A0A0A0");
+                    triangle.style("fill", "#A0A0A0");
 
                 });
             line.on("mouseout", () => {
