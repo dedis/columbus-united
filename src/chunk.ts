@@ -812,29 +812,25 @@ export class Chunk {
                 .attr("refY", 4.5)
                 .attr("markerWidth", 17)
                 .attr("markerHeight", 15)
-                .attr("markerUnits",10)
                 .attr("fill", "#A0A0A0")
                 .attr("orient", "auto-start-reverse")
                 .append("path")
                 .attr("d","M 0 0 L 10 5 L 0 10 z")
-                .style("stroke", "#A0A0A0")
                 .on("click", () => {
                    Utils.translateOnChain(skipBlockTo, this.initialBlock, this.blockClickedSubject);
                    this.blockClickedSubject.next(skipBlockTo);
-                   alert("hi");
                 });
 
             // Arrows change color on hover
             triangle.on("mouseover",
                     function() {
                         d3.select(this).style("stroke", "var(--selected-colour");
-                        triangle.attr("stroke", "var(--selected-colour");
+                        triangle.attr("fill", "var(--selected-colour");
 
                 });
             line.on("mouseover",
                     function() {
                         d3.select(this).style("stroke", "var(--selected-colour");
-                        triangle.style("stroke", "var(--selected-colour");
                         triangle.style("fill", "var(--selected-colour");
 
 
@@ -846,7 +842,6 @@ export class Chunk {
                 });
             line.on("mouseout", () => {
                     line.style("stroke", "#A0A0A0");
-                    triangle.style("stroke", "#A0A0A0");
                     triangle.style("fill", "#A0A0A0");
                 });
 
