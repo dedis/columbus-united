@@ -15,7 +15,6 @@ import { Utils } from "./utils";
  * @author Noémien Kocher (noémien.kocher@epfl.ch)
  */
 export class Chain {
-
     // Getter for the subject that is notified when a block is clicked on.
     get getBlockClickedSubject(): Subject<SkipBlock> {
         return this.blockClickedSubject;
@@ -37,14 +36,12 @@ export class Chain {
     static readonly svgHeight = 200;
     static readonly svgWidth = window.innerWidth;
 
-    static  unitBlockAndPaddingWidth =
-        Chain.blockPadding + Chain.blockWidth;
+    static unitBlockAndPaddingWidth = Chain.blockPadding + Chain.blockWidth;
     static readonly axisPadding = 8;
 
     // The number of blocks the window can display at normal scale. Used to
     // define the domain for the xScale
-    static  numBlocks =
-        Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
+    static numBlocks = Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
 
     // Recommended pageSize / nbPages: 80 / 50
     static pageSize = 50;
@@ -104,7 +101,6 @@ export class Chain {
     lastTransform = { x: 0, y: 0, k: 1 };
 
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
-
         // Blockchain properties
         this.roster = roster;
         this.flash = flash;
@@ -116,9 +112,7 @@ export class Chain {
         const subject = new Subject();
 
         // Main SVG canvas that contains the chain
-        const svg = d3
-            .select("#svg-container")
-            .attr("height", Chain.svgHeight);
+        const svg = d3.select("#svg-container").attr("height", Chain.svgHeight);
 
         // This group will contain the blocks
         this.gblocks = svg.append("g").attr("class", "gblocks");

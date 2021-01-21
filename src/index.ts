@@ -68,11 +68,14 @@ export function sayHi() {
                 // The user does not input a block index in the url
 
                 // Size of container that welcoms the blocks
-                const containerSize = parseInt(d3.select("#svg-container").style("width"));
+                const containerSize = parseInt(
+                    d3.select("#svg-container").style("width")
+                );
 
                 // Display the correct amount of blocks to fit the end of the chain
-                initialBlockIndex = last.index - 
-                containerSize / (Chain.blockWidth + Chain.blockPadding);
+                initialBlockIndex =
+                    last.index -
+                    containerSize / (Chain.blockWidth + Chain.blockPadding);
             }
 
             // The block index should not be smaller than 0

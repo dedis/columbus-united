@@ -840,44 +840,28 @@ export class Chunk {
                     function() {
                         d3.select(this).style("stroke", "var(--selected-colour");
                         triangle.style("fill", "var(--selected-colour");
-<<<<<<< HEAD
                         d3.select(this).style("cursor", "pointer");
-=======
-                        d3.select(this).style("cursor", "pointer"); 
->>>>>>> origin/Sophia
 
                 });
             line.on("mouseover",
                     function() {
                         d3.select(this).style("stroke", "var(--selected-colour");
                         triangle.style("fill", "var(--selected-colour");
-<<<<<<< HEAD
                         d3.select(this).style("cursor", "pointer");
 
-=======
-                       d3.select(this).style("cursor", "pointer"); 
->>>>>>> origin/Sophia
 
                 });
             triangle.on("mouseout", () => {
                     line.style("stroke", "#A0A0A0");
                     triangle.style("fill", "#A0A0A0");
-<<<<<<< HEAD
                     line.style("cursor", "default");
 
-=======
-                    triangle.style("cursor", "default");
->>>>>>> origin/Sophia
 
                 });
             line.on("mouseout", () => {
                     line.style("stroke", "#A0A0A0");
                     triangle.style("fill", "#A0A0A0");
-<<<<<<< HEAD
                     line.style("cursor", "default");
-=======
-                    triangle.style("cursor", "default");
->>>>>>> origin/Sophia
                 });
 
         }

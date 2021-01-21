@@ -54,8 +54,8 @@ export class Utils {
      * @param block block of which we want the hash of the right block
      */
     static getRightBlockHash(block: SkipBlock): string {
-            return this.bytes2String(block.forwardLinks[0].to);
-         }
+        return this.bytes2String(block.forwardLinks[0].to);
+    }
 
     /**
      * @author Sophia Artioli (sophia.artioli@epfl.ch)
@@ -70,9 +70,8 @@ export class Utils {
                 .getSkipBlock(hash)
                 .then((skipblock) => resolve(skipblock))
                 .catch((e) => {
-
                     reject(e);
-                 });
+                });
         });
     }
 
@@ -94,9 +93,8 @@ export class Utils {
                 .getSkipBlockByIndex(genesis, index)
                 .then((skipblock) => resolve(skipblock.skipblock))
                 .catch((e) => {
-                    reject(e); }
-
-                );
+                    reject(e);
+                });
         });
     }
 

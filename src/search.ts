@@ -55,7 +55,6 @@ export function searchBar(
 
     // The submit button is pressed
     d3.select("#submit-button").on("click", async () => {
-
         // Text inputted by the user in the search-bar
         const input = d3.select("#search-input").property("value");
         // Mode selected by the user in the drop-down menu
@@ -212,7 +211,11 @@ async function searchRequest(
                 "Valid search for block index: " + block.index.toString()
             );
 
-            await Utils.translateOnChain(block, initialBlock, blockClickedSubject);
+            await Utils.translateOnChain(
+                block,
+                initialBlock,
+                blockClickedSubject
+            );
             blockClickedSubject.next(block);
         } catch (error) {
             flash.display(Flash.flashType.ERROR, "Block does not exist");

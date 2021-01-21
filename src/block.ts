@@ -5,7 +5,7 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable, Subject } from "rxjs";
 import { throttleTime } from "rxjs/operators";
-import {event } from 'd3-selection';
+import { event } from "d3-selection";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
@@ -266,8 +266,8 @@ export class Block {
         divForwardLink.attr("class", "uk-accordion-content");
         block.forwardLinks.forEach((fl, j) => {
             // This equation is simply derived from the skipchain topology
-            const blockIndex = block.index + Math.pow(block.baseHeight, j); 
-        
+            const blockIndex = block.index + Math.pow(block.baseHeight, j);
+
             // For each linked block, a clickable badge is created
             const divForwardLinkBadge = divForwardLink
                 .append("p")
@@ -287,9 +287,8 @@ export class Block {
                 .attr("uk-tooltip", `${fl.to.toString("hex")}`);
             Utils.clickable(divForwardLinkBadge);
 
-
             // Because forward links need to be verified, signatures are rendered as well
-            // Here a tooltip is created to sisplay all the data needed 
+            // Here a tooltip is created to sisplay all the data needed
             const lockIcon = divForwardLink.append("object");
             const lockContent = `<p>Hash : ${fl.hash().toString("hex")}</p>
             <p>signature: ${fl.signature.sig.toString("hex")}</p>`;
@@ -338,8 +337,7 @@ export class Block {
                     (totalTransaction > 1 ? "s" : "")
             )
             .style("margin-left", "10px");
-        
-        
+
         const transactionCardBody = transactionCard.append("div");
         transactionCardBody.attr("class", "uk-card-body uk-padding-small");
 
@@ -349,9 +347,7 @@ export class Block {
                 : `<span id ="rejected">Rejected</span>`;
 
             const liTransaction = transactionCardBody.append("ul");
-            liTransaction
-                .attr("id", "detail-window")
-                .attr("class", "uk-open");
+            liTransaction.attr("id", "detail-window").attr("class", "uk-open");
             const transactionTitle = liTransaction.append("h3");
             let totalInstruction = 0;
 
@@ -375,8 +371,7 @@ export class Block {
             // ANCHOR Transaction displaying
             transaction.clientTransaction.instructions.forEach(
                 (instruction, j) => {
-
-                    // This variable helps us keep tracks whether or not we should display 
+                    // This variable helps us keep tracks whether or not we should display
                     //the instruction is a coin transaction between two users.
                     var coin_invoked = false;
                     let args = null;
@@ -403,7 +398,7 @@ export class Block {
                         args = instruction.invoke.args;
 
                         coin_invoked =
-                            contractName == "Coin" && args.length > 1; 
+                            contractName == "Coin" && args.length > 1;
                     } else if (instruction.type === Instruction.typeDelete) {
                         const contractName =
                             instruction.delete.contractID
@@ -433,10 +428,10 @@ export class Block {
                         self.flash
                     );
 
-                    //TODO Create a beautifier for Columbus which formats each instruction 
+                    //TODO Create a beautifier for Columbus which formats each instruction
                     //in a customized way
-                    
-                    if (!coin_invoked) { 
+
+                    if (!coin_invoked) {
                         if (instruction.signerCounter.length != 0) {
                             const userSignature = instruction.signerIdentities
                                 .pop()
@@ -514,7 +509,7 @@ export class Block {
                         .append("span")
                         .append("form")
                         .style("display", "inline");
-                    
+
                     //Dropdown menu to select the number of reults the tracker should return.
                     const formSelect = formTag
                         .append("select")
@@ -747,7 +742,7 @@ export class Block {
             ulArgsB.attr("uk-accordion", "");
             // tslint:disable-next-line
             const beautifiedArgs = instruction.beautify();
-            
+
             beautifiedArgs.args.forEach((arg, i) => {
                 const liArgsB = ulArgsB.append("li");
                 const aArgsB = liArgsB.append("a");
@@ -773,20 +768,18 @@ export class Block {
         //Stores the current scroll position
         var pos = { left: 0, x: 0 };
 
-       //Fires when the mouse is down and moved, refreshes the scroll position
-       const mouseMoveHandler = function () {
-        const dx = d3.event.clientX - pos.x;
-        queryCardContainer.node().scrollLeft = pos.left - dx;
-    };
+        //Fires when the mouse is down and moved, refreshes the scroll position
+        const mouseMoveHandler = function () {
+            const dx = d3.event.clientX - pos.x;
+            queryCardContainer.node().scrollLeft = pos.left - dx;
+        };
 
         //Fires when the mouse is released.
         //Removes the move and up event handler and resets cursor properties.
         const mouseUpHandler = function () {
             queryCardContainer.style("cursor", "grab");
             queryCardContainer.node().style.removeProperty("user-select");
-            queryCardContainer.on("mousemove", function(e){
-
-            });
+            queryCardContainer.on("mousemove", function (e) {});
             queryCardContainer.on("mouseup", null);
         };
 
@@ -802,9 +795,6 @@ export class Block {
             queryCardContainer.on("mousemove", mouseMoveHandler);
             queryCardContainer.on("mouseup", mouseUpHandler);
         });
-
- 
- 
 
         document.addEventListener("mousemove", mouseMoveHandler);
     }

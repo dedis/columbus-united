@@ -16,7 +16,6 @@ import { Utils } from "./utils";
  *
  */
 export class LastAddedBlock {
-
     readonly lastBlockHeight = 176;
     readonly lastBlockWidth = 200;
     readonly svgHeight = 200;
@@ -80,11 +79,11 @@ export class LastAddedBlock {
             .on("click", () => {
                 blockClickedSubject.next(lastBlock);
             })
-            .on("mouseover", function() {
+            .on("mouseover", function () {
                 // Pointer interaction
                 d3.select(this).style("cursor", "pointer");
             })
-            .on("mouseout", function() {
+            .on("mouseout", function () {
                 d3.select(this).style("cursor", "default");
             });
 
@@ -144,7 +143,7 @@ export class LastAddedBlock {
         // Add text on top of last added block
         gtextLast
             .append("text")
-            .attr("x", this.lastBlockWidth/2)
+            .attr("x", this.lastBlockWidth / 2)
             .attr("y", "8%")
             .text("Last added")
             .attr("text-anchor", "middle")
@@ -156,7 +155,7 @@ export class LastAddedBlock {
         // Display on the last block's index
         gtextLast
             .append("text")
-            .attr("x", this.lastBlockWidth/2)
+            .attr("x", this.lastBlockWidth / 2)
             .attr("y", "28%")
             .attr("text-anchor", "middle")
             .text("Block " + lastBlock.index.toString())
