@@ -1,4 +1,3 @@
-
 import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
 import {
     PaginateRequest,
@@ -27,7 +26,6 @@ import { Utils } from "./utils";
  * @author Sophia Artioli (sophia.artioli@epfl.ch)
  */
 export class Chunk {
-
     // Maximum known possible height of block
     // We fix it to 8 so that all arrows can fit in the canevas
     readonly maxHeightBlock = 8;
@@ -250,13 +248,11 @@ export class Chunk {
      *
      */
     loadLeft(transform: any, gloader: any, blockHash: any) {
-
         // In case we are reaching the beginning of the chain, we should not
         // load more blocks than available.
         let numblocks = Chain.pageSize;
         if (this.left - Chain.pageSize <= 0) {
             numblocks = this.left;
-
         }
 
         this.left -= numblocks;
@@ -266,8 +262,8 @@ export class Chunk {
             gloader,
 
             (this.leftBlock.index - 1) * Chain.unitBlockAndPaddingWidth +
-            Chain.blockPadding +
-            Chain.blockWidth / 2,
+                Chain.blockPadding +
+                Chain.blockWidth / 2,
             transform.k
         );
 
@@ -311,7 +307,6 @@ export class Chunk {
             this.rightBlock.index < bounds.right &&
             this.rightBlock.index + 2 >= bounds.left
         ) {
-
             if (
                 this.rightNeighbor !== undefined &&
                 this.rightNeighbor.left < this.right
@@ -319,9 +314,9 @@ export class Chunk {
                 // The neighbor has not already loaded the blocks
                 return false;
             }
-            let hashNextBlockRight: any ;
+            let hashNextBlockRight: any;
             try {
-            hashNextBlockRight = Utils.getRightBlockHash(lastBlockRight);
+                hashNextBlockRight = Utils.getRightBlockHash(lastBlockRight);
             } catch {
                 // If no forward links exist, it is the last block of the chain
                 this.flash.display(Flash.flashType.INFO, "End of blockchain");
@@ -344,7 +339,6 @@ export class Chunk {
      *
      */
     loadRight(transform: any, gloader: any, blockHash: string) {
-
         // In case we are reaching the end of the chain, we should not
         // load more blocks than available.
         let numblocks = Chain.pageSize;
@@ -372,7 +366,7 @@ export class Chunk {
                 false
             );
         }, 800);
-    // }
+        // }
     }
 
     /**
@@ -502,22 +496,20 @@ export class Chunk {
                     this.ws = undefined;
                 },
                 next: ([data, ws]) => {
-
                     if (data.errorcode != 0) {
-                        if (data.errorcode == 5 || data.errorcode == 4 ) {
+                        if (data.errorcode == 5 || data.errorcode == 4) {
                             // Reaching the end of the chain
                             if (ws != undefined) {
                                 this.ws = ws;
                             }
                             // Continue to load blocks
                             return 0;
-                         } else {
-
-                        this.flash.display(
-                            Flash.flashType.ERROR,
-                            `got an error with code ${data.errorcode} : ${data.errortext}`
-                        );
-                        return 1;
+                        } else {
+                            this.flash.display(
+                                Flash.flashType.ERROR,
+                                `got an error with code ${data.errorcode} : ${data.errortext}`
+                            );
+                            return 1;
                         }
                     }
                     if (ws != undefined) {
@@ -554,7 +546,6 @@ export class Chunk {
         // gcircle: any,
         numblocks: number
     ) {
-
         // Iterate over the blocks to append them
         for (let i = 0; i < listBlocks.length; ++i) {
             const block = listBlocks[i];
@@ -567,7 +558,7 @@ export class Chunk {
             } else {
                 // Blocks are appended to the right
                 xTranslateBlock =
-                    (numblocks  + i) * Chain.unitBlockAndPaddingWidth;
+                    (numblocks + i) * Chain.unitBlockAndPaddingWidth;
             }
 
             // Append the block inside the svg container
@@ -588,7 +579,6 @@ export class Chunk {
      * @private
      */
     private loadInitial(left: number) {
-
         // Fetch the initial block
         Utils.getBlockByIndex(this.initialBlock.hash, left, this.roster).then(
             (block: SkipBlock) => {
@@ -600,7 +590,6 @@ export class Chunk {
                         this.lastTransform,
                         this.gloader,
                         Utils.getLeftBlockHash(block) // Fetch blocks smaller than left index
-
                     );
                 } else {
                     this.isLoadingLeft = false;
@@ -645,7 +634,6 @@ export class Chunk {
              * @param backward true to append blocks to the left, false to append to the right
              */
             next: ([i, skipBlocks, backward]) => {
-
                 Chain.totalLoaded += skipBlocks.length;
                 this.loadedInfo.innerText = `${Chain.totalLoaded}`;
                 let isLastPage = false;
@@ -717,7 +705,8 @@ export class Chunk {
                         }
                     }
                     this.loadedFirst = true;
-                } },
+                }
+            },
         });
     }
 
@@ -746,10 +735,10 @@ export class Chunk {
                 this.blockClickedSubject.next(block);
                 window.location.hash = `index:${block.index}`;
             })
-            .on("mouseover", function() {
+            .on("mouseover", function () {
                 d3.select(this).style("cursor", "pointer");
             })
-            .on("mouseout", function() {
+            .on("mouseout", function () {
                 d3.select(this).style("cursor", "default");
             });
     }
@@ -803,7 +792,14 @@ export class Chunk {
                         Chain.svgHeight / this.maxHeightBlock +
                         height * (Chain.svgHeight / this.maxHeightBlock)
                 )
-                .attr("marker-end", "url(#" + skipBlockFrom.index.toString() + "-" + height.toString() + ")")
+                .attr(
+                    "marker-end",
+                    "url(#" +
+                        skipBlockFrom.index.toString() +
+                        "-" +
+                        height.toString() +
+                        ")"
+                )
                 .attr("stroke-width", 2.5)
                 .attr("stroke", "#A0A0A0")
                 // Enables translation to the block the arrow is pointing to
@@ -814,12 +810,15 @@ export class Chunk {
                         this.blockClickedSubject
                     );
                 });
-                Utils.clickable(line);
+            Utils.clickable(line);
 
             // Arrow head
             const triangle = svgBlocks.append("svg:defs").append("svg:marker");
             triangle
-                .attr("id", skipBlockFrom.index.toString() + "-" + height.toString()) // Markers have to have different id's otherwise they will not change color on hover
+                .attr(
+                    "id",
+                    skipBlockFrom.index.toString() + "-" + height.toString()
+                ) // Markers have to have different id's otherwise they will not change color on hover
                 .attr("refX", 9.4)
                 .attr("refY", 6.5)
                 .attr("markerWidth", 17)
@@ -831,39 +830,35 @@ export class Chunk {
                 .append("path")
                 .attr("d", "M 0 0 L 19 7 L 0 14 z")
                 .on("click", () => {
-                   Utils.translateOnChain(skipBlockTo, this.initialBlock, this.blockClickedSubject);
-                   this.blockClickedSubject.next(skipBlockTo);
+                    Utils.translateOnChain(
+                        skipBlockTo,
+                        this.initialBlock,
+                        this.blockClickedSubject
+                    );
+                    this.blockClickedSubject.next(skipBlockTo);
                 });
 
             // Arrows change color on hover
-            triangle.on("mouseover",
-                    function() {
-                        d3.select(this).style("stroke", "var(--selected-colour");
-                        triangle.style("fill", "var(--selected-colour");
-                        d3.select(this).style("cursor", "pointer");
-
-                });
-            line.on("mouseover",
-                    function() {
-                        d3.select(this).style("stroke", "var(--selected-colour");
-                        triangle.style("fill", "var(--selected-colour");
-                        d3.select(this).style("cursor", "pointer");
-
-
-                });
+            triangle.on("mouseover", function () {
+                d3.select(this).style("stroke", "var(--selected-colour");
+                triangle.style("fill", "var(--selected-colour");
+                d3.select(this).style("cursor", "pointer");
+            });
+            line.on("mouseover", function () {
+                d3.select(this).style("stroke", "var(--selected-colour");
+                triangle.style("fill", "var(--selected-colour");
+                d3.select(this).style("cursor", "pointer");
+            });
             triangle.on("mouseout", () => {
-                    line.style("stroke", "#A0A0A0");
-                    triangle.style("fill", "#A0A0A0");
-                    line.style("cursor", "default");
-
-
-                });
+                line.style("stroke", "#A0A0A0");
+                triangle.style("fill", "#A0A0A0");
+                line.style("cursor", "default");
+            });
             line.on("mouseout", () => {
-                    line.style("stroke", "#A0A0A0");
-                    triangle.style("fill", "#A0A0A0");
-                    line.style("cursor", "default");
-                });
-
+                line.style("stroke", "#A0A0A0");
+                triangle.style("fill", "#A0A0A0");
+                line.style("cursor", "default");
+            });
         }
     }
     /**
@@ -883,20 +878,23 @@ export class Chunk {
             Utils.getBlock(
                 skipBlockTo.backlinks[i], // Get all blocks that point to skipBlockTo
                 this.roster
-            ).then((skipBlockFrom) => {
-                this.appendArrows(
-                    xTranslate,
-                    skipBlockFrom,
-                    skipBlockTo,
-                    svgBlocks,
-                    i
-            ); }).catch((e) => {
+            )
+                .then((skipBlockFrom) => {
+                    this.appendArrows(
+                        xTranslate,
+                        skipBlockFrom,
+                        skipBlockTo,
+                        svgBlocks,
+                        i
+                    );
+                })
+                .catch((e) => {
                     // Catches an error due the backward link of block 0 that points to block -1
-                    console.error("Fetching backward link of block 0 to block -1 " + e.toString());
-            }
-
-            );
-
+                    console.error(
+                        "Fetching backward link of block 0 to block -1 " +
+                            e.toString()
+                    );
+                });
         }
     }
 
