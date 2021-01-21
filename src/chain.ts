@@ -35,7 +35,8 @@ export class Chain {
     static readonly blockHeight = 50;
     static readonly blockWidth = 70;
     static readonly svgHeight = 200;
-    static readonly svgWidth = 1270;
+    static readonly svgWidth =  window.innerWidth;
+
     static readonly unitBlockAndPaddingWidth =
         Chain.blockPadding + Chain.blockWidth;
     static readonly axisPadding = 8;
