@@ -20,7 +20,7 @@ import { Utils } from "./utils";
  * to be updated.
  *
  * @author Lucas Trognon <lucas.trognon@epfl.ch>
- *
+ * @author Julien von Felten <julien.vonfelten@epfl.ch>
  * @export
  * @class Block
  */

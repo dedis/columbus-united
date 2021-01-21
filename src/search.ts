@@ -17,6 +17,7 @@ import { Utils } from "./utils";
  * @param blockClickedSubject the subject notified each time a block is clicked on
  * @param block Block instance
  * @author Sophia Artioli (sophia.artioli@epfl.ch)
+ * @author Lucas Trognon <lucas.trognon@epfl.ch>
  */
 export function searchBar(
     roster: Roster,

@@ -34,6 +34,8 @@ const rosterStr = getRosterStr();
  * Starts the visualization
  * @author Sophia Artioli <sophia.artioli@epfl.ch>
  * @author Lucas Trognon <lucas.trognon@epfl.ch>
+ * @author Anthony Iozzia <anthony.iozzia@epfl.ch>
+ * @author Julien von Felten <julien.vonfelten@epfl.ch>
  * @author Noémien Kocher <noemien.kocher@epfl.ch>
  *
  * @export

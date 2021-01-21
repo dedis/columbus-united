@@ -25,6 +25,7 @@ import { Utils } from "./utils";
  * the totat number of blocks, the number of instance found
  *
  * @author Julien von Felten <julien.vonfelten@epfl.ch>
+ * @author Lucas Trognon <lucas.trognon@epfl.ch>
  * @export
  * @class Lifecycle
  */
