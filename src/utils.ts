@@ -99,7 +99,7 @@ export class Utils {
     }
 
     /**
-     * 
+     *
      * @author Lucas Trognon (lucas.trognon@epfl.ch)
      * Formats and outputs the date at which a block was validated
      * @param block block of which we want the validation time
@@ -204,10 +204,9 @@ export class Utils {
         return { left: Math.max(0, leftBlockIndex), right: rightBlockIndex };
     }
 
-
-    /** 
+    /**
      *  @author Lucas Trognon (lucas.trognon@epfl.ch)
-     * 
+     *
      * Adds a clickable squared blocky image to a d3 selection. Should be used to represent an object.
      * @param line d3 selection
      * @param hash seed for the blocky
@@ -238,7 +237,7 @@ export class Utils {
     /**
      * @author Lucas Trognon (lucas.trognon@epfl.ch)
      *
-     * 
+     *
      * Adds a clickable rounded blocky image to a d3 selection. Should be used to represent a user.
      * @param line d3 selection
      * @param hash seed for the blocky
