@@ -1,7 +1,7 @@
 # columbus-united
 
 <div align="center">
-    <img src="assets/logo color small.png">
+    <img src="assets/logo-color-small.png">
 </div>
 
 <div align="center">
@@ -161,6 +161,15 @@ Use:
 * Open Command Palette (`Ctrl+Shift+P`)
 * `Rewrap Comment / Text`
 
+#### Comment Anchor
+Purpose: Place anchor tags within comments for easy file & workspace navigation.
+Install: `ext install ExodiusStudios.comment-anchors`
+Use:
+
+* Use \\\\ANCHOR and \\\\SECTION to delimitate code regions
+* Use \\\\TODO, \\\\FIXME to mark specific areas
+* Read the documentation for more features
+
 ## Stack
 
 - Typescript, as the frontend language
@@ -198,13 +207,23 @@ git push origin <source branch>:deploy-dev
 
 Generate the documentation: `npm run doc`
 
+## Design Guidelines
+Can be found in the most recent report  
+
 ## Contributors
 
 Supervision and integration
 
 - Noémien Kocher
 
-Student project, spring 2020:
+Student project Spring 2020:
 
 - Anthony Iozzia ([report](https://www.epfl.ch/labs/dedis/wp-content/uploads/2020/06/report-2020-1-Anthony-Iozzia-Columbus-II.pdf))
 - Julien von Felten ([report](https://www.epfl.ch/labs/dedis/wp-content/uploads/2020/06/report-2020-1-Julien-von-Felten-Columbus-I.pdf))
+
+Student project Fall 2020:
+
+- Sophia Artioli 
+- Lucas Trognon
+
+[Common report](https://www.epfl.ch/labs/dedis/wp-content/uploads/2021/01/report-2020-3-Columbus-Sophia-Artiolis-Lucas-Trognon-Columbus-III.pdf)

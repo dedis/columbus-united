@@ -72,10 +72,10 @@ export class TotalBlock {
             } catch (error) {
                 sub.error(error);
             }
+
             conn.sendStream<PaginateResponse>( // fetch next block
                 new PaginateRequest({
                     startid: nextID,
-
                     pagesize: 1, // tslint:disable-next-line
                     numpages: 1,
                     backward: false,
@@ -86,15 +86,19 @@ export class TotalBlock {
                     sub.error("unexpected paginate complete");
                 },
                 error: (err: Error) => {
+                    console.log("here");
                     sub.error(err);
                 },
                 // ws callback "onMessage":
                 next: ([data, ws]) => {
                     // tslint:disable-next-line
                     if (data.errorcode != 0) {
+                        console.log("2");
                         sub.error(data.errortext);
                     }
+
                     const block = data.blocks[0];
+
                     if (block.forwardLinks.length === 0) {
                         this.lastBlockSeenID = block.hash.toString("hex");
                         sub.next(block);
@@ -102,6 +106,7 @@ export class TotalBlock {
                         nextID =
                             block.forwardLinks[block.forwardLinks.length - 1]
                                 .to;
+
                         const message = new PaginateRequest({
                             startid: nextID,
 
