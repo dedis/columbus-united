@@ -35,15 +35,15 @@ export class Chain {
     static readonly blockHeight = 50;
     static readonly blockWidth = 70;
     static readonly svgHeight = 200;
-    static readonly svgWidth =  window.innerWidth;
+    static readonly svgWidth = window.innerWidth;
 
-    static readonly unitBlockAndPaddingWidth =
+    static  unitBlockAndPaddingWidth =
         Chain.blockPadding + Chain.blockWidth;
     static readonly axisPadding = 8;
 
     // The number of blocks the window can display at normal scale. Used to
     // define the domain for the xScale
-    static readonly numBlocks =
+    static  numBlocks =
         Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
 
     // Recommended pageSize / nbPages: 80 / 50
@@ -118,8 +118,7 @@ export class Chain {
         // Main SVG canvas that contains the chain
         const svg = d3
             .select("#svg-container")
-            .attr("height", Chain.svgHeight)
-            .attr("width", Chain.svgWidth);
+            .attr("height", Chain.svgHeight);
 
         // This group will contain the blocks
         this.gblocks = svg.append("g").attr("class", "gblocks");

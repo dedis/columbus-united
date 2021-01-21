@@ -11,6 +11,7 @@ import { searchBar } from "./search";
 import "./stylesheets/style.scss";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
+import * as d3 from "d3";
 
 /*
    ___              _                     _
@@ -55,7 +56,7 @@ export function sayHi() {
     const scRPC = new SkipchainRPC(roster);
     new SkipchainRPC(roster).getLatestBlock(Utils.hex2Bytes(hashBlock0), false, true).then(
         (last) => {    // skipBlock of the last added block of the chain
-
+                
             // Url input from the user
             const indexString = window.location.hash.split(":")[1];
 
@@ -64,8 +65,13 @@ export function sayHi() {
                 initialBlockIndex = parseInt(indexString, 10);
             } else {
                 // The user does not input a block index in the url
+
+                // Size of container that welcoms the blocks
+                const containerSize = parseInt(d3.select("#svg-container").style("width"));
+
                 // Display the correct amount of blocks to fit the end of the chain
-                initialBlockIndex = last.index - Chain.numBlocks;
+                initialBlockIndex = last.index - 
+                containerSize / (Chain.blockWidth + Chain.blockPadding);
             }
 
             // The block index should not be smaller than 0
