@@ -2,10 +2,9 @@
 
 /* */
 :root {
-    --selected-colour : #006fff; //Main colour for displaying the propertiesù
-    --base-colour : #1749b3;
+    --selected-colour: #006fff; //Main colour for displaying the propertiesù
+    --base-colour: #1749b3;
 }
-
 
 body {
     display: flex;
@@ -13,7 +12,7 @@ body {
     height: 100vh;
     overflow-y: auto;
     //overflow-y: hidden;
-   -webkit-appearance: none;
+    -webkit-appearance: none;
 }
 div.block-infos {
     display: flex;
@@ -25,7 +24,6 @@ div.block-infos {
     margin-left: 10;
     margin-right: 10;
     background-color: #ffffff;
-
 }
 div.query-answer {
     display: flex;
@@ -33,14 +31,14 @@ div.query-answer {
     flex-direction: column;
     margin-bottom: 50px;
     text-align: center;
-    
+
     padding: 10px;
 }
 
 #query-card-container {
     overflow: auto;
     outline: 1px solid var(--selected-colour);
-    cursor: grab; 
+    cursor: grab;
 }
 
 #query-card-container > .uk-card {
@@ -49,43 +47,42 @@ div.query-answer {
     margin-right: 10px;
 }
 
-#query-card-container > .uk-card >.uk-card-body{
+#query-card-container > .uk-card > .uk-card-body {
     text-align: left;
 }
 
-#query-header{
+#query-header {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     margin-bottom: 0px;
 }
 
-
-.white-icon{
+.white-icon {
     width: 32px;
     height: 32px;
-    display : block;
-    margin-left : 15px;
-    filter: invert(88%) sepia(67%) saturate(0%) hue-rotate(236deg) brightness(111%) contrast(100%);
+    display: block;
+    margin-left: 15px;
+    filter: invert(88%) sepia(67%) saturate(0%) hue-rotate(236deg)
+        brightness(111%) contrast(100%);
 }
 
 .topnav {
     display: flex;
     background: #f0eeeece;
-    height:auto;
+    height: auto;
     width: auto;
     -webkit-appearance: none;
     margin-bottom: 10px;
-  }
-  
-  /* Change the color of links on hover */
-  .topnav a:hover {
-   
+}
+
+/* Change the color of links on hover */
+.topnav a:hover {
     color: black;
-  }
- 
-  /* Style the search box inside the navigation bar */
-  .topnav input[type=input] {
+}
+
+/* Style the search box inside the navigation bar */
+.topnav input[type="input"] {
     -webkit-appearance: none;
     padding: 10px;
     padding-bottom: 9px;
@@ -95,15 +92,12 @@ div.query-answer {
     margin-left: 30%;
     width: 35%;
     font-size: 14px;
-    font-family: 'Roboto', Arial, sans-serif;
-    border-radius:  15px 0 0 15px ;
-   
-    
-
-  }
-  .topnav a[type=submit]{
+    font-family: "Roboto", Arial, sans-serif;
+    border-radius: 15px 0 0 15px;
+}
+.topnav a[type="submit"] {
     padding-top: 10px;
-    background:white;
+    background: white;
     //margin-right: 35%;
     margin-top: 8px;
     margin-bottom: 8px;
@@ -113,17 +107,16 @@ div.query-answer {
     height: auto;
     width: auto;
     border: none;
-    text-shadow:none;
+    text-shadow: none;
     -moz-appearance: none;
     appearance: none;
+}
+.topnav > a > svg {
+    padding-bottom: 8px;
+}
 
-  }
-  .topnav>a>svg{
-      padding-bottom: 8px;
-  }
-
-  .topnav>select{
-    background:white;
+.topnav > select {
+    background: white;
     margin-top: 8px;
     margin-bottom: 8px;
     color: grey;
@@ -134,25 +127,26 @@ div.query-answer {
     width: 200px;
     border: none;
     font: 14px arial, sans-serif;
-    text-shadow:none;
+    text-shadow: none;
     -moz-appearance: none;
     appearance: none;
-  }
-  
-  /* When the screen is less than 600px wide, stack the links and the search field vertically instead of horizontally */
-  @media screen and (max-width: 600px) {
-    .topnav a, .topnav input[type=input] {
-      float: none;
-      display: block;
-      text-align: left;
-      width: 100%;
-      margin: 0;
-      padding: 14px;
+}
+
+/* When the screen is less than 600px wide, stack the links and the search field vertically instead of horizontally */
+@media screen and (max-width: 600px) {
+    .topnav a,
+    .topnav input[type="input"] {
+        float: none;
+        display: block;
+        text-align: left;
+        width: 100%;
+        margin: 0;
+        padding: 14px;
     }
-    .topnav input[type=input] {
-      border: 1px solid #ccc;
+    .topnav input[type="input"] {
+        border: 1px solid #ccc;
     }
-  }
+}
 
 .block-detail-container {
     overflow-y: scroll;
@@ -164,14 +158,11 @@ div.query-answer {
     overflow-y: scroll;
     padding: 8px;
     flex: 1;
-    
 }
-
 
 .uk-tooltip {
     word-wrap: break-word;
-  }
-
+}
 
 @media only screen and (max-width: 1000px) {
     div.block-infos {
@@ -189,7 +180,6 @@ div.query-answer {
     align-self: center;
     flex-direction: row;
     width: 80%;
-    
 }
 
 #progress-bar {
@@ -209,8 +199,7 @@ div.query-answer {
     color: black;
 }
 
-.load-container {   
-    
+.load-container {
     display: flex;
     flex-direction: column;
     align-content: center;
@@ -225,8 +214,6 @@ div.query-answer {
     align-content: center;
 }
 
-
-
 @keyframes spin {
     0% {
         transform: rotate(0deg);
@@ -238,16 +225,13 @@ div.query-answer {
 
 .blocks-container {
     display: flex;
-    flex-direction:row;
+    flex-direction: row;
     margin-bottom: 10;
     padding: 0 10px;
     height: 200px;
-
-    
 }
 
-    
-#last-container{
+#last-container {
     display: flex;
     margin-left: 35px;
     padding-left: 50px;
@@ -256,49 +240,42 @@ div.query-answer {
     animation: 2s ease-out 2s 1 slideInFromRight;
     background: white;
     animation-direction: reverse;
-overflow: hidden;
-padding-right: 40px;
-padding-left: 40px;
-width: 316.11111px;
-border-left-color: gray;
-border-left-width: 1px;
-border-left-style: solid;
-
-
+    overflow: hidden;
+    padding-right: 40px;
+    padding-left: 40px;
+    width: 316.11111px;
+    border-left-color: gray;
+    border-left-width: 1px;
+    border-left-style: solid;
 }
-
 
 @keyframes slideInFromRight {
     0% {
-      transform: translateX(0%);
+        transform: translateX(0%);
     }
     100% {
-      transform: translateX(100%);
+        transform: translateX(100%);
     }
-  }
-
-.last-added{
-    left: 0;
 }
 
-
+.last-added {
+    left: 0;
+}
 
 #svg-container {
     display: flex;
     flex-direction: row;
     flex: 90%;
-    
 }
-::-webkit-scrollbar{
+::-webkit-scrollbar {
     widows: 25px;
 }
-::-webkit-scrollbar-track{
-
+::-webkit-scrollbar-track {
     border: 7px solid #232943;
-    box-shadow:  inset 0 0 2.5px 2px rgba(0, 0, 0, 0.35);
+    box-shadow: inset 0 0 2.5px 2px rgba(0, 0, 0, 0.35);
 }
 
-::-webkit-scrollbar-thumb{
+::-webkit-scrollbar-thumb {
     background: pink;
     border-radius: 3px;
 }
@@ -381,14 +358,15 @@ border-left-style: solid;
     text-align: center;
     transition: all 0.2s;
     background-color: #0004e2;
-    right : 10%;
+    right: 10%;
 }
 
-#white-icon{
-    filter: invert(100%) sepia(8%) saturate(2%) hue-rotate(87deg) brightness(115%) contrast(100%);
+#white-icon {
+    filter: invert(100%) sepia(8%) saturate(2%) hue-rotate(87deg)
+        brightness(115%) contrast(100%);
 }
 
-.spinner{
+.spinner {
     margin: 0 auto;
     align-self: center;
     display: flex;
@@ -405,16 +383,16 @@ border-left-style: solid;
     }
 }
 
-.uk-select{
+.uk-select {
     width: 60%;
 }
 
-#button-browse{
+#button-browse {
     padding: 8px;
     margin-left: auto;
     margin-right: auto;
     display: block;
-    width : 60%;
+    width: 60%;
     border-width: 2px;
 }
 
@@ -445,11 +423,9 @@ footer {
 List of classes for the new transaction container
 */
 
-
-#block-detail-container{
-    outline:  2px solid var(--selected-colour);
+#block-detail-container {
+    outline: 2px solid var(--selected-colour);
 }
-
 
 // #block-detail-field {
 //     font-family: "Space Mono", monospace;
@@ -459,37 +435,33 @@ List of classes for the new transaction container
     background-color: var(--selected-colour);
 }
 
-.uk-accordion-title:focus{
+.uk-accordion-title:focus {
     color: #ffffff;
 }
 
-.uk-accordion-title::before{
-    background-color : white
+.uk-accordion-title::before {
+    background-color: white;
 }
 
 .uk-accordion {
     font-family: "Space Mono", monospace;
-    background-color : var(--selected-colour);
+    background-color: var(--selected-colour);
     padding: 8px;
 }
 
 .uk-accordion * {
     color: #ffffff;
-
 }
-
 
 .uk-accordion-content > p {
     margin-left: 10px;
-    
 }
 
-#rejected{
+#rejected {
     color: red;
 }
 
-
-#forwardlink-drop{
+#forwardlink-drop {
     background-color: var(--base-colour);
     max-width: 80%;
 }
@@ -525,7 +497,16 @@ List of classes for the new transaction container
 }
 
 .clip-blocky {
-    clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
+    clip-path: polygon(
+        20% 0%,
+        80% 0%,
+        100% 20%,
+        100% 80%,
+        80% 100%,
+        20% 100%,
+        0% 80%,
+        0% 20%
+    );
 }
 
 @keyframes dash {
@@ -550,14 +531,10 @@ List of classes for the new transaction container
     align-items: center;
     padding: 0 0px;
 
-
-
-    img{
-        
-        color: #264473; 
-       max-width: none;
-       height: 70;
-        
+    img {
+        color: #264473;
+        max-width: none;
+        height: 70;
     }
 
     #status-info {
@@ -580,26 +557,18 @@ List of classes for the new transaction container
     }
 }
 
+.x-axis {
+    text-anchor: start;
 
-
-.x-axis{
-   text-anchor: start;
-    
-    line{
-    
-        stroke: #8C764A;
-        
+    line {
+        stroke: #8c764a;
     }
 
-    path{
-       
-        stroke: #8C764A;
-        
+    path {
+        stroke: #8c764a;
     }
-    
-    text{
-        fill: #8C764A;
-    } 
+
+    text {
+        fill: #8c764a;
+    }
 }
-
-

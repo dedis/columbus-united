@@ -144,7 +144,7 @@ export class LastAddedBlock {
         // Add text on top of last added block
         gtextLast
             .append("text")
-            .attr("x", "50%")
+            .attr("x", this.lastBlockWidth/2)
             .attr("y", "8%")
             .text("Last added")
             .attr("text-anchor", "middle")
@@ -156,7 +156,7 @@ export class LastAddedBlock {
         // Display on the last block's index
         gtextLast
             .append("text")
-            .attr("x", "50%")
+            .attr("x", this.lastBlockWidth/2)
             .attr("y", "28%")
             .attr("text-anchor", "middle")
             .text("Block " + lastBlock.index.toString())
