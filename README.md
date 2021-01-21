@@ -221,9 +221,9 @@ Student project Spring 2020:
 - Anthony Iozzia ([report](https://www.epfl.ch/labs/dedis/wp-content/uploads/2020/06/report-2020-1-Anthony-Iozzia-Columbus-II.pdf))
 - Julien von Felten ([report](https://www.epfl.ch/labs/dedis/wp-content/uploads/2020/06/report-2020-1-Julien-von-Felten-Columbus-I.pdf))
 
-Student project Spring 2020:
+Student project Fall 2020:
 
 - Sophia Artioli 
 - Lucas Trognon
 
-
+[Common report](https://www.epfl.ch/labs/dedis/wp-content/uploads/2021/01/report-2020-3-Columbus-Sophia-Artiolis-Lucas-Trognon-Columbus-III.pdf)
