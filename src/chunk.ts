@@ -814,6 +814,7 @@ export class Chunk {
                         this.blockClickedSubject
                     );
                 });
+                Utils.clickable(line);
 
             // Arrow head
             const triangle = svgBlocks.append("svg:defs").append("svg:marker");
@@ -839,22 +840,28 @@ export class Chunk {
                     function() {
                         d3.select(this).style("stroke", "var(--selected-colour");
                         triangle.style("fill", "var(--selected-colour");
+                        d3.select(this).style("cursor", "pointer");
 
                 });
             line.on("mouseover",
                     function() {
                         d3.select(this).style("stroke", "var(--selected-colour");
                         triangle.style("fill", "var(--selected-colour");
+                        d3.select(this).style("cursor", "pointer");
 
-                });
+
             triangle.on("mouseout", () => {
                     line.style("stroke", "#A0A0A0");
                     triangle.style("fill", "#A0A0A0");
+                    line.style("cursor", "default");
+
 
                 });
             line.on("mouseout", () => {
                     line.style("stroke", "#A0A0A0");
                     triangle.style("fill", "#A0A0A0");
+                    line.style("cursor", "default");
+
                 });
 
         }

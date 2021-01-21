@@ -5,7 +5,7 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable, Subject } from "rxjs";
 import { throttleTime } from "rxjs/operators";
-
+import {event } from 'd3-selection';
 import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
@@ -747,7 +747,7 @@ export class Block {
             ulArgsB.attr("uk-accordion", "");
             // tslint:disable-next-line
             const beautifiedArgs = instruction.beautify();
-
+            
             beautifiedArgs.args.forEach((arg, i) => {
                 const liArgsB = ulArgsB.append("li");
                 const aArgsB = liArgsB.append("a");
@@ -755,11 +755,13 @@ export class Block {
                     .attr("class", "uk-accordion-title")
                     .attr("href", "#")
                     .text(`${i}: ${arg.name}`);
+
                 const divArgsB = liArgsB.append("div");
                 divArgsB.attr(
                     "class",
                     "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
                 );
+
                 divArgsB.append("p").text(`${arg.value}`);
             });
         }
@@ -770,6 +772,24 @@ export class Block {
         //ANCHOR Mouse events handling for clicking and dragging
         //Stores the current scroll position
         var pos = { left: 0, x: 0 };
+
+       //Fires when the mouse is down and moved, refreshes the scroll position
+       const mouseMoveHandler = function () {
+        const dx = d3.event.clientX - pos.x;
+        queryCardContainer.node().scrollLeft = pos.left - dx;
+    };
+
+        //Fires when the mouse is released.
+        //Removes the move and up event handler and resets cursor properties.
+        const mouseUpHandler = function () {
+            queryCardContainer.style("cursor", "grab");
+            queryCardContainer.node().style.removeProperty("user-select");
+            queryCardContainer.on("mousemove", function(e){
+
+            });
+            queryCardContainer.on("mouseup", null);
+        };
+
         //When mousedown fires in query card container, we instantiate the other event listener
         queryCardContainer.on("mousedown", function (e) {
             queryCardContainer.style("cursor", "grabbing");
@@ -783,19 +803,8 @@ export class Block {
             queryCardContainer.on("mouseup", mouseUpHandler);
         });
 
-        //Fires when the mouse is down and moved, refreshes the scroll position
-        const mouseMoveHandler = function () {
-            const dx = d3.event.clientX - pos.x;
-            queryCardContainer.node().scrollLeft = pos.left - dx;
-        };
-        //Fires when the mouse is released.
-        //Removes the move and up event handler and resets cursor properties.
-        const mouseUpHandler = function () {
-            queryCardContainer.style("cursor", "grab");
-            queryCardContainer.node().style.removeProperty("user-select");
-            queryCardContainer.on("mousemove", null);
-            queryCardContainer.on("mouseup", null);
-        };
+ 
+ 
 
         document.addEventListener("mousemove", mouseMoveHandler);
     }

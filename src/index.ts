@@ -39,7 +39,6 @@ const rosterStr = getRosterStr();
  * @returns : only in case of an error
  */
 export function sayHi() {
-
     // Create the roster
     const roster = Roster.fromTOML(rosterStr);
 
@@ -53,8 +52,10 @@ export function sayHi() {
     let initialBlockIndex: number;
 
     const scRPC = new SkipchainRPC(roster);
-    new SkipchainRPC(roster).getLatestBlock(Utils.hex2Bytes(hashBlock0), false, true).then(
-        (last) => {    // skipBlock of the last added block of the chain
+    new SkipchainRPC(roster)
+        .getLatestBlock(Utils.hex2Bytes(hashBlock0), false, true)
+        .then((last) => {
+            // skipBlock of the last added block of the chain
 
             // Url input from the user
             const indexString = window.location.hash.split(":")[1];
@@ -87,28 +88,26 @@ export function sayHi() {
                 // Set initial index at last added block of the chain
                 initialBlockIndex = last.index - Chain.numBlocks;
             }
-        }).then(() => {
+        })
+        .then(() => {
             scRPC
-            .getSkipBlockByIndex(
-                Utils.hex2Bytes(hashBlock0),
-                0
-            ).then((genesis) => {
-            scRPC
-            .getSkipBlockByIndex(
-                Utils.hex2Bytes(hashBlock0),
-                initialBlockIndex
-            ).then((initialBlock) => {
-                // Start the visualization
-                startColumbus(
-                    genesis.skipblock,
-                    initialBlock.skipblock,
-                    roster,
-                    flash
-                );
-            });
-
-            });
-
+                .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), 0)
+                .then((genesis) => {
+                    scRPC
+                        .getSkipBlockByIndex(
+                            Utils.hex2Bytes(hashBlock0),
+                            initialBlockIndex
+                        )
+                        .then((initialBlock) => {
+                            // Start the visualization
+                            startColumbus(
+                                genesis.skipblock,
+                                initialBlock.skipblock,
+                                roster,
+                                flash
+                            );
+                        });
+                });
         });
 }
 
