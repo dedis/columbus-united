@@ -850,6 +850,7 @@ export class Chunk {
                         d3.select(this).style("cursor", "pointer");
 
 
+                });
             triangle.on("mouseout", () => {
                     line.style("stroke", "#A0A0A0");
                     triangle.style("fill", "#A0A0A0");
@@ -861,7 +862,6 @@ export class Chunk {
                     line.style("stroke", "#A0A0A0");
                     triangle.style("fill", "#A0A0A0");
                     line.style("cursor", "default");
-
                 });
 
         }
