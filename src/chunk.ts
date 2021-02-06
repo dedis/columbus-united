@@ -119,7 +119,7 @@ export class Chunk {
         this.leftNeighbor = leftNei;
         this.rightNeighbor = rightNei;
         this.initialBlock = initialBlock;
-        this.lastAddedBlock = lastAddedBlock.lastBlock;
+        this.lastAddedBlock = lastAddedBlock.skipBlock;
 
         this.lastTransform = transform;
 
@@ -188,13 +188,7 @@ export class Chunk {
                 }
             },
         });
-        console.log("hi"+left+right)
-        console.log(left);
-        if (left > this.lastAddedBlock.index){
-            console.log(left);
-            left = this.lastAddedBlock.index - Math.abs(this.lastAddedBlock.index-left);
-            console.log(Math.abs(this.lastAddedBlock.index-left));
-        }
+ 
         // Load first blocks of the Chunk
         this.loadInitial(left);
     }
