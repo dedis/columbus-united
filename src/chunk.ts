@@ -188,7 +188,13 @@ export class Chunk {
                 }
             },
         });
-
+        console.log("hi"+left+right)
+        console.log(left);
+        if (left > this.lastAddedBlock.index){
+            console.log(left);
+            left = this.lastAddedBlock.index - Math.abs(this.lastAddedBlock.index-left);
+            console.log(Math.abs(this.lastAddedBlock.index-left));
+        }
         // Load first blocks of the Chunk
         this.loadInitial(left);
     }
@@ -585,7 +591,7 @@ export class Chunk {
                 this.leftBlock = block;
                 this.rightBlock = block;
                 if (left != 0) {
-                    // left is not the first block of the chain
+                if(block.index <= this.lastAddedBlock.index ){}
                     this.loadLeft(
                         this.lastTransform,
                         this.gloader,
