@@ -119,7 +119,7 @@ export class Chunk {
         this.leftNeighbor = leftNei;
         this.rightNeighbor = rightNei;
         this.initialBlock = initialBlock;
-        this.lastAddedBlock = lastAddedBlock.skipBlock;
+        this.lastAddedBlock = lastAddedBlock.lastBlock;
 
         this.lastTransform = transform;
 
@@ -320,7 +320,7 @@ export class Chunk {
             } catch {
                 // If no forward links exist, it is the last block of the chain
                 this.flash.display(Flash.flashType.INFO, "End of blockchain");
-                this.gloader.select(".right-loader").remove();
+              
             }
 
             this.loadRight(transform, gloader, hashNextBlockRight);
@@ -343,8 +343,10 @@ export class Chunk {
         // load more blocks than available.
         let numblocks = Chain.pageSize;
         if (this.right + Chain.pageSize >= this.lastAddedBlock.index) {
-            numblocks = 1;
+            numblocks = (this.lastAddedBlock.index-this.rightBlock.index);
+          
         }
+        
 
         this.right += numblocks;
 
@@ -353,14 +355,14 @@ export class Chunk {
             gloader,
             (this.rightBlock.index + 1) * Chain.unitBlockAndPaddingWidth +
                 Chain.blockPadding +
-                Chain.blockWidth / 2,
+                Chain.blockWidth / 2,   
             transform.k
         );
 
         setTimeout(() => {
             this.getNextBlocks(
                 blockHash,
-                numblocks,
+                (numblocks == 0) ? 1 : numblocks ,
                 this.nbPages,
                 this.subjectBrowse,
                 false
@@ -379,14 +381,17 @@ export class Chunk {
      */
     addLoader(backwards: boolean, gloader: any, xPos: number, k: number) {
         let className = "right-loader";
+        let id= "right";
 
         if (backwards) {
             className = "left-loader";
+            id= "left";
         }
 
         // Some loaders: https://codepen.io/aurer/pen/jEGbA
         gloader
             .append("svg")
+            .attr("id",`${id}`)
             .attr("class", `${className}`)
             .attr("viewBox", "0, 0, 24, 30")
             .attr("x", xPos - 24)
@@ -486,7 +491,7 @@ export class Chunk {
                     startid: bid,
                 }),
                 PaginateResponse
-            ).subscribe({
+            ).subscribe({     
                 // ws callback "onMessage":
                 complete: () => {
                     this.ws = undefined;
@@ -497,11 +502,9 @@ export class Chunk {
                 },
                 next: ([data, ws]) => {
                     if (data.errorcode != 0) {
-                        if (data.errorcode == 5 || data.errorcode == 4) {
                             // Reaching the end of the chain
                             if (ws != undefined) {
                                 this.ws = ws;
-                            }
                             // Continue to load blocks
                             return 0;
                         } else {
@@ -679,7 +682,6 @@ export class Chunk {
                             // Update the first block to load to the right
                             num = skipBlocks[0].index;
                         }
-
                         this.displayBlocks(
                             skipBlocks,
                             false,
@@ -888,12 +890,9 @@ export class Chunk {
                         i
                     );
                 })
+
                 .catch((e) => {
-                    // Catches an error due the backward link of block 0 that points to block -1
-                    console.error(
-                        "Fetching backward link of block 0 to block -1 " +
-                            e.toString()
-                    );
+              console.log(e);
                 });
         }
     }
