@@ -42,6 +42,7 @@ const rosterStr = getRosterStr();
  * @returns : only in case of an error
  */
 export function sayHi() {
+
     // Create the roster
     const roster = Roster.fromTOML(rosterStr);
 
