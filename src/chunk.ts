@@ -320,7 +320,6 @@ export class Chunk {
             } catch {
                 // If no forward links exist, it is the last block of the chain
                 this.flash.display(Flash.flashType.INFO, "End of blockchain");
-                this.gloader.select(".right-loader").remove();
             }
 
             this.loadRight(transform, gloader, hashNextBlockRight);
@@ -343,7 +342,7 @@ export class Chunk {
         // load more blocks than available.
         let numblocks = Chain.pageSize;
         if (this.right + Chain.pageSize >= this.lastAddedBlock.index) {
-            numblocks = 1;
+            numblocks = this.lastAddedBlock.index - this.rightBlock.index;
         }
 
         this.right += numblocks;
@@ -360,7 +359,7 @@ export class Chunk {
         setTimeout(() => {
             this.getNextBlocks(
                 blockHash,
-                numblocks,
+                numblocks == 0 ? 1 : numblocks,
                 this.nbPages,
                 this.subjectBrowse,
                 false
@@ -497,11 +496,9 @@ export class Chunk {
                 },
                 next: ([data, ws]) => {
                     if (data.errorcode != 0) {
-                        if (data.errorcode == 5 || data.errorcode == 4) {
-                            // Reaching the end of the chain
-                            if (ws != undefined) {
-                                this.ws = ws;
-                            }
+                        // Reaching the end of the chain
+                        if (ws != undefined) {
+                            this.ws = ws;
                             // Continue to load blocks
                             return 0;
                         } else {
@@ -585,7 +582,8 @@ export class Chunk {
                 this.leftBlock = block;
                 this.rightBlock = block;
                 if (left != 0) {
-                    // left is not the first block of the chain
+                    if (block.index <= this.lastAddedBlock.index) {
+                    }
                     this.loadLeft(
                         this.lastTransform,
                         this.gloader,
@@ -679,7 +677,6 @@ export class Chunk {
                             // Update the first block to load to the right
                             num = skipBlocks[0].index;
                         }
-
                         this.displayBlocks(
                             skipBlocks,
                             false,
@@ -888,12 +885,9 @@ export class Chunk {
                         i
                     );
                 })
+
                 .catch((e) => {
-                    // Catches an error due the backward link of block 0 that points to block -1
-                    console.error(
-                        "Fetching backward link of block 0 to block -1 " +
-                            e.toString()
-                    );
+                    console.log(e);
                 });
         }
     }

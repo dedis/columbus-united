@@ -97,6 +97,8 @@ export class Chain {
     // The first block displayed by the chain.
     initialBlock: SkipBlock;
 
+    lastAddedBlock: SkipBlock;
+
     // Coordinates and scale factor of the view of the chain
     lastTransform = { x: 0, y: 0, k: 1 };
 
@@ -290,14 +292,23 @@ export class Chain {
 
                 if (!alreadyHandled) {
                     // A new Chunk is created,
+                    let leftBound =
+                        bounds.left + (bounds.right - bounds.left) / 2;
+                    let rightBound =
+                        bounds.left + (bounds.right - bounds.left) / 2 + 20;
+
+                    if (leftBound > lastAddedBlock.lastBlock.index) {
+                        leftBound = bounds.left;
+                        rightBound = lastAddedBlock.lastBlock.index;
+                    }
                     const c = new Chunk(
                         subject,
                         initialBlock,
                         lastAddedBlock,
                         leftNei,
                         rightNei,
-                        bounds.left + (bounds.right - bounds.left) / 2,
-                        bounds.left + (bounds.right - bounds.left) / 2 + 20,
+                        leftBound,
+                        rightBound,
                         this.getNewBlocksSubject,
                         this.blockClickedSubject,
                         this.lastTransform,
