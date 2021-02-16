@@ -34,6 +34,10 @@ export class Chunk {
     roster: Roster;
     flash: Flash;
 
+    // The websocket used to talk to the blockchain. We keep it to re-use it
+    // between the different calls instead of creating a new connection each time.
+    ws: WebSocketAdapter;
+
     // Left adjacent neighbour of the Chunk
     leftNeighbor: Chunk;
     // Right adjacent neighbour of the Chunk
@@ -53,9 +57,9 @@ export class Chunk {
     // svg container for the blocks
     readonly gblocks: any;
     // svg container for the arrows between blocks
-    readonly garrow: any;
+    readonly garrow: any;   
     // container that for the left and right loaders
-    readonly gloader: d3.Selection<SVGElement, {}, HTMLElement, any>;
+    readonly gloader: any;
 
     // These are the perimeters, set before blocks are loaded
     left: number;
@@ -86,12 +90,6 @@ export class Chunk {
     // The container for the total loaded number.
     readonly loadedInfo = document.getElementById("loaded-blocks");
 
-    // The websocket used to talk to the blockchain. We keep it to re-use it
-    // between the different calls instead of creating a new connection each
-    // time. Each chunk creates a ws connections because we need to have
-    // different callbacks for each of them.
-    ws: WebSocketAdapter;
-
     constructor(
         chainSubject: Subject<any>,
         initialBlock: SkipBlock,
@@ -102,12 +100,8 @@ export class Chunk {
         right: number,
         newBlocksSubject: Subject<SkipBlock[]>,
         blockClickedSubject: Subject<SkipBlock>,
-        transform: any,
         roster: Roster,
-        flash: Flash,
-        ws: WebSocketAdapter,
-        gblocks: any,
-        garrow: any
+        flash: Flash
     ) {
         this.roster = roster;
         this.flash = flash;
@@ -121,38 +115,17 @@ export class Chunk {
         this.initialBlock = initialBlock;
         this.lastAddedBlock = lastAddedBlock.lastBlock;
 
-        this.lastTransform = transform;
-
-        this.garrow = garrow;
-        this.gblocks = gblocks;
-
-        this.ws = ws;
-
         this.left = left;
         this.right = right;
 
         // The svg container for the chain
         const svg = d3.select("#svg-container");
 
-        // This group will contain the left and right loaders that display a
-        // spinner when new blocks are being added
-        this.gloader = svg
-            .append("g")
-            .attr("class", "loader")
-            .attr("transform", transform);
+        this.garrow =  svg.selectAll(".garrow");
+        this.gblocks =  svg.selectAll(".gblocks");
+        this.gloader = svg.selectAll(".loader");
 
         this.setSubjectBrowse();
-
-        this.chainSubject.subscribe({
-            next: (transform: any) => {
-                this.lastTransform = transform;
-                this.gloader.attr("transform", transform);
-                // resize the loaders to always have a relative scale of 1
-                this.gloader
-                    .selectAll("svg")
-                    .attr("transform", `scale(${1 / transform.k})`);
-            },
-        });
 
         // Handler to check if new blocks need to be loaded. We check once we
         // don't receive new event for 50ms.
