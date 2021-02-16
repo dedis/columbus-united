@@ -15,10 +15,6 @@ import { Utils } from "./utils";
  * @author Noémien Kocher (noémien.kocher@epfl.ch)
  */
 export class Chain {
-<<<<<<< HEAD
-=======
-
->>>>>>> 86574ef80f8bef0db2af919bc2b2240bc9ef55be
     // Getter for the subject that is notified when a block is clicked on.
     get getBlockClickedSubject(): Subject<SkipBlock> {
         return this.blockClickedSubject;
@@ -40,22 +36,12 @@ export class Chain {
     static readonly svgHeight = 200;
     static readonly svgWidth = window.innerWidth;
 
-<<<<<<< HEAD
     static unitBlockAndPaddingWidth = Chain.blockPadding + Chain.blockWidth;
-=======
-    static  unitBlockAndPaddingWidth =
-        Chain.blockPadding + Chain.blockWidth;
->>>>>>> 86574ef80f8bef0db2af919bc2b2240bc9ef55be
     static readonly axisPadding = 8;
 
     // The number of blocks the window can display at normal scale. Used to
     // define the domain for the xScale
-<<<<<<< HEAD
     static numBlocks = Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
-=======
-    static  numBlocks =
-        Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
->>>>>>> 86574ef80f8bef0db2af919bc2b2240bc9ef55be
 
     // Recommended pageSize / nbPages: 80 / 50
     static pageSize = 50;
@@ -110,19 +96,11 @@ export class Chain {
 
     // The first block displayed by the chain.
     initialBlock: SkipBlock;
-<<<<<<< HEAD
 
     lastAddedBlock: SkipBlock;
 
     // Coordinates and scale factor of the view of the chain
     lastTransform = { x: 0, y: 0, k: 1 };
-=======
-
-    // Coordinates and scale factor of the view of the chain
-    lastTransform = { x: 0, y: 0, k: 1 };
-
-    constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
->>>>>>> 86574ef80f8bef0db2af919bc2b2240bc9ef55be
 
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
         // Blockchain properties
@@ -131,7 +109,6 @@ export class Chain {
 
         // First block displayed on the chain
         this.initialBlock = initialBlock;
-<<<<<<< HEAD
 
         // This subject will be notified when the main SVG canvas in moved by the user
         const subject = new Subject();
@@ -139,17 +116,6 @@ export class Chain {
         // Main SVG canvas that contains the chain
         const svg = d3.select("#svg-container").attr("height", Chain.svgHeight);
 
-=======
-
-        // This subject will be notified when the main SVG canvas in moved by the user
-        const subject = new Subject();
-
-        // Main SVG canvas that contains the chain
-        const svg = d3
-            .select("#svg-container")
-            .attr("height", Chain.svgHeight);
-
->>>>>>> 86574ef80f8bef0db2af919bc2b2240bc9ef55be
         // This group will contain the blocks
         this.gblocks = svg.append("g").attr("class", "gblocks");
 
@@ -326,30 +292,23 @@ export class Chain {
 
                 if (!alreadyHandled) {
                     // A new Chunk is created,
-<<<<<<< HEAD
-                    let leftBound = (bounds.left + (bounds.right - bounds.left) / 2);
-                    let rightBound = (bounds.left + (bounds.right - bounds.left) / 2 + 20);
-    
-                    if (leftBound > lastAddedBlock.lastBlock.index){
+                    let leftBound =
+                        bounds.left + (bounds.right - bounds.left) / 2;
+                    let rightBound =
+                        bounds.left + (bounds.right - bounds.left) / 2 + 20;
+
+                    if (leftBound > lastAddedBlock.lastBlock.index) {
                         leftBound = bounds.left;
                         rightBound = lastAddedBlock.lastBlock.index;
-
                     }
-=======
->>>>>>> 86574ef80f8bef0db2af919bc2b2240bc9ef55be
                     const c = new Chunk(
                         subject,
                         initialBlock,
                         lastAddedBlock,
                         leftNei,
                         rightNei,
-<<<<<<< HEAD
                         leftBound,
                         rightBound,
-=======
-                        bounds.left + (bounds.right - bounds.left) / 2,
-                        bounds.left + (bounds.right - bounds.left) / 2 + 20,
->>>>>>> 86574ef80f8bef0db2af919bc2b2240bc9ef55be
                         this.getNewBlocksSubject,
                         this.blockClickedSubject,
                         this.lastTransform,

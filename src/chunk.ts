@@ -188,7 +188,7 @@ export class Chunk {
                 }
             },
         });
- 
+
         // Load first blocks of the Chunk
         this.loadInitial(left);
     }
@@ -320,7 +320,6 @@ export class Chunk {
             } catch {
                 // If no forward links exist, it is the last block of the chain
                 this.flash.display(Flash.flashType.INFO, "End of blockchain");
-              
             }
 
             this.loadRight(transform, gloader, hashNextBlockRight);
@@ -343,10 +342,8 @@ export class Chunk {
         // load more blocks than available.
         let numblocks = Chain.pageSize;
         if (this.right + Chain.pageSize >= this.lastAddedBlock.index) {
-            numblocks = (this.lastAddedBlock.index-this.rightBlock.index);
-          
+            numblocks = this.lastAddedBlock.index - this.rightBlock.index;
         }
-        
 
         this.right += numblocks;
 
@@ -355,14 +352,14 @@ export class Chunk {
             gloader,
             (this.rightBlock.index + 1) * Chain.unitBlockAndPaddingWidth +
                 Chain.blockPadding +
-                Chain.blockWidth / 2,   
+                Chain.blockWidth / 2,
             transform.k
         );
 
         setTimeout(() => {
             this.getNextBlocks(
                 blockHash,
-                (numblocks == 0) ? 1 : numblocks ,
+                numblocks == 0 ? 1 : numblocks,
                 this.nbPages,
                 this.subjectBrowse,
                 false
@@ -488,7 +485,7 @@ export class Chunk {
                     startid: bid,
                 }),
                 PaginateResponse
-            ).subscribe({     
+            ).subscribe({
                 // ws callback "onMessage":
                 complete: () => {
                     this.ws = undefined;
@@ -499,9 +496,9 @@ export class Chunk {
                 },
                 next: ([data, ws]) => {
                     if (data.errorcode != 0) {
-                            // Reaching the end of the chain
-                            if (ws != undefined) {
-                                this.ws = ws;
+                        // Reaching the end of the chain
+                        if (ws != undefined) {
+                            this.ws = ws;
                             // Continue to load blocks
                             return 0;
                         } else {
@@ -585,7 +582,8 @@ export class Chunk {
                 this.leftBlock = block;
                 this.rightBlock = block;
                 if (left != 0) {
-                if(block.index <= this.lastAddedBlock.index ){}
+                    if (block.index <= this.lastAddedBlock.index) {
+                    }
                     this.loadLeft(
                         this.lastTransform,
                         this.gloader,
@@ -889,7 +887,7 @@ export class Chunk {
                 })
 
                 .catch((e) => {
-              console.log(e);
+                    console.log(e);
                 });
         }
     }
