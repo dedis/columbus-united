@@ -381,17 +381,14 @@ export class Chunk {
      */
     addLoader(backwards: boolean, gloader: any, xPos: number, k: number) {
         let className = "right-loader";
-        let id= "right";
 
         if (backwards) {
             className = "left-loader";
-            id= "left";
         }
 
         // Some loaders: https://codepen.io/aurer/pen/jEGbA
         gloader
             .append("svg")
-            .attr("id",`${id}`)
             .attr("class", `${className}`)
             .attr("viewBox", "0, 0, 24, 30")
             .attr("x", xPos - 24)
