@@ -310,8 +310,9 @@ export class Chain {
                     }
                     const c = new Chunk(
                         subject,
-                        initialBlock,
+                
                         lastAddedBlock,
+                        initialBlock,
                         leftNei,
                         rightNei,
                         leftBound,

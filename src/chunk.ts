@@ -26,6 +26,8 @@ import { Utils } from "./utils";
  * @author Sophia Artioli (sophia.artioli@epfl.ch)
  */
 export class Chunk {
+
+    
     // Maximum known possible height of block
     // We fix it to 8 so that all arrows can fit in the canevas
     readonly maxHeightBlock = 8;
@@ -44,7 +46,6 @@ export class Chunk {
     rightNeighbor: Chunk;
 
     // First block loaded of the chunk
-    initialBlock: SkipBlock;
 
     // Last added block of the chain
     lastAddedBlock: SkipBlock;
@@ -90,10 +91,13 @@ export class Chunk {
     // The container for the total loaded number.
     readonly loadedInfo = document.getElementById("loaded-blocks");
 
+    initialBlock :SkipBlock;
+
+
     constructor(
         chainSubject: Subject<any>,
-        initialBlock: SkipBlock,
         lastAddedBlock: LastAddedBlock,
+        initialBlock:SkipBlock,
         leftNei: Chunk,
         rightNei: Chunk,
         left: number,
@@ -112,11 +116,13 @@ export class Chunk {
 
         this.leftNeighbor = leftNei;
         this.rightNeighbor = rightNei;
-        this.initialBlock = initialBlock;
         this.lastAddedBlock = lastAddedBlock.lastBlock;
+        this.initialBlock=initialBlock
 
         this.left = left;
         this.right = right;
+
+
 
         // The svg container for the chain
         const svg = d3.select("#svg-container");
@@ -550,7 +556,7 @@ export class Chunk {
      */
     private loadInitial(left: number) {
         // Fetch the initial block
-        Utils.getBlockByIndex(this.initialBlock.hash, left, this.roster).then(
+        Utils.getBlockByIndex(Utils.hex2Bytes( "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3"), left, this.roster).then(
             (block: SkipBlock) => {
                 this.leftBlock = block;
                 this.rightBlock = block;
