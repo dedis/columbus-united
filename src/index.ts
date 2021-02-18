@@ -119,7 +119,8 @@ export function sayHi() {
                             );
                         });
                 });
-        });
+        }).catch((e)=>
+        flash.display(Flash.flashType.ERROR, `Unable to start visualization: ${e}`));
 }
 
 /**

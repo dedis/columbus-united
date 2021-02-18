@@ -578,7 +578,8 @@ export class Chunk {
                     Utils.bytes2String(block.hash) // Fetch block from left index and higher
                 );
             }
-        );
+        ).catch((e)=>
+        this.flash.display(Flash.flashType.ERROR, `Unable to load initial blocks: ${e}`));;
     }
 
     /**
