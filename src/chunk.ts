@@ -95,17 +95,18 @@ export class Chunk {
 
 
     constructor(
-        chainSubject: Subject<any>,
-        lastAddedBlock: LastAddedBlock,
-        initialBlock:SkipBlock,
+        roster: Roster,
+        flash: Flash,
         leftNei: Chunk,
         rightNei: Chunk,
         left: number,
         right: number,
+        initialBlock:SkipBlock,
+        lastAddedBlock: LastAddedBlock,
+        chainSubject: Subject<any>,
         newBlocksSubject: Subject<SkipBlock[]>,
         blockClickedSubject: Subject<SkipBlock>,
-        roster: Roster,
-        flash: Flash
+     
     ) {
         this.roster = roster;
         this.flash = flash;

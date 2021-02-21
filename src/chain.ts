@@ -154,11 +154,9 @@ export class Chain {
             });
         svg.call(zoom);
         Chain.zoom = zoom;
-   // This group will contain the left and right loaders that display a
+        // This group will contain the left and right loaders that display a
         // spinner when new blocks are being added
-        const gloader = svg
-            .append("g")
-            .attr("class", "loader");
+        const gloader = svg.append("g").attr("class", "loader");
 
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
@@ -174,7 +172,7 @@ export class Chain {
                 transform.y = 0;
 
                 // Update the scale
-                const xScaleNew = transform.rescaleX(xScale);    
+                const xScaleNew = transform.rescaleX(xScale);
                 xAxis.scale(xScaleNew);
                 xAxisDraw.call(xAxis);
 
@@ -192,7 +190,7 @@ export class Chain {
                     "0) scale(" +
                     transform.k +
                     "," +
-                    "1" +       
+                    "1" +
                     ")";
 
                 // The blocks and arrows follow the transformations of the chain.
@@ -308,19 +306,19 @@ export class Chain {
                         leftBound = bounds.left;
                         rightBound = lastAddedBlock.lastBlock.index;
                     }
+
                     const c = new Chunk(
-                        subject,
-                
-                        lastAddedBlock,
-                        initialBlock,
+                        this.roster,
+                        this.flash,
                         leftNei,
                         rightNei,
                         leftBound,
                         rightBound,
+                        initialBlock,
+                        lastAddedBlock,
+                        subject,
                         this.getNewBlocksSubject,
-                        this.blockClickedSubject,
-                        this.roster,
-                        this.flash,
+                        this.blockClickedSubject
                     );
 
                     if (leftNei !== undefined) {

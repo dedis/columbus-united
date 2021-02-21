@@ -166,7 +166,7 @@ export function startColumbus(
         roster
     );
     block.startListen();
-
+   
     // The blockchain properties are given to the search bar
     searchBar(
         roster,
@@ -174,6 +174,8 @@ export function startColumbus(
         initialBlock,
         hashBlock0,
         chain.blockClickedSubject,
-        block
+        block.launchQuery
     );
+
+   
 }

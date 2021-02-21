@@ -25,7 +25,7 @@ export function searchBar(
     initialBlock: SkipBlock,
     hashBlock0: string,
     blockClickedSubject: Subject<SkipBlock>,
-    block: Block
+    launchQuery: ((chosenQuery:number, instanceID:string) => void)
 ) {
     d3.select("#search-input").on("keypress", () => {
         if (d3.event.keyCode === 13) {
@@ -49,7 +49,7 @@ export function searchBar(
                 initialBlock,
                 blockClickedSubject,
                 searchMode,
-                block
+                launchQuery
             );
         }
     });
@@ -75,7 +75,7 @@ export function searchBar(
             initialBlock,
             blockClickedSubject,
             searchMode,
-            block
+            launchQuery
         );
     });
 }
@@ -99,7 +99,8 @@ async function searchRequest(
     initialBlock: SkipBlock,
     blockClickedSubject: Subject<SkipBlock>,
     searchMode: string,
-    block: Block
+    launchQuery:((chosenQuery:number, instanceID:string) => void)
+  
 ) {
     switch (searchMode) {
         case "anything":
@@ -138,7 +139,7 @@ async function searchRequest(
                         Flash.flashType.INFO,
                         `Browsing the chain for instance ID : ${input}`
                     );
-                    block.launchQuery(50, input.toString());
+                    launchQuery(50, input.toString());
                 }
             }
             break;
@@ -180,7 +181,7 @@ async function searchRequest(
                 Flash.flashType.INFO,
                 `Browsing the chain for instance ID : ${input}`
             );
-            block.launchQuery(50, input.toString());
+            launchQuery(50, input.toString());
             break;
     }
 
