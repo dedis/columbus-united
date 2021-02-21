@@ -99,8 +99,7 @@ export class Chunk {
         flash: Flash,
         leftNei: Chunk,
         rightNei: Chunk,
-        left: number,
-        right: number,
+        bounds:{left:number,right:number},
         initialBlock:SkipBlock,
         lastAddedBlock: LastAddedBlock,
         chainSubject: Subject<any>,
@@ -120,8 +119,8 @@ export class Chunk {
         this.lastAddedBlock = lastAddedBlock.lastBlock;
         this.initialBlock=initialBlock
 
-        this.left = left;
-        this.right = right;
+        this.left = bounds.left;
+        this.right = bounds.right;
 
 
 
@@ -170,7 +169,7 @@ export class Chunk {
         });
 
         // Load first blocks of the Chunk
-        this.loadInitial(left);
+        this.loadInitial(this.left);
     }
 
     /**
@@ -196,9 +195,7 @@ export class Chunk {
 
         // Check if we need to load blocks on the left. We check that we haven't
         // yet loaded all the possible blocks from the left and that the user
-        // has moved enough to the left. The -50 is to give a small margin
-        // because we want to let the user drag a bit before we trigger the
-        // load.
+        // has moved enough to the left.
         if (
             this.leftBlock.index > bounds.left &&
             this.leftBlock.index < bounds.right
@@ -322,7 +319,7 @@ export class Chunk {
         // load more blocks than available.
         let numblocks = Chain.pageSize;
         if (this.right + Chain.pageSize >= this.lastAddedBlock.index) {
-            numblocks = this.lastAddedBlock.index - this.rightBlock.index;
+            numblocks = this.lastAddedBlock.index - this.rightBlock.index + 1;
         }
 
         this.right += numblocks;

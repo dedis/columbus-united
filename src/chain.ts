@@ -303,8 +303,9 @@ export class Chain {
                         bounds.left + (bounds.right - bounds.left) / 2 + 20;
 
                     if (leftBound > lastAddedBlock.lastBlock.index) {
-                        leftBound = bounds.left;
-                        rightBound = lastAddedBlock.lastBlock.index;
+                        bounds.left= bounds.left
+                        bounds.right= lastAddedBlock.lastBlock.index;
+                     
                     }
 
                     const c = new Chunk(
@@ -312,8 +313,7 @@ export class Chain {
                         this.flash,
                         leftNei,
                         rightNei,
-                        leftBound,
-                        rightBound,
+                        bounds,   
                         initialBlock,
                         lastAddedBlock,
                         subject,
