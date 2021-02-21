@@ -1,5 +1,5 @@
 import { DataBody } from "@dedis/cothority/byzcoin/proto";
-import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
+import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
@@ -303,9 +303,8 @@ export class Chain {
                         bounds.left + (bounds.right - bounds.left) / 2 + 20;
 
                     if (leftBound > lastAddedBlock.lastBlock.index) {
-                        bounds.left= bounds.left
-                        bounds.right= lastAddedBlock.lastBlock.index;
-                     
+                        bounds.left = bounds.left;
+                        bounds.right = lastAddedBlock.lastBlock.index;
                     }
 
                     const c = new Chunk(
@@ -313,7 +312,7 @@ export class Chain {
                         this.flash,
                         leftNei,
                         rightNei,
-                        bounds,   
+                        bounds,
                         initialBlock,
                         lastAddedBlock,
                         subject,

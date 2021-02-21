@@ -26,8 +26,6 @@ import { Utils } from "./utils";
  * @author Sophia Artioli (sophia.artioli@epfl.ch)
  */
 export class Chunk {
-
-    
     // Maximum known possible height of block
     // We fix it to 8 so that all arrows can fit in the canevas
     readonly maxHeightBlock = 8;
@@ -58,7 +56,7 @@ export class Chunk {
     // svg container for the blocks
     readonly gblocks: any;
     // svg container for the arrows between blocks
-    readonly garrow: any;   
+    readonly garrow: any;
     // container that for the left and right loaders
     readonly gloader: any;
 
@@ -91,21 +89,19 @@ export class Chunk {
     // The container for the total loaded number.
     readonly loadedInfo = document.getElementById("loaded-blocks");
 
-    initialBlock :SkipBlock;
-
+    initialBlock: SkipBlock;
 
     constructor(
         roster: Roster,
         flash: Flash,
         leftNei: Chunk,
         rightNei: Chunk,
-        bounds:{left:number,right:number},
-        initialBlock:SkipBlock,
+        bounds: { left: number; right: number },
+        initialBlock: SkipBlock,
         lastAddedBlock: LastAddedBlock,
         chainSubject: Subject<any>,
         newBlocksSubject: Subject<SkipBlock[]>,
-        blockClickedSubject: Subject<SkipBlock>,
-     
+        blockClickedSubject: Subject<SkipBlock>
     ) {
         this.roster = roster;
         this.flash = flash;
@@ -117,18 +113,16 @@ export class Chunk {
         this.leftNeighbor = leftNei;
         this.rightNeighbor = rightNei;
         this.lastAddedBlock = lastAddedBlock.lastBlock;
-        this.initialBlock=initialBlock
+        this.initialBlock = initialBlock;
 
         this.left = bounds.left;
         this.right = bounds.right;
 
-
-
         // The svg container for the chain
         const svg = d3.select("#svg-container");
 
-        this.garrow =  svg.selectAll(".garrow");
-        this.gblocks =  svg.selectAll(".gblocks");
+        this.garrow = svg.selectAll(".garrow");
+        this.gblocks = svg.selectAll(".gblocks");
         this.gloader = svg.selectAll(".loader");
 
         this.setSubjectBrowse();
@@ -554,13 +548,17 @@ export class Chunk {
      */
     private loadInitial(left: number) {
         // Fetch the initial block
-        Utils.getBlockByIndex(Utils.hex2Bytes( "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3"), left, this.roster).then(
-            (block: SkipBlock) => {
+        Utils.getBlockByIndex(
+            Utils.hex2Bytes(
+                "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3"
+            ),
+            left,
+            this.roster
+        )
+            .then((block: SkipBlock) => {
                 this.leftBlock = block;
                 this.rightBlock = block;
                 if (left != 0) {
-                    if (block.index <= this.lastAddedBlock.index) {
-                    }
                     this.loadLeft(
                         this.lastTransform,
                         this.gloader,
@@ -575,9 +573,13 @@ export class Chunk {
                     this.gloader,
                     Utils.bytes2String(block.hash) // Fetch block from left index and higher
                 );
-            }
-        ).catch((e)=>
-        this.flash.display(Flash.flashType.ERROR, `Unable to load initial blocks: ${e}`));;
+            })
+            .catch((e) =>
+                this.flash.display(
+                    Flash.flashType.ERROR,
+                    `Unable to load initial blocks: ${e}`
+                )
+            );
     }
 
     /**
@@ -848,25 +850,32 @@ export class Chunk {
         skipBlockTo: SkipBlock,
         svgBlocks: any
     ) {
-        // Iterate through all blocks
-        for (let i = 0; i < skipBlockTo.backlinks.length; i++) {
-            Utils.getBlock(
-                skipBlockTo.backlinks[i], // Get all blocks that point to skipBlockTo
-                this.roster
-            )
-                .then((skipBlockFrom) => {
-                    this.appendArrows(
-                        xTranslate,
-                        skipBlockFrom,
-                        skipBlockTo,
-                        svgBlocks,
-                        i
-                    );
-                })
+        // Genesis block has a backward link to a random generated block, so that two
+        // identical genesis blocks have a different ID.
+        if (skipBlockTo.index != 0) {
+            // Iterate through all blocks
+            for (let i = 0; i < skipBlockTo.backlinks.length; i++) {
+                Utils.getBlock(
+                    skipBlockTo.backlinks[i], // Get all blocks that point to skipBlockTo
+                    this.roster
+                )
+                    .then((skipBlockFrom) => {
+                        this.appendArrows(
+                            xTranslate,
+                            skipBlockFrom,
+                            skipBlockTo,
+                            svgBlocks,
+                            i
+                        );
+                    })
 
-                .catch((e) => {
-                    console.log(e);
-                });
+                    .catch((e) => {
+                        this.flash.display(
+                            Flash.flashType.ERROR,
+                            `Cannot find backward link: ${e}`
+                        );
+                    });
+            }
         }
     }
 

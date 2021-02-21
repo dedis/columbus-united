@@ -5,7 +5,6 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable, Subject } from "rxjs";
 import { throttleTime } from "rxjs/operators";
-import { event } from "d3-selection";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
@@ -589,7 +588,6 @@ export class Block {
         subjects[1].pipe(throttleTime(100)).subscribe({
             complete: self.doneLoading,
             next: ([percentage, seenBlock, totalBlock, nbInstanceFound]) => {
-                console.log("updated");
                 self.updateLoadingScreen(
                     percentage,
                     seenBlock,

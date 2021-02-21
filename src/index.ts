@@ -119,8 +119,13 @@ export function sayHi() {
                             );
                         });
                 });
-        }).catch((e)=>
-        flash.display(Flash.flashType.ERROR, `Unable to start visualization: ${e}`));
+        })
+        .catch((e) =>
+            flash.display(
+                Flash.flashType.ERROR,
+                `Unable to start visualization: ${e}`
+            )
+        );
 }
 
 /**
@@ -166,7 +171,7 @@ export function startColumbus(
         roster
     );
     block.startListen();
-   
+
     // The blockchain properties are given to the search bar
     searchBar(
         roster,
@@ -174,8 +179,6 @@ export function startColumbus(
         initialBlock,
         hashBlock0,
         chain.blockClickedSubject,
-        block.launchQuery
+        block
     );
-
-   
 }
