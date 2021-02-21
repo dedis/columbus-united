@@ -50,7 +50,8 @@ export class LastAddedBlock {
                     resp.hash,
                     blockClickedSubject
                 );
-            });
+            })
+            .catch((e)=> flash.display(Flash.flashType.ERROR, `Cannot fetch latest block: ${e}`));
     }
 
     /**
