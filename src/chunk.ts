@@ -548,11 +548,7 @@ export class Chunk {
      */
     private loadInitial(left: number) {
         // Fetch the initial block
-        Utils.getBlockByIndex(
-            this.initialBlock.hash,
-            left,
-            this.roster
-        )
+        Utils.getBlockByIndex(this.initialBlock.hash, left, this.roster)
             .then((block: SkipBlock) => {
                 this.leftBlock = block;
                 this.rightBlock = block;
