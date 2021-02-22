@@ -549,9 +549,7 @@ export class Chunk {
     private loadInitial(left: number) {
         // Fetch the initial block
         Utils.getBlockByIndex(
-            Utils.hex2Bytes(
-                "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3"
-            ),
+            this.initialBlock.hash,
             left,
             this.roster
         )

@@ -24,7 +24,7 @@ _|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|
 
 // This is the genesis block, which is also the Skipchain identifier
 const hashBlock0 =
-    "666b9b1fa0eb14739880cfb81e858926d6847141a6039bd8d03864be1cc44c68";
+    "afd8da15a057bce78ac87c315dc838c7eab15925af37367e74603a8792bf95bf";
 // The roster configuration, parsed as a string
 const rosterStr = getRosterStr();
 
@@ -66,22 +66,25 @@ export function sayHi() {
             if (indexString != null) {
                 // A block index is inputted
                 initialBlockIndex = parseInt(indexString, 10);
-            // The block index should not be smaller than 0
+                 // The block index should not be smaller than 0
             if (initialBlockIndex < 0) {
                 flash.display(
                     Flash.flashType.ERROR,
                     "index of initial block cannot be negative, specified index is " +
                         initialBlockIndex
                 );
-            } else if (initialBlockIndex > last.index) {
-                 // The block index should not be higher than the last added block
-                flash.display(
-                    Flash.flashType.ERROR,
-                    "index of initial block cannot be higher than the last added block of the chain, which is " +
-                        last.index
-                );
             }
 
+            // The block index should not be higher than the last added block
+            if (initialBlockIndex > last.index) {
+                flash.display(
+                    Flash.flashType.ERROR,
+                    "index of initial block cannot be higher than the last added block of the chain, specified index is " +
+                        initialBlockIndex
+                );
+                // Set initial index at last added block of the chain
+                initialBlockIndex = last.index - Chain.numBlocks;
+            }
             } else {
                 // The user does not input a block index in the url
 
@@ -92,12 +95,15 @@ export function sayHi() {
 
                 // Display the correct amount of blocks to fit the end of the chain
                 initialBlockIndex =
-                    last.index -
+                    last.index-
                     containerSize / (Chain.blockWidth + Chain.blockPadding);
             }
-                // Set initial index at last added block of the chain
-                initialBlockIndex = last.index - Chain.numBlocks;
-            
+
+            // The block index should not be smaller than 0
+            if (initialBlockIndex < 0) {
+                initialBlockIndex = 0;
+            }
+
         })
         .then(() => {
             scRPC
