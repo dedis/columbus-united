@@ -24,7 +24,7 @@ _|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|
 
 // This is the genesis block, which is also the Skipchain identifier
 const hashBlock0 =
-    "afd8da15a057bce78ac87c315dc838c7eab15925af37367e74603a8792bf95bf";
+    "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
 // The roster configuration, parsed as a string
 const rosterStr = getRosterStr();
 
