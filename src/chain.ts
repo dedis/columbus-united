@@ -156,7 +156,7 @@ export class Chain {
         Chain.zoom = zoom;
         // This group will contain the left and right loaders that display a
         // spinner when new blocks are being added
-        const gloader = svg.append("g").attr("class", "loader");
+        const gloader = svg.append("g").attr("id", "loader");
 
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and

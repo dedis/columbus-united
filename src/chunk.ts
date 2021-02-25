@@ -123,7 +123,7 @@ export class Chunk {
 
         this.garrow = svg.selectAll(".garrow");
         this.gblocks = svg.selectAll(".gblocks");
-        this.gloader = svg.selectAll(".loader");
+        this.gloader = svg.select("#loader");
 
         this.setSubjectBrowse();
 
