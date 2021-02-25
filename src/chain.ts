@@ -297,12 +297,12 @@ export class Chain {
 
                 if (!alreadyHandled) {
                     // A new Chunk is created,
-                    let leftBound =
+                    bounds.left =
                         bounds.left + (bounds.right - bounds.left) / 2;
-                    let rightBound =
+                    bounds.right =
                         bounds.left + (bounds.right - bounds.left) / 2 + 20;
 
-                    if (leftBound > lastAddedBlock.lastBlock.index) {
+                    if (bounds.left > lastAddedBlock.lastBlock.index) {
                         bounds.left = bounds.left;
                         bounds.right = lastAddedBlock.lastBlock.index;
                     }
