@@ -297,15 +297,23 @@ export class Chain {
 
                 if (!alreadyHandled) {
                     // A new Chunk is created,
-                    bounds.left =
-                        bounds.left + (bounds.right - bounds.left) / 2;
-                    bounds.right =
-                        bounds.left + (bounds.right - bounds.left) / 2 + 20;
 
-                    if (bounds.left > lastAddedBlock.lastBlock.index) {
-                        bounds.left = bounds.left;
-                        bounds.right = lastAddedBlock.lastBlock.index;
-                    }
+
+                    let leftBound =
+                    bounds.left + (bounds.right - bounds.left) / 2;
+                let rightBound =
+                    bounds.left + (bounds.right - bounds.left) / 2 + 20;
+
+                if ( (bounds.left + (bounds.right - bounds.left) / 2) > lastAddedBlock.lastBlock.index) {
+                    //leftBound = bounds.left;
+                    bounds.right = lastAddedBlock.lastBlock.index;
+                }else {
+                    bounds.left=  bounds.left + (bounds.right - bounds.left) / 2;
+                    bounds.right=
+                    bounds.left + (bounds.right - bounds.left) / 2 + 20;
+                }
+                // bounds.left=leftBound
+                // bounds.right=rightBound
 
                     const c = new Chunk(
                         this.roster,
