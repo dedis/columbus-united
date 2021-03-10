@@ -730,16 +730,17 @@ export class Chunk {
         svgBlocks: any,
         height: number
     ) {
-        if (height == 0) {
+        if (height== 0) {
             // Consecutive blocks
             const line = svgBlocks.append("line");
-            line.attr("x1", xTrans + Chain.blockWidth )
+            line.attr("x1", xTrans)
                 .attr("y1", Chain.blockHeight / 2 + Chain.axisPadding)
-                .attr("x2", xTrans + Chain.blockWidth+Chain.blockPadding)
+                .attr("x2", xTrans - Chain.blockPadding)
                 .attr("y2", Chain.blockHeight / 2 + Chain.axisPadding)
                 .attr("stroke-width", 2)
                 .attr("stroke", "#808080");
         } else {
+           
             // Blocks that are minimum two indexes away
             const line = svgBlocks.append("line");
             // Starting point of the arrow: Right edge of the block
@@ -747,7 +748,8 @@ export class Chunk {
                 "x2",
                 xTrans -
                     (skipBlockTo.index - skipBlockFromIndex) *
-                        (Chain.blockWidth + Chain.blockPadding) 
+                        (Chain.blockWidth + Chain.blockPadding) +Chain.blockWidth
+                  
             ) // Arrows are appended to each level of height
                 .attr(
                     "y1",
@@ -755,21 +757,21 @@ export class Chunk {
                         Chain.svgHeight / this.maxHeightBlock +
                         height * (Chain.svgHeight / this.maxHeightBlock)
                 ) // Ending point of the arrow: left-edge of the block
-                .attr("x1", xTrans + Chain.blockWidth)
+                .attr("x1", xTrans - Chain.blockPadding + 2)
                 .attr(
                     "y2",
                     Chain.axisPadding +
                         Chain.svgHeight / this.maxHeightBlock +
                         height * (Chain.svgHeight / this.maxHeightBlock)
                 )
-                // .attr(
-                //     "marker-end",
-                //     "url(#" +
-                //         skipBlockFromIndex.toString() +
-                //         "-" +
-                //         height.toString() +
-                //         ")"
-                // )
+                .attr(
+                    "marker-start",
+                    "url(#" +
+                        skipBlockFromIndex.toString() +
+                        "-" +
+                        height.toString() +
+                        ")"
+                )
                 .attr("stroke-width", 2.5)
                 .attr("stroke", "#A0A0A0")
                 // Enables translation to the block the arrow is pointing to
@@ -845,13 +847,11 @@ export class Chunk {
     ) {
        let index = skipBlockTo.index;
        let mult = 1;
-       if(skipBlockTo.forwardLinks.length !=0){
             for (let i = 0; i < skipBlockTo.height; i++) {
-                this.appendArrows(xTranslate,index+mult,skipBlockTo,svgBlocks,i);
+                this.appendArrows(xTranslate,index-mult,skipBlockTo,svgBlocks,i);
                 mult *= skipBlockTo.baseHeight;
         }
-    
-    }
+
     }
 
     /**
