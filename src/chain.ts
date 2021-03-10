@@ -156,11 +156,7 @@ export class Chain {
         Chain.zoom = zoom;
         // This group will contain the left and right loaders that display a
         // spinner when new blocks are being added
-<<<<<<< HEAD
-        const gloader = svg.append("g").attr("class", "loader");
-=======
         const gloader = svg.append("g").attr("id", "loader");
->>>>>>> 2f473fc48aa67f5c9763b9239be9302cdd359b4e
 
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
@@ -301,16 +297,6 @@ export class Chain {
 
                 if (!alreadyHandled) {
                     // A new Chunk is created,
-<<<<<<< HEAD
-                    let leftBound =
-                        bounds.left + (bounds.right - bounds.left) / 2;
-                    let rightBound =
-                        bounds.left + (bounds.right - bounds.left) / 2 + 20;
-
-                    if (leftBound > lastAddedBlock.lastBlock.index) {
-                        bounds.left = bounds.left;
-                        bounds.right = lastAddedBlock.lastBlock.index;
-=======
 
                     if (
                         bounds.left + (bounds.right - bounds.left) / 2 >
@@ -322,7 +308,6 @@ export class Chain {
                             bounds.left + (bounds.right - bounds.left) / 2;
                         bounds.right =
                             bounds.left + (bounds.right - bounds.left) / 2 + 20;
->>>>>>> 2f473fc48aa67f5c9763b9239be9302cdd359b4e
                     }
 
                     const c = new Chunk(

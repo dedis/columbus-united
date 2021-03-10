@@ -725,17 +725,17 @@ export class Chunk {
      */
     private async appendArrows(
         xTrans: number,
-        skipBlockFrom: SkipBlock,
+        skipBlockFromIndex: number,
         skipBlockTo: SkipBlock,
         svgBlocks: any,
         height: number
     ) {
-        if (skipBlockTo.index - skipBlockFrom.index == 1) {
+        if (height == 0) {
             // Consecutive blocks
             const line = svgBlocks.append("line");
-            line.attr("x1", xTrans)
+            line.attr("x1", xTrans + Chain.blockWidth )
                 .attr("y1", Chain.blockHeight / 2 + Chain.axisPadding)
-                .attr("x2", xTrans - Chain.blockPadding)
+                .attr("x2", xTrans + Chain.blockWidth+Chain.blockPadding)
                 .attr("y2", Chain.blockHeight / 2 + Chain.axisPadding)
                 .attr("stroke-width", 2)
                 .attr("stroke", "#808080");
@@ -744,11 +744,10 @@ export class Chunk {
             const line = svgBlocks.append("line");
             // Starting point of the arrow: Right edge of the block
             line.attr(
-                "x1",
+                "x2",
                 xTrans -
-                    (skipBlockTo.index - skipBlockFrom.index) *
-                        (Chain.blockWidth + Chain.blockPadding) +
-                    Chain.blockWidth
+                    (skipBlockTo.index - skipBlockFromIndex) *
+                        (Chain.blockWidth + Chain.blockPadding) 
             ) // Arrows are appended to each level of height
                 .attr(
                     "y1",
@@ -756,21 +755,21 @@ export class Chunk {
                         Chain.svgHeight / this.maxHeightBlock +
                         height * (Chain.svgHeight / this.maxHeightBlock)
                 ) // Ending point of the arrow: left-edge of the block
-                .attr("x2", xTrans - Chain.blockPadding + 2)
+                .attr("x1", xTrans + Chain.blockWidth)
                 .attr(
                     "y2",
                     Chain.axisPadding +
                         Chain.svgHeight / this.maxHeightBlock +
                         height * (Chain.svgHeight / this.maxHeightBlock)
                 )
-                .attr(
-                    "marker-end",
-                    "url(#" +
-                        skipBlockFrom.index.toString() +
-                        "-" +
-                        height.toString() +
-                        ")"
-                )
+                // .attr(
+                //     "marker-end",
+                //     "url(#" +
+                //         skipBlockFromIndex.toString() +
+                //         "-" +
+                //         height.toString() +
+                //         ")"
+                // )
                 .attr("stroke-width", 2.5)
                 .attr("stroke", "#A0A0A0")
                 // Enables translation to the block the arrow is pointing to
@@ -788,7 +787,7 @@ export class Chunk {
             triangle
                 .attr(
                     "id",
-                    skipBlockFrom.index.toString() + "-" + height.toString()
+                    skipBlockFromIndex.toString() + "-" + height.toString()
                 ) // Markers have to have different id's otherwise they will not change color on hover
                 .attr("refX", 9.4)
                 .attr("refY", 6.5)
@@ -844,33 +843,15 @@ export class Chunk {
         skipBlockTo: SkipBlock,
         svgBlocks: any
     ) {
-        // Genesis block has a backward link to a random generated block, so that two
-        // identical genesis blocks have a different ID.
-        if (skipBlockTo.index != 0) {
-            // Iterate through all blocks
-            for (let i = 0; i < skipBlockTo.backlinks.length; i++) {
-                Utils.getBlock(
-                    skipBlockTo.backlinks[i], // Get all blocks that point to skipBlockTo
-                    this.roster
-                )
-                    .then((skipBlockFrom) => {
-                        this.appendArrows(
-                            xTranslate,
-                            skipBlockFrom,
-                            skipBlockTo,
-                            svgBlocks,
-                            i
-                        );
-                    })
-
-                    .catch((e) => {
-                        this.flash.display(
-                            Flash.flashType.ERROR,
-                            `Cannot find backward link: ${e}`
-                        );
-                    });
-            }
+       let index = skipBlockTo.index;
+       let mult = 1;
+       if(skipBlockTo.forwardLinks.length !=0){
+            for (let i = 0; i < skipBlockTo.height; i++) {
+                this.appendArrows(xTranslate,index+mult,skipBlockTo,svgBlocks,i);
+                mult *= skipBlockTo.baseHeight;
         }
+    
+    }
     }
 
     /**
