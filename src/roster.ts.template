@@ -2,16 +2,16 @@
 // blockchain. This template is used for the deployment.
 export function getRosterStr() {
     return `[[servers]]
-    Address = "tls://188.166.35.173:7770"
-    Url = "https://wookiee.ch/conode"
-    Suite = "Ed25519"
-    Public = "a59fc58c0a445b70dcd57e01603a714a2ee99c1cc14ca71780383abada5d7143"
-    Description = "Wookiee's Cothority"
-    [servers.Services]
-      [servers.Services.ByzCoin]
-        Public = "70c192537778a53abb9315979f48e170da9182b324c7974462cbdde90fc0c51d440e2de266a81fe7a3d9d2b6665ef07ba3bbe8df027af9b8a3b4ea6569d7f72a41f0dfe4dc222aa8fd4c99ced2212d7d1711267f66293732c88e8d43a2cf6b3e2e1cd0c57b8f222a73a393e70cf81e53a0ce8ed2a426e3b0fa6b0da30ff27b1a"
-        Suite = "bn256.adapter"
-      [servers.Services.Skipchain]
-        Public = "63e2ed93333bd0888ed2b5e51b5e2544831b4d79dead571cf67604cdd96bc0212f68e582468267697403d7ed418e70ed9fcb01940e4c603373994ef00c04542c24091939bddca515381e0285ab805826cec457346be482e687475a973a20fca48f16c76e352076ccc0c866d7abb3ac50d02f9874d065f85404a0127efc1acf49"
-        Suite = "bn256.adapter"`;
+  Address = "tls://conode.dedis.ch:7000"
+  Suite = "Ed25519"
+  Public = "ec5c65a3c922d1df32075640e3de606197be24af76059a2ef145501122884bd3"
+  Description = "EPFL Cothority-server"
+  URL = "https://conode.dedis.ch"
+  [servers.Services]
+    [servers.Services.ByzCoin]
+      Public = "6f69dc10dbef8f4d80072aa9d1bee191b0f68b137a9d06d006c39fe6667738fa2d3439caf428a1dcb6f4a5bd2ce6ff6f1462ebb1b7374080d95310bc6e1115e105d7ae38f9fed1585094b0cb13dc3a0f3e74daeaa794ca10058e44ef339055510f4d12a7234779f8db2e093dd8a14a03440a7d5a8ef04cac8fd735f20440b589"
+      Suite = "bn256.adapter"
+    [servers.Services.Skipchain]
+      Public = "32ba0cccec06ac4259b39102dcba13677eb385e0fdce99c93406542c5cbed3ec6ac71a81b01207451346402542923449ecf71fc0d69b1d019df34407b532fb2a09005c801e359afb377cc3255e918a096912bf6f7b7e4040532404996e05f78c408760b57fcf9e04c50eb7bc413438aca9d653dd0b6a8353d128370ebd4bdb10"
+      Suite = "bn256.adapter"`;
 }
