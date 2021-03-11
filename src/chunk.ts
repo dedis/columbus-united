@@ -34,13 +34,16 @@ export class Chunk {
     roster: Roster;
     flash: Flash;
 
+    // The websocket used to talk to the blockchain. We keep it to re-use it
+    // between the different calls instead of creating a new connection each time.
+    ws: WebSocketAdapter;
+
     // Left adjacent neighbour of the Chunk
     leftNeighbor: Chunk;
     // Right adjacent neighbour of the Chunk
     rightNeighbor: Chunk;
 
     // First block loaded of the chunk
-    initialBlock: SkipBlock;
 
     // Last added block of the chain
     lastAddedBlock: SkipBlock;
@@ -55,7 +58,7 @@ export class Chunk {
     // svg container for the arrows between blocks
     readonly garrow: any;
     // container that for the left and right loaders
-    readonly gloader: d3.Selection<SVGElement, {}, HTMLElement, any>;
+    readonly gloader: any;
 
     // These are the perimeters, set before blocks are loaded
     left: number;
@@ -86,28 +89,19 @@ export class Chunk {
     // The container for the total loaded number.
     readonly loadedInfo = document.getElementById("loaded-blocks");
 
-    // The websocket used to talk to the blockchain. We keep it to re-use it
-    // between the different calls instead of creating a new connection each
-    // time. Each chunk creates a ws connections because we need to have
-    // different callbacks for each of them.
-    ws: WebSocketAdapter;
+    initialBlock: SkipBlock;
 
     constructor(
-        chainSubject: Subject<any>,
-        initialBlock: SkipBlock,
-        lastAddedBlock: LastAddedBlock,
-        leftNei: Chunk,
-        rightNei: Chunk,
-        left: number,
-        right: number,
-        newBlocksSubject: Subject<SkipBlock[]>,
-        blockClickedSubject: Subject<SkipBlock>,
-        transform: any,
         roster: Roster,
         flash: Flash,
-        ws: WebSocketAdapter,
-        gblocks: any,
-        garrow: any
+        leftNei: Chunk,
+        rightNei: Chunk,
+        bounds: { left: number; right: number },
+        initialBlock: SkipBlock,
+        lastAddedBlock: LastAddedBlock,
+        chainSubject: Subject<any>,
+        newBlocksSubject: Subject<SkipBlock[]>,
+        blockClickedSubject: Subject<SkipBlock>
     ) {
         this.roster = roster;
         this.flash = flash;
@@ -118,41 +112,20 @@ export class Chunk {
 
         this.leftNeighbor = leftNei;
         this.rightNeighbor = rightNei;
-        this.initialBlock = initialBlock;
         this.lastAddedBlock = lastAddedBlock.lastBlock;
+        this.initialBlock = initialBlock;
 
-        this.lastTransform = transform;
-
-        this.garrow = garrow;
-        this.gblocks = gblocks;
-
-        this.ws = ws;
-
-        this.left = left;
-        this.right = right;
+        this.left = bounds.left;
+        this.right = bounds.right;
 
         // The svg container for the chain
         const svg = d3.select("#svg-container");
 
-        // This group will contain the left and right loaders that display a
-        // spinner when new blocks are being added
-        this.gloader = svg
-            .append("g")
-            .attr("class", "loader")
-            .attr("transform", transform);
+        this.garrow = svg.selectAll(".garrow");
+        this.gblocks = svg.selectAll(".gblocks");
+        this.gloader = svg.select("#loader");
 
         this.setSubjectBrowse();
-
-        this.chainSubject.subscribe({
-            next: (transform: any) => {
-                this.lastTransform = transform;
-                this.gloader.attr("transform", transform);
-                // resize the loaders to always have a relative scale of 1
-                this.gloader
-                    .selectAll("svg")
-                    .attr("transform", `scale(${1 / transform.k})`);
-            },
-        });
 
         // Handler to check if new blocks need to be loaded. We check once we
         // don't receive new event for 50ms.
@@ -190,7 +163,7 @@ export class Chunk {
         });
 
         // Load first blocks of the Chunk
-        this.loadInitial(left);
+        this.loadInitial(this.left);
     }
 
     /**
@@ -216,9 +189,7 @@ export class Chunk {
 
         // Check if we need to load blocks on the left. We check that we haven't
         // yet loaded all the possible blocks from the left and that the user
-        // has moved enough to the left. The -50 is to give a small margin
-        // because we want to let the user drag a bit before we trigger the
-        // load.
+        // has moved enough to the left.
         if (
             this.leftBlock.index > bounds.left &&
             this.leftBlock.index < bounds.right
@@ -342,7 +313,7 @@ export class Chunk {
         // load more blocks than available.
         let numblocks = Chain.pageSize;
         if (this.right + Chain.pageSize >= this.lastAddedBlock.index) {
-            numblocks = this.lastAddedBlock.index - this.rightBlock.index;
+            numblocks = this.lastAddedBlock.index - this.rightBlock.index + 1;
         }
 
         this.right += numblocks;
@@ -577,13 +548,11 @@ export class Chunk {
      */
     private loadInitial(left: number) {
         // Fetch the initial block
-        Utils.getBlockByIndex(this.initialBlock.hash, left, this.roster).then(
-            (block: SkipBlock) => {
+        Utils.getBlockByIndex(this.initialBlock.hash, left, this.roster)
+            .then((block: SkipBlock) => {
                 this.leftBlock = block;
                 this.rightBlock = block;
                 if (left != 0) {
-                    if (block.index <= this.lastAddedBlock.index) {
-                    }
                     this.loadLeft(
                         this.lastTransform,
                         this.gloader,
@@ -598,8 +567,13 @@ export class Chunk {
                     this.gloader,
                     Utils.bytes2String(block.hash) // Fetch block from left index and higher
                 );
-            }
-        );
+            })
+            .catch((e) =>
+                this.flash.display(
+                    Flash.flashType.ERROR,
+                    `Unable to load initial blocks: ${e}`
+                )
+            );
     }
 
     /**
@@ -870,25 +844,32 @@ export class Chunk {
         skipBlockTo: SkipBlock,
         svgBlocks: any
     ) {
-        // Iterate through all blocks
-        for (let i = 0; i < skipBlockTo.backlinks.length; i++) {
-            Utils.getBlock(
-                skipBlockTo.backlinks[i], // Get all blocks that point to skipBlockTo
-                this.roster
-            )
-                .then((skipBlockFrom) => {
-                    this.appendArrows(
-                        xTranslate,
-                        skipBlockFrom,
-                        skipBlockTo,
-                        svgBlocks,
-                        i
-                    );
-                })
+        // Genesis block has a backward link to a random generated block, so that two
+        // identical genesis blocks have a different ID.
+        if (skipBlockTo.index != 0) {
+            // Iterate through all blocks
+            for (let i = 0; i < skipBlockTo.backlinks.length; i++) {
+                Utils.getBlock(
+                    skipBlockTo.backlinks[i], // Get all blocks that point to skipBlockTo
+                    this.roster
+                )
+                    .then((skipBlockFrom) => {
+                        this.appendArrows(
+                            xTranslate,
+                            skipBlockFrom,
+                            skipBlockTo,
+                            svgBlocks,
+                            i
+                        );
+                    })
 
-                .catch((e) => {
-                    console.log(e);
-                });
+                    .catch((e) => {
+                        this.flash.display(
+                            Flash.flashType.ERROR,
+                            `Cannot find backward link: ${e}`
+                        );
+                    });
+            }
         }
     }
 

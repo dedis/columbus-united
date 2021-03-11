@@ -66,6 +66,27 @@ export function sayHi() {
             if (indexString != null) {
                 // A block index is inputted
                 initialBlockIndex = parseInt(indexString, 10);
+
+                if (initialBlockIndex < 0) {
+                    // The block index should not be smaller than 0
+
+                    flash.display(
+                        Flash.flashType.ERROR,
+                        "index of initial block cannot be negative, specified index is " +
+                            initialBlockIndex
+                    );
+                }
+
+                if (initialBlockIndex > last.index) {
+                    // The block index should not be higher than the last added block
+                    flash.display(
+                        Flash.flashType.ERROR,
+                        "index of initial block cannot be higher than the last added block of the chain, specified index is " +
+                            initialBlockIndex
+                    );
+                    // Set initial index at last added block of the chain
+                    initialBlockIndex = last.index - Chain.numBlocks;
+                }
             } else {
                 // The user does not input a block index in the url
 
@@ -80,24 +101,11 @@ export function sayHi() {
                     containerSize / (Chain.blockWidth + Chain.blockPadding);
             }
 
-            // The block index should not be smaller than 0
             if (initialBlockIndex < 0) {
-                flash.display(
-                    Flash.flashType.ERROR,
-                    "index of initial block cannot be negative, specified index is " +
-                        initialBlockIndex
-                );
-            }
-
-            // The block index should not be higher than the last added block
-            if (initialBlockIndex > last.index) {
-                flash.display(
-                    Flash.flashType.ERROR,
-                    "index of initial block cannot be higher than the last added block of the chain, specified index is " +
-                        initialBlockIndex
-                );
-                // Set initial index at last added block of the chain
-                initialBlockIndex = last.index - Chain.numBlocks;
+                // The block index should not be smaller than 0
+                // If it is negative, there a less blocks than the view can permit
+                // The initial block is 0
+                initialBlockIndex = 0;
             }
         })
         .then(() => {
@@ -119,7 +127,13 @@ export function sayHi() {
                             );
                         });
                 });
-        });
+        })
+        .catch((e) =>
+            flash.display(
+                Flash.flashType.ERROR,
+                `Unable to start visualization: ${e}`
+            )
+        );
 }
 
 /**

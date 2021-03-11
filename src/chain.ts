@@ -1,5 +1,5 @@
 import { DataBody } from "@dedis/cothority/byzcoin/proto";
-import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
+import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
@@ -80,10 +80,6 @@ export class Chain {
     // The roster defines the blockchain nodes
     roster: Roster;
 
-    // The websocket used to talk to the blockchain. We keep it to re-use it
-    // between the different calls instead of creating a new connection each time.
-    ws: WebSocketAdapter;
-
     // This subject is notified each time a block is clicked.
     blockClickedSubject = new Subject<SkipBlock>();
 
@@ -158,6 +154,9 @@ export class Chain {
             });
         svg.call(zoom);
         Chain.zoom = zoom;
+        // This group will contain the left and right loaders that display a
+        // spinner when new blocks are being added
+        const gloader = svg.append("g").attr("id", "loader");
 
         // Handler to update the view (drag the view, zoom in-out). We subscribe to
         // the subject, which will notify us each time the view is dragged and
@@ -176,6 +175,12 @@ export class Chain {
                 const xScaleNew = transform.rescaleX(xScale);
                 xAxis.scale(xScaleNew);
                 xAxisDraw.call(xAxis);
+
+                gloader.attr("transform", transform);
+                // resize the loaders to always have a relative scale of 1
+                gloader
+                    .selectAll("svg")
+                    .attr("transform", `scale(${1 / transform.k})`);
 
                 // Horizontal transformation on the blocks only (sets Y scale to 1)
                 const transformString =
@@ -292,31 +297,30 @@ export class Chain {
 
                 if (!alreadyHandled) {
                     // A new Chunk is created,
-                    let leftBound =
-                        bounds.left + (bounds.right - bounds.left) / 2;
-                    let rightBound =
-                        bounds.left + (bounds.right - bounds.left) / 2 + 20;
 
-                    if (leftBound > lastAddedBlock.lastBlock.index) {
-                        leftBound = bounds.left;
-                        rightBound = lastAddedBlock.lastBlock.index;
+                    if (
+                        bounds.left + (bounds.right - bounds.left) / 2 >
+                        lastAddedBlock.lastBlock.index
+                    ) {
+                        bounds.right = lastAddedBlock.lastBlock.index;
+                    } else {
+                        bounds.left =
+                            bounds.left + (bounds.right - bounds.left) / 2;
+                        bounds.right =
+                            bounds.left + (bounds.right - bounds.left) / 2 + 20;
                     }
+
                     const c = new Chunk(
-                        subject,
-                        initialBlock,
-                        lastAddedBlock,
-                        leftNei,
-                        rightNei,
-                        leftBound,
-                        rightBound,
-                        this.getNewBlocksSubject,
-                        this.blockClickedSubject,
-                        this.lastTransform,
                         this.roster,
                         this.flash,
-                        this.ws,
-                        this.gblocks,
-                        this.garrow
+                        leftNei,
+                        rightNei,
+                        bounds,
+                        initialBlock,
+                        lastAddedBlock,
+                        subject,
+                        this.getNewBlocksSubject,
+                        this.blockClickedSubject
                     );
 
                     if (leftNei !== undefined) {
