@@ -730,7 +730,7 @@ export class Chunk {
         svgBlocks: any,
         height: number
     ) {
-        if (height== 0) {
+        if (height == 0) {
             // Consecutive blocks
             const line = svgBlocks.append("line");
             line.attr("x1", xTrans + Chain.blockWidth)
@@ -740,7 +740,6 @@ export class Chunk {
                 .attr("stroke-width", 2)
                 .attr("stroke", "#808080");
         } else {
-           
             // Blocks that are minimum two indexes away
             const line = svgBlocks.append("line");
             // Starting point of the arrow: Right edge of the block
@@ -781,18 +780,10 @@ export class Chunk {
                         this.initialBlock.hash,
                         skipBlockToIndex,
                         this.roster
-                    )
-                    Utils.translateOnChain(
-                        block.index,
-                        skipBlockToIndex,
                     );
+                    Utils.translateOnChain(block.index, skipBlockToIndex);
                     this.blockClickedSubject.next(block);
-                    
-                   
-                  
-                            
                 });
-        
 
             // Arrow head
             const triangle = svgBlocks.append("svg:defs").append("svg:marker");
@@ -811,7 +802,6 @@ export class Chunk {
                 .attr("orient", "auto-start-reverse")
                 .append("path")
                 .attr("d", "M 0 0 L 19 7 L 0 14 z");
-               
 
             // Arrows change color on hover
             triangle.on("mouseover", function () {

@@ -151,15 +151,11 @@ export class Utils {
      * @param initialBlock
      * @param blockClickedSubject
      */
-    static async translateOnChain(
-        goalBlock: number,
-        initialBlock: number,
-    ) {
+    static async translateOnChain(goalBlock: number, initialBlock: number) {
         // translate the chain to wanted coordinates
         const newZoom = d3.zoomIdentity
             .translate(
-                (initialBlock - goalBlock) *
-                    Chain.unitBlockAndPaddingWidth +
+                (initialBlock - goalBlock) * Chain.unitBlockAndPaddingWidth +
                     0.2 -
                     initialBlock * Chain.unitBlockAndPaddingWidth,
                 0
