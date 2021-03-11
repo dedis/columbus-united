@@ -725,17 +725,17 @@ export class Chunk {
      */
     private async appendArrows(
         xTrans: number,
-        skipBlockFromIndex: number,
-        skipBlockTo: SkipBlock,
+        skipBlockToIndex: number,
+        skipBlockFrom: SkipBlock,
         svgBlocks: any,
         height: number
     ) {
         if (height== 0) {
             // Consecutive blocks
             const line = svgBlocks.append("line");
-            line.attr("x1", xTrans)
+            line.attr("x1", xTrans + Chain.blockWidth)
                 .attr("y1", Chain.blockHeight / 2 + Chain.axisPadding)
-                .attr("x2", xTrans - Chain.blockPadding)
+                .attr("x2", xTrans + Chain.blockWidth + Chain.blockPadding)
                 .attr("y2", Chain.blockHeight / 2 + Chain.axisPadding)
                 .attr("stroke-width", 2)
                 .attr("stroke", "#808080");
@@ -744,20 +744,21 @@ export class Chunk {
             // Blocks that are minimum two indexes away
             const line = svgBlocks.append("line");
             // Starting point of the arrow: Right edge of the block
-            line.attr(
-                "x2",
-                xTrans -
-                    (skipBlockTo.index - skipBlockFromIndex) *
-                        (Chain.blockWidth + Chain.blockPadding) +Chain.blockWidth
-                  
-            ) // Arrows are appended to each level of height
+            line.attr("x1", xTrans + Chain.blockWidth)
+                .attr(
+                    "x2",
+                    xTrans -
+                        (skipBlockFrom.index - skipBlockToIndex) *
+                            (Chain.blockWidth + Chain.blockPadding) -
+                        Chain.blockPadding +
+                        2
+                ) // Arrows are appended to each level of height
                 .attr(
                     "y1",
                     Chain.axisPadding +
                         Chain.svgHeight / this.maxHeightBlock +
                         height * (Chain.svgHeight / this.maxHeightBlock)
                 ) // Ending point of the arrow: left-edge of the block
-                .attr("x1", xTrans - Chain.blockPadding + 2)
                 .attr(
                     "y2",
                     Chain.axisPadding +
@@ -765,9 +766,9 @@ export class Chunk {
                         height * (Chain.svgHeight / this.maxHeightBlock)
                 )
                 .attr(
-                    "marker-start",
+                    "marker-end",
                     "url(#" +
-                        skipBlockFromIndex.toString() +
+                        skipBlockToIndex.toString() +
                         "-" +
                         height.toString() +
                         ")"
@@ -775,21 +776,30 @@ export class Chunk {
                 .attr("stroke-width", 2.5)
                 .attr("stroke", "#A0A0A0")
                 // Enables translation to the block the arrow is pointing to
-                .on("click", () => {
+                .on("click", async () => {
+                    let block = await Utils.getBlockByIndex(
+                        this.initialBlock.hash,
+                        skipBlockToIndex,
+                        this.roster
+                    )
                     Utils.translateOnChain(
-                        skipBlockTo,
-                        this.initialBlock,
-                        this.blockClickedSubject
+                        block.index,
+                        skipBlockToIndex,
                     );
+                    this.blockClickedSubject.next(block);
+                    
+                   
+                  
+                            
                 });
-            Utils.clickable(line);
+        
 
             // Arrow head
             const triangle = svgBlocks.append("svg:defs").append("svg:marker");
             triangle
                 .attr(
                     "id",
-                    skipBlockFromIndex.toString() + "-" + height.toString()
+                    skipBlockToIndex.toString() + "-" + height.toString()
                 ) // Markers have to have different id's otherwise they will not change color on hover
                 .attr("refX", 9.4)
                 .attr("refY", 6.5)
@@ -800,15 +810,8 @@ export class Chunk {
                 .attr("markerUnits", "userSpaceOnUse") // Makes width of stroke independant from path
                 .attr("orient", "auto-start-reverse")
                 .append("path")
-                .attr("d", "M 0 0 L 19 7 L 0 14 z")
-                .on("click", () => {
-                    Utils.translateOnChain(
-                        skipBlockTo,
-                        this.initialBlock,
-                        this.blockClickedSubject
-                    );
-                    this.blockClickedSubject.next(skipBlockTo);
-                });
+                .attr("d", "M 0 0 L 19 7 L 0 14 z");
+               
 
             // Arrows change color on hover
             triangle.on("mouseover", function () {
@@ -845,13 +848,23 @@ export class Chunk {
         skipBlockTo: SkipBlock,
         svgBlocks: any
     ) {
-       let index = skipBlockTo.index;
-       let mult = 1;
+        let index = skipBlockTo.index;
+        let mult = 1;
+        if (skipBlockTo.forwardLinks.length != 0) {
             for (let i = 0; i < skipBlockTo.height; i++) {
-                this.appendArrows(xTranslate,index-mult,skipBlockTo,svgBlocks,i);
+                if (index + mult <= this.lastAddedBlock.index) {
+                    // We do not draw arrows that point to non-existing blocks
+                    this.appendArrows(
+                        xTranslate,
+                        index + mult,
+                        skipBlockTo,
+                        svgBlocks,
+                        i
+                    );
+                }
                 mult *= skipBlockTo.baseHeight;
+            }
         }
-
     }
 
     /**

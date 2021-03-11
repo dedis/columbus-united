@@ -126,9 +126,8 @@ async function searchRequest(
                             block.index.toString()
                     );
                     await Utils.translateOnChain(
-                        block,
-                        initialBlock,
-                        blockClickedSubject
+                        block.index,
+                        initialBlock.index
                     );
                     blockClickedSubject.next(block);
                 } catch (error) {
@@ -165,9 +164,8 @@ async function searchRequest(
                     "Valid search for block index: " + block.index.toString()
                 );
                 await Utils.translateOnChain(
-                    block,
-                    initialBlock,
-                    blockClickedSubject
+                    block.index,
+                    initialBlock.index
                 );
                 blockClickedSubject.next(block);
             } catch (error) {
@@ -213,9 +211,8 @@ async function searchRequest(
             );
 
             await Utils.translateOnChain(
-                block,
-                initialBlock,
-                blockClickedSubject
+                block.index,
+                initialBlock.index,
             );
             blockClickedSubject.next(block);
         } catch (error) {

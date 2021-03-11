@@ -153,9 +153,8 @@ export function startColumbus(
 
     // The translation is done to the initialBlock
     Utils.translateOnChain(
-        initialBlock,
-        genesisBlock,
-        chain.blockClickedSubject
+        initialBlock.index,
+        genesisBlock.index,
     );
 
     // The totalBlock utility class allows the browsing class to get the total

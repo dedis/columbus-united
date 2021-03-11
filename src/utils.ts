@@ -146,23 +146,22 @@ export class Utils {
     /**
      * @author Sophia Artioli (sophia.artioli@epfl.ch)
      *
-     * Translates the chain to the given block and selects it.
-     * @param block
+     * Translates the chain to the given block.
+     * @param goalBlock
      * @param initialBlock
      * @param blockClickedSubject
      */
     static async translateOnChain(
-        block: SkipBlock,
-        initialBlock: SkipBlock,
-        blockClickedSubject: Subject<SkipBlock>
+        goalBlock: number,
+        initialBlock: number,
     ) {
         // translate the chain to wanted coordinates
         const newZoom = d3.zoomIdentity
             .translate(
-                (initialBlock.index - block.index) *
+                (initialBlock - goalBlock) *
                     Chain.unitBlockAndPaddingWidth +
                     0.2 -
-                    initialBlock.index * Chain.unitBlockAndPaddingWidth,
+                    initialBlock * Chain.unitBlockAndPaddingWidth,
                 0
             )
             .scale(1);
@@ -176,9 +175,6 @@ export class Utils {
             .delay(200)
             .duration(1000)
             .call(Chain.zoom.transform, newZoom);
-
-        // Selects the target block and displays its information
-        blockClickedSubject.next(block);
     }
 
     /**
