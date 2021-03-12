@@ -773,17 +773,23 @@ export class Chunk {
                         ")"
                 )
                 .attr("stroke-width", 2.5)
-                .attr("stroke", "#A0A0A0")
+                .attr("stroke", "#A0A0A0");
                 // Enables translation to the block the arrow is pointing to
-                .on("click", async () => {
-                    let block = await Utils.getBlockByIndex(
-                        this.initialBlock.hash,
-                        skipBlockToIndex,
-                        this.roster
-                    );
-                    Utils.translateOnChain(block.index, skipBlockToIndex);
-                    this.blockClickedSubject.next(block);
+                const self= this;
+                line.on("click", async function () {
+                    let mouse = d3.mouse(this);
+                    console.log((line.attr("x2")- line.attr("x1"))/2)
+                  
+                    if(mouse[0]  < xTrans + (line.attr("x2")- line.attr("x1"))/2){
+                     Utils.translateOnChain(skipBlockFrom.index,self.initialBlock.index);
+                    
+
+                        
+                    }
+           
                 });
+
+            
 
             // Arrow head
             const triangle = svgBlocks.append("svg:defs").append("svg:marker");
