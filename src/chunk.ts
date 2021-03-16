@@ -11,6 +11,7 @@ import {
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
+import { SimpleInnerSubscriber } from "rxjs/internal/innerSubscribe";
 import { debounceTime } from "rxjs/operators";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
@@ -774,22 +775,32 @@ export class Chunk {
                 )
                 .attr("stroke-width", 2.5)
                 .attr("stroke", "#A0A0A0");
-                // Enables translation to the block the arrow is pointing to
-                const self= this;
-                line.on("click", async function () {
-                    let mouse = d3.mouse(this);
-                    console.log((line.attr("x2")- line.attr("x1"))/2)
-                  
-                    if(mouse[0]  < xTrans + (line.attr("x2")- line.attr("x1"))/2){
-                     Utils.translateOnChain(skipBlockFrom.index,self.initialBlock.index);
-                    
+            // Enables translation to the block the arrow is pointing to
+            const self = this;
+            var timeout: any;
+            line.on("click", function () {
+                clearTimeout(timeout);
+                timeout = setTimeout(async function () {
+                    Utils.translateOnChain(
+                        skipBlockToIndex,
+                        self.initialBlock.index
+                    );
+                    let block = await Utils.getBlockByIndex(
+                        self.initialBlock.hash,
+                        skipBlockToIndex,
+                        self.roster
+                    );
+                    self.blockClickedSubject.next(block);
+                }, 300);
+            }).on("dblclick", function () {
+                clearTimeout(timeout);
+                Utils.translateOnChain(
+                    skipBlockFrom.index,
+                    self.initialBlock.index
+                );
 
-                        
-                    }
-           
-                });
-
-            
+                self.blockClickedSubject.next(skipBlockFrom);
+            });
 
             // Arrow head
             const triangle = svgBlocks.append("svg:defs").append("svg:marker");
