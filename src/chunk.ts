@@ -11,7 +11,6 @@ import {
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Subject } from "rxjs";
-import { SimpleInnerSubscriber } from "rxjs/internal/innerSubscribe";
 import { debounceTime } from "rxjs/operators";
 import { Chain } from "./chain";
 import { Flash } from "./flash";

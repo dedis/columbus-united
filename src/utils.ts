@@ -4,8 +4,6 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import * as blockies from "blockies-ts";
 import * as d3 from "d3";
-import { line } from "d3";
-import { Subject } from "rxjs";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
 
