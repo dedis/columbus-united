@@ -336,7 +336,6 @@ export class Chunk {
                 false
             );
         }, 800);
-        // }
     }
 
     /**
@@ -776,7 +775,7 @@ export class Chunk {
                 .attr("stroke", "#A0A0A0");
             // Enables translation to the block the arrow is pointing to
             const self = this;
-            var timeout: any;
+            var timeout: NodeJS.Timeout;
             line.on("click", function () {
                 clearTimeout(timeout);
                 timeout = setTimeout(async function () {
@@ -856,20 +855,27 @@ export class Chunk {
     ) {
         let index = skipBlockTo.index;
         let mult = 1;
-        if (skipBlockTo.forwardLinks.length != 0) {
-            for (let i = 0; i < skipBlockTo.height; i++) {
-                if (index + mult <= this.lastAddedBlock.index) {
-                    // We do not draw arrows that point to non-existing blocks
-                    this.appendArrows(
-                        xTranslate,
-                        index + mult,
-                        skipBlockTo,
-                        svgBlocks,
-                        i
-                    );
-                }
-                mult *= skipBlockTo.baseHeight;
+        for (let i = 0; i < skipBlockTo.height; i++) {
+            if (index + mult <= this.lastAddedBlock.index) {
+                // We do not draw arrows that point to non-existing blocks
+                this.appendArrows(
+                    xTranslate,
+                    index + mult,
+                    skipBlockTo,
+                    svgBlocks,
+                    i
+                );
+            } else if (
+                index + mult <= this.lastAddedBlock.index &&
+                skipBlockTo.forwardLinks.length < i
+            ) {
+                // If there are less forward links than the height of the block and they are not pointing to non-existent blocks, forward links are missing.
+                this.flash.display(
+                    Flash.flashType.WARNING,
+                    `Missing forward link ${i} on block ${index}`
+                );
             }
+            mult *= skipBlockTo.baseHeight;
         }
     }
 
