@@ -103,8 +103,6 @@ export function sayHi() {
 
             if (initialBlockIndex < 0) {
                 // The block index should not be smaller than 0
-                // If it is negative, there a less blocks than the view can permit
-                // The initial block is 0
                 initialBlockIndex = 0;
             }
         })
@@ -154,11 +152,7 @@ export function startColumbus(
     const chain = new Chain(roster, flash, genesisBlock);
 
     // The translation is done to the initialBlock
-    Utils.translateOnChain(
-        initialBlock,
-        genesisBlock,
-        chain.blockClickedSubject
-    );
+    Utils.translateOnChain(initialBlock.index, genesisBlock.index);
 
     // The totalBlock utility class allows the browsing class to get the total
     // number of block in the chain. This class is stateful, it will keep each
