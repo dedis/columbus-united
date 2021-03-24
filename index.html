@@ -8,6 +8,7 @@
         <script src="https://d3js.org/d3.v4.min.js"></script>
 
         <link href="https://css.gg/css" rel="stylesheet" />
+        <link rel="stylesheet" href="node_modules/intro.js/minified/introjs.min.css">
 
         <link
             rel="stylesheet"
@@ -21,6 +22,7 @@
             }
         </style>
         <link rel="icon" href="icon.png" />
+        
     </head>
 
     <body>
@@ -29,8 +31,8 @@
                 <img src="assets/logo-color-small.png" alt="logo" />
             </a>
 
-            <button class="uk-button uk-button-default" type="button">
-                About
+            <button class="uk-button uk-button-default" type="button" data-intro="welcome">
+                Take me on a tour !
             </button>
             <div uk-dropdown class="description">
                 The project Columbus is a project aiming to facilitate the
@@ -93,13 +95,15 @@
         <footer>
             <span
                 >© DEDIS 2018 - by Lucas Trognon, Sophia Artioli Anthony Iozzia
-                and Julian von Felten</span
-            >
+                and Julian von Felten</span>
             <span> v.1.0.11</span>
             <a href="https://github.com/dedis/columbus-united"
                 >github repository</a
             >
         </footer>
+
+        <script src="node_modules/intro.js/minified/intro.min.js"> introJs().start() </script>
+        <script src="introjs/tutorial.js"></script>
     </body>
     <script>
         jsapp.sayHi();
