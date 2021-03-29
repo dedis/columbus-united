@@ -31,8 +31,8 @@
                 <img src="assets/logo-color-small.png" alt="logo" />
             </a>
 
-            <button class="uk-button uk-button-default" type="button" data-intro="welcome">
-                Take me on a tour !
+            <button class="uk-button uk-button-primary" type="button" id="step1" >
+                Get Started
             </button>
             <div uk-dropdown class="description">
                 The project Columbus is a project aiming to facilitate the
@@ -63,8 +63,8 @@
                 </div>
             </div>
         </div>
-        <div class="searchbar-container">
-            <div class="topnav">
+        <div class="searchbar-container"> 
+            <div class="topnav" id="step3">
                 <input
                     id="search-input"
                     type="input"
@@ -86,11 +86,11 @@
             <svg id="last-container"></svg>
         </div>
         <div class="block-infos">
-            <div class="block-detail-container"></div>
-            <div class="browse-container"></div>
+            <div class="block-detail-container" id="step5"></div>
+            <div class="browse-container" id="step6"></div>
         </div>
 
-        <div class="query-answer"></div>
+        <div class="query-answer" id="step7"></div>
 
         <footer>
             <span
@@ -101,8 +101,8 @@
                 >github repository</a
             >
         </footer>
-
-        <script src="node_modules/intro.js/minified/intro.min.js"> introJs().start() </script>
+        
+        <script src="node_modules/intro.js/minified/intro.min.js"> </script>
         <script src="introjs/tutorial.js"></script>
     </body>
     <script>

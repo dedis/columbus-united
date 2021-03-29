@@ -3577,6 +3577,11 @@
   "resolved" "https://registry.npmjs.org/interpret/-/interpret-1.4.0.tgz"
   "version" "1.4.0"
 
+"intro.js@^3.3.1":
+  "integrity" "sha512-Y+iMbIzVQou9PDRP5miKa7NNQeUkSA6XFp+atnGiTarEi2jghthSLK+9JUvdM6QvQ9G+bpOEfKd+DNtWJlGb9w=="
+  "resolved" "https://registry.npmjs.org/intro.js/-/intro.js-3.3.1.tgz"
+  "version" "3.3.1"
+
 "is-accessor-descriptor@^0.1.6":
   "integrity" "sha1-qeEss66Nh2cn7u84Q/igiXtcmNY="
   "resolved" "https://registry.npmjs.org/is-accessor-descriptor/-/is-accessor-descriptor-0.1.6.tgz"
