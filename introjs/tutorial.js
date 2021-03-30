@@ -7,7 +7,7 @@ document.getElementById("step1").addEventListener("click",function(){
     steps: [
     {
       element: document.getElementById("step1"),
-      intro: 'Welcome to our guided tour through the Columbus Blockchain Explorer! Let\'s start...',
+      intro: 'Welcome to our guided tour through the Columbus Blockchain Explorer! \n You can use the keyboard to naviguate <-> and quit the tour by clicking anywhere on the page. Let\'s start !',
       position: 'bottom'
     },
     {
