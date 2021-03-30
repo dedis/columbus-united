@@ -1,6 +1,8 @@
 document.getElementById("step1").addEventListener("click",function(){
   const intro = introJs();
 
+  intro.setOptions({ skipLabel: "Skip", tooltipPosition: "left" });
+
   intro.setOptions({
     steps: [
     {
