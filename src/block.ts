@@ -242,9 +242,11 @@ export class Block {
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
                 .on("click", async function () {
-                    let backBlock = await Utils.getBlock(value, self.roster);
-                    Utils.translateOnChain(backBlock.index, blockIndex);
-                    self.skipBclickedSubject.next(backBlock);
+                    Utils.translateOnChain(
+                        await Utils.getBlock(value, self.roster),
+                        block,
+                        self.skipBclickedSubject
+                    );
                 })
                 .attr("uk-tooltip", `${value.toString("hex")}`);
             Utils.clickable(divBackLinkBadge);
@@ -275,9 +277,11 @@ export class Block {
                 .attr("class", "uk-badge")
                 .text(`Block ${blockIndex}`)
                 .on("click", async function () {
-                    let fwdBlock = await Utils.getBlock(fl.to, self.roster);
-                    Utils.translateOnChain(fwdBlock.index, blockIndex);
-                    self.skipBclickedSubject.next(fwdBlock);
+                    Utils.translateOnChain(
+                        await Utils.getBlock(fl.to, self.roster),
+                        block,
+                        self.skipBclickedSubject
+                    );
                 })
                 .attr("uk-tooltip", `${fl.to.toString("hex")}`);
             Utils.clickable(divForwardLinkBadge);

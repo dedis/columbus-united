@@ -126,8 +126,9 @@ async function searchRequest(
                             block.index.toString()
                     );
                     await Utils.translateOnChain(
-                        block.index,
-                        initialBlock.index
+                        block,
+                        initialBlock,
+                        blockClickedSubject
                     );
                     blockClickedSubject.next(block);
                 } catch (error) {
@@ -163,7 +164,11 @@ async function searchRequest(
                     Flash.flashType.INFO,
                     "Valid search for block index: " + block.index.toString()
                 );
-                await Utils.translateOnChain(block.index, initialBlock.index);
+                await Utils.translateOnChain(
+                    block,
+                    initialBlock,
+                    blockClickedSubject
+                );
                 blockClickedSubject.next(block);
             } catch (error) {
                 flash.display(Flash.flashType.ERROR, `Block does not exist`);
@@ -207,7 +212,11 @@ async function searchRequest(
                 "Valid search for block index: " + block.index.toString()
             );
 
-            await Utils.translateOnChain(block.index, initialBlock.index);
+            await Utils.translateOnChain(
+                block,
+                initialBlock,
+                blockClickedSubject
+            );
             blockClickedSubject.next(block);
         } catch (error) {
             flash.display(Flash.flashType.ERROR, "Block does not exist");
