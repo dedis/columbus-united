@@ -149,7 +149,8 @@ export class Block {
         block_detail_container
             .attr("id", "block_detail_container")
             .text("")
-            .append("p");
+            .append("p")
+
         //Right column of the UI, displays all the transactions of a block and their details
         const transaction_detail_container = d3.select(".browse-container");
         transaction_detail_container
@@ -165,7 +166,7 @@ export class Block {
         ulBlockDetail.attr("class", "clickable-detail-block");
 
         // Details of the blocks (Verifier, backlinks, forwardlinks) are wrapped in this card
-        const blockCard = ulBlockDetail.append("div");
+        const blockCard = ulBlockDetail.append("div").attr("style", "outline: groove rgba(204, 204, 204, 0.3);");
         blockCard
             .attr("class", "uk-card uk-card-default")
             .attr("id", "detail-window");
@@ -313,17 +314,61 @@ export class Block {
 
         // This card simply hold the title of the section in its header, and lists all transactions
         // in its body
-        const transactionCard = ulTransaction.append("div");
+        const transactionCard = ulTransaction.append("div").attr("style", "outline: groove rgba(204, 204, 204, 0.3);");
         transactionCard
             .attr("class", "uk-card uk-card-default")
             .attr("id", "detail-window");
 
         const transactionCardHeader = transactionCard.append("div");
         transactionCardHeader.attr("class", "uk-card-header uk-padding-small");
+
         const transactionCardHeaderTitle = transactionCardHeader.append("h3");
         transactionCardHeaderTitle
             .attr("class", "transaction-card-header-title")
             .text(`Transaction details`);
+
+        //code added : add download button
+        const configuration = [{ 'Blocks details': true, 'Transaction details': false }];
+
+        // Convert object to Blob
+         const blobConfig = new Blob(
+                    [ JSON.stringify(configuration) ], 
+                    { type: 'text/json;charset=utf-8' }
+                )
+
+        // Convert Blob to URL
+        const blobUrl = URL.createObjectURL(blobConfig);
+
+        // Create an a element with blob URL
+        const anchor = document.createElement('a');
+        anchor.href = blobUrl;
+        anchor.target = "_blank";
+        anchor.download = "test.json";
+
+        const downloadButton = transactionCardHeaderTitle.append("object")
+            .attr("type", "image/svg+xml")
+            .attr("width", 25)
+            .attr("height", 25)
+            .style("padding-left", 5)
+            .attr("data", "assets/download-data-icon.svg")
+            .on("mouseover", function(){
+                d3.select(this)
+                .attr("data", "assets/download-data-icon-hover.svg")
+                .style("cursor", "pointer");
+            })
+            .on("mouseout", function(){
+                d3.select(this)
+                .attr("data", "assets/download-data-icon.svg")
+                .style("cursor", "default");
+            })
+            .on("click", function(){
+                // Auto click on a element, trigger the file download
+                anchor.click();
+                // Don't forget ;)
+                URL.revokeObjectURL(blobUrl);
+            })
+        //
+
 
         const body = DataBody.decode(block.payload);
 
