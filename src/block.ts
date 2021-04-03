@@ -182,9 +182,27 @@ export class Block {
         const blockCardHeaderDetails = blockCardHeader.append("span");
 
         blockCardHeaderDetails.attr("class", "block-card-header-details");
-        blockCardHeaderDetails
+           
+    
+        //Tooltip for definition of what is a hash 
+
+        const hashParagraph= blockCardHeaderDetails.append("div")//.attr("class","tutorial-icon");
+
+        hashParagraph
+            .append("svg")
+            .append("image")
+            .attr("x", "10%")
+            .attr("y", "17%")
+            .attr("width", "12")
+            .attr("height", "12")
+            .attr("href", "assets/information-button-gray.svg")
+            .attr("uk-tooltip", `Hash definition`)
+            
+        hashParagraph
             .append("p")
             .text(`Hash : ${block.hash.toString("hex")}`);
+
+  
         blockCardHeaderDetails
             .append("p")
             .text(`Validated on the ${Utils.getTimeString(block)}`);
