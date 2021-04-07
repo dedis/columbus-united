@@ -1,5 +1,6 @@
-import { Instruction } from "@dedis/cothority/byzcoin";
-import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
+import { CONFIG_INSTANCE_ID, Instruction } from "@dedis/cothority/byzcoin";
+import { Spawn } from "@dedis/cothority/byzcoin/client-transaction";
+import { DataBody, DataHeader, TxResult } from "@dedis/cothority/byzcoin/proto";
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
@@ -8,6 +9,7 @@ import { throttleTime } from "rxjs/operators";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
+import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
 
 /**
@@ -49,6 +51,10 @@ export class Block {
     loadContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
     progressBarItem: HTMLElement;
 
+    //code added
+    totalBlock: TotalBlock
+    //
+
     /**
      * Creates an instance of DetailBlock.
      * @param {Observable<SkipBlock>} skipBclickedSubject : Observable for the clicked
@@ -64,10 +70,11 @@ export class Block {
      */
     constructor(
         skipBclickedSubject: Subject<SkipBlock>,
-        lifecycle: Lifecycle,
+        lifecycle: Lifecycle, //modfied
         flash: Flash,
         loadedSkipBObs: Observable<SkipBlock[]>,
-        roster: Roster
+        roster: Roster,
+        //totalBlock: TotalBlock //modified
     ) {
         const self = this;
 
@@ -92,6 +99,10 @@ export class Block {
         this.textBar = undefined;
         this.loadContainer = undefined;
         this.progressBarItem = undefined;
+
+        //code added
+        //this.totalBlock = totalBlock;
+        //
     }
 
     /**
@@ -149,7 +160,8 @@ export class Block {
         block_detail_container
             .attr("id", "block_detail_container")
             .text("")
-            .append("p");
+            .append("p")
+
         //Right column of the UI, displays all the transactions of a block and their details
         const transaction_detail_container = d3.select(".browse-container");
         transaction_detail_container
@@ -165,7 +177,7 @@ export class Block {
         ulBlockDetail.attr("class", "clickable-detail-block");
 
         // Details of the blocks (Verifier, backlinks, forwardlinks) are wrapped in this card
-        const blockCard = ulBlockDetail.append("div");
+        const blockCard = ulBlockDetail.append("div").attr("style", "outline: groove rgba(204, 204, 204, 0.3);");
         blockCard
             .attr("class", "uk-card uk-card-default")
             .attr("id", "detail-window");
@@ -313,17 +325,52 @@ export class Block {
 
         // This card simply hold the title of the section in its header, and lists all transactions
         // in its body
-        const transactionCard = ulTransaction.append("div");
+        const transactionCard = ulTransaction.append("div").attr("style", "outline: groove rgba(204, 204, 204, 0.3);");
         transactionCard
             .attr("class", "uk-card uk-card-default")
             .attr("id", "detail-window");
 
         const transactionCardHeader = transactionCard.append("div");
         transactionCardHeader.attr("class", "uk-card-header uk-padding-small");
+
         const transactionCardHeaderTitle = transactionCardHeader.append("h3");
         transactionCardHeaderTitle
             .attr("class", "transaction-card-header-title")
             .text(`Transaction details`);
+
+        //code added//
+        const downloadButton = transactionCardHeaderTitle.append("object")
+            .attr("type", "image/svg+xml")
+            .attr("width", 25)
+            .attr("height", 25)
+            .style("padding-left", 5)
+            .attr("data", "assets/download-data-icon.png")
+            .on("mouseover", function(){
+                d3.select(this)
+                .attr("data", "assets/download-data-icon-hover.png")
+                .style("cursor", "pointer");
+            })
+            .on("mouseout", function(){
+                d3.select(this)
+                .attr("data", "assets/download-data-icon.png")
+                .style("cursor", "default");
+            })
+            .on("click", function(){
+            // Auto click on a element, trigger the file download
+            const blobConfig = BTexportDataBlob(block);
+            // Convert Blob to URL
+            const blobUrl = URL.createObjectURL(blobConfig);
+
+            // Create an a element with blob URL
+            const anchor = document.createElement('a');
+            anchor.href = blobUrl;
+            anchor.target = "_blank";
+            anchor.download = `block_${block.index}_data.json`;
+            anchor.click();
+            URL.revokeObjectURL(blobUrl);
+        });
+        //
+        ///
 
         const body = DataBody.decode(block.payload);
 
@@ -435,7 +482,7 @@ export class Block {
                             const userSignature = instruction.signerIdentities
                                 .pop()
                                 .toString()
-                                .slice(8); //The 8 first characters are the same for all signers ID
+                                .slice(8); //The 8 first characters are the same for all signers ID 
                             const emmiterP = divInstruction
                                 .append("p")
                                 .text("Emmited by ");
@@ -524,21 +571,21 @@ export class Block {
                         .append("option")
                         .attr("value", "100")
                         .text(
-                            "The 100 first instructions related to this instance"
+                            "The 100 previous instructions related to this instance" //modified
                         );
 
                     formSelect
                         .append("option")
                         .attr("value", "50")
                         .text(
-                            "The 50 first instructions related to this instance"
+                            "The 50 previous instructions related to this instance" //modified
                         );
 
                     formSelect
                         .append("option")
                         .attr("value", "10")
                         .text(
-                            "The 10 first instructions related to this instance"
+                            "The 10 previous instructions related to this instance"
                         );
 
                     var chosenQuery = -1;
@@ -563,6 +610,7 @@ export class Block {
         });
     }
 
+
     /**
      * SECTION Instance tracking
      * ANCHOR Query Launching
@@ -577,9 +625,14 @@ export class Block {
     public launchQuery(chosenQuery: number, instanceID: string) {
         const self = this;
         self.createLoadingScreen();
+        //code added !! si query = all alors on n'aura pas vraiment cherché dans tous les blocks
+        const clickedBlockHash = this.clickedBlock.hash.toString("hex").valueOf();
+        //this.lifecycle = new Lifecycle(this.roster,this.flash,this.totalBlock,initHash);
+         //
         const subjects = self.lifecycle.getInstructionSubject(
             instanceID,
-            chosenQuery
+            chosenQuery,
+            clickedBlockHash //modified:added an argument -> the hash of the clicked block
         );
         subjects[0].subscribe({
             next: self.printDataBrowsing.bind(self),
@@ -628,6 +681,39 @@ export class Block {
                     "hex"
                 )}`
             );
+        
+        //code added for second downloadButton
+        const downloadButton = queryHeader.append("object")
+        .attr("type", "image/svg+xml")
+        .attr("width", 25)
+        .attr("height", 25)
+        .style("padding-right",80)
+        .attr("data", "assets/download-data-icon.png")
+        .on("mouseover", function(){
+            d3.select(this)
+            .attr("data", "assets/download-data-icon-hover.png")
+            .style("cursor", "pointer");
+        })
+        .on("mouseout", function(){
+            d3.select(this)
+            .attr("data", "assets/download-data-icon.png")
+            .style("cursor", "default");
+        }).on("click", function(){
+            // Auto click on a element, trigger the file download
+            const blobConfig = ISexportDataBlob(tuple);
+            // Convert Blob to URL
+            const blobUrl = URL.createObjectURL(blobConfig);
+
+            // Create an a element with blob URL
+            const anchor = document.createElement('a');
+            anchor.href = blobUrl;
+            anchor.target = "_blank";
+            anchor.download = `instance_search_data.json`;
+            anchor.click();
+
+            URL.revokeObjectURL(blobUrl);
+        });
+        //
 
         // Clears the results of a previous query
         const closeButtonWrap = queryHeader.append("div");
@@ -946,3 +1032,99 @@ export class Block {
         d3.select(".load-container").remove();
     }
 }
+
+//code added for data exportation: create the blob to be transfomed to a JSON f
+function BTexportDataBlob(block: SkipBlock) {
+    var transactionData = new Array();
+    var instructionData = new Array();
+    var argsData = new Array() ;
+
+        const body = DataBody.decode(block.payload);
+        body.txResults.forEach((transaction, i) => {
+            transaction.clientTransaction.instructions.forEach(
+            (instruction, j) => {
+                instruction.beautify().args.forEach((arg, i) => {
+                    const argsEntries = {
+                        "name" : arg.name,
+                        "value": arg.value
+                    }
+                    argsData.push(argsEntries);
+                });
+                let action: string;
+                let contract: string;
+                if (instruction.type == Instruction.typeSpawn){
+                    action = "Spawned:coin"
+                    contract = instruction.spawn.contractID;
+                } else if(instruction.type == Instruction.typeInvoke){
+                    action = "Invoked:coin"
+                    contract = instruction.invoke.contractID;
+                } else{
+                    action = "Deleted"
+                    contract = instruction.delete.contractID;
+                }            
+                const instructionEntries = {
+                    "instanceID": instruction.instanceID.toString("hex"),
+                    "contract": contract,
+                    "action": action,
+                    "args": argsData
+                };
+                instructionData.push(instructionEntries);
+            })
+        const transactionEntries = {
+            "accepted" : transaction.accepted,
+            "instructions" : instructionData
+        }
+
+        transactionData.push(transactionEntries)
+        });
+
+        var blockData = {"index": block.index,"hash":block.hash.toString("hex"),"height":block.height,"transactions":transactionData};
+        const json = {'Block': blockData};
+        // Convert object to Blob
+         const blobConfig = new Blob(
+                    [ JSON.stringify(json) ], 
+                    { type: 'text/json;charset=utf-8' }
+                )
+        return blobConfig;
+}
+//soucis avec la manières dont sont présentés les arguments ??? 
+function ISexportDataBlob(tuple: [SkipBlock[], Instruction[]]){
+    var instructionData = new Array();
+    var argsData = new Array();
+    for (let i = 0; i < tuple[1].length; i++){
+        const blocki = tuple[0][i];
+        const instruction = tuple[1][i];
+        instruction.beautify().args.forEach((arg, i) => {
+            const argEntries = [arg.name, arg.value];
+            argsData.push(argEntries);
+        });
+
+        let action: string;
+        let contract: string;
+                if (instruction.type == Instruction.typeSpawn){
+                    action = "Spawned:coin"
+                    contract = instruction.spawn.contractID;
+                } else if(instruction.type == Instruction.typeInvoke){
+                    action = "Invoked:coin"
+                    contract = instruction.invoke.contractID;
+                } else{
+                    action = "Deleted"
+                    contract = instruction.delete.contractID;
+                }    
+        const instructionEntries = {
+            "found in (block)": blocki.index,
+            "contract" : "coin",
+            "action" : action,
+            "args" : argsData
+        };
+        instructionData.push(instructionEntries);
+    }
+    const json = {"instance browsed" : tuple[1][0].instanceID.toString("hex"), "instructions" : instructionData}
+        // Convert object to Blob
+         const blobConfig = new Blob(
+                    [ JSON.stringify(json) ], 
+                    { type: 'text/json;charset=utf-8' }
+                )
+        return blobConfig;
+}
+//
