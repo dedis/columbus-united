@@ -259,7 +259,7 @@ export class Lifecycle {
                             !this.abort
                         ) {
                             this.nextIDB = (maxNumberOfBlocks!= -1) ? Utils.bytes2String(
-                                skipBlock.forwardLinks[0].from //modified was .to
+                                skipBlock.backlinks[0] //modified was .to
                             ) : Utils.bytes2String(
                                 skipBlock.forwardLinks[0].to); //was modified
                             
