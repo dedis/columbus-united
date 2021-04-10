@@ -185,28 +185,40 @@ export class Block {
            
     
         //Tooltip for definition of what is a hash 
-
-        const hashParagraph= blockCardHeaderDetails.append("div")//.attr("class","tutorial-icon");
-
+        const hashParagraph= blockCardHeaderDetails.append("p")
         hashParagraph
             .append("svg")
+            .attr("width","20")
+            .attr("height","20")
             .append("image")
             .attr("x", "10%")
             .attr("y", "17%")
             .attr("width", "12")
             .attr("height", "12")
             .attr("href", "assets/information-button-gray.svg")
-            .attr("uk-tooltip", `Hash definition`)
+            .attr("uk-tooltip", `The hash of a block is a hexadecimal number, which uniquely identifies the block. It is linked to the previous blocks; which allows to ensure that there aren't any fraudulent transactions and modifications to the blockchain.`);
             
-        hashParagraph
-            .append("p")
-            .text(`Hash : ${block.hash.toString("hex")}`);
-
-  
+        
+        hashParagraph.append("text").text(`Hash : ${block.hash.toString("hex")}`);
+        
         blockCardHeaderDetails
             .append("p")
             .text(`Validated on the ${Utils.getTimeString(block)}`);
-        blockCardHeaderDetails.append("p").text(`Height : ${block.height}`);
+
+        const heightParagraph = blockCardHeaderDetails.append("p");
+        heightParagraph
+            .append("svg")
+            .attr("width","20")
+            .attr("height","20")
+            .append("image")
+            .attr("x", "10%")
+            .attr("y", "17%")
+            .attr("width", "12")
+            .attr("height", "12")
+            .attr("href", "assets/information-button-gray.svg")
+            .attr("uk-tooltip", `Determines how many forward and backward links the block contains.`);
+
+        heightParagraph.append("text").text(`Height : ${block.height}`);
 
         //ANCHOR Body of the card wrapping all of the accordions
         const blockCardBody = blockCard.append("div");
