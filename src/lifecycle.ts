@@ -222,30 +222,32 @@ export class Lifecycle {
                         (instruction, _) => {
                             if (
                                 Utils.bytes2String(instruction.instanceID) ===
-                                this.contractID
+                                this.contractID //modified
                             ) {
                                 // get the hashes and instruction corresponding to the input instruction
                                 this.nbInstanceFound++;
-                                transactionFound.next(this.nbInstanceFound);
+                                //transactionFound.next(this.nbInstanceFound);
 
                                 if (
-                                    this.nbInstanceFound < maxNumberOfBlocks &&
+                                    this.nbInstanceFound <= maxNumberOfBlocks && //modified
                                     !this.abort
                                 ) {
                                     skipBlocksSubject.push(skipBlock);
                                     instructionB.push(instruction);
+
+                                    console.log(
+                                        "Instance found : ",
+                                        this.nbInstanceFound,
+                                        " out of ",
+                                        maxNumberOfBlocks
+                                    );
                                 }
                                 // else{
                                 //     subjectBrowse.complete();
                                 //     subjectProgress.complete();
                                 //     subjectInstruction.complete();
                                 // }
-                                console.log(
-                                    "Instance found : ",
-                                    this.nbInstanceFound,
-                                    " out of ",
-                                    maxNumberOfBlocks
-                                );
+                                transactionFound.next(this.nbInstanceFound);
                             }
                         }
                     );
@@ -254,8 +256,8 @@ export class Lifecycle {
                     pageDone++;
                     if (pageDone >= numPagesB) {
                         // condition to end the browsing
-                        if (
-                            skipBlock.forwardLinks.length !== 0 &&
+                        if ( // added skipBlock.backlinks.length !=0
+                            (skipBlock.forwardLinks.length !== 0 || skipBlock.backlinks.length !=0) &&
                             !this.abort
                         ) {
                             this.nextIDB = (maxNumberOfBlocks!= -1) ? Utils.bytes2String(
