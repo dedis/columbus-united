@@ -194,13 +194,43 @@ export class Block {
         const blockCardHeaderDetails = blockCardHeader.append("span");
 
         blockCardHeaderDetails.attr("class", "block-card-header-details");
-        blockCardHeaderDetails
-            .append("p")
-            .text(`Hash : ${block.hash.toString("hex")}`);
+           
+    
+        //Tooltip for definition of what is a hash 
+        const hashParagraph= blockCardHeaderDetails.append("p")
+        hashParagraph
+            .append("svg")
+            .attr("width","20")
+            .attr("height","20")
+            .append("image")
+            .attr("x", "10%")
+            .attr("y", "17%")
+            .attr("width", "12")
+            .attr("height", "12")
+            .attr("href", "assets/information-button-gray.svg")
+            .attr("uk-tooltip", `The hash of a block is a hexadecimal number, which uniquely identifies the block. It is linked to the previous blocks; which allows to ensure that there aren't any fraudulent transactions and modifications to the blockchain.`);
+            
+        
+        hashParagraph.append("text").text(`Hash : ${block.hash.toString("hex")}`);
+        
         blockCardHeaderDetails
             .append("p")
             .text(`Validated on the ${Utils.getTimeString(block)}`);
-        blockCardHeaderDetails.append("p").text(`Height : ${block.height}`);
+
+        const heightParagraph = blockCardHeaderDetails.append("p");
+        heightParagraph
+            .append("svg")
+            .attr("width","20")
+            .attr("height","20")
+            .append("image")
+            .attr("x", "10%")
+            .attr("y", "17%")
+            .attr("width", "12")
+            .attr("height", "12")
+            .attr("href", "assets/information-button-gray.svg")
+            .attr("uk-tooltip", `Determines how many forward and backward links the block contains.`);
+
+        heightParagraph.append("text").text(`Height : ${block.height}`);
 
         //ANCHOR Body of the card wrapping all of the accordions
         const blockCardBody = blockCard.append("div");
@@ -219,8 +249,22 @@ export class Block {
         ulVerifier.attr("uk-accordion", "");
         const liVerifier = ulVerifier.append("li");
         const aVerifier = liVerifier.append("a");
+    
         aVerifier
             .attr("class", "uk-accordion-title")
+            .append("svg")
+            .attr("width","20")
+            .attr("height","20")
+            .append("image")
+            .attr("x", "10%")
+            .attr("y", "17%")
+            .attr("width", "12")
+            .attr("height", "12")
+            .attr("href", "assets/information-button-gray.svg")
+            .attr("uk-tooltip", `Before a new block is added. A number of verifiers assert that the information contained in it is correct.`);
+        
+            aVerifier
+            .append("text")
             .text(`Verifiers : ${block.verifiers.length}`);
         const divVerifier = liVerifier.append("div");
         divVerifier.attr("class", "uk-accordion-content"); // content on the accordion
@@ -237,6 +281,18 @@ export class Block {
         const aBackLink = liBackLink.append("a");
         aBackLink
             .attr("class", "uk-accordion-title")
+            .append("svg")
+            .attr("width","20")
+            .attr("height","20")
+            .append("image")
+            .attr("x", "10%")
+            .attr("y", "17%")
+            .attr("width", "12")
+            .attr("height", "12")
+            .attr("href", "assets/information-button-gray.svg")
+            .attr("uk-tooltip","Backward links are cryptographic hashes of past blocks.");
+        aBackLink
+            .append("text")
             .text(`Back Links : ${block.backlinks.length}`);
         const divBackLink = liBackLink.append("div");
         divBackLink.attr("class", "uk-accordion-content");
@@ -271,6 +327,18 @@ export class Block {
         const aForwardLink = liForwardLink.append("a");
         aForwardLink
             .attr("class", "uk-accordion-title")
+            .append("svg")
+            .attr("width","20")
+            .attr("height","20")
+            .append("image")
+            .attr("x", "10%")
+            .attr("y", "17%")
+            .attr("width", "12")
+            .attr("height", "12")
+            .attr("href", "assets/information-button-gray.svg")
+            .attr("uk-tooltip"," Forward links are cryptographic signatures of future blocks.");
+        aForwardLink
+            .append("text")
             .text(`Forward Links : ${block.forwardLinks.length}`);
 
         const divForwardLink = liForwardLink.append("div");
@@ -424,15 +492,28 @@ export class Block {
                     const liInstruction = ulInstruction.append("li");
                     liInstruction.attr("style", "padding-left:15px");
                     const aInstruction = liInstruction.append("a");
-                    aInstruction.attr("class", "uk-accordion-title");
-
+                    
+                    //Tooltip and instruction
+    
                     if (instruction.type === Instruction.typeSpawn) {
                         const contractName =
                             instruction.spawn.contractID
                                 .charAt(0)
                                 .toUpperCase() +
                             instruction.spawn.contractID.slice(1);
-                        aInstruction.text(`Spawned : ${contractName}`);
+                        aInstruction
+                            .attr("class", "uk-accordion-title")
+                            .append("svg")
+                            .attr("width","20")
+                            .attr("height","20")
+                            .append("image")
+                            .attr("x", "10%")
+                            .attr("y", "17%")
+                            .attr("width", "12")
+                            .attr("height", "12")
+                            .attr("href", "assets/information-button-gray.svg")
+                            .attr("uk-tooltip", "A new instance of a contract is created.");
+                        aInstruction.append("text").text(`Spawned : ${contractName}`);
                         args = instruction.spawn.args;
                     } else if (instruction.type === Instruction.typeInvoke) {
                         const contractName =
@@ -440,7 +521,19 @@ export class Block {
                                 .charAt(0)
                                 .toUpperCase() +
                             instruction.invoke.contractID.slice(1);
-                        aInstruction.text(`Invoked : ${contractName}`);
+                        aInstruction
+                            .attr("class", "uk-accordion-title")
+                            .append("svg")
+                            .attr("width","20")
+                            .attr("height","20")
+                            .append("image")
+                            .attr("x", "10%")
+                            .attr("y", "17%")
+                            .attr("width", "12")
+                            .attr("height", "12")
+                            .attr("href", "assets/information-button-gray.svg")
+                            .attr("uk-tooltip", "A function (or command) is executed on the smart contract.");
+                        aInstruction.append("text").text(`Invoked : ${contractName}`);
                         args = instruction.invoke.args;
 
                         coin_invoked =
@@ -451,16 +544,43 @@ export class Block {
                                 .charAt(0)
                                 .toUpperCase() +
                             instruction.delete.contractID.slice(1);
-                        aInstruction.text(`Deleted : ${contractName}`);
+                        aInstruction
+                            .attr("class", "uk-accordion-title")
+                            .append("svg")
+                            .attr("width","20")
+                            .attr("height","20")
+                            .append("image")
+                            .attr("x", "10%")
+                            .attr("y", "17%")
+                            .attr("width", "12")
+                            .attr("height", "12")
+                            .attr("href", "assets/information-button-gray.svg")
+                            .attr("uk-tooltip", "The instance of the contract is deleted from the ledger.");
+                        aInstruction.append("text").text(`Deleted : ${contractName}`);
                     }
 
                     const divInstruction = liInstruction.append("div");
 
                     divInstruction.attr("class", "uk-accordion-content");
-                    // Detail of one instruction
-                    divInstruction
+                    // Detail of one instruction 
+                    const pInstruction=divInstruction
                         .append("p")
-                        .style("font-family", "monospace")
+                        .style("font-family", "monospace");
+                    
+                    pInstruction
+                        .append("svg")
+                        .attr("width","20")
+                        .attr("height","20")
+                        .append("image")
+                        .attr("x", "10%")
+                        .attr("y", "17%")
+                        .attr("width", "12")
+                        .attr("height", "12")
+                        .attr("href", "assets/information-button-gray.svg")
+                        .attr("uk-tooltip","Unique hexadecimal identifier that is generated whenever a new transaction is executed.");
+
+                    pInstruction
+                        .append("text")
                         .text(
                             `Transaction hash : ${instruction
                                 .hash()
