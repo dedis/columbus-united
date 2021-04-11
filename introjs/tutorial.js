@@ -17,7 +17,7 @@ document.getElementById("step1").addEventListener("click",function(){
     },
     {
       element: document.getElementById("svg-container"),
-      intro: 'Click on a block and you\'ll be able to check the block details + all the transactions contained in it further down on the page. The arrows remind us that this is not just a simple blockchain, but a <a href="https://github.com/dedis/cothority/tree/master/skipchain" target="_blank">SkipChain</a> ! They allow to traverse short or long distances in a more efficient way.',
+      intro: '<b>Click</b> on a block to check the block details + all the transactions contained in it, further down on the page. The arrows remind us that this is not just a simple blockchain, but a <a href="https://github.com/dedis/cothority/tree/master/skipchain" target="_blank">SkipChain</a> ! They allow to traverse short or long distances in a more efficient way.',
       position: 'bottom-right-aligned'
     },
     {
