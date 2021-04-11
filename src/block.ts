@@ -1,5 +1,6 @@
-import { Instruction } from "@dedis/cothority/byzcoin";
-import { DataBody, DataHeader } from "@dedis/cothority/byzcoin/proto";
+import { CONFIG_INSTANCE_ID, Instruction } from "@dedis/cothority/byzcoin";
+import { Spawn } from "@dedis/cothority/byzcoin/client-transaction";
+import { DataBody, DataHeader, TxResult } from "@dedis/cothority/byzcoin/proto";
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
@@ -8,6 +9,7 @@ import { throttleTime } from "rxjs/operators";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
+import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
 
 /**
@@ -49,6 +51,10 @@ export class Block {
     loadContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
     progressBarItem: HTMLElement;
 
+    //code added
+    totalBlock: TotalBlock
+    //
+
     /**
      * Creates an instance of DetailBlock.
      * @param {Observable<SkipBlock>} skipBclickedSubject : Observable for the clicked
@@ -64,10 +70,11 @@ export class Block {
      */
     constructor(
         skipBclickedSubject: Subject<SkipBlock>,
-        lifecycle: Lifecycle,
+        lifecycle: Lifecycle, //modfied
         flash: Flash,
         loadedSkipBObs: Observable<SkipBlock[]>,
-        roster: Roster
+        roster: Roster,
+        //totalBlock: TotalBlock //modified
     ) {
         const self = this;
 
@@ -92,6 +99,10 @@ export class Block {
         this.textBar = undefined;
         this.loadContainer = undefined;
         this.progressBarItem = undefined;
+
+        //code added
+        //this.totalBlock = totalBlock;
+        //
     }
 
     /**
@@ -149,7 +160,8 @@ export class Block {
         block_detail_container
             .attr("id", "block_detail_container")
             .text("")
-            .append("p");
+            .append("p")
+
         //Right column of the UI, displays all the transactions of a block and their details
         const transaction_detail_container = d3.select(".browse-container");
         transaction_detail_container
@@ -165,7 +177,7 @@ export class Block {
         ulBlockDetail.attr("class", "clickable-detail-block");
 
         // Details of the blocks (Verifier, backlinks, forwardlinks) are wrapped in this card
-        const blockCard = ulBlockDetail.append("div");
+        const blockCard = ulBlockDetail.append("div").attr("style", "outline: groove rgba(204, 204, 204, 0.3);");
         blockCard
             .attr("class", "uk-card uk-card-default")
             .attr("id", "detail-window");
@@ -381,17 +393,52 @@ export class Block {
 
         // This card simply hold the title of the section in its header, and lists all transactions
         // in its body
-        const transactionCard = ulTransaction.append("div");
+        const transactionCard = ulTransaction.append("div").attr("style", "outline: groove rgba(204, 204, 204, 0.3);");
         transactionCard
             .attr("class", "uk-card uk-card-default")
             .attr("id", "detail-window");
 
         const transactionCardHeader = transactionCard.append("div");
         transactionCardHeader.attr("class", "uk-card-header uk-padding-small");
+
         const transactionCardHeaderTitle = transactionCardHeader.append("h3");
         transactionCardHeaderTitle
             .attr("class", "transaction-card-header-title")
             .text(`Transaction details`);
+
+        //code added//
+        const downloadButton = transactionCardHeaderTitle.append("div") // pas mis div pck 
+            .html(downloadIconScript())
+            .attr("class", "download-icon-1")
+            //.attr("type", "image/svg+xml")
+            //.attr("width", 25)
+            //.attr("height", 25)
+            /*.style("padding-left", 5)
+            .attr("data", "assets/download-data-icon.svg")
+            .on("mouseover", function(){
+                d3.select(this)
+                .style("cursor", "pointer");
+            })
+            .on("mouseout", function(){
+                d3.select(this)
+                .style("cursor", "default");
+            })*/
+            .on("click", function(){
+            // Auto click on a element, trigger the file download
+            const blobConfig = BTexportDataBlob(block);
+            // Convert Blob to URL
+            const blobUrl = URL.createObjectURL(blobConfig);
+
+            // Create an a element with blob URL
+            const anchor = document.createElement('a');
+            anchor.href = blobUrl;
+            anchor.target = "_blank";
+            anchor.download = `block_${block.index}_data.json`;
+            anchor.click();
+            URL.revokeObjectURL(blobUrl);
+        });
+        //
+        ///
 
         const body = DataBody.decode(block.payload);
 
@@ -555,7 +602,7 @@ export class Block {
                             const userSignature = instruction.signerIdentities
                                 .pop()
                                 .toString()
-                                .slice(8); //The 8 first characters are the same for all signers ID
+                                .slice(8); //The 8 first characters are the same for all signers ID 
                             const emmiterP = divInstruction
                                 .append("p")
                                 .text("Emmited by ");
@@ -644,21 +691,21 @@ export class Block {
                         .append("option")
                         .attr("value", "100")
                         .text(
-                            "The 100 first instructions related to this instance"
+                            "The 100 previous instructions related to this instance" //modified
                         );
 
                     formSelect
                         .append("option")
                         .attr("value", "50")
                         .text(
-                            "The 50 first instructions related to this instance"
+                            "The 50 previous instructions related to this instance" //modified
                         );
 
                     formSelect
                         .append("option")
                         .attr("value", "10")
                         .text(
-                            "The 10 first instructions related to this instance"
+                            "The 10 previous instructions related to this instance"
                         );
 
                     var chosenQuery = -1;
@@ -683,6 +730,7 @@ export class Block {
         });
     }
 
+
     /**
      * SECTION Instance tracking
      * ANCHOR Query Launching
@@ -697,9 +745,14 @@ export class Block {
     public launchQuery(chosenQuery: number, instanceID: string) {
         const self = this;
         self.createLoadingScreen();
+        //code added !! si query = all alors on n'aura pas vraiment cherché dans tous les blocks
+        const clickedBlockHash = this.clickedBlock.hash.toString("hex").valueOf();
+        //this.lifecycle = new Lifecycle(this.roster,this.flash,this.totalBlock,initHash);
+         //
         const subjects = self.lifecycle.getInstructionSubject(
             instanceID,
-            chosenQuery
+            chosenQuery,
+            clickedBlockHash //modified:added an argument -> the hash of the clicked block
         );
         subjects[0].subscribe({
             next: self.printDataBrowsing.bind(self),
@@ -748,6 +801,43 @@ export class Block {
                     "hex"
                 )}`
             );
+        
+        //code added for second downloadButton
+        const downloadButton = queryHeader.append("div")
+        /*.attr("type", "image/svg+xml")
+        .attr("width", 25)
+        .attr("height", 25)
+        .style("padding-right",80)
+        .attr("data", "assets/download-data-icon.png")*/
+        .html(downloadIconScript())
+        .attr("class", "download-icon-2")
+        /*
+        .on("mouseover", function(){
+            d3.select(this)
+            .attr("data", "assets/download-data-icon-hover.png")
+            .style("cursor", "pointer");
+        })
+        .on("mouseout", function(){
+            d3.select(this)
+            .attr("data", "assets/download-data-icon.png")
+            .style("cursor", "default");
+        })*/
+        .on("click", function(){
+            // Auto click on a element, trigger the file download
+            const blobConfig = ISexportDataBlob(tuple);
+            // Convert Blob to URL
+            const blobUrl = URL.createObjectURL(blobConfig);
+
+            // Create an a element with blob URL
+            const anchor = document.createElement('a');
+            anchor.href = blobUrl;
+            anchor.target = "_blank";
+            anchor.download = `instance_search_data.json`;
+            anchor.click();
+
+            URL.revokeObjectURL(blobUrl);
+        });
+        //
 
         // Clears the results of a previous query
         const closeButtonWrap = queryHeader.append("div");
@@ -1066,3 +1156,138 @@ export class Block {
         d3.select(".load-container").remove();
     }
 }
+
+//code added for data exportation: create the blob to be transfomed to a JSON f
+function BTexportDataBlob(block: SkipBlock) {
+    var transactionData = new Array();
+        const body = DataBody.decode(block.payload);
+        body.txResults.forEach((transaction, i) => {
+            var instructionData = new Array();
+            transaction.clientTransaction.instructions.forEach(
+            (instruction, j) => {
+                var argsData = new Array() ;
+                instruction.beautify().args.forEach((arg, i) => {
+                    const argsEntries = {
+                        "name" : arg.name,
+                        "value": arg.value
+                    }
+                    argsData.push(argsEntries);
+                });
+                let action: string;
+                let contract: string;
+                if (instruction.type == Instruction.typeSpawn){
+                    action = "Spawned:coin"
+                    contract = instruction.spawn.contractID;
+                } else if(instruction.type == Instruction.typeInvoke){
+                    action = "Invoked:coin"
+                    contract = instruction.invoke.contractID;
+                } else{
+                    action = "Deleted"
+                    contract = instruction.delete.contractID;
+                }            
+                const instructionEntries = {
+                    "instanceID": instruction.instanceID.toString("hex"),
+                    "contract": contract,
+                    "action": action,
+                    "args": argsData
+                };
+                instructionData.push(instructionEntries);
+            })
+        const transactionEntries = {
+            "accepted" : transaction.accepted,
+            "instructions" : instructionData
+        }
+
+        transactionData.push(transactionEntries)
+        });
+
+        var blockData = {"index": block.index,"hash":block.hash.toString("hex"),"height":block.height,"transactions":transactionData};
+        const json = {'Block': blockData};
+        // Convert object to Blob
+         const blobConfig = new Blob(
+                    [ JSON.stringify(json) ], 
+                    { type: 'text/json;charset=utf-8' }
+                )
+        return blobConfig;
+}
+//soucis avec la manières dont sont présentés les arguments ??? 
+function ISexportDataBlob(tuple: [SkipBlock[], Instruction[]]){
+    var instructionData = new Array();
+    var blocksData = new Array();
+    var currentBlock =  tuple[0][0];
+    for (let i = 0; i < tuple[1].length; i++){
+        const blocki = tuple[0][i];
+        const instruction = tuple[1][i];
+        if(currentBlock.index != blocki.index){
+            const blockEntries = {
+                "block index": currentBlock.index,
+                "instructions": instructionData
+            };
+            blocksData.push(blockEntries);
+            instructionData = new Array();
+            currentBlock = blocki;
+        }
+
+        var argsData = new Array();
+        instruction.beautify().args.forEach((arg, i) => {
+            const argEntries = [arg.name, arg.value];
+            argsData.push(argEntries);
+        });
+
+        let action: string;
+        let contract: string;
+                if (instruction.type == Instruction.typeSpawn){
+                    action = "Spawned:coin"
+                    contract = instruction.spawn.contractID;
+                } else if(instruction.type == Instruction.typeInvoke){
+                    action = "Invoked:coin"
+                    contract = instruction.invoke.contractID;
+                } else{
+                    action = "Deleted"
+                    contract = instruction.delete.contractID;
+                }    
+        const instructionEntries = {
+            "contract" : "coin",
+            "action" : action,
+            "args" : argsData
+        };
+        instructionData.push(instructionEntries);
+     }
+
+     //add last instruction set
+        const blockEntries = {
+            "block index": currentBlock.index,
+            "instructions": instructionData
+        };
+        blocksData.push(blockEntries);
+
+    const json = {"instance browsed" : tuple[1][0].instanceID.toString("hex"), "instructions found by block" : blocksData}
+        // Convert object to Blob
+         const blobConfig = new Blob(
+                    [ JSON.stringify(json) ], 
+                    { type: 'text/json;charset=utf-8' }
+                )
+        return blobConfig;
+}
+
+function downloadIconScript(){
+    return `<svg viewBox="0 0 983 962" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <g transform="matrix(-0.957787,0.406581,-0.590533,-0.752044,3103.91,1811.35)">
+        <path d="M1155.03,2714.41C1170.1,2886.92 991.944,2915.2 912.412,2865.58C832.879,2815.96 777.954,2711.51 866.2,2621.87C772.313,2628.14 725.686,2554.84 741.327,2472.55C759.019,2379.46 827.77,2317.71 927.981,2322.22C853.973,2282.21 890.359,2067.84 1059.26,2077.12C1111.96,2080.02 1189.08,2121.62 1252.17,2155.73C1285.9,2173.96 1302.58,2183.73 1302.58,2183.73" style="fill:none;stroke-width:48.29px;"/>
+    </g>
+    <g transform="matrix(-0.957787,0.406581,-0.590533,-0.752044,3085.54,1811.35)">
+        <path d="M1436.26,2289.36C1436.26,2289.36 1492.51,2319.71 1534.2,2342.25C1568.65,2360.88 1597.86,2388.63 1612.87,2427.29C1667.9,2569.03 1521.93,2739.32 1361.07,2659.61C1440.51,2746.17 1415.7,2825.59 1378.53,2871.73C1341.35,2917.87 1242.68,2973.01 1142.98,2907.35" style="fill:none;stroke-width:48.29px;"/>
+    </g>
+    <g transform="matrix(1,0,0,1,-3916.53,-1953.26)">
+        <g transform="matrix(0.428312,-0.428312,0.428312,0.428312,1930.88,2695.11)">
+            <path d="M2635.61,2829.81L2635.61,3085.72L2891.52,3085.72" style="fill:none;stroke-width:89.42px;"/>
+        </g>
+        <g transform="matrix(1,0,0,1,1544.84,-129.382)">
+            <path d="M2836.56,2986.15L2836.56,2558.74" style="fill:none;stroke-width:54.17px;"/>
+        </g>
+    </g>
+</svg>`
+}
+//
+
+
