@@ -492,7 +492,7 @@ export class Block {
                     const liInstruction = ulInstruction.append("li");
                     liInstruction.attr("style", "padding-left:15px");
                     const aInstruction = liInstruction.append("a");
-                    
+                    aInstruction.attr("class", "uk-accordion-title");
                     //Tooltip and instruction
     
                     if (instruction.type === Instruction.typeSpawn) {
@@ -502,7 +502,6 @@ export class Block {
                                 .toUpperCase() +
                             instruction.spawn.contractID.slice(1);
                         aInstruction
-                            .attr("class", "uk-accordion-title")
                             .append("svg")
                             .attr("width","20")
                             .attr("height","20")
@@ -522,7 +521,6 @@ export class Block {
                                 .toUpperCase() +
                             instruction.invoke.contractID.slice(1);
                         aInstruction
-                            .attr("class", "uk-accordion-title")
                             .append("svg")
                             .attr("width","20")
                             .attr("height","20")
@@ -545,7 +543,6 @@ export class Block {
                                 .toUpperCase() +
                             instruction.delete.contractID.slice(1);
                         aInstruction
-                            .attr("class", "uk-accordion-title")
                             .append("svg")
                             .attr("width","20")
                             .attr("height","20")
