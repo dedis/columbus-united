@@ -93,6 +93,45 @@ div.query-answer {
     font-size: 1.3em;
 }
 
+//code added: change the download icon color on hover
+.download-icon-1{
+    display:inline-block;
+    padding-left: 2px;
+    svg{
+        width:30px;
+        height: 30px;
+        cursor: default;
+        path{
+            stroke: black;
+        }
+
+        &:hover path{
+            stroke: #006fff;
+            cursor:pointer;
+        }
+    }
+}
+
+.download-icon-2{
+    display:inline-block;
+    padding-right: 150px;
+    svg{
+        width:30px;
+        height: 30px;
+        cursor: default;
+        path{
+            stroke: black;
+        }
+
+        &:hover path{
+            stroke: #006fff;
+            cursor:pointer;
+        }
+    }
+}
+
+//
+
 /* Used to transform black SVGs to white SVGs, as well as displaying them inline*/
 .white-icon{
     width: 32px;
