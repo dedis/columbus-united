@@ -31,6 +31,7 @@
         "@types/blockies": "0.0.1",
         "@types/d3": "^5.7.2",
         "@types/dockerode": "^2.5.34",
+        "@types/intro.js": "^3.0.0",
         "@types/jasmine": "^3.5.12",
         "@types/long": "^4.0.0",
         "babel-loader": "^8.0.6",
