@@ -8,7 +8,14 @@
         <script src="https://d3js.org/d3.v4.min.js"></script>
 
         <link href="https://css.gg/css" rel="stylesheet" />
-
+        <link
+            rel="stylesheet"
+            href="node_modules/intro.js/minified/introjs.min.css"
+        />
+        <link
+            href="node_modules/intro.js/themes/introjs-modern.css"
+            rel="stylesheet"
+        />
         <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
@@ -29,10 +36,14 @@
                 <img src="assets/logo-color-small.png" alt="logo" />
             </a>
 
-            <button class="uk-button uk-button-default" type="button">
-                About
+            <button
+                class="uk-button uk-button-primary"
+                type="button"
+                id="step1"
+            >
+                Get Started
             </button>
-            <div uk-dropdown class="description">
+            <!--div uk-dropdown class="description">
                 The project Columbus is a project aiming to facilitate the
                 visualization of the blockchain of ByzCoin. <br />
                 You can navigate through the different blocks by dragging right
@@ -44,7 +55,7 @@
                 with their respective type (spawn, invoke or delete). A button
                 is there to browse the whole blockchain in order to display the
                 evolution of an instance throughout the blockchain.
-            </div>
+            </div-->
             <div id="status-info">
                 <!--<div class="info">
             <div class="loader-wrapper">
@@ -62,7 +73,7 @@
             </div>
         </div>
         <div class="searchbar-container">
-            <div class="topnav">
+            <div class="topnav" id="step3">
                 <input
                     id="search-input"
                     type="input"
@@ -84,8 +95,8 @@
             <svg id="last-container"></svg>
         </div>
         <div class="block-infos">
-            <div class="block-detail-container"></div>
-            <div class="browse-container"></div>
+            <div class="block-detail-container" id="step5"></div>
+            <div class="browse-container" id="step6"></div>
         </div>
 
         <div class="query-answer"></div>
