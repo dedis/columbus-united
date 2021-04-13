@@ -280,10 +280,10 @@ export class Block {
         const liBackLink = ulBackLink.append("li");
         const aBackLink = liBackLink.append("a");
         aBackLink
-            .attr("class", "uk-accordion-title")
-            .append("svg")
-            .attr("width","20")
-            .attr("height","20")
+            //.attr("class", "uk-accordion-title")
+            //.append("svg")
+            //.attr("width","20")
+            //.attr("height","20")
             .append("image")
             .attr("x", "10%")
             .attr("y", "17%")
@@ -293,7 +293,8 @@ export class Block {
             .attr("uk-tooltip","Backward links are cryptographic hashes of past blocks.");
         aBackLink
             .append("text")
-            .text(`Back Links : ${block.backlinks.length}`);
+            .text(`Back Links : ${block.backlinks.length}`)
+            .attr("fill", "#ffffff");
         const divBackLink = liBackLink.append("div");
         divBackLink.attr("class", "uk-accordion-content");
         block.backlinks.forEach((value, j) => {
@@ -326,10 +327,10 @@ export class Block {
         const liForwardLink = ulForwardLink.append("li");
         const aForwardLink = liForwardLink.append("a");
         aForwardLink
-            .attr("class", "uk-accordion-title")
-            .append("svg")
-            .attr("width","20")
-            .attr("height","20")
+            //.attr("class", "uk-accordion-title")
+            //.append("svg")
+            //.attr("width","20")
+            //.attr("height","20")
             .append("image")
             .attr("x", "10%")
             .attr("y", "17%")
