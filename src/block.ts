@@ -52,7 +52,7 @@ export class Block {
     progressBarItem: HTMLElement;
 
     //code added
-    totalBlock: TotalBlock
+    totalBlock: TotalBlock;
     //
 
     /**
@@ -73,7 +73,7 @@ export class Block {
         lifecycle: Lifecycle, //modfied
         flash: Flash,
         loadedSkipBObs: Observable<SkipBlock[]>,
-        roster: Roster,
+        roster: Roster
         //totalBlock: TotalBlock //modified
     ) {
         const self = this;
@@ -99,10 +99,6 @@ export class Block {
         this.textBar = undefined;
         this.loadContainer = undefined;
         this.progressBarItem = undefined;
-
-        //code added
-        //this.totalBlock = totalBlock;
-        //
     }
 
     /**
@@ -160,7 +156,7 @@ export class Block {
         block_detail_container
             .attr("id", "block_detail_container")
             .text("")
-            .append("p")
+            .append("p");
 
         //Right column of the UI, displays all the transactions of a block and their details
         const transaction_detail_container = d3.select(".browse-container");
@@ -177,7 +173,9 @@ export class Block {
         ulBlockDetail.attr("class", "clickable-detail-block");
 
         // Details of the blocks (Verifier, backlinks, forwardlinks) are wrapped in this card
-        const blockCard = ulBlockDetail.append("div").attr("style", "outline: groove rgba(204, 204, 204, 0.3);");
+        const blockCard = ulBlockDetail
+            .append("div")
+            .attr("style", "outline: groove rgba(204, 204, 204, 0.3);");
         blockCard
             .attr("class", "uk-card uk-card-default")
             .attr("id", "detail-window");
@@ -194,25 +192,28 @@ export class Block {
         const blockCardHeaderDetails = blockCardHeader.append("span");
 
         blockCardHeaderDetails.attr("class", "block-card-header-details");
-           
-    
-        //Tooltip for definition of what is a hash 
-        const hashParagraph= blockCardHeaderDetails.append("p")
+
+        //Tooltip for definition of what is a hash
+        const hashParagraph = blockCardHeaderDetails.append("p");
         hashParagraph
             .append("svg")
-            .attr("width","20")
-            .attr("height","20")
+            .attr("width", "20")
+            .attr("height", "20")
             .append("image")
             .attr("x", "10%")
             .attr("y", "17%")
             .attr("width", "12")
             .attr("height", "12")
             .attr("href", "assets/information-button-gray.svg")
-            .attr("uk-tooltip", `The hash of a block is a hexadecimal number, which uniquely identifies the block. It is linked to the previous blocks; which allows to ensure that there aren't any fraudulent transactions and modifications to the blockchain.`);
-            
-        
-        hashParagraph.append("text").text(`Hash : ${block.hash.toString("hex")}`);
-        
+            .attr(
+                "uk-tooltip",
+                `The hash of a block is a hexadecimal number, which uniquely identifies the block. It is linked to the previous blocks; which allows to ensure that there aren't any fraudulent transactions and modifications to the blockchain.`
+            );
+
+        hashParagraph
+            .append("text")
+            .text(`Hash : ${block.hash.toString("hex")}`);
+
         blockCardHeaderDetails
             .append("p")
             .text(`Validated on the ${Utils.getTimeString(block)}`);
@@ -220,15 +221,18 @@ export class Block {
         const heightParagraph = blockCardHeaderDetails.append("p");
         heightParagraph
             .append("svg")
-            .attr("width","20")
-            .attr("height","20")
+            .attr("width", "20")
+            .attr("height", "20")
             .append("image")
             .attr("x", "10%")
             .attr("y", "17%")
             .attr("width", "12")
             .attr("height", "12")
             .attr("href", "assets/information-button-gray.svg")
-            .attr("uk-tooltip", `Determines how many forward and backward links the block contains.`);
+            .attr(
+                "uk-tooltip",
+                `Determines how many forward and backward links the block contains.`
+            );
 
         heightParagraph.append("text").text(`Height : ${block.height}`);
 
@@ -249,23 +253,24 @@ export class Block {
         ulVerifier.attr("uk-accordion", "");
         const liVerifier = ulVerifier.append("li");
         const aVerifier = liVerifier.append("a");
-    
+
         aVerifier
             .attr("class", "uk-accordion-title")
             .append("svg")
-            .attr("width","20")
-            .attr("height","20")
+            .attr("width", "20")
+            .attr("height", "20")
             .append("image")
             .attr("x", "10%")
             .attr("y", "17%")
             .attr("width", "12")
             .attr("height", "12")
             .attr("href", "assets/information-button-gray.svg")
-            .attr("uk-tooltip", `Before a new block is added. A number of verifiers assert that the information contained in it is correct.`);
-        
-            aVerifier
-            .append("text")
-            .text(`Verifiers : ${block.verifiers.length}`);
+            .attr(
+                "uk-tooltip",
+                `Before a new block is added. A number of verifiers assert that the information contained in it is correct.`
+            );
+
+        aVerifier.append("text").text(`Verifiers : ${block.verifiers.length}`);
         const divVerifier = liVerifier.append("div");
         divVerifier.attr("class", "uk-accordion-content"); // content on the accordion
         block.verifiers.forEach((uid, j) => {
@@ -282,18 +287,19 @@ export class Block {
         aBackLink
             .attr("class", "uk-accordion-title")
             .append("svg")
-            .attr("width","20")
-            .attr("height","20")
+            .attr("width", "20")
+            .attr("height", "20")
             .append("image")
             .attr("x", "10%")
             .attr("y", "17%")
             .attr("width", "12")
             .attr("height", "12")
             .attr("href", "assets/information-button-gray.svg")
-            .attr("uk-tooltip","Backward links are cryptographic hashes of past blocks.");
-        aBackLink
-            .append("text")
-            .text(`Back Links : ${block.backlinks.length}`);
+            .attr(
+                "uk-tooltip",
+                "Backward links are cryptographic hashes of past blocks."
+            );
+        aBackLink.append("text").text(`Back Links : ${block.backlinks.length}`);
         const divBackLink = liBackLink.append("div");
         divBackLink.attr("class", "uk-accordion-content");
         block.backlinks.forEach((value, j) => {
@@ -328,15 +334,18 @@ export class Block {
         aForwardLink
             .attr("class", "uk-accordion-title")
             .append("svg")
-            .attr("width","20")
-            .attr("height","20")
+            .attr("width", "20")
+            .attr("height", "20")
             .append("image")
             .attr("x", "10%")
             .attr("y", "17%")
             .attr("width", "12")
             .attr("height", "12")
             .attr("href", "assets/information-button-gray.svg")
-            .attr("uk-tooltip"," Forward links are cryptographic signatures of future blocks.");
+            .attr(
+                "uk-tooltip",
+                " Forward links are cryptographic signatures of future blocks."
+            );
         aForwardLink
             .append("text")
             .text(`Forward Links : ${block.forwardLinks.length}`);
@@ -393,7 +402,9 @@ export class Block {
 
         // This card simply hold the title of the section in its header, and lists all transactions
         // in its body
-        const transactionCard = ulTransaction.append("div").attr("style", "outline: groove rgba(204, 204, 204, 0.3);");
+        const transactionCard = ulTransaction
+            .append("div")
+            .attr("style", "outline: groove rgba(204, 204, 204, 0.3);");
         transactionCard
             .attr("class", "uk-card uk-card-default")
             .attr("id", "detail-window");
@@ -407,7 +418,8 @@ export class Block {
             .text(`Transaction details`);
 
         //code added//
-        const downloadButton = transactionCardHeaderTitle.append("div") // pas mis div pck 
+        const downloadButton = transactionCardHeaderTitle
+            .append("div") // pas mis div pck
             .html(downloadIconScript())
             .attr("class", "download-icon-1")
             //.attr("type", "image/svg+xml")
@@ -423,20 +435,20 @@ export class Block {
                 d3.select(this)
                 .style("cursor", "default");
             })*/
-            .on("click", function(){
-            // Auto click on a element, trigger the file download
-            const blobConfig = BTexportDataBlob(block);
-            // Convert Blob to URL
-            const blobUrl = URL.createObjectURL(blobConfig);
+            .on("click", function () {
+                // Auto click on a element, trigger the file download
+                const blobConfig = BTexportDataBlob(block);
+                // Convert Blob to URL
+                const blobUrl = URL.createObjectURL(blobConfig);
 
-            // Create an a element with blob URL
-            const anchor = document.createElement('a');
-            anchor.href = blobUrl;
-            anchor.target = "_blank";
-            anchor.download = `block_${block.index}_data.json`;
-            anchor.click();
-            URL.revokeObjectURL(blobUrl);
-        });
+                // Create an a element with blob URL
+                const anchor = document.createElement("a");
+                anchor.href = blobUrl;
+                anchor.target = "_blank";
+                anchor.download = `block_${block.index}_data.json`;
+                anchor.click();
+                URL.revokeObjectURL(blobUrl);
+            });
         //
         ///
 
@@ -493,8 +505,7 @@ export class Block {
                     liInstruction.attr("style", "padding-left:15px");
                     const aInstruction = liInstruction.append("a");
                     aInstruction.attr("class", "uk-accordion-title");
-                    //Tooltip and instruction
-    
+
                     if (instruction.type === Instruction.typeSpawn) {
                         const contractName =
                             instruction.spawn.contractID
@@ -503,16 +514,21 @@ export class Block {
                             instruction.spawn.contractID.slice(1);
                         aInstruction
                             .append("svg")
-                            .attr("width","20")
-                            .attr("height","20")
+                            .attr("width", "20")
+                            .attr("height", "20")
                             .append("image")
                             .attr("x", "10%")
                             .attr("y", "17%")
                             .attr("width", "12")
                             .attr("height", "12")
                             .attr("href", "assets/information-button-gray.svg")
-                            .attr("uk-tooltip", "A new instance of a contract is created.");
-                        aInstruction.append("text").text(`Spawned : ${contractName}`);
+                            .attr(
+                                "uk-tooltip",
+                                "A new instance of a contract is created."
+                            );
+                        aInstruction
+                            .append("text")
+                            .text(`Spawned : ${contractName}`);
                         args = instruction.spawn.args;
                     } else if (instruction.type === Instruction.typeInvoke) {
                         const contractName =
@@ -522,16 +538,21 @@ export class Block {
                             instruction.invoke.contractID.slice(1);
                         aInstruction
                             .append("svg")
-                            .attr("width","20")
-                            .attr("height","20")
+                            .attr("width", "20")
+                            .attr("height", "20")
                             .append("image")
                             .attr("x", "10%")
                             .attr("y", "17%")
                             .attr("width", "12")
                             .attr("height", "12")
                             .attr("href", "assets/information-button-gray.svg")
-                            .attr("uk-tooltip", "A function (or command) is executed on the smart contract.");
-                        aInstruction.append("text").text(`Invoked : ${contractName}`);
+                            .attr(
+                                "uk-tooltip",
+                                "A function (or command) is executed on the smart contract."
+                            );
+                        aInstruction
+                            .append("text")
+                            .text(`Invoked : ${contractName}`);
                         args = instruction.invoke.args;
 
                         coin_invoked =
@@ -544,37 +565,45 @@ export class Block {
                             instruction.delete.contractID.slice(1);
                         aInstruction
                             .append("svg")
-                            .attr("width","20")
-                            .attr("height","20")
+                            .attr("width", "20")
+                            .attr("height", "20")
                             .append("image")
                             .attr("x", "10%")
                             .attr("y", "17%")
                             .attr("width", "12")
                             .attr("height", "12")
                             .attr("href", "assets/information-button-gray.svg")
-                            .attr("uk-tooltip", "The instance of the contract is deleted from the ledger.");
-                        aInstruction.append("text").text(`Deleted : ${contractName}`);
+                            .attr(
+                                "uk-tooltip",
+                                "The instance of the contract is deleted from the ledger."
+                            );
+                        aInstruction
+                            .append("text")
+                            .text(`Deleted : ${contractName}`);
                     }
 
                     const divInstruction = liInstruction.append("div");
 
                     divInstruction.attr("class", "uk-accordion-content");
-                    // Detail of one instruction 
-                    const pInstruction=divInstruction
+                    // Detail of one instruction
+                    const pInstruction = divInstruction
                         .append("p")
                         .style("font-family", "monospace");
-                    
+
                     pInstruction
                         .append("svg")
-                        .attr("width","20")
-                        .attr("height","20")
+                        .attr("width", "20")
+                        .attr("height", "20")
                         .append("image")
                         .attr("x", "10%")
                         .attr("y", "17%")
                         .attr("width", "12")
                         .attr("height", "12")
                         .attr("href", "assets/information-button-gray.svg")
-                        .attr("uk-tooltip","Unique hexadecimal identifier that is generated whenever a new transaction is executed.");
+                        .attr(
+                            "uk-tooltip",
+                            "Unique hexadecimal identifier that is generated whenever a new transaction is executed."
+                        );
 
                     pInstruction
                         .append("text")
@@ -599,7 +628,7 @@ export class Block {
                             const userSignature = instruction.signerIdentities
                                 .pop()
                                 .toString()
-                                .slice(8); //The 8 first characters are the same for all signers ID 
+                                .slice(8); //The 8 first characters are the same for all signers ID
                             const emmiterP = divInstruction
                                 .append("p")
                                 .text("Emmited by ");
@@ -684,19 +713,13 @@ export class Block {
                         .attr("value", "-1")
                         .text("All instructions related to this instance");
 
-                    formSelect
-                        .append("option")
-                        .attr("value", "100")
-                        .text(
-                            "The 100 previous instructions related to this instance" //modified
-                        );
+                    formSelect.append("option").attr("value", "100").text(
+                        "The 100 previous instructions related to this instance" //modified
+                    );
 
-                    formSelect
-                        .append("option")
-                        .attr("value", "50")
-                        .text(
-                            "The 50 previous instructions related to this instance" //modified
-                        );
+                    formSelect.append("option").attr("value", "50").text(
+                        "The 50 previous instructions related to this instance" //modified
+                    );
 
                     formSelect
                         .append("option")
@@ -727,7 +750,6 @@ export class Block {
         });
     }
 
-
     /**
      * SECTION Instance tracking
      * ANCHOR Query Launching
@@ -743,9 +765,11 @@ export class Block {
         const self = this;
         self.createLoadingScreen();
         //code added !! si query = all alors on n'aura pas vraiment cherché dans tous les blocks
-        const clickedBlockHash = this.clickedBlock.hash.toString("hex").valueOf();
+        const clickedBlockHash = this.clickedBlock.hash
+            .toString("hex")
+            .valueOf();
         //this.lifecycle = new Lifecycle(this.roster,this.flash,this.totalBlock,initHash);
-         //
+        //
         const subjects = self.lifecycle.getInstructionSubject(
             instanceID,
             chosenQuery,
@@ -798,17 +822,18 @@ export class Block {
                     "hex"
                 )}`
             );
-        
+
         //code added for second downloadButton
-        const downloadButton = queryHeader.append("div")
-        /*.attr("type", "image/svg+xml")
+        const downloadButton = queryHeader
+            .append("div")
+            /*.attr("type", "image/svg+xml")
         .attr("width", 25)
         .attr("height", 25)
         .style("padding-right",80)
         .attr("data", "assets/download-data-icon.png")*/
-        .html(downloadIconScript())
-        .attr("class", "download-icon-2")
-        /*
+            .html(downloadIconScript())
+            .attr("class", "download-icon-2")
+            /*
         .on("mouseover", function(){
             d3.select(this)
             .attr("data", "assets/download-data-icon-hover.png")
@@ -819,21 +844,21 @@ export class Block {
             .attr("data", "assets/download-data-icon.png")
             .style("cursor", "default");
         })*/
-        .on("click", function(){
-            // Auto click on a element, trigger the file download
-            const blobConfig = ISexportDataBlob(tuple);
-            // Convert Blob to URL
-            const blobUrl = URL.createObjectURL(blobConfig);
+            .on("click", function () {
+                // Auto click on a element, trigger the file download
+                const blobConfig = ISexportDataBlob(tuple);
+                // Convert Blob to URL
+                const blobUrl = URL.createObjectURL(blobConfig);
 
-            // Create an a element with blob URL
-            const anchor = document.createElement('a');
-            anchor.href = blobUrl;
-            anchor.target = "_blank";
-            anchor.download = `instance_search_data.json`;
-            anchor.click();
+                // Create an a element with blob URL
+                const anchor = document.createElement("a");
+                anchor.href = blobUrl;
+                anchor.target = "_blank";
+                anchor.download = `instance_search_data.json`;
+                anchor.click();
 
-            URL.revokeObjectURL(blobUrl);
-        });
+                URL.revokeObjectURL(blobUrl);
+            });
         //
 
         // Clears the results of a previous query
@@ -1157,68 +1182,71 @@ export class Block {
 //code added for data exportation: create the blob to be transfomed to a JSON f
 function BTexportDataBlob(block: SkipBlock) {
     var transactionData = new Array();
-        const body = DataBody.decode(block.payload);
-        body.txResults.forEach((transaction, i) => {
-            var instructionData = new Array();
-            transaction.clientTransaction.instructions.forEach(
-            (instruction, j) => {
-                var argsData = new Array() ;
-                instruction.beautify().args.forEach((arg, i) => {
-                    const argsEntries = {
-                        "name" : arg.name,
-                        "value": arg.value
-                    }
-                    argsData.push(argsEntries);
-                });
-                let action: string;
-                let contract: string;
-                if (instruction.type == Instruction.typeSpawn){
-                    action = "Spawned:coin"
-                    contract = instruction.spawn.contractID;
-                } else if(instruction.type == Instruction.typeInvoke){
-                    action = "Invoked:coin"
-                    contract = instruction.invoke.contractID;
-                } else{
-                    action = "Deleted"
-                    contract = instruction.delete.contractID;
-                }            
-                const instructionEntries = {
-                    "instanceID": instruction.instanceID.toString("hex"),
-                    "contract": contract,
-                    "action": action,
-                    "args": argsData
+    const body = DataBody.decode(block.payload);
+    body.txResults.forEach((transaction, i) => {
+        var instructionData = new Array();
+        transaction.clientTransaction.instructions.forEach((instruction, j) => {
+            var argsData = new Array();
+            instruction.beautify().args.forEach((arg, i) => {
+                const argsEntries = {
+                    name: arg.name,
+                    value: arg.value,
                 };
-                instructionData.push(instructionEntries);
-            })
-        const transactionEntries = {
-            "accepted" : transaction.accepted,
-            "instructions" : instructionData
-        }
-
-        transactionData.push(transactionEntries)
+                argsData.push(argsEntries);
+            });
+            let action: string;
+            let contract: string;
+            if (instruction.type == Instruction.typeSpawn) {
+                action = "Spawned:coin";
+                contract = instruction.spawn.contractID;
+            } else if (instruction.type == Instruction.typeInvoke) {
+                action = "Invoked:coin";
+                contract = instruction.invoke.contractID;
+            } else {
+                action = "Deleted";
+                contract = instruction.delete.contractID;
+            }
+            const instructionEntries = {
+                instanceID: instruction.instanceID.toString("hex"),
+                contract: contract,
+                action: action,
+                args: argsData,
+            };
+            instructionData.push(instructionEntries);
         });
+        const transactionEntries = {
+            accepted: transaction.accepted,
+            instructions: instructionData,
+        };
 
-        var blockData = {"index": block.index,"hash":block.hash.toString("hex"),"height":block.height,"transactions":transactionData};
-        const json = {'Block': blockData};
-        // Convert object to Blob
-         const blobConfig = new Blob(
-                    [ JSON.stringify(json) ], 
-                    { type: 'text/json;charset=utf-8' }
-                )
-        return blobConfig;
+        transactionData.push(transactionEntries);
+    });
+
+    var blockData = {
+        index: block.index,
+        hash: block.hash.toString("hex"),
+        height: block.height,
+        transactions: transactionData,
+    };
+    const json = { Block: blockData };
+    // Convert object to Blob
+    const blobConfig = new Blob([JSON.stringify(json)], {
+        type: "text/json;charset=utf-8",
+    });
+    return blobConfig;
 }
-//soucis avec la manières dont sont présentés les arguments ??? 
-function ISexportDataBlob(tuple: [SkipBlock[], Instruction[]]){
+//soucis avec la manières dont sont présentés les arguments ???
+function ISexportDataBlob(tuple: [SkipBlock[], Instruction[]]) {
     var instructionData = new Array();
     var blocksData = new Array();
-    var currentBlock =  tuple[0][0];
-    for (let i = 0; i < tuple[1].length; i++){
+    var currentBlock = tuple[0][0];
+    for (let i = 0; i < tuple[1].length; i++) {
         const blocki = tuple[0][i];
         const instruction = tuple[1][i];
-        if(currentBlock.index != blocki.index){
+        if (currentBlock.index != blocki.index) {
             const blockEntries = {
                 "block index": currentBlock.index,
-                "instructions": instructionData
+                instructions: instructionData,
             };
             blocksData.push(blockEntries);
             instructionData = new Array();
@@ -1233,41 +1261,43 @@ function ISexportDataBlob(tuple: [SkipBlock[], Instruction[]]){
 
         let action: string;
         let contract: string;
-                if (instruction.type == Instruction.typeSpawn){
-                    action = "Spawned:coin"
-                    contract = instruction.spawn.contractID;
-                } else if(instruction.type == Instruction.typeInvoke){
-                    action = "Invoked:coin"
-                    contract = instruction.invoke.contractID;
-                } else{
-                    action = "Deleted"
-                    contract = instruction.delete.contractID;
-                }    
+        if (instruction.type == Instruction.typeSpawn) {
+            action = "Spawned:coin";
+            contract = instruction.spawn.contractID;
+        } else if (instruction.type == Instruction.typeInvoke) {
+            action = "Invoked:coin";
+            contract = instruction.invoke.contractID;
+        } else {
+            action = "Deleted";
+            contract = instruction.delete.contractID;
+        }
         const instructionEntries = {
-            "contract" : "coin",
-            "action" : action,
-            "args" : argsData
+            contract: "coin",
+            action: action,
+            args: argsData,
         };
         instructionData.push(instructionEntries);
-     }
+    }
 
-     //add last instruction set
-        const blockEntries = {
-            "block index": currentBlock.index,
-            "instructions": instructionData
-        };
-        blocksData.push(blockEntries);
+    //add last instruction set
+    const blockEntries = {
+        "block index": currentBlock.index,
+        instructions: instructionData,
+    };
+    blocksData.push(blockEntries);
 
-    const json = {"instance browsed" : tuple[1][0].instanceID.toString("hex"), "instructions found by block" : blocksData}
-        // Convert object to Blob
-         const blobConfig = new Blob(
-                    [ JSON.stringify(json) ], 
-                    { type: 'text/json;charset=utf-8' }
-                )
-        return blobConfig;
+    const json = {
+        "instance browsed": tuple[1][0].instanceID.toString("hex"),
+        "instructions found by block": blocksData,
+    };
+    // Convert object to Blob
+    const blobConfig = new Blob([JSON.stringify(json)], {
+        type: "text/json;charset=utf-8",
+    });
+    return blobConfig;
 }
 
-function downloadIconScript(){
+function downloadIconScript() {
     return `<svg viewBox="0 0 983 962" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
     <g transform="matrix(-0.957787,0.406581,-0.590533,-0.752044,3103.91,1811.35)">
         <path d="M1155.03,2714.41C1170.1,2886.92 991.944,2915.2 912.412,2865.58C832.879,2815.96 777.954,2711.51 866.2,2621.87C772.313,2628.14 725.686,2554.84 741.327,2472.55C759.019,2379.46 827.77,2317.71 927.981,2322.22C853.973,2282.21 890.359,2067.84 1059.26,2077.12C1111.96,2080.02 1189.08,2121.62 1252.17,2155.73C1285.9,2173.96 1302.58,2183.73 1302.58,2183.73" style="fill:none;stroke-width:48.29px;"/>
@@ -1283,8 +1313,6 @@ function downloadIconScript(){
             <path d="M2836.56,2986.15L2836.56,2558.74" style="fill:none;stroke-width:54.17px;"/>
         </g>
     </g>
-</svg>`
+</svg>`;
 }
 //
-
-

@@ -7,6 +7,7 @@ import * as rx from "rxjs";
  * @export
  * @class Flash
  */
+
 export class Flash {
     private static closeAlert(div: HTMLElement) {
         div.style.opacity = "0";
