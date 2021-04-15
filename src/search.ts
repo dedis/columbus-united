@@ -19,6 +19,7 @@ import { Utils } from "./utils";
  * @author Sophia Artioli (sophia.artioli@epfl.ch)
  * @author Lucas Trognon <lucas.trognon@epfl.ch>
  */
+
 export function searchBar(
     roster: Roster,
     flash: Flash,

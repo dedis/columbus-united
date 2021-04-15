@@ -783,6 +783,7 @@ export class Chunk {
                         skipBlockToIndex,
                         self.initialBlock.index
                     );
+
                     let block = await Utils.getBlockByIndex(
                         self.initialBlock.hash,
                         skipBlockToIndex,
