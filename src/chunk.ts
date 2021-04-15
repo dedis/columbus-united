@@ -858,6 +858,7 @@ export class Chunk {
         for (let i = 0; i < skipBlockTo.height; i++) {
             if (index + mult <= this.lastAddedBlock.index) {
                 // We do not draw arrows that point to non-existing blocks
+
                 this.appendArrows(
                     xTranslate,
                     index + mult,
