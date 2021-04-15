@@ -157,11 +157,7 @@ export function startColumbus(
     const chain = new Chain(roster, flash, genesisBlock);
 
     // The translation is done to the initialBlock
-    Utils.translateOnChain(
-        initialBlock,
-        genesisBlock,
-        chain.blockClickedSubject
-    );
+    Utils.translateOnChain(initialBlock.index, genesisBlock.index);
 
     // The totalBlock utility class allows the browsing class to get the total
     // number of block in the chain. This class is stateful, it will keep each

@@ -317,9 +317,8 @@ export class Block {
                 .text(`Block ${blockIndex}`)
                 .on("click", async function () {
                     Utils.translateOnChain(
-                        await Utils.getBlock(value, self.roster),
-                        block,
-                        self.skipBclickedSubject
+                        (await Utils.getBlock(value, self.roster)).index,
+                        block.index
                     );
                 })
                 .attr("uk-tooltip", `${value.toString("hex")}`);
@@ -367,9 +366,8 @@ export class Block {
                 .text(`Block ${blockIndex}`)
                 .on("click", async function () {
                     Utils.translateOnChain(
-                        await Utils.getBlock(fl.to, self.roster),
-                        block,
-                        self.skipBclickedSubject
+                        await (await Utils.getBlock(fl.to, self.roster)).index,
+                        block.index
                     );
                 })
                 .attr("uk-tooltip", `${fl.to.toString("hex")}`);
