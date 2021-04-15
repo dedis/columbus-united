@@ -152,7 +152,8 @@ export class Chain {
             .on("zoom", () => {
                 subject.next(d3.event.transform);
             });
-        svg.call(zoom);
+        //Disable zooming the view on double tap to enable double clocking on backward links
+        svg.call(zoom).on("dblclick.zoom", null);
         Chain.zoom = zoom;
         // This group will contain the left and right loaders that display a
         // spinner when new blocks are being added

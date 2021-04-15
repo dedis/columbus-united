@@ -119,8 +119,8 @@ export class Lifecycle {
 
         this.abort = false;
 
-        //modified -> recherche all ! recherche nombre 
-        if(maxNumberOfBlocks == -1){
+        //modified -> recherche all ! recherche nombre
+        if (maxNumberOfBlocks == -1) {
             this.browse(
                 this.pageSize,
                 this.numPages,
@@ -132,7 +132,6 @@ export class Lifecycle {
                 maxNumberOfBlocks,
                 false //direction of the search, backward= true -> forward = false
             );
-
         } else {
             this.browse(
                 this.pageSize,
@@ -145,7 +144,6 @@ export class Lifecycle {
                 maxNumberOfBlocks,
                 true
             );
-
         }
         return [subjectInstruction, subjectProgress];
     }
@@ -260,11 +258,15 @@ export class Lifecycle {
                             (skipBlock.forwardLinks.length !== 0 || skipBlock.backlinks.length !=0) &&
                             !this.abort
                         ) {
-                            this.nextIDB = (maxNumberOfBlocks!= -1) ? Utils.bytes2String(
-                                skipBlock.backlinks[0] //modified was .to
-                            ) : Utils.bytes2String(
-                                skipBlock.forwardLinks[0].to); //was modified
-                            
+                            this.nextIDB =
+                                maxNumberOfBlocks != -1
+                                    ? Utils.bytes2String(
+                                          skipBlock.backlinks[0] //modified was .to
+                                      )
+                                    : Utils.bytes2String(
+                                          skipBlock.forwardLinks[0].to
+                                      ); //was modified
+
                             pageDone = 0;
                             this.getNextBlocks(
                                 this.nextIDB,
