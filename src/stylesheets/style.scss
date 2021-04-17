@@ -1,4 +1,6 @@
 @import "~uikit/dist/css/uikit.min.css";
+@import "~intro.js/minified/introjs.min.css";
+@import "~intro.js/themes/introjs-modern.css";
 
 /* */
 :root {
@@ -60,20 +62,20 @@ div.query-answer {
     margin-bottom: 0px;
 }
 
-.block-card-header-details > p{
+.block-card-header-details > p {
     font-family: monospace;
     margin-bottom: 5px;
     margin-top: 5px;
 }
 
-#query-header>div{
+#query-header > div {
     //padding-left: 2%;
     font-weight: 700;
     color: #666;
     font-size: 1.3em;
 }
 
-.block-card-content{
+.block-card-content {
     font-weight: 700;
     margin-top: 5px;
     color: #666;
@@ -81,17 +83,55 @@ div.query-answer {
     margin-bottom: 15px;
 }
 
-.transaction-card-header-title{
+.transaction-card-header-title {
     font-weight: 700;
     margin-top: 5px;
     color: #666;
 }
 
-.transaction-title{
+.transaction-title {
     font-family: monospace;
     color: #666;
     font-size: 1.3em;
 }
+//code added: change the download icon color on hover
+.download-icon-1 {
+    display: inline-block;
+    padding-left: 2px;
+    svg {
+        width: 30px;
+        height: 30px;
+        cursor: default;
+        path {
+            stroke: black;
+        }
+
+        &:hover path {
+            stroke: #006fff;
+            cursor: pointer;
+        }
+    }
+}
+
+.download-icon-2 {
+    display: inline-block;
+    padding-right: 150px;
+    svg {
+        width: 30px;
+        height: 30px;
+        cursor: default;
+        path {
+            stroke: black;
+        }
+
+        &:hover path {
+            stroke: #006fff;
+            cursor: pointer;
+        }
+    }
+}
+
+//
 
 //code added: change the download icon color on hover
 .download-icon-1{
@@ -133,16 +173,14 @@ div.query-answer {
 //
 
 /* Used to transform black SVGs to white SVGs, as well as displaying them inline*/
-.white-icon{
+.white-icon {
     width: 32px;
     height: 32px;
-    display : inline-block;
+    display: inline-block;
     position: relative;
-    margin-left : 15px;
-    filter: invert(88%) sepia(67%) saturate(0%) hue-rotate(236deg) brightness(111%) contrast(100%);
-
-
-
+    margin-left: 15px;
+    filter: invert(88%) sepia(67%) saturate(0%) hue-rotate(236deg)
+        brightness(111%) contrast(100%);
 }
 
 .topnav {
@@ -532,7 +570,7 @@ List of classes for the new transaction container
     color: #ffffff;
 }
 
-.uk-accordion-content{
+.uk-accordion-content {
     padding-left: 15px;
 }
 
