@@ -153,6 +153,56 @@ export class Chain {
                 subject.next(d3.event.transform);
             });
         //Disable zooming the view on double tap to enable double clocking on backward links
+        //TODO: Add clickable button here for zooming in the searchbar-container
+        /*const divVerifier = liVerifier.append("div");
+        //REPLACE BY ZOOM ICONE
+*/
+        const divZoomDropdown=d3.selectAll(".topnav")
+            .append("div")
+            .attr("class","dropdown");
+
+        const zoomButton= divZoomDropdown
+            .append("button")
+            .attr("class","zoombtn"); //contains zoom-in and zoom-out buttons
+        zoomButton
+            .append("svg")
+            .attr("id", "svg-zoombtn")
+            .attr("transform","translate(-5,0)")
+            .append("image")
+            .attr("x","5%")
+            .attr("y", "10%")
+            .attr("width", "20px")
+            .attr("height", "20px")
+            .attr("href", "assets/zoom-icon.svg"); 
+
+        
+        const divZoomDropdownContent= divZoomDropdown
+            .append("div")
+            .attr("id","dropdown-zoom")
+            .attr("class","dropdown-zoom-content");
+
+        divZoomDropdownContent
+            .append("p")
+            .attr("id","zoom-in")
+            .text("Zoom In");        
+
+        divZoomDropdownContent
+        .append("p")
+        .attr("id","zoom-out")
+        .text("Zoom Out");
+        
+         //function to hide and show dropdown menu of zoom
+         zoomButton.on("click", function() {
+            document.getElementById("dropdown-zoom").classList.toggle("show");
+        });
+
+        const zoomFromButtons= d3.zoom().on("zoom", () => {
+            subject.next(d3.event.transform)});
+
+        //How can I use "svg" here to apply the zoom transformation ?
+        //d3.select("#zoom-in").on('click', function() { zoomFromButtons.scaleBy(svg, 1.2); });
+        //d3.select("#zoom-out").on('click', function() { zoomFromButtons.scaleBy(svg, 0.8); });
+
         svg.call(zoom).on("dblclick.zoom", null);
         Chain.zoom = zoom;
         // This group will contain the left and right loaders that display a

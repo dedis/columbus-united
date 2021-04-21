@@ -212,7 +212,7 @@ function initIntro() {
                 {
                     element: document.getElementById("svg-container"),
                     intro:
-                        'Click on a block and you\'ll be able to check the block details + all the transactions contained in it further down on the page. The arrows remind us that this is not just a simple blockchain, but a <a href="https://github.com/dedis/cothority/tree/master/skipchain" target="_blank">SkipChain</a> ! They allow to traverse short or long distances in a more efficient way.',
+                        'Click on a block ! You\'ll be able to check the block details + all the transactions contained in it further down on the page. The arrows remind us that this is not just a simple blockchain, but a <a href="https://github.com/dedis/cothority/tree/master/skipchain" target="_blank">SkipChain</a> ! They allow to traverse short or long distances in a more efficient way. Click on the arrows to move forward, double click to move backwards in the chain.',
                     position: "bottom-right-aligned",
                 },
                 {
