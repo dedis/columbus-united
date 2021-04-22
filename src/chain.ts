@@ -200,8 +200,8 @@ export class Chain {
             subject.next(d3.event.transform)});
 
         //How can I use "svg" here to apply the zoom transformation ?
-        //d3.select("#zoom-in").on('click', function() { zoomFromButtons.scaleBy(svg, 1.2); });
-        //d3.select("#zoom-out").on('click', function() { zoomFromButtons.scaleBy(svg, 0.8); });
+        d3.select("#zoom-in").on('click', function() { zoomFromButtons.scaleBy(d3.select("#svg-container"), 1.2); });
+        d3.select("#zoom-out").on('click', function() { zoomFromButtons.scaleBy(d3.select("#svg-container"), 0.8); });
 
         svg.call(zoom).on("dblclick.zoom", null);
         Chain.zoom = zoom;

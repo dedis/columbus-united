@@ -353,6 +353,7 @@ div #div-blocks-wrapper {
     top:15px;
     width: 30px;
     height: 30px;
+    border: 1px solid gray;
     
 }
 .zoombtn {
@@ -393,10 +394,11 @@ div #div-blocks-wrapper {
 .dropdown-zoom-content p {
     display: block;
     font-size: small;
+    width: max-content;
 }
 
 .dropdown-zoom-content p:hover {
-    background-color:#ccc;
+    color:#006fff;
 }
 
 .show {display: block;}
