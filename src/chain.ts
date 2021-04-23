@@ -110,7 +110,9 @@ export class Chain {
         const subject = new Subject();
 
         // Main SVG canvas that contains the chain
-        const svg = d3.select("#svg-container").attr("height", Chain.svgHeight);
+        const svg = d3.select("#svg-container")
+            .attr("height", Chain.svgHeight)
+            .attr("width", Chain.svgWidth); //added for scrollbar
 
         // This group will contain the blocks
         this.gblocks = svg.append("g").attr("class", "gblocks");
@@ -142,6 +144,33 @@ export class Chain {
             .call(xAxis);
 
         // Update the subject when the view is dragged and zoomed in-out
+        function scrolled(){
+            const svgWrapper = (d3.select("#div-blocks-wrapper") as any);
+            const x = svgWrapper.node().scrollLeft + svgWrapper.node().clientWidth / 2;
+            const scale = d3.zoomTransform(svgWrapper.node()).k;
+            // Update zoom parameters based on scrollbar positions.
+            svgWrapper.call(d3.zoom().translateTo, x / scale);
+        }
+        
+        const zoom = d3
+            .zoom()
+            .extent([
+                [0, 0],
+                [Chain.svgWidth, Chain.svgHeight],
+            ])
+            .scaleExtent([0.0001, 1.4])
+            .on("zoom", () => {
+                subject.next(d3.event.transform); 
+            });
+            
+
+        const divZoom = d3.select("#div-blocs-wrapper")
+            .on('scroll',scrolled)
+            .call(zoom)
+            .on("dblclick.zoom", null);
+        
+        Chain.zoom = zoom;
+        /*
         const zoom = d3
             .zoom()
             .extent([
@@ -152,27 +181,32 @@ export class Chain {
             .on("zoom", () => {
                 subject.next(d3.event.transform);
             });
+            
         //Disable zooming the view on double tap to enable double clocking on backward links
-        //TODO: Add clickable button here for zooming in the searchbar-container
-        /*const divVerifier = liVerifier.append("div");
-        //REPLACE BY ZOOM ICONE
-*/
+        svg.call(zoom).on("dblclick.zoom", null);
+        Chain.zoom = zoom;
+        */
+        //svg.call(zoom).on("dblclick.zoom", null);
+        
+
+        //Drop down-menu for clickable zoom in & out
         const divZoomDropdown=d3.selectAll(".topnav")
             .append("div")
             .attr("class","dropdown");
-
+        
+            //contains zoom-in and zoom-out buttons
         const zoomButton= divZoomDropdown
             .append("button")
-            .attr("class","zoombtn"); //contains zoom-in and zoom-out buttons
+            .attr("class","zoombtn"); 
         zoomButton
             .append("svg")
             .attr("id", "svg-zoombtn")
             .attr("transform","translate(-5,0)")
             .append("image")
             .attr("x","5%")
-            .attr("y", "10%")
-            .attr("width", "20px")
-            .attr("height", "20px")
+            .attr("y", "15%")
+            .attr("width", "15px")
+            .attr("height", "15px")
             .attr("href", "assets/zoom-icon.svg"); 
 
         
@@ -199,12 +233,10 @@ export class Chain {
         const zoomFromButtons= d3.zoom().on("zoom", () => {
             subject.next(d3.event.transform)});
 
-        //How can I use "svg" here to apply the zoom transformation ?
+        //Zoom transformation when clicking on zoom buttons
         d3.select("#zoom-in").on('click', function() { zoomFromButtons.scaleBy(d3.select("#svg-container"), 1.2); });
         d3.select("#zoom-out").on('click', function() { zoomFromButtons.scaleBy(d3.select("#svg-container"), 0.8); });
 
-        svg.call(zoom).on("dblclick.zoom", null);
-        Chain.zoom = zoom;
         // This group will contain the left and right loaders that display a
         // spinner when new blocks are being added
         const gloader = svg.append("g").attr("id", "loader");
@@ -247,6 +279,10 @@ export class Chain {
                 // The blocks and arrows follow the transformations of the chain.
                 this.gblocks.attr("transform", transformString);
                 this.garrow.attr("transform", transformString);
+
+                // Move scrollbars on zoom
+                const svgWrapper = (d3.select('#div-blocks-wrapper').node() as any);
+                svgWrapper.scrollLeft = -d3.event.transform.x;
 
                 // Standard transformation on the text since we need to keep the
                 // original scale

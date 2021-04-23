@@ -39,6 +39,7 @@ div.query-answer {
     padding: 10px;
 }
 
+
 #query-card-container {
     overflow: auto;
     outline: 1px solid var(--selected-colour);
@@ -339,23 +340,28 @@ div.query-answer {
     left: 0;
 }
 
-div #div-blocks-wrapper {
-    position: relative;
+#div-blocks-wrapper {
     width: 842.283px;
-    height: 100%;
-    overflow:auto;
+    height: 200px;
+    overflow-x:auto;
+    overflow-y:hidden; //we do not wish to see a scrollbar on the y-axis
+
 }
 
 //zoom-in & out button
 .dropdown {
     position:relative;
-    left: -975px;
-    top:15px;
-    width: 30px;
-    height: 30px;
+    left: -980px;
+    top: 20px;
+    width: 25px;
+    height: 25px;
     border: 1px solid gray;
     
 }
+.dropdown:hover {
+    border-color: #006fff;
+}
+
 .zoombtn {
     position: relative;
     width: 100%;
@@ -375,6 +381,7 @@ div #div-blocks-wrapper {
     max-width:none;
 
 }
+
 .dropdown-zoom{
     position:relative;
     display:inline-block;
@@ -390,13 +397,11 @@ div #div-blocks-wrapper {
     z-index: 1;
     cursor: pointer;
 }
-
 .dropdown-zoom-content p {
     display: block;
     font-size: small;
     width: max-content;
 }
-
 .dropdown-zoom-content p:hover {
     color:#006fff;
 }
@@ -406,7 +411,8 @@ div #div-blocks-wrapper {
 #svg-container {
     display: flex;
     flex-direction: row;
-    width: 100%;
+    //width: 1100px; //addition was 100% before
+    max-width:none; //addition
 
 }
 ::-webkit-scrollbar {
