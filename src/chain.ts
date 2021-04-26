@@ -151,25 +151,28 @@ export class Chain {
             // Update zoom parameters based on scrollbar positions.
             svgWrapper.call(d3.zoom().translateTo, x / scale);
         }
+
+        function zoomed(){
+            subject.next(d3.event.transform);
+
+        }
         
-        const zoom = d3
-            .zoom()
-            .extent([
-                [0, 0],
-                [Chain.svgWidth, Chain.svgHeight],
-            ])
-            .scaleExtent([0.0001, 1.4])
-            .on("zoom", () => {
-                subject.next(d3.event.transform); 
-            });
-            
+        
+        const zoom=d3.zoom()
+        .extent([
+            [0, 0],
+            [Chain.svgWidth, Chain.svgHeight],
+        ])
+        .scaleExtent([0.0001, 1.4])
+        .on('zoom', zoomed);
 
         const divZoom = d3.select("#div-blocs-wrapper")
             .on('scroll',scrolled)
             .call(zoom)
             .on("dblclick.zoom", null);
+
+        Chain.zoom=zoom;
         
-        Chain.zoom = zoom;
         /*
         const zoom = d3
             .zoom()
