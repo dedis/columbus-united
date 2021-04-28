@@ -23,7 +23,7 @@
         "intro.js": "^3.4.0",
         "rxjs": "^6.6.2",
         "style-loader": "^1.2.1",
-        "uikit": "^3.5.9"
+        "uikit": "^3.6.20"
     },
     "devDependencies": {
         "@babel/core": "^7.11.1",

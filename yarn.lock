@@ -5901,10 +5901,10 @@
   "resolved" "https://registry.npmjs.org/uglify-js/-/uglify-js-3.10.1.tgz"
   "version" "3.10.1"
 
-"uikit@^3.5.9":
-  "integrity" "sha512-0197WceeBMlCLscsmds6zqL8K3TOtdUCvoHPJEuYqYY2gKa7JttlA6MiyzU0yBPzDlcawXF2TdOmQ/DWy6ZDEw=="
-  "resolved" "https://registry.npmjs.org/uikit/-/uikit-3.5.9.tgz"
-  "version" "3.5.9"
+"uikit@^3.6.20":
+  "integrity" "sha512-hq0vjW35JoedfVSjaJx8ZEXrE1hgDF8t1TEBUT6P7V3vepZ5U99rPu3HXl2bzR8c0XC0bdJ9Gcl9i03SsaeFyw=="
+  "resolved" "https://registry.npmjs.org/uikit/-/uikit-3.6.20.tgz"
+  "version" "3.6.20"
 
 "unicode-canonical-property-names-ecmascript@^1.0.4":
   "integrity" "sha512-jDrNnXWHd4oHiTZnx/ZG7gtUTVp+gCcTTKr8L0HjlwphROEW3+Him+IpvC+xcJEFegapiMZyZe02CyuOnRmbnQ=="
