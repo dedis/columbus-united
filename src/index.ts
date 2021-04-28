@@ -1,7 +1,7 @@
 import { Roster } from "@dedis/cothority/network";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import { SkipBlock } from "@dedis/cothority/skipchain/skipblock";
-import "uikit";
+import UIkit from "uikit";
 import { Block } from "./block";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
@@ -44,6 +44,17 @@ const rosterStr = getRosterStr();
  */
 export function sayHi() {
     initIntro();
+
+
+    //Roster selection
+    //UIkit.util.on('#save-roster','click', function(){console.log("notign");});
+    document.getElementById("save-roster").addEventListener('click', function (e) {
+        
+        const newRoster= (document.getElementById("text-roster") as HTMLTextAreaElement).value;
+        console.log(newRoster);
+        
+    });
+   
 
     // Create the roster
     const roster = Roster.fromTOML(rosterStr);
@@ -138,6 +149,20 @@ export function sayHi() {
             )
         );
 }
+
+/**
+ * Connect to the roster
+ * @param roster 
+ * @param skipchainIndex
+ * 
+ */
+export function connectRoster(
+    roster : Roster,
+    skipchainIndex : number
+){
+
+}
+
 
 /**
  * startColumbus starts the visualization
