@@ -24,10 +24,11 @@ _|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|
  */
 
 // This is the genesis block, which is also the Skipchain identifier
-const hashBlock0 =
+var hashBlock0 =
     "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
 // The roster configuration, parsed as a string
 const rosterStr = getRosterStr();
+
 
 /**
  *
@@ -45,17 +46,17 @@ const rosterStr = getRosterStr();
 export function sayHi() {
     initIntro();
 
-
+    
     //Roster selection
     //UIkit.util.on('#save-roster','click', function(){console.log("notign");});
+    startSkipchain(rosterStr,true);
     document.getElementById("save-roster").addEventListener('click', function (e) {
-        
-        const newRoster= (document.getElementById("text-roster") as HTMLTextAreaElement).value;
-        console.log(newRoster);
-        
+        const newRosterStr= (document.getElementById("text-roster") as HTMLTextAreaElement).value;
+        startSkipchain(newRosterStr,false); 
+       
     });
    
-
+    /*
     // Create the roster
     const roster = Roster.fromTOML(rosterStr);
 
@@ -148,6 +149,7 @@ export function sayHi() {
                 `Unable to start visualization: ${e}`
             )
         );
+        */
 }
 
 /**
@@ -156,10 +158,116 @@ export function sayHi() {
  * @param skipchainIndex
  * 
  */
-export function connectRoster(
-    roster : Roster,
-    skipchainIndex : number
+export function startSkipchain(
+    rosterStr : string,
+    defaultSkipchain : boolean
 ){
+    // Create the roster
+    const roster = Roster.fromTOML(rosterStr);
+
+    // Create the flash class that will handle the flash messages
+    const flash = new Flash();
+    if (!roster) {
+        flash.display(Flash.flashType.ERROR, "Roster is undefined");
+        return;
+    }
+
+
+    let initialBlockIndex: number;
+
+    const scRPC = new SkipchainRPC(roster);
+
+    //take the first skipchainID of the selected roster
+    if (!defaultSkipchain) {
+        scRPC.getAllSkipChainIDs().then(
+            (resp)=> {
+                //deconnect from first skipchain
+                location.reload();
+                hashBlock0 = resp[0].toString();
+
+
+            });
+    }
+
+    new SkipchainRPC(roster)
+        .getLatestBlock(Utils.hex2Bytes(hashBlock0), false, true)
+        .then((last) => {
+            // skipBlock of the last added block of the chain
+
+            // Url input from the user
+            const indexString = window.location.hash.split(":")[1];
+
+            if (indexString != null) {
+                // A block index is inputted
+                initialBlockIndex = parseInt(indexString, 10);
+
+                if (initialBlockIndex < 0) {
+                    // The block index should not be smaller than 0
+
+                    flash.display(
+                        Flash.flashType.ERROR,
+                        "index of initial block cannot be negative, specified index is " +
+                            initialBlockIndex
+                    );
+                }
+
+                if (initialBlockIndex > last.index) {
+                    // The block index should not be higher than the last added block
+                    flash.display(
+                        Flash.flashType.ERROR,
+                        "index of initial block cannot be higher than the last added block of the chain, specified index is " +
+                            initialBlockIndex
+                    );
+                    // Set initial index at last added block of the chain
+                    initialBlockIndex = last.index - Chain.numBlocks;
+                }
+            } else {
+                // The user does not input a block index in the url
+
+                // Size of container that welcoms the blocks
+                const containerSize = parseInt(
+                    d3.select("#svg-container").style("width")
+                );
+
+                // Display the correct amount of blocks to fit the end of the chain
+                initialBlockIndex =
+                    last.index -
+                    containerSize / (Chain.blockWidth + Chain.blockPadding);
+            }
+
+            if (initialBlockIndex < 0) {
+                // The block index should not be smaller than 0
+                // If it is negative, there a less blocks than the view can permit
+                // The initial block is 0
+                initialBlockIndex = 0;
+            }
+        })
+        .then(() => {
+            scRPC
+                .getSkipBlockByIndex(Utils.hex2Bytes(hashBlock0), 0)
+                .then((genesis) => {
+                    scRPC
+                        .getSkipBlockByIndex(
+                            Utils.hex2Bytes(hashBlock0),
+                            initialBlockIndex
+                        )
+                        .then((initialBlock) => {
+                            // Start the visualization
+                            startColumbus(
+                                genesis.skipblock,
+                                initialBlock.skipblock,
+                                roster,
+                                flash
+                            );
+                        });
+                });
+        })
+        .catch((e) =>
+            flash.display(
+                Flash.flashType.ERROR,
+                `Unable to start visualization: ${e}`
+            )
+        );
 
 }
 

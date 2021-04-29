@@ -111,8 +111,8 @@ export class Chain {
 
         // Main SVG canvas that contains the chain
         const svg = d3.select("#svg-container")
-            .attr("height", Chain.svgHeight)
-            .attr("width", Chain.svgWidth); //added for scrollbar
+            .attr("height", Chain.svgHeight);
+            //.attr("width", Chain.svgWidth); //added for scrollbar
 
         // This group will contain the blocks
         this.gblocks = svg.append("g").attr("class", "gblocks");
@@ -142,7 +142,9 @@ export class Chain {
             .attr("class", "x-axis")
             .attr("fill", "#8C764A")
             .call(xAxis);
-
+        
+         /*
+        //changes to add a scrollbar 
         // Update the subject when the view is dragged and zoomed in-out
         function scrolled(){
             const svgWrapper = (d3.select("#div-blocks-wrapper") as any);
@@ -172,8 +174,9 @@ export class Chain {
             .on("dblclick.zoom", null);
 
         Chain.zoom=zoom;
-        
-        /*
+
+        */
+       
         const zoom = d3
             .zoom()
             .extent([
@@ -188,10 +191,7 @@ export class Chain {
         //Disable zooming the view on double tap to enable double clocking on backward links
         svg.call(zoom).on("dblclick.zoom", null);
         Chain.zoom = zoom;
-        */
-        //svg.call(zoom).on("dblclick.zoom", null);
         
-
         //Drop down-menu for clickable zoom in & out
         const divZoomDropdown=d3.selectAll(".topnav")
             .append("div")
@@ -284,8 +284,8 @@ export class Chain {
                 this.garrow.attr("transform", transformString);
 
                 // Move scrollbars on zoom
-                const svgWrapper = (d3.select('#div-blocks-wrapper').node() as any);
-                svgWrapper.scrollLeft = -d3.event.transform.x;
+                //const svgWrapper = (d3.select('#div-blocks-wrapper').node() as any);
+                //svgWrapper.scrollLeft = -d3.event.transform.x;
 
                 // Standard transformation on the text since we need to keep the
                 // original scale
