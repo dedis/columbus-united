@@ -127,6 +127,17 @@ export class Chunk {
 
         this.setSubjectBrowse();
 
+        this.chainSubject.subscribe({
+            next: (transform: any) => {
+                this.lastTransform = transform;
+                this.gloader.attr("transform", transform);
+                // // resize the loaders to always have a relative scale of 1
+                this.gloader
+                    .selectAll("svg")
+                    .attr("transform", `scale(${1 / transform.k})`);
+            },
+        });
+
         // Handler to check if new blocks need to be loaded. We check once we
         // don't receive new event for 50ms.
         this.chainSubject.pipe(debounceTime(50)).subscribe({

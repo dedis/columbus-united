@@ -40,7 +40,16 @@ export class LastAddedBlock {
             .attr("height", this.svgHeight);
 
         // Fetch the last block from the Cothority client
-        new SkipchainRPC(roster)
+        this.getLastBlock(roster, initialBlock, blockClickedSubject, svgLast);
+    }
+
+    private async getLastBlock(
+        roster: Roster,
+        initialBlock: SkipBlock,
+        blockClickedSubject: Subject<SkipBlock>,
+        svgLast: any
+    ) {
+        await new SkipchainRPC(roster)
             .getLatestBlock(initialBlock.hash, false, true)
             .then((resp) => {
                 this.lastBlock = resp;
@@ -52,7 +61,7 @@ export class LastAddedBlock {
                 );
             })
             .catch((e) =>
-                flash.display(
+                this.flash.display(
                     Flash.flashType.ERROR,
                     `Cannot fetch latest block: ${e}`
                 )
