@@ -47,10 +47,10 @@ export class LastAddedBlock {
             .attr("height", this.svgHeight);
 
         // Fetch the last block from the Cothority client
-        this.get();
+        this.getLastBlock();
     }
 
-    private async get() {
+    private async getLastBlock() {
         await new SkipchainRPC(this.roster)
             .getLatestBlock(this.initialBlock.hash, false, true)
             .then((resp) => {
