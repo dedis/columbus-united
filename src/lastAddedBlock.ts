@@ -25,9 +25,7 @@ export class LastAddedBlock {
 
     // The last added block of the chain
     lastBlock: SkipBlock;
-    roster: Roster;
-    initialBlock: SkipBlock;
-    blockClickedSubject: Subject<SkipBlock>;
+
     svgLast: any;
 
     constructor(
@@ -37,9 +35,6 @@ export class LastAddedBlock {
         blockClickedSubject: Subject<SkipBlock>
     ) {
         this.flash = flash;
-        this.roster = roster;
-        this.initialBlock = initialBlock;
-        this.blockClickedSubject = blockClickedSubject;
 
         // Main SVG canvas that contains the last added block of the chain
         this.svgLast = d3
@@ -47,19 +42,23 @@ export class LastAddedBlock {
             .attr("height", this.svgHeight);
 
         // Fetch the last block from the Cothority client
-        this.getLastBlock();
+        this.getLastBlock(roster, initialBlock, blockClickedSubject);
     }
 
-    private async getLastBlock() {
-        await new SkipchainRPC(this.roster)
-            .getLatestBlock(this.initialBlock.hash, false, true)
+    private async getLastBlock(
+        roster: Roster,
+        initialBlock: SkipBlock,
+        blockClickedSubject: Subject<SkipBlock>
+    ) {
+        await new SkipchainRPC(roster)
+            .getLatestBlock(initialBlock.hash, false, true)
             .then((resp) => {
                 this.lastBlock = resp;
                 this.displayLastAddedBlock(
                     resp,
                     this.svgLast,
                     resp.hash,
-                    this.blockClickedSubject
+                    blockClickedSubject
                 );
             })
             .catch((e) =>
