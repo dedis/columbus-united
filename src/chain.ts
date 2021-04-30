@@ -147,9 +147,11 @@ export class Chain {
         //changes to add a scrollbar 
         // Update the subject when the view is dragged and zoomed in-out
         function scrolled(){
+
             const svgWrapper = (d3.select("#div-blocks-wrapper") as any);
             const x = svgWrapper.node().scrollLeft + svgWrapper.node().clientWidth / 2;
             const scale = d3.zoomTransform(svgWrapper.node()).k;
+
             // Update zoom parameters based on scrollbar positions.
             svgWrapper.call(d3.zoom().translateTo, x / scale);
         }
@@ -427,4 +429,6 @@ export class Chain {
             },
         });
     }
+
+   
 }

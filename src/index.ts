@@ -48,10 +48,14 @@ export function sayHi() {
 
     
     //Roster selection
-    //UIkit.util.on('#save-roster','click', function(){console.log("notign");});
+
+    //1. default roster
     startSkipchain(rosterStr,true);
+
+    //2. selected roster by user
     document.getElementById("save-roster").addEventListener('click', function (e) {
         const newRosterStr= (document.getElementById("text-roster") as HTMLTextAreaElement).value;
+        console.log(newRosterStr);
         startSkipchain(newRosterStr,false); 
        
     });
@@ -174,16 +178,17 @@ export function startSkipchain(
 
 
     let initialBlockIndex: number;
-
+    
     const scRPC = new SkipchainRPC(roster);
 
     //take the first skipchainID of the selected roster
     if (!defaultSkipchain) {
         scRPC.getAllSkipChainIDs().then(
             (resp)=> {
-                //deconnect from first skipchain
-                location.reload();
-                hashBlock0 = resp[0].toString();
+                //hashBlock 0 of new roster
+                var re = /[0-9A-Fa-f]{6}/g; //for testing that hashBlock0 is valid hex string
+                hashBlock0 = Utils.bytes2String(resp[0]);
+                console.log(re.test(hashBlock0));
 
 
             });
@@ -257,7 +262,8 @@ export function startSkipchain(
                                 genesis.skipblock,
                                 initialBlock.skipblock,
                                 roster,
-                                flash
+                                flash,
+                                defaultSkipchain
                             );
                         });
                 });
@@ -284,11 +290,19 @@ export function startColumbus(
     genesisBlock: SkipBlock,
     initialBlock: SkipBlock,
     roster: Roster,
-    flash: Flash
+    flash: Flash,
+    defaultSkipchain: Boolean
 ) {
+
+    if(!defaultSkipchain){
+        d3.select("#svg-container").selectAll("*").remove();
+        d3.select(".dropdown").remove();
+        d3.select("#last-container").selectAll("*").remove();
+    }
+    console.log("skipchain was reset");
     // The chain is loaded at block 0 and then moved to the desired place
     const chain = new Chain(roster, flash, genesisBlock);
-
+    
     // The translation is done to the initialBlock
     Utils.translateOnChain(initialBlock.index, genesisBlock.index);
 
