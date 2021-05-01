@@ -410,44 +410,31 @@ export class Block {
         const transactionCardHeader = transactionCard.append("div");
         transactionCardHeader.attr("class", "uk-card-header uk-padding-small");
 
+        //
+        const downloadButton = transactionCardHeader
+        .append("h3") // pas mis div pck
+        .html(downloadIconScript())
+        .attr("class", "download-icon-1")
+        .on("click", function () {
+            // Auto click on a element, trigger the file download
+            const blobConfig = BTexportDataBlob(block);
+            // Convert Blob to URL
+            const blobUrl = URL.createObjectURL(blobConfig);
+
+            // Create an a element with blob URL
+            const anchor = document.createElement("a");
+            anchor.href = blobUrl;
+            anchor.target = "_blank";
+            anchor.download = `block_${block.index}_data.json`;
+            anchor.click();
+            URL.revokeObjectURL(blobUrl);
+        });
+        
         const transactionCardHeaderTitle = transactionCardHeader.append("h3");
         transactionCardHeaderTitle
             .attr("class", "transaction-card-header-title")
             .text(`Transaction details`);
-
-        //code added//
-        const downloadButton = transactionCardHeaderTitle
-            .append("div") // pas mis div pck
-            .html(downloadIconScript())
-            .attr("class", "download-icon-1")
-            //.attr("type", "image/svg+xml")
-            //.attr("width", 25)
-            //.attr("height", 25)
-            /*.style("padding-left", 5)
-            .attr("data", "assets/download-data-icon.svg")
-            .on("mouseover", function(){
-                d3.select(this)
-                .style("cursor", "pointer");
-            })
-            .on("mouseout", function(){
-                d3.select(this)
-                .style("cursor", "default");
-            })*/
-            .on("click", function () {
-                // Auto click on a element, trigger the file download
-                const blobConfig = BTexportDataBlob(block);
-                // Convert Blob to URL
-                const blobUrl = URL.createObjectURL(blobConfig);
-
-                // Create an a element with blob URL
-                const anchor = document.createElement("a");
-                anchor.href = blobUrl;
-                anchor.target = "_blank";
-                anchor.download = `block_${block.index}_data.json`;
-                anchor.click();
-                URL.revokeObjectURL(blobUrl);
-            });
-        //
+        
         ///
 
         const body = DataBody.decode(block.payload);
@@ -688,34 +675,100 @@ export class Block {
 
                     //ANCHOR Browse button
                     const searchInstance = divInstruction.append("li");
-                    searchInstance.attr("id", "button-browse");
-                    const searchButton = searchInstance.append("button");
-                    searchButton
-                        .attr("class", "uk-button uk-button-default")
-                        .text(`Search `);
-                    searchInstance.append("span").text(" for ");
+                    searchInstance.append("span").attr("class", "search-text").text(" Search for ");
 
-                    const formTag = searchInstance
+                    /*const formTag = searchInstance
+                        .append("span")
+                        .append("form")
+                    */
+                    // code added 
+                    const numberTag = searchInstance
                         .append("span")
                         .append("form")
                         .style("display", "inline");
+                    
+                    numberTag
+                        .append("input")
+                        .attr("type", "number")
+                        .attr("min", "1")
+                        .attr("max", "1000") //random max
+                        //.attr("width", "20%")
+                        .attr("id", "queryNumber")
+                        .attr("class", "search-value uk-input");
 
+                    const directionTag  = numberTag
+                        .append("span")
+                        .append("form")
+                        //.attr("width", "20%")
+                        .style("display", "inline");
+                    
+                    const directionSelect = directionTag
+                        .append("select")
+                        .attr("value", "0") // added cherche lex X previous par défaut
+                        .attr("height", "20px")
+                        .attr("class", "search-value uk-select");
+                    
+                    directionSelect
+                        .append("option")
+                        .attr("value", "0")
+                        .text("previous");
+                    
+                    directionSelect
+                        .append("option")
+                        .attr("value", "1")
+                        .text("next")
+
+                    directionSelect
+                        .append("option")
+                        .attr("value", "-1")
+                        .text("first");
+                    
+                    
+                    directionTag.append("span").text(" instructions related to this instance ").style("display", "block");
+                    //
+                    const searchButton = searchInstance.append("button");
+                    searchButton
+                        .attr("class", "uk-button uk-button-default")
+                        .text(` Search `);
+                    // 
+
+                    var chosenQueryNumber = 0;
+                    numberTag.on("change", function() {
+                        chosenQueryNumber = parseInt((<HTMLInputElement>document.getElementById("queryNumber")).value);
+                        console.log(`new query number:${chosenQueryNumber}`);
+                    });
+
+                    var directionQuery = true; //initialement previous
+                    var startWithFirstBlock = false;
+                    directionSelect.on("change", function () {
+                        var query = parseInt(this.options[this.selectedIndex].value);
+                        if(query == 0){
+                            directionQuery = true; //previous => backward = true, -1
+                        } else {
+                            directionQuery = false;
+                        }
+                        if(query == -1){
+                            startWithFirstBlock = true;
+                        }
+                        //console.log(`new query direction:${directionQuery}`);
+                    });
                     //Dropdown menu to select the number of reults the tracker should return.
-                    const formSelect = formTag
+                    /*const formSelect = formTag
                         .append("select")
                         .attr("value", "10")
                         .attr("class", "uk-select");
+                    */
 
-                    formSelect
+                    /*formSelect
                         .append("option")
                         .attr("value", "-1")
                         .text("All instructions related to this instance");
-
-                    formSelect.append("option").attr("value", "100").text(
+                    */
+                    /* formSelect.append("option").attr("value", "100").text(
                         "The 100 previous instructions related to this instance" //modified
                     );
 
-                    formSelect.append("option").attr("value", "50").text(
+                    //formSelect.append("option").attr("value", "50").text(
                         "The 50 previous instructions related to this instance" //modified
                     );
 
@@ -732,16 +785,28 @@ export class Block {
                         chosenQuery = parseInt(
                             this.options[this.selectedIndex].value
                         );
-                    });
+                    });*/
+                    //var chosenQuery = -1;
 
                     searchButton
                         // Confirmation and start browsing on click
                         // tslint:disable-next-line
                         .on("click", function () {
-                            self.launchQuery(
-                                chosenQuery,
-                                instruction.instanceID.toString("hex")
-                            );
+                            if(chosenQueryNumber != 0){
+                                self.launchQuery(
+                                    chosenQueryNumber,
+                                    instruction.instanceID.toString("hex"),
+                                    directionQuery,
+                                    startWithFirstBlock
+                                );
+                            } else { //Added 
+                                self.launchQuery(
+                                    10,
+                                    instruction.instanceID.toString("hex"),
+                                    directionQuery,
+                                    startWithFirstBlock
+                                );
+                            }
                         });
                 }
             ); //!SECTION
@@ -759,7 +824,7 @@ export class Block {
      * @memberof DetailBlock
      */
 
-    public launchQuery(chosenQuery: number, instanceID: string) {
+    public launchQuery(chosenQuery: number, instanceID: string, direction : boolean, fromFirstBlock: boolean) { //added direction argument
         const self = this;
         self.createLoadingScreen();
         //code added !! si query = all alors on n'aura pas vraiment cherché dans tous les blocks
@@ -771,7 +836,9 @@ export class Block {
         const subjects = self.lifecycle.getInstructionSubject(
             instanceID,
             chosenQuery,
-            clickedBlockHash //modified:added an argument -> the hash of the clicked block
+            clickedBlockHash, //modified:added an argument -> the hash of the clicked block
+            direction, //code added
+            fromFirstBlock //code added
         );
         subjects[0].subscribe({
             next: self.printDataBrowsing.bind(self),
@@ -1253,7 +1320,9 @@ function ISexportDataBlob(tuple: [SkipBlock[], Instruction[]]) {
 
         var argsData = new Array();
         instruction.beautify().args.forEach((arg, i) => {
-            const argEntries = [arg.name, arg.value];
+            const argEntries = {
+                "name" : arg.name,
+                "value" :  arg.value };
             argsData.push(argEntries);
         });
 

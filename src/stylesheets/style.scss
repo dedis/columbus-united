@@ -94,49 +94,13 @@ div.query-answer {
     color: #666;
     font-size: 1.3em;
 }
-//code added: change the download icon color on hover
-.download-icon-1 {
-    display: inline-block;
-    padding-left: 2px;
-    svg {
-        width: 30px;
-        height: 30px;
-        cursor: default;
-        path {
-            stroke: black;
-        }
 
-        &:hover path {
-            stroke: #006fff;
-            cursor: pointer;
-        }
-    }
-}
-
-.download-icon-2 {
-    display: inline-block;
-    padding-right: 150px;
-    svg {
-        width: 30px;
-        height: 30px;
-        cursor: default;
-        path {
-            stroke: black;
-        }
-
-        &:hover path {
-            stroke: #006fff;
-            cursor: pointer;
-        }
-    }
-}
-
-//
 
 //code added: change the download icon color on hover
 .download-icon-1{
-    display:inline-block;
+    //display:inline-block;
     padding-left: 2px;
+    float: right;
     svg{
         width:30px;
         height: 30px;
@@ -153,11 +117,12 @@ div.query-answer {
 }
 
 .download-icon-2{
-    display:inline-block;
-    padding-right: 150px;
+    //display:inline-block;
+    //padding-right: 150px;
+    float: right;
     svg{
-        width:30px;
-        height: 30px;
+        width:25px;
+        height: 25px;
         cursor: default;
         path{
             stroke: black;
@@ -500,16 +465,24 @@ div.query-answer {
     }
 }
 
-.uk-select {
-    width: 60%;
+
+
+//code added
+.search-value {
+    width: 30%;  
 }
+
+.search-text{
+    font-weight: 900;
+}
+
 
 #button-browse {
     padding: 8px;
-    margin-left: auto;
-    margin-right: auto;
+    //margin-left: auto;    //modified
+    //margin-right: auto;   //modified
     display: block;
-    width: 60%;
+    width: 100%;        //modified was 60%
     border-width: 2px;
 }
 
@@ -566,8 +539,12 @@ List of classes for the new transaction container
     padding: 8px;
 }
 
-.uk-accordion * {
+.uk-accordion * { //removed *
     color: #ffffff;
+    //added
+    .search-value {
+        color : black;
+    }
 }
 
 .uk-accordion-content {

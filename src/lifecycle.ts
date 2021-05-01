@@ -47,6 +47,8 @@ export class Lifecycle {
     abort: boolean;
     flash: Flash;
 
+    //searchDir:boolean
+
     /**
      * Creates an instance of Browsing.
      * @param {Roster} roster
@@ -95,8 +97,10 @@ export class Lifecycle {
      */
     getInstructionSubject(
         instanceID: string,
-        maxNumberOfBlocks: number = -1,
-        initHash: string //Added
+        maxNumberOfBlocks: number = -1, //changed was -1
+        initHash: string, //Added
+        direction: boolean, //added
+        fromFirstBlock: boolean
     ): [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>] {
         const self = this;
 
@@ -118,9 +122,10 @@ export class Lifecycle {
         this.contractID = instanceID;
 
         this.abort = false;
+        //this.searchDir = (direction != -1 ? false : true)
 
         //modified -> recherche all ! recherche nombre
-        if (maxNumberOfBlocks == -1) {
+        if (fromFirstBlock == true ) {
             this.browse(
                 this.pageSize,
                 this.numPages,
@@ -130,10 +135,10 @@ export class Lifecycle {
                 [],
                 [],
                 maxNumberOfBlocks,
-                false //direction of the search, backward= true -> forward = false
+                direction //direction of the search, backward= true -> forward = false
             );
         } else {
-            this.browse(
+        this.browse(
                 this.pageSize,
                 this.numPages,
                 initHash, //modified
@@ -142,7 +147,7 @@ export class Lifecycle {
                 [],
                 [],
                 maxNumberOfBlocks,
-                true
+                direction
             );
         }
         return [subjectInstruction, subjectProgress];
@@ -258,14 +263,23 @@ export class Lifecycle {
                             (skipBlock.forwardLinks.length !== 0 || skipBlock.backlinks.length !=0) &&
                             !this.abort
                         ) {
-                            this.nextIDB =
-                                maxNumberOfBlocks != -1
+                            if(direction){
+                                this.nextIDB = Utils.bytes2String(
+                                    skipBlock.backlinks[0]);
+                            } else{
+
+                                this.nextIDB =  Utils.bytes2String(
+                                    skipBlock.forwardLinks[0].to);
+                            }
+                            /*
+                            this.nextIDB = //modified
+                                direction != false
                                     ? Utils.bytes2String(
                                           skipBlock.backlinks[0] //modified was .to
                                       )
                                     : Utils.bytes2String(
                                           skipBlock.forwardLinks[0].to
-                                      ); //was modified
+                                      ); //was modified*/
 
                             pageDone = 0;
                             this.getNextBlocks(
@@ -351,13 +365,20 @@ export class Lifecycle {
         }
 
         if (this.ws !== undefined) {
-            const message = new PaginateRequest({
+
+            const message =  /*direction != -1 ? new PaginateRequest({
+                startid: bid,
+
+                pagesize: pageSizeNB, // tslint:disable-next-line
+                numpages: numPagesNB,
+                backward: this., // modifed was false
+            }) : */new PaginateRequest({
                 startid: bid,
 
                 pagesize: pageSizeNB, // tslint:disable-next-line
                 numpages: numPagesNB,
                 backward: direction, // modifed was false
-            });
+            })
 
             const messageByte = Buffer.from(
                 message.$type.encode(message).finish()
@@ -371,12 +392,13 @@ export class Lifecycle {
 
                     pagesize: pageSizeNB, // tslint:disable-next-line
                     numpages: numPagesNB,
-                    backward: direction, //modified was false
+                    backward: direction, //modified was false  , direction
                 }),
                 PaginateResponse
             ).subscribe({
                 complete: () => {
                     this.flash.display(Flash.flashType.INFO, "closed");
+                    
                 },
                 error: (err: Error) => {
                     this.flash.display(Flash.flashType.ERROR, `error: ${err}`);

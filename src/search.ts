@@ -138,7 +138,7 @@ async function searchRequest(
                         Flash.flashType.INFO,
                         `Browsing the chain for instance ID : ${input}`
                     );
-                    block.launchQuery(50, input.toString());
+                    block.launchQuery(50, input.toString(),true,false); //modified
                 }
             }
             break;
@@ -176,7 +176,7 @@ async function searchRequest(
                 Flash.flashType.INFO,
                 `Browsing the chain for instance ID : ${input}`
             );
-            block.launchQuery(50, input.toString());
+            block.launchQuery(50, input.toString(),true,false); //modifed
             break;
     }
 
