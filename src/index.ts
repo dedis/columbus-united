@@ -298,6 +298,11 @@ function initIntro() {
                     position: "top",
                 },
                 {
+                    element: document.getElementById("status-info"),
+                    intro: "By clicking on the Roster button, you can select a new roster by copy pasting the roster.toml infos and load a new Skipchain on the explorer!",
+                    position: "top",
+                },
+                {
                     element: document.getElementById("step7"),
                     intro: "Congrats we are done ! Happy exploring :-)",
                     position: "top",
