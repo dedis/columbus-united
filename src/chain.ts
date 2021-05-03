@@ -109,6 +109,9 @@ export class Chain {
         // This subject will be notified when the main SVG canvas in moved by the user
         const subject = new Subject();
 
+        //When a new chain is created the number of loaded blocks is reset
+        Chain.totalLoaded = 0;
+
         // Main SVG canvas that contains the chain
         const svg = d3.select("#svg-container")
             .attr("height", Chain.svgHeight);

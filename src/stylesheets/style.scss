@@ -708,6 +708,10 @@ List of classes for the new transaction container
     }
 }
 
+#select-roster {
+    background:rgba(0,0,0,0.5); //darken background to overwrite .uk-open background-color 
+}
+
 
 .x-axis {
     text-anchor: start;
