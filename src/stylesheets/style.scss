@@ -118,7 +118,7 @@ div.query-answer {
 
 .download-icon-2{
     //display:inline-block;
-    //padding-right: 150px;
+    padding-left: 4px;
     float: right;
     svg{
         width:25px;
@@ -133,6 +133,13 @@ div.query-answer {
             cursor:pointer;
         }
     }
+}
+
+.search-button{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-right: 50px;
 }
 
 //

@@ -260,16 +260,16 @@ export class Lifecycle {
                     if (pageDone >= numPagesB) {
                         // condition to end the browsing
                         if ( // added skipBlock.backlinks.length !=0
-                            (skipBlock.forwardLinks.length !== 0 || skipBlock.backlinks.length !=0) &&
+                            (skipBlock.forwardLinks[0].to.length !== 0 || skipBlock.backlinks[0].length !=0) &&
                             !this.abort
                         ) {
                             if(direction){
-                                this.nextIDB = Utils.bytes2String(
-                                    skipBlock.backlinks[0]);
+                                    this.nextIDB = Utils.bytes2String(
+                                        skipBlock.backlinks[0]);
+                     
                             } else{
-
-                                this.nextIDB =  Utils.bytes2String(
-                                    skipBlock.forwardLinks[0].to);
+                                    this.nextIDB =  Utils.bytes2String(
+                                        skipBlock.forwardLinks[0].to);
                             }
                             /*
                             this.nextIDB = //modified
@@ -366,13 +366,7 @@ export class Lifecycle {
 
         if (this.ws !== undefined) {
 
-            const message =  /*direction != -1 ? new PaginateRequest({
-                startid: bid,
-
-                pagesize: pageSizeNB, // tslint:disable-next-line
-                numpages: numPagesNB,
-                backward: this., // modifed was false
-            }) : */new PaginateRequest({
+            const message = new PaginateRequest({
                 startid: bid,
 
                 pagesize: pageSizeNB, // tslint:disable-next-line
@@ -398,11 +392,13 @@ export class Lifecycle {
             ).subscribe({
                 complete: () => {
                     this.flash.display(Flash.flashType.INFO, "closed");
-                    
+
                 },
                 error: (err: Error) => {
                     this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
                     this.ws = undefined;
+                    //added
+                    this.abort = true
                 },
                 // ws callback "onMessage":
                 next: ([data, ws]) => {

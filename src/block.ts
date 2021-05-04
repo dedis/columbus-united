@@ -5,6 +5,7 @@ import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable, Subject } from "rxjs";
+import { connectableObservableDescriptor } from "rxjs/internal/observable/ConnectableObservable";
 import { throttleTime } from "rxjs/operators";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
@@ -726,7 +727,7 @@ export class Block {
                     
                     directionTag.append("span").text(" instructions related to this instance ").style("display", "block");
                     //
-                    const searchButton = searchInstance.append("button");
+                    const searchButton = searchInstance.append("div").attr("class", "search-button").append("button");
                     searchButton
                         .attr("class", "uk-button uk-button-default")
                         .text(` Search `);
@@ -735,7 +736,7 @@ export class Block {
                     var chosenQueryNumber = 0;
                     numberTag.on("change", function() {
                         chosenQueryNumber = parseInt((<HTMLInputElement>document.getElementById("queryNumber")).value);
-                        console.log(`new query number:${chosenQueryNumber}`);
+                        console.log(`new query number:${chosenQueryNumber}`); //à enlever pour debug
                     });
 
                     var directionQuery = true; //initialement previous
@@ -828,6 +829,7 @@ export class Block {
         const self = this;
         self.createLoadingScreen();
         //code added !! si query = all alors on n'aura pas vraiment cherché dans tous les blocks
+        this.flash.display(Flash.flashType.INFO, 'Query launched : browsed informations are at the bottom of the page')
         const clickedBlockHash = this.clickedBlock.hash
             .toString("hex")
             .valueOf();
