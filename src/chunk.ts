@@ -544,7 +544,7 @@ export class Chunk {
             // Append arrows between blocks
             this.getToAndFromIndexes(xTranslateBlock, block, garrow);
 
-            // this.appendCircleInBlock(xTranslateBlock, gcircle);
+            this.appendCircleInBlock(xTranslateBlock, d3.selectAll(".gcircle"));
         }
 
         // Notify the subject that new blocks have been added
@@ -899,15 +899,15 @@ export class Chunk {
     private appendCircleInBlock(xTranslate: number, gcircle: any) {
         gcircle
             .append("circle")
-            .attr("cx", xTranslate + 35)
-            .attr("cy", 40)
+            .attr("cx", xTranslate + 20)
+            .attr("cy", 32)
             .attr("r", 6)
             .attr("fill", "#b3ffb3");
 
         gcircle
             .append("circle")
-            .attr("cx", xTranslate + Chain.blockWidth - 35)
-            .attr("cy", 40)
+            .attr("cx", xTranslate + Chain.blockWidth - 20)
+            .attr("cy", 32)
             .attr("r", 6)
             .attr("fill", "#EF5959");
     }
