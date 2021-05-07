@@ -93,7 +93,7 @@ export class Chain {
     // The first block displayed by the chain.
     initialBlock: SkipBlock;
 
-    lastAddedBlock: SkipBlock;
+    lastAddedBlock: LastAddedBlock;
 
     // Coordinates and scale factor of the view of the chain
     lastTransform = { x: 0, y: 0, k: 1 };
@@ -207,10 +207,10 @@ export class Chain {
         // Initialize the last added block of the chain in its dedicated space
         // It is initialized here as it takes longer to load.
         // We need to use it when creating new chunks
-        const lastAddedBlock = new LastAddedBlock(
-            roster,
-            flash,
-            initialBlock,
+        this.lastAddedBlock = new LastAddedBlock(flash);
+        this.lastAddedBlock.init(
+            this.roster,
+            this.initialBlock,
             this.blockClickedSubject
         );
 
@@ -301,9 +301,9 @@ export class Chain {
 
                     if (
                         bounds.left + (bounds.right - bounds.left) / 2 >
-                        lastAddedBlock.lastBlock.index
+                        this.lastAddedBlock.lastBlock.index
                     ) {
-                        bounds.right = lastAddedBlock.lastBlock.index;
+                        bounds.right = this.lastAddedBlock.lastBlock.index;
                     } else {
                         bounds.left =
                             bounds.left + (bounds.right - bounds.left) / 2;
@@ -318,7 +318,7 @@ export class Chain {
                         rightNei,
                         bounds,
                         initialBlock,
-                        lastAddedBlock,
+                        this.lastAddedBlock,
                         subject,
                         this.getNewBlocksSubject,
                         this.blockClickedSubject
