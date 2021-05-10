@@ -8,6 +8,7 @@ import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
 import { getRosterStr } from "./roster";
 import { searchBar } from "./search";
+import { Status } from "./status";
 import "./stylesheets/style.scss";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
@@ -204,6 +205,7 @@ export function startColumbus(
         d3.select("#svg-container").selectAll("*").remove();
         d3.select(".dropdown").remove();
         d3.select("#last-container").selectAll("*").remove();
+        d3.select("#status").selectAll("*").remove();
     }
   
     // The chain is loaded at block 0 and then moved to the desired place
@@ -220,6 +222,9 @@ export function startColumbus(
     // Create the browsing instance, which is used by the detailBlock class when a
     // user wants to get the lifecycle of an instance.
     const lifecycle = new Lifecycle(roster, flash, totalBlock, hashBlock0);
+
+    //Display status of nodes and statistics of the blockchain
+    const SkipchainStatus = new Status(roster);
 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
@@ -241,6 +246,8 @@ export function startColumbus(
         chain.blockClickedSubject,
         block
     );
+
+    
 }
 
 function initIntro() {

@@ -145,43 +145,7 @@ export class Chain {
             .attr("class", "x-axis")
             .attr("fill", "#8C764A")
             .call(xAxis);
-        
-         /*
-        //changes to add a scrollbar 
-        // Update the subject when the view is dragged and zoomed in-out
-        function scrolled(){
-
-            const svgWrapper = (d3.select("#div-blocks-wrapper") as any);
-            const x = svgWrapper.node().scrollLeft + svgWrapper.node().clientWidth / 2;
-            const scale = d3.zoomTransform(svgWrapper.node()).k;
-
-            // Update zoom parameters based on scrollbar positions.
-            svgWrapper.call(d3.zoom().translateTo, x / scale);
-        }
-
-        function zoomed(){
-            subject.next(d3.event.transform);
-
-        }
-        
-        
-        const zoom=d3.zoom()
-        .extent([
-            [0, 0],
-            [Chain.svgWidth, Chain.svgHeight],
-        ])
-        .scaleExtent([0.0001, 1.4])
-        .on('zoom', zoomed);
-
-        const divZoom = d3.select("#div-blocs-wrapper")
-            .on('scroll',scrolled)
-            .call(zoom)
-            .on("dblclick.zoom", null);
-
-        Chain.zoom=zoom;
-
-        */
-       
+              
         const zoom = d3
             .zoom()
             .extent([
@@ -196,7 +160,45 @@ export class Chain {
         //Disable zooming the view on double tap to enable double clocking on backward links
         svg.call(zoom).on("dblclick.zoom", null);
         Chain.zoom = zoom;
+
+        //scrollbar
+        const scrollbar = svg.append("g")
+                .attr("transform", "translate(0,90)"); //move the bar to the bottom of the chain
+        //scrollbar-mover
+        const drag = d3.zoom()
+            .translateExtent([
+                [0, 0],
+                [Chain.svgWidth, Chain.svgHeight],
+            ])
+            .on("zoom",scrollbarDrag)
+               
+        scrollbar
+              .append("rect")
+              .attr("class", "mover")
+              .attr("x", Chain.svgWidth/2)
+              .attr("y", Chain.svgHeight/2)
+              .attr("rx", "5px")
+              .attr("width", Math.round(Chain.svgWidth/Chain.numBlocks))
+              .call(drag); 
         
+    //TODO FIX THE BUGGY sliding
+        function scrollbarDrag(){
+
+            const x = parseInt(d3.select(this).attr("x"));
+            var nx= x + d3.event.transform.x;
+            if (nx < 0) {
+                nx=40;
+            }
+            if (nx > Chain.svgWidth) {
+                nx = Chain.svgWidth/2;
+            }
+            
+            console.log(d3.event.transform+"from scrollbar");
+            d3.select(".mover").attr("x", nx);
+
+            subject.next(d3.event.transform);
+        }
+               
         //Drop down-menu for clickable zoom in & out
         const divZoomDropdown=d3.selectAll(".topnav")
             .append("div")
@@ -255,7 +257,7 @@ export class Chain {
         subject.subscribe({
             next: (transform: any) => {
                 this.lastTransform = transform;
-
+                console.log(transform + "from subject");
                 // This line disables translate to the left. (for reference)
                 // transform.x = Math.min(0, transform.x);
 
@@ -288,7 +290,17 @@ export class Chain {
                 this.gblocks.attr("transform", transformString);
                 this.garrow.attr("transform", transformString);
 
+
                 // Move scrollbars on zoom
+                const x = parseInt(d3.select(".mover").attr("x"));
+                var nx= x + d3.event.transform.x;
+                //handle edge cases
+                if(nx<0){ nx=0; }
+                if ( nx > Chain.svgWidth) { nx = Chain.svgWidth; }
+                d3.select(".mover").attr("x",nx);
+
+                //d3.select("#mover").attr("transform", transformString); 
+                
                 //const svgWrapper = (d3.select('#div-blocks-wrapper').node() as any);
                 //svgWrapper.scrollLeft = -d3.event.transform.x;
 

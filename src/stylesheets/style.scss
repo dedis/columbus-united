@@ -309,6 +309,13 @@ div.query-answer {
     height: 200px;
 }
 
+.mover {
+    fill: grey;
+    height: 6px;
+    pointer-events:all;
+    cursor:ew-resize;
+}
+
 #last-container {
     display: flex;
     margin-left: 35px;
@@ -340,14 +347,16 @@ div.query-answer {
     left: 0;
 }
 
-#div-blocks-wrapper {
-    width: 842.283px;
-    height: 200px;
-    overflow-x:auto;
-    overflow-y:hidden; //we do not wish to see a scrollbar on the y-axis
-
+#status {
+    background-color: white;
+    outline: groove rgba(204, 204, 204, 0.3);
+    margin: 10px;
 }
 
+#statusLi {
+    color:none;
+    background-color: white;
+}
 //zoom-in & out button
 .dropdown {
     position:relative;
@@ -408,9 +417,9 @@ div.query-answer {
 #svg-container {
     display: flex;
     flex-direction: row;
-    width:100%;
-    //width: 1100px; //addition was 100% before
-    max-width:none; //addition
+    //width:100%;
+    width: 90vw; //addition was 100% before
+    //max-width:none; //addition
 
 }
 ::-webkit-scrollbar {
