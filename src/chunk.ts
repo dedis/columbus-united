@@ -804,20 +804,15 @@ export class Chunk {
                     );
                     self.blockClickedSubject.next(block);
                 }, 300);
-            })
-                .on("dblclick", function () {
-                    clearTimeout(timeout);
-                    Utils.translateOnChain(
-                        skipBlockFrom.index,
-                        self.initialBlock.index
-                    );
-
-                    self.blockClickedSubject.next(skipBlockFrom);
-                })
-                .attr(
-                    "uk-tooltip",
-                    `From block ${skipBlockFrom.index} to ${skipBlockToIndex}`
+            }).on("dblclick", function () {
+                clearTimeout(timeout);
+                Utils.translateOnChain(
+                    skipBlockFrom.index,
+                    self.initialBlock.index
                 );
+
+                self.blockClickedSubject.next(skipBlockFrom);
+            });
 
             // Arrow head
             const triangle = svgBlocks.append("svg:defs").append("svg:marker");
@@ -847,6 +842,11 @@ export class Chunk {
                 d3.select(this).style("stroke", "var(--selected-colour");
                 triangle.style("fill", "var(--selected-colour");
                 d3.select(this).style("cursor", "pointer");
+                d3.select(".tooltip")
+                    .html("The exact value of<br>this cell is: " + 4)
+                    .style("left", "70px")
+                    .style("top", "70px")
+                    .style("opacity", 1);
             });
             triangle.on("mouseout", () => {
                 line.style("stroke", "#A0A0A0");
