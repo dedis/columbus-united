@@ -2,6 +2,7 @@ import { DataBody } from "@dedis/cothority/byzcoin/proto";
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
+import { scaleLinear } from "d3";
 import { Subject } from "rxjs";
 import { debounceTime } from "rxjs/operators";
 import { Chunk } from "./chunk";
@@ -194,28 +195,32 @@ export class Chain {
                     "1" +
                     ")";
 
-                const t =
-                    "matrix(" +
-                    transform.k +
-                    "," +
-                    0 +
-                    "," +
-                    0 +
-                    "," +
-                    transform.k +
-                    "," +
+                var transformCircle =
+                    "translate(" +
                     transform.x +
                     "," +
-                    (40 - transform.k * 40) +
+                    "32) scale(" +
+                    transform.k +
+                    "," +
+                    transform.k +
                     ")";
 
-                // The blocks and arrows follow the transformations of the chain.
+                if (transform.k < 0.3) {
+                    transformCircle =
+                        "translate(" +
+                        transform.x +
+                        "," +
+                        "33) scale(" +
+                        "0" +
+                        "," +
+                        "0" +
+                        ")";
+                }
+
+                // The blocks, arrows, circles follow the transformations of the chain.
                 this.gblocks.attr("transform", transformString);
                 this.garrow.attr("transform", transformString);
-
-                // Standard transformation on the text since we need to keep the
-                // original scale
-                this.gcircle.attr("transform", t);
+                this.gcircle.attr("transform", transformCircle);
             },
         });
 

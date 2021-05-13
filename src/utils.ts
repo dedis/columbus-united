@@ -1,4 +1,6 @@
 import { DataHeader } from "@dedis/cothority/byzcoin/proto";
+import { DataBody } from "@dedis/cothority/byzcoin/proto";
+
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
@@ -266,5 +268,19 @@ export class Utils {
         }).on("mouseout", function () {
             d3.select(this).style("cursor", "default");
         });
+    }
+
+    static getTransactionRatio(block: SkipBlock): [number, number] {
+        let accepted = 0;
+        let rejected = 0;
+        const body = DataBody.decode(block.payload);
+        body.txResults.forEach((transaction) => {
+            if (transaction.accepted) {
+                accepted++;
+            } else {
+                rejected++;
+            }
+        });
+        return [accepted, rejected];
     }
 }

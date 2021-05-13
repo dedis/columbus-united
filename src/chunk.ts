@@ -521,7 +521,6 @@ export class Chunk {
         backwards: boolean,
         gblocks: any,
         garrow: any,
-        // gcircle: any,
         numblocks: number
     ) {
         // Iterate over the blocks to append them
@@ -544,7 +543,11 @@ export class Chunk {
             // Append arrows between blocks
             this.getToAndFromIndexes(xTranslateBlock, block, garrow);
 
-            this.appendCircleInBlock(xTranslateBlock, d3.selectAll(".gcircle"));
+            this.appendCircleInBlock(
+                xTranslateBlock,
+                d3.selectAll(".gcircle"),
+                block
+            );
         }
 
         // Notify the subject that new blocks have been added
@@ -801,15 +804,20 @@ export class Chunk {
                     );
                     self.blockClickedSubject.next(block);
                 }, 300);
-            }).on("dblclick", function () {
-                clearTimeout(timeout);
-                Utils.translateOnChain(
-                    skipBlockFrom.index,
-                    self.initialBlock.index
-                );
+            })
+                .on("dblclick", function () {
+                    clearTimeout(timeout);
+                    Utils.translateOnChain(
+                        skipBlockFrom.index,
+                        self.initialBlock.index
+                    );
 
-                self.blockClickedSubject.next(skipBlockFrom);
-            });
+                    self.blockClickedSubject.next(skipBlockFrom);
+                })
+                .attr(
+                    "uk-tooltip",
+                    `From block ${skipBlockFrom.index} to ${skipBlockToIndex}`
+                );
 
             // Arrow head
             const triangle = svgBlocks.append("svg:defs").append("svg:marker");
@@ -896,19 +904,41 @@ export class Chunk {
      * @param gcircle the svg container for the circles
      * @author Sophia Artioli <sophia.artioli@epfl.ch>
      */
-    private appendCircleInBlock(xTranslate: number, gcircle: any) {
+    private appendCircleInBlock(
+        xTranslate: number,
+        gcircle: any,
+        block: SkipBlock
+    ) {
         gcircle
             .append("circle")
             .attr("cx", xTranslate + 20)
-            .attr("cy", 32)
-            .attr("r", 6)
-            .attr("fill", "#b3ffb3");
+            .attr("r", 5)
+            .attr("fill", "#b3ffb3")
+            .attr(
+                "uk-tooltip",
+                `${Utils.getTransactionRatio(block)[0]} validated transactions`
+            )
+            .on("mouseover", function () {
+                d3.select(this).style("stroke", "#00cc00");
+            })
+            .on("mouseout", function () {
+                d3.select(this).style("stroke", "#b3ffb3");
+            });
 
         gcircle
             .append("circle")
             .attr("cx", xTranslate + Chain.blockWidth - 20)
-            .attr("cy", 32)
-            .attr("r", 6)
-            .attr("fill", "#EF5959");
+            .attr("r", 5)
+            .attr("fill", "#EF5959")
+            .attr(
+                "uk-tooltip",
+                `${Utils.getTransactionRatio(block)[1]} rejected transactions`
+            )
+            .on("mouseover", function () {
+                d3.select(this).style("stroke", "#d11515");
+            })
+            .on("mouseout", function () {
+                d3.select(this).style("stroke", "#EF5959");
+            });
     }
 }
