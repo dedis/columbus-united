@@ -18,13 +18,13 @@ div.tooltip {
     position: absolute;
     text-align: center;
     color: white;
-    width: 150px;
-    height: 28px;
-    padding: 2px;
+    width: auto;
+    height: auto;
+    padding: 4px;
     font: 12px sans-serif;
     background: #737373;
     border: 0px;
-    border-radius: 3px;
+    border-radius: 2px;
 }
 div.block-infos {
     display: flex;
