@@ -753,6 +753,7 @@ export class Chunk {
                 .attr("stroke-width", 2)
                 .attr("stroke", "#808080");
         } else {
+            var tooltip = d3.select(".tooltip");
             // Blocks that are minimum two indexes away
             const line = svgBlocks.append("line");
             // Starting point of the arrow: Right edge of the block
@@ -842,12 +843,20 @@ export class Chunk {
                 d3.select(this).style("stroke", "var(--selected-colour");
                 triangle.style("fill", "var(--selected-colour");
                 d3.select(this).style("cursor", "pointer");
-                d3.select(".tooltip")
-                    .html("The exact value of<br>this cell is: " + 4)
-                    .style("left", "70px")
-                    .style("top", "70px")
-                    .style("opacity", 1);
+
+                tooltip.transition().duration(500).style("opacity", 0);
+                tooltip.transition().duration(200).style("opacity", 1);
+                tooltip
+                    .html(
+                        `From block ${skipBlockFrom.index} to ${skipBlockToIndex}`
+                    )
+                    .style(
+                        "left",
+                        d3.event.x - parseInt(tooltip.style("width")) / 2 + "px"
+                    )
+                    .style("top", d3.event.y - 40 + "px");
             });
+
             triangle.on("mouseout", () => {
                 line.style("stroke", "#A0A0A0");
                 triangle.style("fill", "#A0A0A0");
@@ -857,6 +866,18 @@ export class Chunk {
                 line.style("stroke", "#A0A0A0");
                 triangle.style("fill", "#A0A0A0");
                 line.style("cursor", "default");
+                tooltip.style("opacity", 0);
+            });
+            line.on("mousemove", () => {
+                tooltip
+                    .html(
+                        `From block ${skipBlockFrom.index} to ${skipBlockToIndex}`
+                    )
+                    .style(
+                        "left",
+                        d3.event.x - parseInt(tooltip.style("width")) / 2 + "px"
+                    )
+                    .style("top", d3.event.y - 40 + "px");
             });
         }
     }
@@ -916,7 +937,7 @@ export class Chunk {
             .attr("fill", "#b3ffb3")
             .attr(
                 "uk-tooltip",
-                `${Utils.getTransactionRatio(block)[0]} validated transactions`
+                `${Utils.getTransactionRatio(block)[0]} accepted transactions`
             )
             .on("mouseover", function () {
                 d3.select(this).style("stroke", "#00cc00");

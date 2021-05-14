@@ -14,6 +14,18 @@ body {
     //overflow-y: hidden;
     -webkit-appearance: none;
 }
+div.tooltip {
+    position: absolute;
+    text-align: center;
+    color: white;
+    width: 150px;
+    height: 28px;
+    padding: 2px;
+    font: 12px sans-serif;
+    background: #737373;
+    border: 0px;
+    border-radius: 3px;
+}
 div.block-infos {
     display: flex;
     flex-grow: 0;
@@ -60,20 +72,20 @@ div.query-answer {
     margin-bottom: 0px;
 }
 
-.block-card-header-details > p{
+.block-card-header-details > p {
     font-family: monospace;
     margin-bottom: 5px;
     margin-top: 5px;
 }
 
-#query-header>div{
+#query-header > div {
     padding-left: 2%;
     font-weight: 700;
     color: #666;
     font-size: 1.3em;
 }
 
-.block-card-content{
+.block-card-content {
     font-weight: 700;
     margin-top: 5px;
     color: #666;
@@ -81,29 +93,27 @@ div.query-answer {
     margin-bottom: 15px;
 }
 
-.transaction-card-header-title{
+.transaction-card-header-title {
     font-weight: 700;
     margin-top: 5px;
     color: #666;
 }
 
-.transaction-title{
+.transaction-title {
     font-family: monospace;
     color: #666;
     font-size: 1.3em;
 }
 
 /* Used to transform black SVGs to white SVGs, as well as displaying them inline*/
-.white-icon{
+.white-icon {
     width: 32px;
     height: 32px;
-    display : inline-block;
+    display: inline-block;
     position: relative;
-    margin-left : 15px;
-    filter: invert(88%) sepia(67%) saturate(0%) hue-rotate(236deg) brightness(111%) contrast(100%);
-
-
-
+    margin-left: 15px;
+    filter: invert(88%) sepia(67%) saturate(0%) hue-rotate(236deg)
+        brightness(111%) contrast(100%);
 }
 
 .topnav {
@@ -492,7 +502,7 @@ List of classes for the new transaction container
     color: #ffffff;
 }
 
-.uk-accordion-content{
+.uk-accordion-content {
     padding-left: 15px;
 }
 

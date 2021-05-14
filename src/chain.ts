@@ -119,16 +119,11 @@ export class Chain {
         // This group will contain the arrows between blocks
         this.garrow = svg.append("g").attr("class", "garrow");
 
-        var Tooltip = d3
-            .select("#svg-container")
-            .append("div")
-            .style("opacity", 0)
-            .attr("class", "tooltip")
-            .style("background-color", "white")
-            .style("border", "solid")
-            .style("border-width", "2px")
-            .style("border-radius", "5px")
-            .style("padding", "5px");
+        var tooltip = d3
+            .select("body")
+            .append("div") // declare the tooltip div
+            .attr("class", "tooltip") // apply the 'tooltip' class
+            .style("opacity", 0); // set the opacity to nil
 
         // This group will contain the circles. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
