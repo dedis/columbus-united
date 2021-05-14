@@ -301,6 +301,7 @@ export class Chunk {
                 hashNextBlockRight = Utils.getRightBlockHash(lastBlockRight);
             } catch {
                 // If no forward links exist, it is the last block of the chain
+                d3.selectAll(".right-loader").style("fill", "red");
                 this.flash.display(Flash.flashType.INFO, "End of blockchain");
             }
 
@@ -786,7 +787,7 @@ export class Chunk {
                         height.toString() +
                         ")"
                 )
-                .attr("stroke-width", 2.5)
+                .attr("stroke-width", 2.8)
                 .attr("stroke", "#A0A0A0");
             // Enables translation to the block the arrow is pointing to
             const self = this;
@@ -844,7 +845,6 @@ export class Chunk {
                 triangle.style("fill", "var(--selected-colour");
                 d3.select(this).style("cursor", "pointer");
 
-                tooltip.transition().duration(500).style("opacity", 0);
                 tooltip.transition().duration(200).style("opacity", 1);
                 tooltip
                     .html(
@@ -854,7 +854,7 @@ export class Chunk {
                         "left",
                         d3.event.x - parseInt(tooltip.style("width")) / 2 + "px"
                     )
-                    .style("top", d3.event.y - 40 + "px");
+                    .style("top", d3.event.y - 30 + "px");
             });
 
             triangle.on("mouseout", () => {
@@ -866,7 +866,11 @@ export class Chunk {
                 line.style("stroke", "#A0A0A0");
                 triangle.style("fill", "#A0A0A0");
                 line.style("cursor", "default");
-                tooltip.style("opacity", 0).style("pointer-events", "none");
+                tooltip
+                    .transition()
+                    .duration(100)
+                    .style("opacity", 0)
+                    .style("pointer-events", "none");
             });
             line.on("mousemove", () => {
                 tooltip
