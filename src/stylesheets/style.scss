@@ -313,7 +313,7 @@ div.query-answer {
     fill: grey;
     height: 6px;
     pointer-events:all;
-    cursor:ew-resize;
+    cursor:pointer;
 }
 
 #last-container {
@@ -348,14 +348,13 @@ div.query-answer {
 }
 
 #status {
-    background-color: white;
     outline: groove rgba(204, 204, 204, 0.3);
     margin: 10px;
 }
 
-#statusLi {
-    color:none;
-    background-color: white;
+#node-table {
+    width: 400px;
+    
 }
 //zoom-in & out button
 .dropdown {

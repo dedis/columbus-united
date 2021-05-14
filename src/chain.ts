@@ -162,6 +162,7 @@ export class Chain {
         Chain.zoom = zoom;
 
         //scrollbar
+        /*
         const scrollbar = svg.append("g")
                 .attr("transform", "translate(0,90)"); //move the bar to the bottom of the chain
         //scrollbar-mover
@@ -177,27 +178,34 @@ export class Chain {
               .attr("class", "mover")
               .attr("x", Chain.svgWidth/2)
               .attr("y", Chain.svgHeight/2)
-              .attr("rx", "5px")
+              .attr("rx", "3px")
               .attr("width", Math.round(Chain.svgWidth/Chain.numBlocks))
               .call(drag); 
         
     //TODO FIX THE BUGGY sliding
         function scrollbarDrag(){
 
-            const x = parseInt(d3.select(this).attr("x"));
-            var nx= x + d3.event.transform.x;
-            if (nx < 0) {
-                nx=40;
+            var pos = {
+                x : parseInt(d3.select(".mover").attr("x")),
+                width: Chain.svgWidth
             }
-            if (nx > Chain.svgWidth) {
-                nx = Chain.svgWidth/2;
-            }
-            
-            console.log(d3.event.transform+"from scrollbar");
-            d3.select(".mover").attr("x", nx);
-
+            //update scrollbar pos
+            const nx = d3.event.transform.x + pos.x;
+            //translate chain
+            d3.event.transform.x = d3.event.transform.x + Chain.length;
             subject.next(d3.event.transform);
+            
+            
+            console.log("x:" + pos.x +" nx: "+nx);
+            console.log(d3.event.transform+"from scrollbar");
+            console.log(Chain.length);
+
+            if( nx < 0 || nx > pos.width) return;
+
+            d3.select(".mover").attr("x", nx);
+            
         }
+        */
                
         //Drop down-menu for clickable zoom in & out
         const divZoomDropdown=d3.selectAll(".topnav")
@@ -292,12 +300,12 @@ export class Chain {
 
 
                 // Move scrollbars on zoom
-                const x = parseInt(d3.select(".mover").attr("x"));
-                var nx= x + d3.event.transform.x;
+                //const x = parseInt(d3.select(".mover").attr("x"));
+                //var nx= x + d3.event.transform.x;
                 //handle edge cases
-                if(nx<0){ nx=0; }
-                if ( nx > Chain.svgWidth) { nx = Chain.svgWidth; }
-                d3.select(".mover").attr("x",nx);
+                //if(nx<0){ nx=0; }
+                //if ( nx > Chain.svgWidth) { nx = Chain.svgWidth; }
+                //d3.select(".mover").attr("x",nx);
 
                 //d3.select("#mover").attr("transform", transformString); 
                 

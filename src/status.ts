@@ -46,10 +46,11 @@ export class Status {
 
         //create table of nodes status
         const nodeTable = mainDiv.append("table")
-            .attr("width","400 px")
+            .attr("id","node-table")
             .attr("class","uk-table");
         
         nodeTable.append("caption")
+            .attr("color","white")
             .text("Status of Roster's nodes");
         const tableHeader = nodeTable.append("thead").append("tr");
         tableHeader.append("th")
