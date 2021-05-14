@@ -23,7 +23,7 @@
         "intro.js": "^3.4.0",
         "rxjs": "^6.6.2",
         "style-loader": "^1.2.1",
-        "uikit": "^3.6.20"
+        "uikit": "^3.5.9"
     },
     "devDependencies": {
         "@babel/core": "^7.11.1",
@@ -35,7 +35,7 @@
         "@types/jasmine": "^3.5.12",
         "@types/long": "^4.0.0",
         "babel-loader": "^8.0.6",
-        "css-loader": "^3.6.0",
+        "css-loader": "^5.2.4",
         "dockerode": "^3.2.1",
         "jasmine": "^3.6.1",
         "jasmine-console-reporter": "^3.1.0",
