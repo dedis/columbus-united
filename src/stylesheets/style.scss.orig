@@ -355,7 +355,6 @@ div.query-answer {
 #node-table {
     width: 400px;
     
-<<<<<<< HEAD
 }
 
 .uk-table caption {
@@ -364,14 +363,18 @@ div.query-answer {
 
 .uk-table th {
     color: white;
-=======
->>>>>>> status bar
 }
 //zoom-in & out button
 .dropdown {
+<<<<<<< HEAD
+    position:relative;
+    right: 83%;
+    top: 20px;
+=======
     position:absolute;
     left: 1%;
     top: 40%;
+>>>>>>> fix anomalies chrome/firefox
     width: 25px;
     height: 25px;
     border: 1px solid gray;
