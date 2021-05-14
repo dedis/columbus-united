@@ -356,11 +356,19 @@ div.query-answer {
     width: 400px;
     
 }
+
+.uk-table caption {
+    color: white;
+}
+
+.uk-table th {
+    color: white;
+}
 //zoom-in & out button
 .dropdown {
-    position:relative;
-    left: -980px;
-    top: 20px;
+    position:absolute;
+    left: 1%;
+    top: 40%;
     width: 25px;
     height: 25px;
     border: 1px solid gray;

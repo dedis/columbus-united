@@ -47,30 +47,63 @@ export class Status {
         //create table of nodes status
         const nodeTable = mainDiv.append("table")
             .attr("id","node-table")
-            .attr("class","uk-table");
+            .attr("class","uk-table uk-table-divider");
         
         nodeTable.append("caption")
-            .attr("color","white")
             .text("Status of Roster's nodes");
         const tableHeader = nodeTable.append("thead").append("tr");
         tableHeader.append("th")
             .text("Server ID");
         tableHeader.append("th")
-            .text("Status");
+            .text("Uptime");
         tableHeader.append("th")
             .text("Host");
 
+        var lastNode = false;
+        var nodeIndex = 0;
         
+        //statusRPC.getStatus(0).then(s => console.log(s));
+        const tableBody = nodeTable.append("tbody");
 
-        statusRPC.getStatus(0).then((blockStatus)=>{
-            const name = blockStatus.serverIdentity.description;
-            const url= blockStatus.serverIdentity.url;
-            const up = blockStatus.status.Db.field.open;
+        statusRPC.getStatus(1).then(
+            (status) =>{
+                const tableElement = tableBody.append("tr");
+                tableElement.append("td")
+                    .text(status.serverIdentity.description);
+                tableElement.append("td")
+                    .text(status.getStatus("Generic").getValue("Uptime"));
+                tableElement.append("td")
+                    .text(status.serverIdentity.url);
+                console.log(nodeIndex);
+                nodeIndex+=1;
+            }
 
-            console.log(name);
-        });
+        );
+
+        /*
         
-        console.log(statusRPC.getStatus(0));
+        while(!lastNode){
+
+            statusRPC.getStatus(nodeIndex).then(
+                (status) => {
+                    //insert infos of status of node
+                    const tableElement = tableBody.append("tr");
+                    tableElement.append("td")
+                        .text(status.serverIdentity.description);
+                    tableElement.append("td")
+                        .text(status.getStatus("Generic").getValue("Uptime"));
+                    tableElement.append("td")
+                        .text(status.serverIdentity.url);
+                    console.log(nodeIndex);
+                    nodeIndex+=1;
+                }
+            ).catch(
+                (e) => lastNode =  true
+            );
+
+        }
+        */
+        
 
     }
 }
