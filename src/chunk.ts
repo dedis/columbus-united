@@ -866,7 +866,7 @@ export class Chunk {
                 line.style("stroke", "#A0A0A0");
                 triangle.style("fill", "#A0A0A0");
                 line.style("cursor", "default");
-                tooltip.style("opacity", 0);
+                tooltip.style("opacity", 0).style("pointer-events", "none");
             });
             line.on("mousemove", () => {
                 tooltip

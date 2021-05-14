@@ -121,9 +121,9 @@ export class Chain {
 
         var tooltip = d3
             .select("body")
-            .append("div") // declare the tooltip div
-            .attr("class", "tooltip") // apply the 'tooltip' class
-            .style("opacity", 0); // set the opacity to nil
+            .append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
 
         // This group will contain the circles. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
