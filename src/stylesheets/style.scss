@@ -353,8 +353,24 @@ div.query-answer {
 }
 
 #node-table {
-    width: 400px;
+    width: 300px;
     
+}
+
+.uk-table caption {
+    color: #fff;
+}
+
+.uk-table th {
+    color: #fff;
+}
+
+.uk-table td {
+    font-size: small;
+}
+
+.up-nodes {
+    color : lightgreen;
 }
 //zoom-in & out button
 .dropdown {

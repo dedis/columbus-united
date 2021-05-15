@@ -161,8 +161,8 @@ export class Chain {
         svg.call(zoom).on("dblclick.zoom", null);
         Chain.zoom = zoom;
 
-        //scrollbar
-        /*
+        //Implementation of a scrollbar underneath the chain
+        
         const scrollbar = svg.append("g")
                 .attr("transform", "translate(0,90)"); //move the bar to the bottom of the chain
         //scrollbar-mover
@@ -188,24 +188,26 @@ export class Chain {
             var pos = {
                 x : parseInt(d3.select(".mover").attr("x")),
                 width: Chain.svgWidth
+                //might add feature of position here if needed
             }
             //update scrollbar pos
             const nx = d3.event.transform.x + pos.x;
             //translate chain
-            d3.event.transform.x = d3.event.transform.x + Chain.length;
+            //d3.event.transform.x = d3.event.transform.x + Chain.length; this line doesn't really change anything
             subject.next(d3.event.transform);
             
-            
+            //for debugging
             console.log("x:" + pos.x +" nx: "+nx);
             console.log(d3.event.transform+"from scrollbar");
             console.log(Chain.length);
 
+            //if new x position is outside the svg keep scrollbar where it is
             if( nx < 0 || nx > pos.width) return;
 
             d3.select(".mover").attr("x", nx);
             
         }
-        */
+        
                
         //Drop down-menu for clickable zoom in & out
         const divZoomDropdown=d3.selectAll(".topnav")
@@ -265,7 +267,7 @@ export class Chain {
         subject.subscribe({
             next: (transform: any) => {
                 this.lastTransform = transform;
-                console.log(transform + "from subject");
+               
                 // This line disables translate to the left. (for reference)
                 // transform.x = Math.min(0, transform.x);
 
@@ -309,9 +311,7 @@ export class Chain {
 
                 //d3.select("#mover").attr("transform", transformString); 
                 
-                //const svgWrapper = (d3.select('#div-blocks-wrapper').node() as any);
-                //svgWrapper.scrollLeft = -d3.event.transform.x;
-
+                
                 // Standard transformation on the text since we need to keep the
                 // original scale
                 // this.gcircle.attr("transform", transformString);
