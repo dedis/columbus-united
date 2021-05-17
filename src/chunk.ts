@@ -1,4 +1,6 @@
 import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
+import * as blockies from "blockies-ts";
+
 import {
     PaginateRequest,
     PaginateResponse,
@@ -301,7 +303,6 @@ export class Chunk {
                 hashNextBlockRight = Utils.getRightBlockHash(lastBlockRight);
             } catch {
                 // If no forward links exist, it is the last block of the chain
-                d3.selectAll(".right-loader").style("fill", "red");
                 this.flash.display(Flash.flashType.INFO, "End of blockchain");
             }
 
@@ -949,6 +950,34 @@ export class Chunk {
             .on("mouseout", function () {
                 d3.select(this).style("stroke", "#b3ffb3");
             });
+
+        Utils.addHashBlocky(
+            gcircle,
+            Utils.bytes2String(block.hash),
+            this.flash
+        );
+        const blocky = blockies.create({
+            seed: Utils.bytes2String(block.hash),
+        });
+        // gcircle
+        //     .append("img")
+        //     .attr("class", "uk-img")
+        //     .attr("src", blocky.toDataURL())
+        //     .attr("uk-tooltip", ` ${Utils.bytes2String(block.hash)}`)
+        //     .attr("y", 32)
+        //     .attr("x", xTranslate)
+        //     .on("click", function () {
+        //         Utils.copyToClipBoard(
+        //             Utils.bytes2String(block.hash),
+        //             this.flash
+        //         );
+        //     })
+        //     .on("mouseover", function () {
+        //         d3.select(this).style("cursor", "pointer");
+        //     })
+        //     .on("mouseout", function () {
+        //         d3.select(this).style("cursor", "default");
+        //     });
 
         gcircle
             .append("circle")
