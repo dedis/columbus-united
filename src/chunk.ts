@@ -951,33 +951,28 @@ export class Chunk {
                 d3.select(this).style("stroke", "#b3ffb3");
             });
 
-        Utils.addHashBlocky(
-            gcircle,
-            Utils.bytes2String(block.hash),
-            this.flash
-        );
         const blocky = blockies.create({
             seed: Utils.bytes2String(block.hash),
         });
-        // gcircle
-        //     .append("img")
-        //     .attr("class", "uk-img")
-        //     .attr("src", blocky.toDataURL())
-        //     .attr("uk-tooltip", ` ${Utils.bytes2String(block.hash)}`)
-        //     .attr("y", 32)
-        //     .attr("x", xTranslate)
-        //     .on("click", function () {
-        //         Utils.copyToClipBoard(
-        //             Utils.bytes2String(block.hash),
-        //             this.flash
-        //         );
-        //     })
-        //     .on("mouseover", function () {
-        //         d3.select(this).style("cursor", "pointer");
-        //     })
-        //     .on("mouseout", function () {
-        //         d3.select(this).style("cursor", "default");
-        //     });
+        d3.select(".blockies")
+            .append("svg:image")
+            .attr("xlink:href", blocky.toDataURL())
+            .attr("src", blocky.toDataURL())
+            .attr("uk-tooltip", ` ${Utils.bytes2String(block.hash)}`)
+            .attr("x", xTranslate + 50)
+            .attr("y", 22)
+            .attr("width", 9)
+            .attr("height", 9)
+
+            // .on("click", function () {
+            //     Utils.copyToClipBoard(Utils.bytes2String(block.hash));
+            // })
+            .on("mouseover", function () {
+                d3.select(this).style("cursor", "pointer");
+            })
+            .on("mouseout", function () {
+                d3.select(this).style("cursor", "default");
+            });
 
         gcircle
             .append("circle")
