@@ -29,7 +29,6 @@ var hashBlock0 =
 // The roster configuration, parsed as a string
 const rosterStr = getRosterStr();
 
-
 /**
  *
  * Main file that creates the different objects and subjects.
@@ -48,27 +47,26 @@ export function sayHi() {
 
     //Roster selection
     //1. default roster
-    startSkipchain(rosterStr,true);
+    startSkipchain(rosterStr, true);
 
     //2. selected roster by user
-    document.getElementById("save-roster").addEventListener('click', function (e) {
-        const newRosterStr= (document.getElementById("text-roster") as HTMLTextAreaElement).value;
-        startSkipchain(newRosterStr,false); 
-       
-    });
-   
+    document
+        .getElementById("save-roster")
+        .addEventListener("click", function (e) {
+            const newRosterStr = (document.getElementById(
+                "text-roster"
+            ) as HTMLTextAreaElement).value;
+            startSkipchain(newRosterStr, false);
+        });
 }
 
 /**
  * Connect to the roster
- * @param roster 
+ * @param roster
  * @param skipchainIndex
- * 
+ *
  */
-export function startSkipchain(
-    rosterStr : string,
-    defaultSkipchain : boolean
-){
+export function startSkipchain(rosterStr: string, defaultSkipchain: boolean) {
     // Create the roster
     const roster = Roster.fromTOML(rosterStr);
 
@@ -79,24 +77,20 @@ export function startSkipchain(
         return;
     }
 
-
     let initialBlockIndex: number;
-    
+
     const scRPC = new SkipchainRPC(roster);
 
     //take the first skipchainID of the selected roster
     if (!defaultSkipchain) {
-        scRPC.getAllSkipChainIDs().then(
-            (resp)=> {
-                //hashBlock 0 of new roster
-                
-                hashBlock0 = Utils.bytes2String(resp[0]);
+        scRPC.getAllSkipChainIDs().then((resp) => {
+            //hashBlock 0 of new roster
 
-                //var re = /[0-9A-Fa-f]{6}/g; //for testing that hashBlock0 is valid hex string
-                //console.log(re.test(hashBlock0)); 
+            hashBlock0 = Utils.bytes2String(resp[0]);
 
-
-            });
+            //var re = /[0-9A-Fa-f]{6}/g; //for testing that hashBlock0 is valid hex string
+            //console.log(re.test(hashBlock0));
+        });
     }
 
     new SkipchainRPC(roster)
@@ -179,9 +173,7 @@ export function startSkipchain(
                 `Unable to start visualization: ${e}`
             )
         );
-
 }
-
 
 /**
  * startColumbus starts the visualization
@@ -198,18 +190,17 @@ export function startColumbus(
     flash: Flash,
     defaultSkipchain: Boolean
 ) {
-
     // Reset the svg containers
-    if(!defaultSkipchain){
+    if (!defaultSkipchain) {
         d3.select("#svg-container").selectAll("*").remove();
         d3.select(".dropdown").remove();
         d3.select("#last-container").selectAll("*").remove();
         d3.select("#status").selectAll("*").remove();
     }
-  
+
     // The chain is loaded at block 0 and then moved to the desired place
     const chain = new Chain(roster, flash, genesisBlock);
-    
+
     // The translation is done to the initialBlock
     Utils.translateOnChain(initialBlock.index, genesisBlock.index);
 
@@ -245,8 +236,6 @@ export function startColumbus(
         chain.blockClickedSubject,
         block
     );
-
-    
 }
 
 function initIntro() {
@@ -305,7 +294,8 @@ function initIntro() {
                 },
                 {
                     element: document.getElementById("status-info"),
-                    intro: "By clicking on the Roster button, you can select a new roster by copy pasting the roster.toml infos and load a new Skipchain on the explorer!",
+                    intro:
+                        "By clicking on the Roster button, you can select a new roster by copy pasting the roster.toml infos and load a new Skipchain on the explorer!",
                     position: "top",
                 },
                 {
