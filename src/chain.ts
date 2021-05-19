@@ -213,12 +213,12 @@ export class Chain {
                     transform.k +
                     ")";
 
-                if (transform.k < 1.2) {
+                if (transform.k < 1.3) {
                     transformCircle =
                         "translate(" +
                         transform.x +
                         "," +
-                        "33) scale(" +
+                        "0) scale(" +
                         "0" +
                         "," +
                         "0" +

@@ -935,10 +935,11 @@ export class Chunk {
         gcircle: any,
         block: SkipBlock
     ) {
+        const self = this;
         gcircle
             .append("circle")
-            .attr("cx", xTranslate + 20)
-            .attr("r", 5)
+            .attr("cx", xTranslate + 15)
+            .attr("r", 4)
             .attr("fill", "#b3ffb3")
             .attr(
                 "uk-tooltip",
@@ -959,14 +960,17 @@ export class Chunk {
             .attr("xlink:href", blocky.toDataURL())
             .attr("src", blocky.toDataURL())
             .attr("uk-tooltip", ` ${Utils.bytes2String(block.hash)}`)
-            .attr("x", xTranslate + 50)
-            .attr("y", 22)
+            .attr("x", xTranslate + 31)
+            .attr("y", -4)
             .attr("width", 9)
             .attr("height", 9)
 
-            // .on("click", function () {
-            //     Utils.copyToClipBoard(Utils.bytes2String(block.hash));
-            // })
+            .on("click", function () {
+                Utils.copyToClipBoard(
+                    Utils.bytes2String(block.hash),
+                    self.flash
+                );
+            })
             .on("mouseover", function () {
                 d3.select(this).style("cursor", "pointer");
             })
@@ -976,8 +980,8 @@ export class Chunk {
 
         gcircle
             .append("circle")
-            .attr("cx", xTranslate + Chain.blockWidth - 20)
-            .attr("r", 5)
+            .attr("cx", xTranslate + Chain.blockWidth - 15)
+            .attr("r", 4)
             .attr("fill", "#EF5959")
             .attr(
                 "uk-tooltip",
