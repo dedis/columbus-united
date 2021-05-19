@@ -1,7 +1,6 @@
 import { Roster } from "@dedis/cothority/network";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import { SkipBlock } from "@dedis/cothority/skipchain/skipblock";
-import UIkit from "uikit";
 import { Block } from "./block";
 import { Chain } from "./chain";
 import { Flash } from "./flash";

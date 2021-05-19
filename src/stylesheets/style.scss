@@ -93,8 +93,9 @@ div.query-answer {
 .transaction-title {
     font-family: monospace;
     color: #666;
-    font-size: 1.3em;
+    font-size: 1.0em;
 }
+
 //code added: change the download icon color on hover
 .download-icon-1 {
     display: inline-block;
@@ -349,11 +350,11 @@ div.query-answer {
 
 #status {
     outline: groove rgba(204, 204, 204, 0.3);
-    margin: 10px;
+    margin: 40px;
 }
 
 #node-table {
-    width: 300px;
+    width: 400px;
     
 }
 
@@ -369,9 +370,7 @@ div.query-answer {
     font-size: small;
 }
 
-.up-nodes {
-    color : lightgreen;
-}
+
 //zoom-in & out button
 .dropdown {
     position:relative;
@@ -651,6 +650,7 @@ List of classes for the new transaction container
 
 .browse-container p {
     font-size: 16px;
+    overflow: auto;
 }
 
 .spinner {

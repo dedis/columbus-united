@@ -6,6 +6,7 @@ import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable, Subject } from "rxjs";
 import { throttleTime } from "rxjs/operators";
+import UIkit from "uikit";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
@@ -111,6 +112,10 @@ export class Block {
         this.loadedSkipBObs.subscribe({
             next: (value) => {
                 self.highlightBlocks(this.hashHighligh);
+                //UIkit.accordion(d3.select("#status")).toggle("0",false);
+                //document.getElementById("block_infos").scrollIntoView();
+                //this.flash.display(Flash.flashType.INFO, "Scroll down to see the Block details.");
+                
             },
         });
     }
