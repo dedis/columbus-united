@@ -175,15 +175,6 @@ export class Chain {
         //Implementation of a scrollbar underneath the chain
 
         const scrollbar = svg.append("g").attr("transform", "translate(0,90)"); //move the bar to the bottom of the chain
-        //scrollbar-mover
-
-        // const drag = d3
-        //     .zoom()
-        //     .translateExtent([
-        //         [0, 0],
-        //         [Chain.svgWidth, Chain.svgHeight],
-        //     ])
-        //     .on("zoom", scrollbarDrag);
 
         scrollbar
             .append("rect")
@@ -191,8 +182,7 @@ export class Chain {
             .attr("x", Chain.svgWidth / 2)
             .attr("y", Chain.svgHeight / 2)
             .attr("rx", "3px")
-            .attr("width", Math.round(Chain.svgWidth / Chain.numBlocks));
-        // .call(drag);
+            .attr("width", Math.round(Chain.svgWidth / Chain.numBlocks)); //TODO fix size of mover according to total number of blocks on the chain.numblock is the numbber of blocks loaded
 
         const self = this;
         let last = Chain.svgWidth / 2;
@@ -210,6 +200,8 @@ export class Chain {
                     .scale(1);
             }
 
+            //TODO manage edge case of draging out of the chain
+
             last = d3.event.x;
 
             d3.select("#svg-container").call(
@@ -219,30 +211,6 @@ export class Chain {
         });
 
         dragHandler(d3.selectAll(".mover"));
-
-        //TODO FIX THE BUGGY sliding
-        function scrollbarDrag() {
-            var pos = {
-                x: parseInt(d3.select(".mover").attr("x")),
-                width: Chain.svgWidth,
-                //might add feature of position here if needed
-            };
-            //update scrollbar pos
-            const nx = d3.event.transform.x + pos.x;
-            //translate chain
-            //d3.event.transform.x = d3.event.transform.x + Chain.length; this line doesn't really change anything
-            subject.next(d3.event.transform);
-
-            //for debugging
-            console.log("x:" + pos.x + " nx: " + nx);
-            console.log(d3.event.transform + "from scrollbar");
-            console.log(Chain.length);
-
-            //if new x position is outside the svg keep scrollbar where it is
-            if (nx < 0 || nx > pos.width) return;
-
-            d3.select(".mover").attr("x", nx);
-        }
 
         //Drop down-menu for clickable zoom in & out
         const divZoomDropdown = d3
@@ -308,7 +276,9 @@ export class Chain {
             next: (transform: any) => {
                 var last = parseInt(d3.select(".mover").attr("x"));
 
-                //-200 to have a tighter threshhold for the transition
+                //-200 to have a tighter threshhold for the transition,
+                //TODO find the perfect threshhold
+                //TODO modify width of mover according to transform.k
                 if (
                     last >
                     parseInt(d3.select("#svg-container").style("width")) - 200
