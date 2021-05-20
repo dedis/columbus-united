@@ -114,6 +114,16 @@ export class Chain {
         //When a new chain is created the number of loaded blocks is reset
         Chain.totalLoaded = 0;
 
+        // Initialize the last added block of the chain in its dedicated space
+        // It is initialized here as it takes longer to load.
+        // We need to use it when creating new chunks
+        const lastAddedBlock = new LastAddedBlock(
+            roster,
+            flash,
+            initialBlock,
+            this.blockClickedSubject
+        );
+
         // Main SVG canvas that contains the chain
         const svg = d3.select("#svg-container").attr("height", Chain.svgHeight);
         //.attr("width", Chain.svgWidth); //added for scrollbar
@@ -195,12 +205,11 @@ export class Chain {
                     .translate(self.lastTransform.x + (last - d3.event.x), 0)
                     .scale(1);
             } else {
-                console.log("boring" + (self.lastTransform.x - d3.event.x));
                 newTransform = d3.zoomIdentity
                     .translate(self.lastTransform.x + (last - d3.event.x), 0)
                     .scale(1);
             }
-            console.log(d3.select(this).attr("transform"));
+
             last = d3.event.x;
 
             d3.select("#svg-container").call(
@@ -297,8 +306,24 @@ export class Chain {
         // zoomed in-out by the user.
         subject.subscribe({
             next: (transform: any) => {
+                var last = parseInt(d3.select(".mover").attr("x"));
+                if (
+                    last > parseInt(d3.select("#svg-container").style("width"))
+                ) {
+                    // - 50 pour que le mover soit apparent en chargeant la chaine, à ràgler si besoin
+                    d3.select(".mover").attr(
+                        "x",
+                        -100 +
+                            parseInt(d3.select("#svg-container").style("width"))
+                    );
+                } else {
+                    d3.select(".mover").attr(
+                        "x",
+                        last + this.lastTransform.x - transform.x
+                    );
+                }
+
                 this.lastTransform = transform;
-                console.log(transform);
 
                 // This line disables translate to the left. (for reference)
                 // transform.x = Math.min(0, transform.x);
@@ -320,7 +345,7 @@ export class Chain {
                 // Horizontal transformation on the blocks only (sets Y scale to 1)
                 const transformString =
                     "translate(" +
-                    (transform.x + this.hi) +
+                    transform.x +
                     "," +
                     "0) scale(" +
                     transform.k +
@@ -332,12 +357,13 @@ export class Chain {
                     transform.x +
                     "," +
                     "0) scale(" +
-                    "0" +
+                    "1" +
                     "," +
-                    "0" +
+                    "1" +
                     ")";
 
                 // The blocks and arrows follow the transformations of the chain.
+
                 this.gblocks.attr("transform", transformString);
                 this.garrow.attr("transform", transformString);
 
@@ -356,16 +382,6 @@ export class Chain {
                 // this.gcircle.attr("transform", transformString);
             },
         });
-
-        // Initialize the last added block of the chain in its dedicated space
-        // It is initialized here as it takes longer to load.
-        // We need to use it when creating new chunks
-        const lastAddedBlock = new LastAddedBlock(
-            roster,
-            flash,
-            initialBlock,
-            this.blockClickedSubject
-        );
 
         // Subject that is notified about the transformation on the chain
         subject.pipe(debounceTime(50)).subscribe({
