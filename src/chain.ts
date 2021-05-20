@@ -98,8 +98,6 @@ export class Chain {
     // Coordinates and scale factor of the view of the chain
     lastTransform = { x: 0, y: 0, k: 1 };
 
-    hi = 0;
-
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
         // Blockchain properties
         this.roster = roster;
