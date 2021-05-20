@@ -70,22 +70,36 @@ export class Status {
                 (status) => {
                     const tableElement = tableBody.append("tr");
                     const elementName = tableElement.append("td");
-                    const fullInfo = "hello \n" + "world!"; 
+                    
+                    //name (+advanced infos on hover)
+                    const uptime= status.getStatus("Generic").getValue("Uptime");
+                    const [uptimeString, uptimeSeconds] = parseTime(uptime);
+
+                    const Tx_bps =(parseInt(status.getStatus("Generic").getValue("TX_bytes"))/ parseInt(uptimeSeconds)).toFixed(3);
+                    const Rx_bps =(parseInt(status.getStatus("Generic").getValue("RX_bytes"))/ parseInt(uptimeSeconds)).toFixed(3);
+                    const infoList = 
+                        ["ConnType " + status.getStatus("Generic").getValue("ConnType"),
+                        "Port " + status.getStatus("Generic").getValue("Port"), 
+                        "Version " + status.getStatus("Conode").getValue("version"),
+                        "Tx/Rx " + Tx_bps + " Bps/ " + Rx_bps + " Bps"];
+                    
+                   
                     elementName.append("p")
                         .attr("style", "color: lightgreen;font-weight: bold;")
                         .text(status.serverIdentity.description)
-                        .attr("uk-tooltip",fullInfo);
+                        .attr("uk-tooltip",infoList.join("<br/>"));
+                    //host
                     tableElement.append("td")
                         .text(status.getStatus("Generic").getValue("Host"));
-                    const uptime= status.getStatus("Generic").getValue("Uptime");
-                    const uptimeString= parseTime(uptime);
+                    //uptime
+                    
                     tableElement.append("td")
                         .text(uptimeString);
                     
 
                 })
                 .catch(error => {
-                    
+                    console.log(status);
                     const downNode = statusRPC["conn"][i];
                     const tableElement = tableBody.append("tr");
                     const elementName = tableElement.append("td");
@@ -93,8 +107,7 @@ export class Status {
                         .attr("style", "color: #a63535;font-weight: bold;")
                         .text(downNode.url.origin);
                     tableElement.append("td").text(downNode.url.hostname);
-                    //const uptime= status.getStatus("Generic").getValue("Uptime");
-                    //const uptime_string= 
+                    
                     tableElement.append("td").text("");
                 });
 
@@ -123,7 +136,10 @@ export class Status {
             var totalMinutes = hours*60 + minutes;
             resultingText = totalMinutes + " minutes";
         }
-        return resultingText;
+        const totalSeconds = (hours*60*60 + minutes * 60 + parseInt(uptime.match(/([0-9.]+)*(?=s)/)[0])).toString();
+        console.log(uptime);
+        console.log(totalSeconds);
+        return [resultingText,totalSeconds];
     }
 
     }

@@ -111,9 +111,7 @@ export class Block {
 
         this.loadedSkipBObs.subscribe({
             next: (value) => {
-                self.highlightBlocks(this.hashHighligh);
-                UIkit.accordion("#status").toggle(0,false);
-                
+                self.highlightBlocks(this.hashHighligh);               
                 
             },
         });
