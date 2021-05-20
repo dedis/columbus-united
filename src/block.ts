@@ -112,9 +112,8 @@ export class Block {
         this.loadedSkipBObs.subscribe({
             next: (value) => {
                 self.highlightBlocks(this.hashHighligh);
-                //UIkit.accordion(d3.select("#status")).toggle("0",false);
-                //document.getElementById("block_infos").scrollIntoView();
-                //this.flash.display(Flash.flashType.INFO, "Scroll down to see the Block details.");
+                UIkit.accordion("#status").toggle(0,false);
+                
                 
             },
         });

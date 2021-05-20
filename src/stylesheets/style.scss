@@ -21,7 +21,7 @@ div.block-infos {
     flex-grow: 0;
     flex-direction: row;
     flex: 1;
-    min-height: 200px;
+    //min-height: 200px;
     margin-bottom: 36px;
     margin-left: 10;
     margin-right: 10;
@@ -231,12 +231,14 @@ div.query-answer {
     overflow-y: scroll;
     padding: 8px;
     flex: 1;
+    max-height: 500px;
 }
 
 .browse-container {
     overflow-y: scroll;
     padding: 8px;
     flex: 1;
+    max-height: 500px;
 }
 
 .uk-tooltip {

@@ -23,8 +23,8 @@ export class Status {
         const statusBlockContainer = d3.select("#status");
         //append list item of accordion that will contain all the elements
         const statusContainerLi = statusBlockContainer.append("li")
-            .attr("id", "statusLi");
-            //.attr("class", "uk-open");
+            .attr("id", "statusLi")
+            .attr("class", "uk-open");
 
         const statusContainerTitle = statusContainerLi.append("a")
             .attr("class", "uk-accordion-title")
@@ -70,9 +70,11 @@ export class Status {
                 (status) => {
                     const tableElement = tableBody.append("tr");
                     const elementName = tableElement.append("td");
+                    const fullInfo = "hello \n" + "world!"; 
                     elementName.append("p")
                         .attr("style", "color: lightgreen;font-weight: bold;")
-                        .text(status.serverIdentity.description);
+                        .text(status.serverIdentity.description)
+                        .attr("uk-tooltip",fullInfo);
                     tableElement.append("td")
                         .text(status.getStatus("Generic").getValue("Host"));
                     const uptime= status.getStatus("Generic").getValue("Uptime");
