@@ -276,12 +276,13 @@ export class Chain {
             next: (transform: any) => {
                 var last = parseInt(d3.select(".mover").attr("x"));
 
-                //-200 to have a tighter threshhold for the transition,
                 //TODO find the perfect threshhold
                 //TODO modify width of mover according to transform.k
                 if (
                     last >
-                    parseInt(d3.select("#svg-container").style("width")) - 200
+                        parseInt(d3.select("#svg-container").style("width")) -
+                            100 ||
+                    last < 0
                 ) {
                     // - 100 pour que le mover soit apparent en chargeant la chaine, à ràgler si besoin
                     d3.select(".mover").attr(
