@@ -960,7 +960,7 @@ export class Chunk {
             .append("svg:image")
             .attr("xlink:href", blocky.toDataURL())
             .attr("src", blocky.toDataURL())
-            .attr("uk-tooltip", ` ${Utils.bytes2String(block.hash)}`)
+            .attr("uk-tooltip", `Block index:${Utils.bytes2String(block.hash)}`)
             .attr("x", xTranslate + 31)
             .attr("y", -4)
             .attr("width", 9)
