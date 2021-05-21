@@ -940,7 +940,8 @@ export class Chunk {
             .append("circle")
             .attr("cx", xTranslate + 15)
             .attr("r", 4)
-            .attr("fill", "#b3ffb3")
+            .attr("stroke", "#b3ffb3")
+            .attr("fill-opacity", 0)
             .attr(
                 "uk-tooltip",
                 `${Utils.getTransactionRatio(block)[0]} accepted transactions`
@@ -964,6 +965,7 @@ export class Chunk {
             .attr("y", -4)
             .attr("width", 9)
             .attr("height", 9)
+            .attr("opacity", 0.6)
 
             .on("click", function () {
                 Utils.copyToClipBoard(
@@ -982,7 +984,9 @@ export class Chunk {
             .append("circle")
             .attr("cx", xTranslate + Chain.blockWidth - 15)
             .attr("r", 4)
-            .attr("fill", "#EF5959")
+            .attr("stroke", "#EF5959")
+            .attr("fill-opacity", 0)
+
             .attr(
                 "uk-tooltip",
                 `${Utils.getTransactionRatio(block)[1]} rejected transactions`
