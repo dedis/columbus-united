@@ -152,9 +152,9 @@ export class Utils {
     static async translateOnChain(goalBlock: number, initialBlock: number) {
         // translate the chain to wanted coordinates
         const newZoom = d3.zoomIdentity
-            .translate( //-5 because we want to land in the middle of the chain
-                - (goalBlock - 5 ) * Chain.unitBlockAndPaddingWidth +
-                    0.2 ,
+            .translate(
+                //-5 because we want to land in the middle of the chain
+                -(goalBlock - 5) * Chain.unitBlockAndPaddingWidth + 0.2,
                 0
             )
             .scale(1);

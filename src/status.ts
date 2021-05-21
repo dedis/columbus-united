@@ -26,16 +26,21 @@ export class Status {
             .attr("id", "statusLi")
             .attr("class", "uk-open");
 
-        const statusContainerTitle = statusContainerLi.append("a")
+        const statusContainerTitle = statusContainerLi
+            .append("a")
             .attr("class", "uk-accordion-title")
             .attr("href", "#");
 
         statusContainerTitle
             .append("h3")
-            .attr("style", "font-weight: 700; font-size: 1.1em; margin-bottom : 15px;")
+            .attr(
+                "style",
+                "font-weight: 700; font-size: 1.1em; margin-bottom : 15px;"
+            )
             .text(" Status of the Skipchain");
 
-        const mainDiv = statusContainerLi.append("div")
+        const mainDiv = statusContainerLi
+            .append("div")
             .attr("class", "uk-accordion-content")
             .attr("id", "status-div");
 
@@ -43,31 +48,27 @@ export class Status {
         const statusRPC = new StatusRPC(roster);
 
         //create table of nodes status
-        const nodeTable = mainDiv.append("table")
+        const nodeTable = mainDiv
+            .append("table")
             .attr("id", "node-table")
             .attr("class", "uk-table uk-table-small uk-table-divider");
 
-        nodeTable.append("caption")
-            .text("Status of Roster's nodes");
+        nodeTable.append("caption").text("Status of Roster's nodes");
         const tableHeader = nodeTable.append("thead").append("tr");
-        tableHeader.append("th")
-            .text("Name");
-        tableHeader.append("th")
-            .text("Host");
-        tableHeader.append("th")
-            .text("Uptime");
-
-
+        tableHeader.append("th").text("Name");
+        tableHeader.append("th").text("Host");
+        tableHeader.append("th").text("Uptime");
 
         //statusRPC.getStatus(0).then(s => console.log(s));
         const tableBody = nodeTable.append("tbody");
 
         const nodeLastIndex = Object.keys(statusRPC["conn"]).length - 1;
-        
+
         //console.log(Object.keys(statusRPC).entries)
         for (let i = 0; i < nodeLastIndex; i++) {
-            statusRPC.getStatus(i).then(
-                (status) => {
+            statusRPC
+                .getStatus(i)
+                .then((status) => {
                     const tableElement = tableBody.append("tr");
                     const elementName = tableElement.append("td");
                     
@@ -89,7 +90,8 @@ export class Status {
                         .text(status.serverIdentity.description)
                         .attr("uk-tooltip",infoList.join("<br/>"));
                     //host
-                    tableElement.append("td")
+                    tableElement
+                        .append("td")
                         .text(status.getStatus("Generic").getValue("Host"));
                     //uptime
                     
@@ -113,36 +115,31 @@ export class Status {
 
         }
 
-    // function that converts xxxhxxmxxxs to number of days,hours or minutes
-    function parseTime(uptime : string){
+        // function that converts xxxhxxmxxxs to number of days,hours or minutes
+        function parseTime(uptime: string) {
+            const hours = parseInt(uptime.match(/([0-9]+)*(?=h)/)[0]);
+            const minutes = parseInt(uptime.match(/([0-9]+)*(?=m)/)[0]);
 
-        const hours = parseInt(uptime.match(/([0-9]+)*(?=h)/)[0]);
-        const minutes = parseInt(uptime.match(/([0-9]+)*(?=m)/)[0]);
-        
-        var resultingText = "";
-        if(hours > 24){
-            var days= Math.floor(hours/24.);
-            if(days > 1)
-                resultingText = days + " days";
-            else
-                resultingText = days + " day";
-
-        }
-        else if (hours >= 1){
+            var resultingText = "";
+            if (hours > 24) {
+                var days = Math.floor(hours / 24);
+                if (days > 1) resultingText = days + " days";
+                else resultingText = days + " day";
+                
+            } else if (hours >= 1) {
+                resultingText = hours + " hours";
+            } else {
+                var totalMinutes = hours * 60 + minutes;
+                resultingText = totalMinutes + " minutes";
+            } 
+            const totalSeconds = (hours*60*60 + minutes * 60 + parseInt(uptime.match(/([0-9.]+)*(?=s)/)[0])).toString();
             
-            resultingText = hours +  " hours";
-        }
-        else{
-            var totalMinutes = hours*60 + minutes;
-            resultingText = totalMinutes + " minutes";
-        }
-        const totalSeconds = (hours*60*60 + minutes * 60 + parseInt(uptime.match(/([0-9.]+)*(?=s)/)[0])).toString();
-        console.log(uptime);
-        console.log(totalSeconds);
-        return [resultingText,totalSeconds];
+            return [resultingText,totalSeconds];
+            
+        } 
     }
-
-    }
-
 
 }
+
+
+

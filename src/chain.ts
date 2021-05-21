@@ -112,10 +112,19 @@ export class Chain {
         //When a new chain is created the number of loaded blocks is reset
         Chain.totalLoaded = 0;
 
+        // Initialize the last added block of the chain in its dedicated space
+        // It is initialized here as it takes longer to load.
+        // We need to use it when creating new chunks
+        const lastAddedBlock = new LastAddedBlock(
+            roster,
+            flash,
+            initialBlock,
+            this.blockClickedSubject
+        );
+
         // Main SVG canvas that contains the chain
-        const svg = d3.select("#svg-container")
-            .attr("height", Chain.svgHeight);
-            //.attr("width", Chain.svgWidth); //added for scrollbar
+        const svg = d3.select("#svg-container").attr("height", Chain.svgHeight);
+        //.attr("width", Chain.svgWidth); //added for scrollbar
 
         // This group will contain the blocks
         this.gblocks = svg.append("g").attr("class", "gblocks");
@@ -145,7 +154,7 @@ export class Chain {
             .attr("class", "x-axis")
             .attr("fill", "#8C764A")
             .call(xAxis);
-              
+
         const zoom = d3
             .zoom()
             .extent([
@@ -156,106 +165,103 @@ export class Chain {
             .on("zoom", () => {
                 subject.next(d3.event.transform);
             });
-            
+
         //Disable zooming the view on double tap to enable double clocking on backward links
         svg.call(zoom).on("dblclick.zoom", null);
         Chain.zoom = zoom;
 
         //Implementation of a scrollbar underneath the chain
-        
-        const scrollbar = svg.append("g")
-                .attr("transform", "translate(0,90)"); //move the bar to the bottom of the chain
-        //scrollbar-mover
-        const drag = d3.zoom()
-            .translateExtent([
-                [0, 0],
-                [Chain.svgWidth, Chain.svgHeight],
-            ])
-            .on("zoom",scrollbarDrag)
-               
+
+        const scrollbar = svg.append("g").attr("transform", "translate(0,90)"); //move the bar to the bottom of the chain
+
         scrollbar
-              .append("rect")
-              .attr("class", "mover")
-              .attr("x", Chain.svgWidth/2)
-              .attr("y", Chain.svgHeight/2)
-              .attr("rx", "3px")
-              .attr("width", Math.round(Chain.svgWidth/Chain.numBlocks))
-              .call(drag); 
-        
-    //TODO FIX THE BUGGY sliding
-        function scrollbarDrag(){
+            .append("rect")
+            .attr("class", "mover")
+            .attr("x", Chain.svgWidth / 2)
+            .attr("y", Chain.svgHeight / 2)
+            .attr("rx", "3px")
+            .attr("width", Math.round(Chain.svgWidth / Chain.numBlocks)); //TODO fix size of mover according to total number of blocks on the chain.numblock is the numbber of blocks loaded
 
-            var pos = {
-                x : parseInt(d3.select(".mover").attr("x")),
-                width: Chain.svgWidth
-                //might add feature of position here if needed
+        const self = this;
+        let last = Chain.svgWidth / 2;
+
+        var dragHandler = d3.drag().on("drag", function () {
+            d3.select(this).attr("x", d3.event.x);
+
+            if (last >= d3.event.x) {
+                var newTransform = d3.zoomIdentity
+                    .translate(self.lastTransform.x + (last - d3.event.x), 0)
+                    .scale(1);
+            } else {
+                newTransform = d3.zoomIdentity
+                    .translate(self.lastTransform.x + (last - d3.event.x), 0)
+                    .scale(1);
             }
-            //update scrollbar pos
-            const nx = d3.event.transform.x + pos.x;
-            //translate chain
-            //d3.event.transform.x = d3.event.transform.x + Chain.length; this line doesn't really change anything
-            subject.next(d3.event.transform);
-            
-            //for debugging
-            console.log("x:" + pos.x +" nx: "+nx);
-            console.log(d3.event.transform+"from scrollbar");
-            console.log(Chain.length);
 
-            //if new x position is outside the svg keep scrollbar where it is
-            if( nx < 0 || nx > pos.width) return;
+            //TODO manage edge case of draging out of the chain
 
-            d3.select(".mover").attr("x", nx);
-            
-        }
-        
-               
+            last = d3.event.x;
+
+            d3.select("#svg-container").call(
+                Chain.zoom.transform,
+                newTransform
+            );
+        });
+
+        dragHandler(d3.selectAll(".mover"));
+
         //Drop down-menu for clickable zoom in & out
-        const divZoomDropdown=d3.selectAll(".topnav")
+        const divZoomDropdown = d3
+            .selectAll(".topnav")
             .append("div")
-            .attr("class","dropdown");
-        
-            //contains zoom-in and zoom-out buttons
-        const zoomButton= divZoomDropdown
+            .attr("class", "dropdown");
+
+        //contains zoom-in and zoom-out buttons
+        const zoomButton = divZoomDropdown
             .append("button")
-            .attr("class","zoombtn"); 
+            .attr("class", "zoombtn");
         zoomButton
             .append("svg")
             .attr("id", "svg-zoombtn")
-            .attr("transform","translate(-5,0)")
+            .attr("transform", "translate(-5,0)")
             .append("image")
-            .attr("x","5%")
+            .attr("x", "5%")
             .attr("y", "15%")
             .attr("width", "15px")
             .attr("height", "15px")
-            .attr("href", "assets/zoom-icon.svg"); 
+            .attr("href", "assets/zoom-icon.svg");
 
-        
-        const divZoomDropdownContent= divZoomDropdown
+        const divZoomDropdownContent = divZoomDropdown
             .append("div")
-            .attr("id","dropdown-zoom")
-            .attr("class","dropdown-zoom-content");
+            .attr("id", "dropdown-zoom")
+            .attr("class", "dropdown-zoom-content");
 
         divZoomDropdownContent
             .append("p")
-            .attr("id","zoom-in")
-            .text("Zoom In");        
+            .attr("id", "zoom-in")
+            .text("Zoom In");
 
         divZoomDropdownContent
-        .append("p")
-        .attr("id","zoom-out")
-        .text("Zoom Out");
-        
-         //function to hide and show dropdown menu of zoom
-         zoomButton.on("click", function() {
+            .append("p")
+            .attr("id", "zoom-out")
+            .text("Zoom Out");
+
+        //function to hide and show dropdown menu of zoom
+        zoomButton.on("click", function () {
             document.getElementById("dropdown-zoom").classList.toggle("show");
         });
 
-        const zoomFromButtons= d3.zoom().on("zoom", () => {
-            subject.next(d3.event.transform)});
+        const zoomFromButtons = d3.zoom().on("zoom", () => {
+            subject.next(d3.event.transform);
+        });
 
         //Zoom transformation when clicking on zoom buttons
-        d3.select("#zoom-in").on('click', function() { zoomFromButtons.scaleBy(d3.select("#svg-container"), 1.2); });
-        d3.select("#zoom-out").on('click', function() { zoomFromButtons.scaleBy(d3.select("#svg-container"), 0.8); });
+        d3.select("#zoom-in").on("click", function () {
+            zoomFromButtons.scaleBy(d3.select("#svg-container"), 1.2);
+        });
+        d3.select("#zoom-out").on("click", function () {
+            zoomFromButtons.scaleBy(d3.select("#svg-container"), 0.8);
+        });
 
         // This group will contain the left and right loaders that display a
         // spinner when new blocks are being added
@@ -266,8 +272,27 @@ export class Chain {
         // zoomed in-out by the user.
         subject.subscribe({
             next: (transform: any) => {
+                var last = parseInt(d3.select(".mover").attr("x"));
+
+                //TODO find the perfect threshhold
+                //TODO modify width of mover according to transform.k
+                if (last > 1370 || last < 0) {
+                    // Chain size
+                    // - 100 pour que le mover soit apparent en chargeant la chaine, à ràgler si besoin
+                    d3.select(".mover").attr(
+                        "x",
+                        -100 +
+                            parseInt(d3.select("#svg-container").style("width"))
+                    );
+                } else {
+                    d3.select(".mover").attr(
+                        "x",
+                        last + this.lastTransform.x - transform.x
+                    );
+                }
+
                 this.lastTransform = transform;
-               
+
                 // This line disables translate to the left. (for reference)
                 // transform.x = Math.min(0, transform.x);
 
@@ -295,11 +320,20 @@ export class Chain {
                     "," +
                     "1" +
                     ")";
+                const tra =
+                    "translate(" +
+                    transform.x +
+                    "," +
+                    "0) scale(" +
+                    "1" +
+                    "," +
+                    "1" +
+                    ")";
 
                 // The blocks and arrows follow the transformations of the chain.
+
                 this.gblocks.attr("transform", transformString);
                 this.garrow.attr("transform", transformString);
-
 
                 // Move scrollbars on zoom
                 //const x = parseInt(d3.select(".mover").attr("x"));
@@ -309,24 +343,13 @@ export class Chain {
                 //if ( nx > Chain.svgWidth) { nx = Chain.svgWidth; }
                 //d3.select(".mover").attr("x",nx);
 
-                //d3.select("#mover").attr("transform", transformString); 
-                
-                
+                //d3.select("#mover").attr("transform", transformString);
+
                 // Standard transformation on the text since we need to keep the
                 // original scale
                 // this.gcircle.attr("transform", transformString);
             },
         });
-
-        // Initialize the last added block of the chain in its dedicated space
-        // It is initialized here as it takes longer to load.
-        // We need to use it when creating new chunks
-        const lastAddedBlock = new LastAddedBlock(
-            roster,
-            flash,
-            initialBlock,
-            this.blockClickedSubject
-        );
 
         // Subject that is notified about the transformation on the chain
         subject.pipe(debounceTime(50)).subscribe({
@@ -452,6 +475,4 @@ export class Chain {
             },
         });
     }
-
-   
 }
