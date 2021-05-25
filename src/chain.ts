@@ -186,6 +186,7 @@ export class Chain {
         let last = Chain.svgWidth / 2;
 
         var dragHandler = d3.drag().on("drag", function () {
+
             d3.select(this).attr("x", d3.event.x);
 
             if (last >= d3.event.x) {
@@ -197,9 +198,7 @@ export class Chain {
                     .translate(self.lastTransform.x + (last - d3.event.x), 0)
                     .scale(1);
             }
-
-            //TODO manage edge case of draging out of the chain
-
+            
             last = d3.event.x;
 
             d3.select("#svg-container").call(
@@ -275,21 +274,50 @@ export class Chain {
                 var last = parseInt(d3.select(".mover").attr("x"));
 
                 //TODO find the perfect threshhold
-                //TODO modify width of mover according to transform.k
-                if (last > 1370 || last < 0) {
+                //TODO modify width of mover according to transform.k 1370 before
+                var svgWidth = parseInt(d3.select("#svg-container").style("width"));
+                var moverWidth = parseInt(d3.select(".mover").style("width"));
+                console.log("mover w: "+moverWidth);
+                console.log("mover x"+ d3.select(".mover").attr("x"));
+                if (last >  svgWidth - moverWidth) {
                     // Chain size
                     // - 100 pour que le mover soit apparent en chargeant la chaine, à ràgler si besoin
+                    
                     d3.select(".mover").attr(
                         "x",
                         -100 +
                             parseInt(d3.select("#svg-container").style("width"))
-                    );
-                } else {
+                    ); 
+                    
+                    
+                } else if (last < moverWidth){
+                    d3.select(".mover").attr(
+                       "x",
+                       moverWidth/2
+                     );
+                }
+                else {
                     d3.select(".mover").attr(
                         "x",
                         last + this.lastTransform.x - transform.x
                     );
+                    
                 }
+               
+                var newWidth = parseInt(d3.select(".mover").style("width"))*transform.k;
+                console.log(newWidth);
+                if(newWidth >= 50 && newWidth <= svgWidth){ 
+                    //console.log("newWidth: "+newWidth);
+                   
+                
+                   d3.select(".mover").attr("width",newWidth);
+                   
+                }
+                       
+                
+                
+                
+                
 
                 this.lastTransform = transform;
 
@@ -336,14 +364,7 @@ export class Chain {
                 this.garrow.attr("transform", transformString);
 
                 // Move scrollbars on zoom
-                //const x = parseInt(d3.select(".mover").attr("x"));
-                //var nx= x + d3.event.transform.x;
-                //handle edge cases
-                //if(nx<0){ nx=0; }
-                //if ( nx > Chain.svgWidth) { nx = Chain.svgWidth; }
-                //d3.select(".mover").attr("x",nx);
-
-                //d3.select("#mover").attr("transform", transformString);
+                
 
                 // Standard transformation on the text since we need to keep the
                 // original scale

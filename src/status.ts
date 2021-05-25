@@ -69,10 +69,9 @@ export class Status {
             statusRPC
                 .getStatus(i)
                 .then((status) => {
-                    const tableElement = tableBody.append("tr");
-                    const elementName = tableElement.append("td");
                     
-                    //name (+advanced infos on hover)
+                    
+                    //infos (+advanced infos on hover)
                     const uptime= status.getStatus("Generic").getValue("Uptime");
                     const [uptimeString, uptimeSeconds] = parseTime(uptime);
 
@@ -83,9 +82,11 @@ export class Status {
                         "Port " + status.getStatus("Generic").getValue("Port"), 
                         "Version " + status.getStatus("Conode").getValue("version"),
                         "Tx/Rx " + Tx_bps + " Bps/ " + Rx_bps + " Bps"];
-                    
-                   
-                    elementName.append("p")
+                    //name
+                    const tableElement = tableBody.append("tr");
+                    const elementName = tableElement.append("td");
+                    elementName
+                        .append("p")
                         .attr("style", "color: lightgreen;font-weight: bold;")
                         .text(status.serverIdentity.description)
                         .attr("uk-tooltip",infoList.join("<br/>"));
@@ -94,7 +95,6 @@ export class Status {
                         .append("td")
                         .text(status.getStatus("Generic").getValue("Host"));
                     //uptime
-                    
                     tableElement.append("td")
                         .text(uptimeString);
                     
@@ -105,11 +105,14 @@ export class Status {
                     const downNode = statusRPC["conn"][i];
                     const tableElement = tableBody.append("tr");
                     const elementName = tableElement.append("td");
-                    elementName.append("p")
+                    //origin as name
+                    elementName
+                        .append("p")
                         .attr("style", "color: #a63535;font-weight: bold;")
                         .text(downNode.url.origin);
+                    //host
                     tableElement.append("td").text(downNode.url.hostname);
-                    
+                    //uptime is unavailable
                     tableElement.append("td").text("");
                 });
 
@@ -125,7 +128,7 @@ export class Status {
                 var days = Math.floor(hours / 24);
                 if (days > 1) resultingText = days + " days";
                 else resultingText = days + " day";
-                
+
             } else if (hours >= 1) {
                 resultingText = hours + " hours";
             } else {
