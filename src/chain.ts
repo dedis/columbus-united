@@ -187,6 +187,10 @@ export class Chain {
 
         var dragHandler = d3.drag().on("drag", function () {
 
+           // console.log("event x:"+d3.event.x);
+            //var newX=self.lastTransform.x + (last - d3.event.x);
+            //console.log("translation x:"+newX);
+
             d3.select(this).attr("x", d3.event.x);
 
             if (last >= d3.event.x) {
@@ -277,9 +281,8 @@ export class Chain {
                 //TODO modify width of mover according to transform.k 1370 before
                 var svgWidth = parseInt(d3.select("#svg-container").style("width"));
                 var moverWidth = parseInt(d3.select(".mover").style("width"));
-                console.log("mover w: "+moverWidth);
-                console.log("mover x"+ d3.select(".mover").attr("x"));
-                if (last >  svgWidth - moverWidth) {
+                
+                if (last >  svgWidth - moverWidth/2) {
                     // Chain size
                     // - 100 pour que le mover soit apparent en chargeant la chaine, à ràgler si besoin
                     
@@ -290,7 +293,7 @@ export class Chain {
                     ); 
                     
                     
-                } else if (last < moverWidth){
+                } else if (last < moverWidth/2){
                     d3.select(".mover").attr(
                        "x",
                        moverWidth/2
@@ -305,19 +308,13 @@ export class Chain {
                 }
                
                 var newWidth = parseInt(d3.select(".mover").style("width"))*transform.k;
-                console.log(newWidth);
-                if(newWidth >= 50 && newWidth <= svgWidth){ 
-                    //console.log("newWidth: "+newWidth);
-                   
-                
-                   d3.select(".mover").attr("width",newWidth);
+               
+                if(newWidth >= 50 && newWidth <= svgWidth/2){ 
+                    
+                   //d3.select(".mover").attr("width",newWidth);
                    
                 }
-                       
-                
-                
-                
-                
+                               
 
                 this.lastTransform = transform;
 
@@ -362,9 +359,6 @@ export class Chain {
 
                 this.gblocks.attr("transform", transformString);
                 this.garrow.attr("transform", transformString);
-
-                // Move scrollbars on zoom
-                
 
                 // Standard transformation on the text since we need to keep the
                 // original scale

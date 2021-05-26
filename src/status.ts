@@ -60,11 +60,11 @@ export class Status {
         tableHeader.append("th").text("Uptime");
 
         //statusRPC.getStatus(0).then(s => console.log(s));
-        const tableBody = nodeTable.append("tbody");
+        const tableBody = nodeTable.append("tbody").attr("class","node-table-body");
 
         const nodeLastIndex = Object.keys(statusRPC["conn"]).length - 1;
-
-        //console.log(Object.keys(statusRPC).entries)
+        
+        //populate initial table
         for (let i = 0; i < nodeLastIndex; i++) {
             statusRPC
                 .getStatus(i)
@@ -85,8 +85,11 @@ export class Status {
                     //name
                     const tableElement = tableBody.append("tr");
                     const elementName = tableElement.append("td");
+                    
+                    
                     elementName
                         .append("p")
+                        .attr("id","status-name-"+i)
                         .attr("style", "color: lightgreen;font-weight: bold;")
                         .text(status.serverIdentity.description)
                         .attr("uk-tooltip",infoList.join("<br/>"));
@@ -101,13 +104,14 @@ export class Status {
 
                 })
                 .catch(error => {
-                    console.log(status);
+                    
                     const downNode = statusRPC["conn"][i];
                     const tableElement = tableBody.append("tr");
                     const elementName = tableElement.append("td");
                     //origin as name
                     elementName
                         .append("p")
+                        .attr("id","status-name-${i}")
                         .attr("style", "color: #a63535;font-weight: bold;")
                         .text(downNode.url.origin);
                     //host
@@ -115,8 +119,42 @@ export class Status {
                     //uptime is unavailable
                     tableElement.append("td").text("");
                 });
-
         }
+        //update table RX/TX and uptime 
+        setInterval(function () {
+            for (let i = 0; i < nodeLastIndex; i++) {
+                statusRPC
+                    .getStatus(i)
+                    .then((status) => {
+                        //upadted infos (+advanced infos on hover)
+                        const uptime= status.getStatus("Generic").getValue("Uptime");
+                        const [uptimeString, uptimeSeconds] = parseTime(uptime);
+
+                        const Tx_bps =(parseInt(status.getStatus("Generic").getValue("TX_bytes"))/ parseInt(uptimeSeconds)).toFixed(3);
+                        const Rx_bps =(parseInt(status.getStatus("Generic").getValue("RX_bytes"))/ parseInt(uptimeSeconds)).toFixed(3);
+                        
+                        const infoList = 
+                            ["ConnType " + status.getStatus("Generic").getValue("ConnType"),
+                            "Port " + status.getStatus("Generic").getValue("Port"), 
+                            "Version " + status.getStatus("Conode").getValue("version"),
+                            "Tx/Rx " + Tx_bps + " Bps/ " + Rx_bps + " Bps"];
+                        
+                        //update tooltip
+                        
+                        d3.select("#status-name-"+i).attr("uk-tooltip",infoList.join("<br/>"));
+                    
+
+                }).catch(error => {
+                    //no update mark node as down
+                    const downNode = statusRPC["conn"][i];
+
+                    d3.select("#status-name-"+i)
+                    .attr("style", "color: #a63535;font-weight: bold;")
+                    .text(downNode.url.origin);
+                });
+            } 
+            
+        }, 10*1000); //update every 10 second
 
         // function that converts xxxhxxmxxxs to number of days,hours or minutes
         function parseTime(uptime: string) {
