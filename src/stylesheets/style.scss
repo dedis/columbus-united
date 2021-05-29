@@ -355,6 +355,12 @@ div.query-answer {
     margin: 40px;
 }
 
+#status-div{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
 #node-table {
     width: 400px;
     
