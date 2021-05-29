@@ -112,8 +112,19 @@ export class Chain {
         //When a new chain is created the number of loaded blocks is reset
         Chain.totalLoaded = 0;
 
+        // Initialize the last added block of the chain in its dedicated space
+        // It is initialized here as it takes longer to load.
+        // We need to use it when creating new chunks
+        const lastAddedBlock = new LastAddedBlock(
+            roster,
+            flash,
+            initialBlock,
+            this.blockClickedSubject
+        );
+
         // Main SVG canvas that contains the chain
         const svg = d3.select("#svg-container").attr("height", Chain.svgHeight);
+        //.attr("width", Chain.svgWidth); //added for scrollbar
 
         // This group will contain the blocks
         this.gblocks = svg.append("g").attr("class", "gblocks");
@@ -144,7 +155,6 @@ export class Chain {
             .attr("fill", "#8C764A")
             .call(xAxis);
 
-        // Update the subject when the view is dragged and zoomed in-out
         const zoom = d3
             .zoom()
             .extent([
@@ -155,6 +165,7 @@ export class Chain {
             .on("zoom", () => {
                 subject.next(d3.event.transform);
             });
+
         //Disable zooming the view on double tap to enable double clocking on backward links
         svg.call(zoom).on("dblclick.zoom", null);
         Chain.zoom = zoom;
@@ -334,8 +345,18 @@ export class Chain {
                     "," +
                     "1" +
                     ")";
+                const tra =
+                    "translate(" +
+                    transform.x +
+                    "," +
+                    "0) scale(" +
+                    "1" +
+                    "," +
+                    "1" +
+                    ")";
 
                 // The blocks and arrows follow the transformations of the chain.
+
                 this.gblocks.attr("transform", transformString);
                 this.garrow.attr("transform", transformString);
 
@@ -345,6 +366,8 @@ export class Chain {
             },
         });
 
+<<<<<<< HEAD
+=======
         // Initialize the last added block of the chain in its dedicated space
         // It is initialized here as it takes longer to load.
         // We need to use it when creating new chunks
@@ -355,6 +378,7 @@ export class Chain {
             this.blockClickedSubject
         );
 
+>>>>>>> master
         // Subject that is notified about the transformation on the chain
         subject.pipe(debounceTime(50)).subscribe({
             next: (transform: any) => {
