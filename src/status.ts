@@ -2,8 +2,13 @@ import { PaginateRequest, PaginateResponse } from "@dedis/cothority/byzcoin/prot
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { StatusRPC } from "@dedis/cothority/status";
+import { WebSocketConnection } from "@dedis/cothority/network";
+import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
+import { Flash } from "./flash";
 import * as d3 from "d3";
 import { Utils } from "./utils";
+import DataBody from "@dedis/cothority/byzcoin/proto/data-body";
+import { curveLinear } from "d3";
 
 
 /**
@@ -21,10 +26,13 @@ export class Status {
 
     initialBlock: SkipBlock;
 
-    constructor(roster: Roster, initialBlock: SkipBlock) {
+    flash: Flash;
+
+    constructor(roster: Roster, initialBlock: SkipBlock, flash: Flash) {
 
         this.roster = roster;
         this.initialBlock = initialBlock;
+        this.flash = flash;
 
         const statusBlockContainer = d3.select("#status");
         //append list item of accordion that will contain all the elements
@@ -50,6 +58,7 @@ export class Status {
             .attr("class", "uk-accordion-content")
             .attr("id", "status-div");
 
+        // FIRST PART STATUS OF NODES OF ROSTER
         //list of status of nodes
         const statusRPC = new StatusRPC(roster);
 
@@ -167,72 +176,169 @@ export class Status {
 
         }, 10 * 1000); //update every 10 second
 
+        // SECOND PART STATISTICS
         //Statistics of the 1000 last blocks
+
+        //fetch 1000 last block infos
+        try {
+            // tslint:disable-next-line
+            var conn = new WebSocketConnection(
+                this.roster.list[0].getWebSocketAddress(),
+                ByzCoinRPC.serviceName
+            );
+        } catch (error) {
+            this.flash.display(
+                Flash.flashType.ERROR,
+                `error creating conn: ${error}`
+            );
+            return;
+        }
         const initialBlockID = Utils.bytes2String(initialBlock.hash);
         const bid = Buffer.from(initialBlockID, "hex");
         const message = new PaginateRequest({
             startid: bid,
-            pagesize: 1000, 
+            pagesize: 1000,
             numpages: 1,
             backward: true,
 
         });
-        console.log(message.$type)
-        console.log(message.$type.fields);
-        console.log(message.$type.toString());
-        console.log(message.toJSON());
+
+        const chartData: [number, number][] = [];
+        let transactionTypeData: Map<string, number>;
+        var maxTx = 0;
+        var meanTx = 0;
+
+        conn.sendStream<PaginateResponse>( // fetch next block
+            message,
+            PaginateResponse
+        ).subscribe({
+            complete: () => {
+                // ...
+            },
+            error: (err: Error) => {
+                this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
+            },
+            // ws callback "onMessage":
+            next: ([data, ws]) => {
+                // data is a paginate response, ws is useless 
+                
+                for (let i = 0; i < data.blocks.length; i++) {
+                    var block = data.blocks[i]
+                    
+                    var body = DataBody.decode(block.payload);
+                    console.log(body);
+                    var totalTransaction = body.txResults.length;
+                    
+                    chartData[i] = [i, totalTransaction];
+
+                    meanTx += totalTransaction;
+                    if (totalTransaction > maxTx) {
+                        maxTx = totalTransaction;
+                    }
+
+                }
+
+                meanTx = Math.round(meanTx/1000);
+
+                // create chart
+                const statisticDiv = mainDiv.append("div");
+
+                const header = statisticDiv.append("div")
+                    .attr("class", "uk-card-header")
+                    .attr("style", "padding: 0px 0px")
+                    .text("Transaction history of the 1000 last blocks");
+
+                // set the dimensions and margins of the graph
+                const margin = { top: 10, right: 10, bottom: 30, left: 40 },
+                    width = 400 - margin.left - margin.right,
+                    height = 250 - margin.top - margin.bottom;
+
+                // append the svg object to the body of the page
+                var graphSVG = statisticDiv
+                    .append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .attr("margin","15px 0px")
+                    .append("g")
+                    .attr("transform",
+                        "translate(" + margin.left + "," + margin.top + ")");
+
+                // Axis, domain, line
+                var x = d3.scaleLinear().domain([0, 1000]).range([0, width])
+                var y = d3.scaleLinear().domain([0, 70]).range([height, 0]);
+
+                var xAxis = d3.axisBottom(x);
+                var yAxis = d3.axisLeft(y);
+
+                //add the axis
+                graphSVG.append("g")
+                    .attr("transform", "translate(0," + height + ")")
+                    .call(xAxis);
+
+                graphSVG.append("g")
+                    .call(yAxis);
+
+            
+                var line = d3.line()
+                    .x(function (d,i) {
+                        return x(chartData[i][0]);
+                    })
+                    .y(function (d,i) {
+                        return y(chartData[i][1]);
+                    }); 
+
+            
+                graphSVG.append("path")
+                    .attr("stroke", "#47b2ff")
+                    .attr("stroke-width", 1.5)
+                    .attr("fill", "none")
+                    .attr("d", line(chartData));
+
+                //show mean and max of the graph
+              
+                const legendMean= graphSVG.append("g")
+                    .attr("transform","translate("+(width-100)+","+margin.top+")");
+
+                legendMean.append("circle")
+                    .attr("r", 6)
+                    .attr("cx","-10px")
+                    .attr("cy","-4px")
+                    .style("fill", "#94c0ff");
+
+                legendMean.append("text")
+                    .text("Mean : "+meanTx)
+                    .style("font-size", "12px")
+                    .attr("fill","white");
+                
+                const legendMax = graphSVG.append("g")
+                    .attr("transform","translate("+(width-100)+","+ 3*margin.top +")");
+                
+                legendMax.append("circle")
+                    .attr("r", 6)
+                    .attr("cx","-10px")
+                    .attr("cy","-5px")
+                    .style("fill", "#404080");
+
+                legendMax.append("text")
+                    .text("Max : "+maxTx)
+                    .style("font-size", "12px")
+                    .attr("fill","white");
+                
+                    
+                    //.text("Max : "+maxTx +"<\br>Mean : "+meanTx);
+                    
+                    
 
 
-        const statisticDiv = mainDiv.append("div");
+            },
+        });
+        
+       
 
-        const header = statisticDiv.append("div")
-            .attr("class", "uk-card-header")
-            .attr("style", "padding: 0px 0px")
-            .text("Transaction history of the 1000 last blocks");
+        
 
-        // set the dimensions and margins of the graph
-        const margin = { top: 10, right: 10, bottom: 30, left: 40 },
-            width = 400 - margin.left - margin.right,
-            height = 250 - margin.top - margin.bottom;
 
-        // append the svg object to the body of the page
-        var graphSVG = statisticDiv
-            .append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform",
-                "translate(" + margin.left + "," + margin.top + ")");
-
-        var xAxis = d3.scaleLinear()
-            .domain(d3.extent([0, 1000]))
-            .range([0, width]);
-
-        graphSVG.append("g")
-            .attr("transform", "translate(0," + height + ")")
-            .call(d3.axisBottom(xAxis));
-
-        // Add Y axis
-        var yAxis = d3.scaleLinear()
-            .domain([0, 70]) //to be changed to max of transactions per block
-            .range([height, 0]);
-        graphSVG.append("g")
-            .call(d3.axisLeft(yAxis));
-
-        // Add the line
-        /*
-        svg.append("path")
-        .datum(data)
-        .attr("fill", "none")
-        .attr("stroke", "steelblue")
-        .attr("stroke-width", 1.5)
-        .attr("d", d3.line()
-            .x(function(d) { return x(d.date) })
-            .y(function(d) { return y(d.value) })
-            )
-
-        */
-        //number of transactions by contract type
+        
 
 
         // function that converts xxxhxxmxxxs to number of days,hours or minutes

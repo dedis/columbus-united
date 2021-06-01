@@ -214,7 +214,7 @@ export function startColumbus(
     const lifecycle = new Lifecycle(roster, flash, totalBlock, hashBlock0);
     
     //Display status of nodes and statistics of the blockchain
-    const SkipchainStatus = new Status(roster,initialBlock);
+    const SkipchainStatus = new Status(roster,initialBlock, flash);
 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
