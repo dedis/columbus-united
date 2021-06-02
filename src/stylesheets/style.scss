@@ -366,6 +366,21 @@ div.query-answer {
     
 }
 
+.chart-badge {
+    box-sizing: border-box;
+    min-width: 22px;    
+    height: 22px;
+    padding: 0 5px;
+    border-radius: 500px;
+    vertical-align: middle;
+    
+    color: #fff;
+    font-size: .875rem;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .uk-table caption {
     color: #fff;
 }
@@ -382,7 +397,7 @@ div.query-answer {
 //zoom-in & out button
 .dropdown {
     position:relative;
-    right: 83%;
+    right: 81%;
     top: 20px;
     width: 25px;
     height: 25px;

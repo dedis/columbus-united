@@ -3,7 +3,7 @@ import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { StatusRPC } from "@dedis/cothority/status";
 import { WebSocketConnection } from "@dedis/cothority/network";
-import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
+import { ByzCoinRPC, Instruction } from "@dedis/cothority/byzcoin";
 import { Flash } from "./flash";
 import * as d3 from "d3";
 import { Utils } from "./utils";
@@ -127,7 +127,7 @@ export class Status {
                     elementName
                         .append("p")
                         .attr("id", "status-name-${i}")
-                        .attr("style", "color: #a63535;font-weight: bold;")
+                        .attr("style", "color: #ff4d4d;font-weight: bold;")
                         .text(downNode.url.origin);
                     //host
                     tableElement.append("td").text(downNode.url.hostname);
@@ -168,7 +168,7 @@ export class Status {
                         const downNode = statusRPC["conn"][i];
 
                         d3.select("#status-name-" + i)
-                            .attr("style", "color: #a63535;font-weight: bold;")
+                            .attr("style", "color: #ff4d4d;font-weight: bold;")
                             .attr("uk-tooltip", "This node is down.")
                             .text(downNode.url.origin);
                     });
@@ -204,10 +204,10 @@ export class Status {
         });
 
         const chartData: [number, number][] = [];
-        let transactionTypeData: Map<string, number>;
+        let contractData: Map<string, number> = new Map();
         var maxTx = 0;
-        var meanTx = 0;
-
+        var totalTx = 0;
+        var validatedTx = 0;
         conn.sendStream<PaginateResponse>( // fetch next block
             message,
             PaginateResponse
@@ -221,24 +221,52 @@ export class Status {
             // ws callback "onMessage":
             next: ([data, ws]) => {
                 // data is a paginate response, ws is useless 
-                
+
                 for (let i = 0; i < data.blocks.length; i++) {
                     var block = data.blocks[i]
-                    
-                    var body = DataBody.decode(block.payload);
-                    console.log(body);
-                    var totalTransaction = body.txResults.length;
-                    
-                    chartData[i] = [i, totalTransaction];
 
-                    meanTx += totalTransaction;
+                    var body = DataBody.decode(block.payload);
+                    var totalTransaction = body.txResults.length;
+
+                    chartData[data.blocks.length -1 - i] = [block.index, totalTransaction];
+
+                    totalTx += totalTransaction;
                     if (totalTransaction > maxTx) {
                         maxTx = totalTransaction;
                     }
+                    //count all different contract types
+                    body.txResults.forEach((transaction, i) => {
+                        var txInstruction = transaction.clientTransaction.instructions[0];
+                        if( transaction.accepted){
+                            validatedTx += 1;
+                        }
+                        if (txInstruction.type == Instruction.typeInvoke) {
+
+                            var contractID = txInstruction.invoke.contractID;
+                            if (contractData.has(contractID)) {
+                                contractData.set(contractID,contractData.get(contractID) + 1)
+                            } else { contractData.set(contractID, 1) }
+
+                        } else if (txInstruction.type === Instruction.typeSpawn) {
+
+                            var contractID = txInstruction.invoke.contractID;
+                            if (contractData.has(contractID)) {
+                                contractData.set(contractID,contractData.get(contractID) + 1)
+                            } else { contractData.set(contractID, 1) }
+
+                        } else if (txInstruction.type === Instruction.typeDelete) {
+
+                            var contractID = txInstruction.delete.contractID;
+                            if (contractData.has(contractID)) {
+                                contractData.set(contractID,contractData.get(contractID) + 1)
+                            } else { contractData.set(contractID, 1) }
+                        }
+                    });
 
                 }
-
-                meanTx = Math.round(meanTx/1000);
+                console.log(contractData);
+                
+                const meanTx = Math.round(totalTx / 1000);
 
                 // create chart
                 const statisticDiv = mainDiv.append("div");
@@ -249,23 +277,25 @@ export class Status {
                     .text("Transaction history of the 1000 last blocks");
 
                 // set the dimensions and margins of the graph
-                const margin = { top: 10, right: 10, bottom: 30, left: 40 },
-                    width = 400 - margin.left - margin.right,
+                const margin = { top: 10, right: 10, bottom: 30, left: 30 },
+                    width = 600 - margin.left - margin.right,
                     height = 250 - margin.top - margin.bottom;
 
                 // append the svg object to the body of the page
                 var graphSVG = statisticDiv
                     .append("svg")
-                    .attr("width", width + margin.left + margin.right)
+                    .attr("width", width + margin.left + 2*margin.right)
                     .attr("height", height + margin.top + margin.bottom)
-                    .attr("margin","15px 0px")
+                    .attr("margin", "15px 0px")
                     .append("g")
                     .attr("transform",
                         "translate(" + margin.left + "," + margin.top + ")");
 
                 // Axis, domain, line
-                var x = d3.scaleLinear().domain([0, 1000]).range([0, width])
-                var y = d3.scaleLinear().domain([0, 70]).range([height, 0]);
+                
+                var x = d3.scaleLinear().domain([chartData[0][0], chartData[999][0]]).range([0, width])
+                // enough margin in domain y so that there is no interference with legend
+                var y = d3.scaleLinear().domain([0, maxTx + 20]).range([height, 0]);
 
                 var xAxis = d3.axisBottom(x);
                 var yAxis = d3.axisLeft(y);
@@ -277,68 +307,105 @@ export class Status {
 
                 graphSVG.append("g")
                     .call(yAxis);
+                    
 
-            
                 var line = d3.line()
-                    .x(function (d,i) {
+                    .x(function (d, i) {
                         return x(chartData[i][0]);
                     })
-                    .y(function (d,i) {
+                    .y(function (d, i) {
                         return y(chartData[i][1]);
-                    }); 
+                    });
 
-            
+
                 graphSVG.append("path")
-                    .attr("stroke", "#47b2ff")
+                    .attr("stroke", "#00ffbf")
                     .attr("stroke-width", 1.5)
                     .attr("fill", "none")
                     .attr("d", line(chartData));
 
                 //show mean and max of the graph
-              
-                const legendMean= graphSVG.append("g")
-                    .attr("transform","translate("+(width-100)+","+margin.top+")");
+
+                const legendMean = graphSVG.append("g")
+                    .attr("transform", "translate(" + (width - 100) + "," + margin.top + ")");
 
                 legendMean.append("circle")
                     .attr("r", 6)
-                    .attr("cx","-10px")
-                    .attr("cy","-4px")
+                    .attr("cx", "-10px")
+                    .attr("cy", "-4px")
                     .style("fill", "#94c0ff");
 
                 legendMean.append("text")
-                    .text("Mean : "+meanTx)
+                    .text("Mean : " + meanTx)
                     .style("font-size", "12px")
-                    .attr("fill","white");
-                
+                    .attr("fill", "white");
+
                 const legendMax = graphSVG.append("g")
-                    .attr("transform","translate("+(width-100)+","+ 3*margin.top +")");
-                
+                    .attr("transform", "translate(" + (width - 100) + "," + 3 * margin.top + ")");
+
                 legendMax.append("circle")
                     .attr("r", 6)
-                    .attr("cx","-10px")
-                    .attr("cy","-5px")
+                    .attr("cx", "-10px")
+                    .attr("cy", "-5px")
                     .style("fill", "#404080");
 
                 legendMax.append("text")
-                    .text("Max : "+maxTx)
+                    .text("Max : " + maxTx)
                     .style("font-size", "12px")
-                    .attr("fill","white");
-                
-                    
-                    //.text("Max : "+maxTx +"<\br>Mean : "+meanTx);
-                    
-                    
+                    .attr("fill", "white");
+
+                const statisticSummary =statisticDiv.append("div");
+                statisticSummary.append("span")
+                    .attr("style","position:relative; left: 2em; color:lightblue;")
+                    .text("Accepted: ")
+                statisticSummary.append("span")
+                    .attr("class","chart-badge")
+                    .attr("style","position: relative; left: 2em; background: lightgreen; color: #006fff; ")
+                    .attr("uk-tooltip","Number of validated transactions")
+                    .text(validatedTx)
+                statisticSummary.append("span")
+                    .attr("style","position:relative; left: 5em; color:lightblue;")
+                    .text("Rejected: ")
+                statisticSummary.append("span")
+                    .attr("class","chart-badge")
+                    .attr("style","position: relative; left: 5em; background: #ff4d4d; color: lightblue;")
+                    .attr("uk-tooltip","Number of rejected transactions")
+                    .text(totalTx-validatedTx)
+
+                const contractStatistic = statisticSummary.append("div")
+                    .attr("style","margin: 15px 0px;width: 420px;overflow: auto;");
+                //title
+                contractStatistic.append("span")
+                    .attr("style","position: relative; left: 2em; color: lightblue;")
+                    .text("Contracts: ");
+                var left = 1.75;
+                //var myColor = 
+                                        
+                //contracts of the 1000 last blocks
+                contractData.forEach((val,contract)=>{
+                    contractStatistic.append("span")
+                    .attr("class","chart-badge")
+                    .attr("style","position: relative; left: "+left+"em; background: #404080 ;")
+                    .attr("uk-tooltip",val + " transaction(s)")
+                    .text(contract)
+
+                    left+=1;
+                });
+
+               
+
+
 
 
             },
         });
-        
-       
-
-        
 
 
-        
+
+
+
+
+
 
 
         // function that converts xxxhxxmxxxs to number of days,hours or minutes
