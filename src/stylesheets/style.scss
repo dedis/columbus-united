@@ -367,13 +367,14 @@ div.query-answer {
 }
 
 .chart-badge {
+    position:relative;
     box-sizing: border-box;
     min-width: 22px;    
     height: 22px;
     padding: 0 5px;
     border-radius: 500px;
     vertical-align: middle;
-    
+    background: #1749b3;
     color: #fff;
     font-size: .875rem;
     display: inline-flex;

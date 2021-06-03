@@ -127,7 +127,7 @@ export class Status {
                     elementName
                         .append("p")
                         .attr("id", "status-name-${i}")
-                        .attr("style", "color: #ff4d4d;font-weight: bold;")
+                        .attr("style", "color: #a63535;font-weight: bold;")
                         .text(downNode.url.origin);
                     //host
                     tableElement.append("td").text(downNode.url.hostname);
@@ -168,7 +168,7 @@ export class Status {
                         const downNode = statusRPC["conn"][i];
 
                         d3.select("#status-name-" + i)
-                            .attr("style", "color: #ff4d4d;font-weight: bold;")
+                            .attr("style", "color: #a63535;font-weight: bold;")
                             .attr("uk-tooltip", "This node is down.")
                             .text(downNode.url.origin);
                     });
@@ -319,7 +319,7 @@ export class Status {
 
 
                 graphSVG.append("path")
-                    .attr("stroke", "#00ffbf")
+                    .attr("stroke", "#d4ebf2") //the contrast of white is too strong
                     .attr("stroke-width", 1.5)
                     .attr("fill", "none")
                     .attr("d", line(chartData));
@@ -361,7 +361,6 @@ export class Status {
                 statisticSummary.append("span")
                     .attr("class","chart-badge")
                     .attr("style","position: relative; left: 2em; background: lightgreen; color: #006fff; ")
-                    .attr("uk-tooltip","Number of validated transactions")
                     .text(validatedTx)
                 statisticSummary.append("span")
                     .attr("style","position:relative; left: 5em; color:lightblue;")
@@ -369,11 +368,10 @@ export class Status {
                 statisticSummary.append("span")
                     .attr("class","chart-badge")
                     .attr("style","position: relative; left: 5em; background: #ff4d4d; color: lightblue;")
-                    .attr("uk-tooltip","Number of rejected transactions")
                     .text(totalTx-validatedTx)
 
                 const contractStatistic = statisticSummary.append("div")
-                    .attr("style","margin: 15px 0px;width: 420px;overflow: auto;");
+                    .attr("style","margin: 15px 0px;width:"+ width +"px;overflow: auto;");
                 //title
                 contractStatistic.append("span")
                     .attr("style","position: relative; left: 2em; color: lightblue;")
@@ -385,7 +383,7 @@ export class Status {
                 contractData.forEach((val,contract)=>{
                     contractStatistic.append("span")
                     .attr("class","chart-badge")
-                    .attr("style","position: relative; left: "+left+"em; background: #404080 ;")
+                    .attr("style","left: "+left+"em;")
                     .attr("uk-tooltip",val + " transaction(s)")
                     .text(contract)
 
