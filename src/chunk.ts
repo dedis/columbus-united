@@ -944,7 +944,7 @@ export class Chunk {
         gcircle
             .append("circle")
             .attr("cx", xAccepted)
-            .attr("r", 6)
+            .attr("r", 4)
             .attr("stroke", "#b3ffb3")
             .attr("fill-opacity", 0)
             .attr("uk-tooltip", `${txAccepted} accepted transactions`)
@@ -954,16 +954,6 @@ export class Chunk {
             .on("mouseout", function () {
                 d3.select(this).style("stroke", "#b3ffb3");
             });
-        gcircle
-            .append("text")
-            .text(txAccepted)
-            .attr("x", xAccepted)
-            .attr("text-anchor", "middle")
-            .attr("y", "2.5")
-            .style("font-size", "7px")
-            .attr("fill", "#b3ffb3")
-            .attr("cursor", "default")
-            .attr("uk-tooltip", `${txAccepted} accepted transactions`);
 
         const blocky = blockies.create({
             seed: Utils.bytes2String(block.hash),
@@ -973,7 +963,7 @@ export class Chunk {
             .attr("xlink:href", blocky.toDataURL())
             .attr("src", blocky.toDataURL())
             .attr("uk-tooltip", `hash:${Utils.bytes2String(block.hash)}`)
-            .attr("x", xTranslate + 31)
+            .attr("x", xTranslate + 30)
             .attr("y", -4)
             .attr("width", 9)
             .attr("height", 9)
@@ -1020,7 +1010,7 @@ export class Chunk {
         gcircle
             .append("circle")
             .attr("cx", xRefused)
-            .attr("r", 6)
+            .attr("r", 4)
             .attr("stroke", "#EF5959")
             .attr("fill-opacity", 0)
 
@@ -1031,15 +1021,5 @@ export class Chunk {
             .on("mouseout", function () {
                 d3.select(this).style("stroke", "#EF5959");
             });
-        gcircle
-            .append("text")
-            .text(txRefused)
-            .attr("x", xRefused)
-            .attr("y", "2.5")
-            .attr("text-anchor", "middle")
-            .style("font-size", "7px")
-            .attr("fill", "#EF5959")
-            .attr("cursor", "default")
-            .attr("uk-tooltip", `${txRefused} rejected transactions`);
     }
 }
