@@ -1,4 +1,7 @@
-import { PaginateRequest, PaginateResponse } from "@dedis/cothority/byzcoin/proto/stream";
+import {
+    PaginateRequest,
+    PaginateResponse,
+} from "@dedis/cothority/byzcoin/proto/stream";
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { StatusRPC } from "@dedis/cothority/status";
@@ -10,18 +13,15 @@ import { Utils } from "./utils";
 import DataBody from "@dedis/cothority/byzcoin/proto/data-body";
 import { curveLinear } from "d3";
 
-
 /**
- * The class that displays the status of the nodes of the Roster and the statistics 
+ * The class that displays the status of the nodes of the Roster and the statistics
  * of the Chain underneath the chain (inside an Accordion)
- * 
- * @author Sophia Artioli (sophia.artioli@epfl.ch)
+ *
+ * @author Pilar Marxer (pilar.marxer@epfl.ch)
  * @author Noémien Kocher (noémien.kocher@epfl.ch)
  */
 
 export class Status {
-
-
     roster: Roster;
 
     initialBlock: SkipBlock;
@@ -29,14 +29,14 @@ export class Status {
     flash: Flash;
 
     constructor(roster: Roster, initialBlock: SkipBlock, flash: Flash) {
-
         this.roster = roster;
         this.initialBlock = initialBlock;
         this.flash = flash;
 
         const statusBlockContainer = d3.select("#status");
-        //append list item of accordion that will contain all the elements
-        const statusContainerLi = statusBlockContainer.append("li")
+        // append list item of accordion that will contain all the elements
+        const statusContainerLi = statusBlockContainer
+            .append("li")
             .attr("id", "statusLi")
             .attr("class", "uk-open");
 
@@ -58,11 +58,11 @@ export class Status {
             .attr("class", "uk-accordion-content")
             .attr("id", "status-div");
 
-        // FIRST PART STATUS OF NODES OF ROSTER
-        //list of status of nodes
+        // FIRST PART display status of the nodes of the roster
+        // list of status of nodes
         const statusRPC = new StatusRPC(roster);
 
-        //create table of nodes status
+        // create table of nodes status
         const nodeTable = mainDiv
             .append("table")
             .attr("id", "node-table")
@@ -74,33 +74,44 @@ export class Status {
         tableHeader.append("th").text("Host");
         tableHeader.append("th").text("Uptime");
 
-        //statusRPC.getStatus(0).then(s => console.log(s));
-        const tableBody = nodeTable.append("tbody").attr("class", "node-table-body");
+        const tableBody = nodeTable
+            .append("tbody")
+            .attr("class", "node-table-body");
 
         const nodeLastIndex = Object.keys(statusRPC["conn"]).length - 1;
 
-        //populate initial table
+        // populate initial table
         for (let i = 0; i < nodeLastIndex; i++) {
             statusRPC
                 .getStatus(i)
                 .then((status) => {
-
-
-                    //infos (+advanced infos on hover)
-                    const uptime = status.getStatus("Generic").getValue("Uptime");
+                    // infos (+advanced infos on hover)
+                    const uptime = status
+                        .getStatus("Generic")
+                        .getValue("Uptime");
                     const [uptimeString, uptimeSeconds] = parseTime(uptime);
 
-                    const Tx_bps = (parseInt(status.getStatus("Generic").getValue("TX_bytes")) / parseInt(uptimeSeconds)).toFixed(3);
-                    const Rx_bps = (parseInt(status.getStatus("Generic").getValue("RX_bytes")) / parseInt(uptimeSeconds)).toFixed(3);
-                    const infoList =
-                        ["ConnType " + status.getStatus("Generic").getValue("ConnType"),
+                    const tx_bps = (
+                        parseInt(
+                            status.getStatus("Generic").getValue("TX_bytes"),10
+                        ) / parseInt(uptimeSeconds,10)
+                    ).toFixed(3);
+                    const rx_bps = (
+                        parseInt(
+                            status.getStatus("Generic").getValue("RX_bytes"),10
+                        ) / parseInt(uptimeSeconds,10)
+                    ).toFixed(3);
+                    const infoList = [
+                        "ConnType " +
+                            status.getStatus("Generic").getValue("ConnType"),
                         "Port " + status.getStatus("Generic").getValue("Port"),
-                        "Version " + status.getStatus("Conode").getValue("version"),
-                        "Tx/Rx " + Tx_bps + " Bps/ " + Rx_bps + " Bps"];
-                    //name
+                        "Version " +
+                            status.getStatus("Conode").getValue("version"),
+                        "Tx/Rx " + tx_bps + " Bps/ " + rx_bps + " Bps",
+                    ];
+                    // name
                     const tableElement = tableBody.append("tr");
                     const elementName = tableElement.append("td");
-
 
                     elementName
                         .append("p")
@@ -108,63 +119,77 @@ export class Status {
                         .attr("style", "color: lightgreen;font-weight: bold;")
                         .text(status.serverIdentity.description)
                         .attr("uk-tooltip", infoList.join("<br/>"));
-                    //host
+                    // host
                     tableElement
                         .append("td")
                         .text(status.getStatus("Generic").getValue("Host"));
-                    //uptime
-                    tableElement.append("td")
-                        .text(uptimeString);
-
-
+                    // uptime
+                    tableElement.append("td").text(uptimeString);
                 })
-                .catch(error => {
-
+                .catch((error) => {
                     const downNode = statusRPC["conn"][i];
                     const tableElement = tableBody.append("tr");
                     const elementName = tableElement.append("td");
-                    //origin as name
+                    // origin as name
                     elementName
                         .append("p")
                         .attr("id", "status-name-${i}")
                         .attr("style", "color: #a63535;font-weight: bold;")
                         .text(downNode.url.origin);
-                    //host
+                    // host
                     tableElement.append("td").text(downNode.url.hostname);
-                    //uptime is unavailable
+                    // uptime is unavailable
                     tableElement.append("td").text("");
                 });
         }
 
-        //update node tooltip infos  
+        // update node tooltip infos
         setInterval(function () {
             for (let i = 0; i < nodeLastIndex; i++) {
                 statusRPC
                     .getStatus(i)
                     .then((status) => {
-                        //upadted infos (+advanced infos on hover)
-                        const uptime = status.getStatus("Generic").getValue("Uptime");
+                        // upadted infos (+advanced infos on hover)
+                        const uptime = status
+                            .getStatus("Generic")
+                            .getValue("Uptime");
                         const [uptimeString, uptimeSeconds] = parseTime(uptime);
 
-                        const Tx_bps = (parseInt(status.getStatus("Generic").getValue("TX_bytes")) / parseInt(uptimeSeconds)).toFixed(3);
-                        const Rx_bps = (parseInt(status.getStatus("Generic").getValue("RX_bytes")) / parseInt(uptimeSeconds)).toFixed(3);
+                        const Tx_bps = (
+                            parseInt(
+                                status.getStatus("Generic").getValue("TX_bytes"),10
+                            ) / parseInt(uptimeSeconds,10)
+                        ).toFixed(3);
+                        const Rx_bps = (
+                            parseInt(
+                                status.getStatus("Generic").getValue("RX_bytes"),10
+                            ) / parseInt(uptimeSeconds,10)
+                        ).toFixed(3);
 
-                        const infoList =
-                            ["ConnType " + status.getStatus("Generic").getValue("ConnType"),
-                            "Port " + status.getStatus("Generic").getValue("Port"),
-                            "Version " + status.getStatus("Conode").getValue("version"),
-                            "Tx/Rx " + Tx_bps + " Bps/ " + Rx_bps + " Bps"];
+                        const infoList = [
+                            "ConnType " +
+                                status
+                                    .getStatus("Generic")
+                                    .getValue("ConnType"),
+                            "Port " +
+                                status.getStatus("Generic").getValue("Port"),
+                            "Version " +
+                                status.getStatus("Conode").getValue("version"),
+                            "Tx/Rx " + Tx_bps + " Bps/ " + Rx_bps + " Bps",
+                        ];
 
-                        //update tooltip
+                        // update tooltip
 
                         d3.select("#status-name-" + i)
-                            .attr("style", "color: lightgreen;font-weight: bold;")
+                            .attr(
+                                "style",
+                                "color: lightgreen;font-weight: bold;"
+                            )
                             .text(status.serverIdentity.description)
                             .attr("uk-tooltip", infoList.join("<br/>"));
-
-
-                    }).catch(error => {
-                        //no update mark node as down
+                    })
+                    .catch((error) => {
+                        // no update, mark node as down
                         const downNode = statusRPC["conn"][i];
 
                         d3.select("#status-name-" + i)
@@ -173,15 +198,13 @@ export class Status {
                             .text(downNode.url.origin);
                     });
             }
+        }, 10 * 1000); // update every 10 second
 
-        }, 10 * 1000); //update every 10 second
+        // SECOND PART Statistics of the 1000 last blocks
 
-        // SECOND PART STATISTICS
-        //Statistics of the 1000 last blocks
-
-        //fetch 1000 last block infos
+        // fetch 1000 last block infos
         try {
-            // tslint:disable-next-line
+            
             var conn = new WebSocketConnection(
                 this.roster.list[0].getWebSocketAddress(),
                 ByzCoinRPC.serviceName
@@ -200,78 +223,88 @@ export class Status {
             pagesize: 1000,
             numpages: 1,
             backward: true,
-
         });
 
-        const chartData: [number, number][] = [];
+        let chartData: [number, number][] = [];
         let contractData: Map<string, number> = new Map();
-        var maxTx = 0;
-        var totalTx = 0;
-        var validatedTx = 0;
-        conn.sendStream<PaginateResponse>( // fetch next block
-            message,
-            PaginateResponse
-        ).subscribe({
+        let maxTx = 0;
+        let totalTx = 0;
+        let validatedTx = 0;
+        let nbFetchedBlocks;
+        conn.sendStream<PaginateResponse>(message, PaginateResponse).subscribe({ // fetch next block
             complete: () => {
                 // ...
             },
             error: (err: Error) => {
                 this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
             },
-            // ws callback "onMessage":
             next: ([data, ws]) => {
-                // data is a paginate response, ws is useless 
+                nbFetchedBlocks = data.blocks.length;
+                for (let i = 0; i < nbFetchedBlocks; i++) {
+                    const block = data.blocks[i];
 
-                for (let i = 0; i < data.blocks.length; i++) {
-                    var block = data.blocks[i]
+                    const body = DataBody.decode(block.payload);
+                    const totalTransaction = body.txResults.length;
 
-                    var body = DataBody.decode(block.payload);
-                    var totalTransaction = body.txResults.length;
-
-                    chartData[data.blocks.length -1 - i] = [block.index, totalTransaction];
+                    chartData[nbFetchedBlocks - 1 - i] = [
+                        block.index,
+                        totalTransaction,
+                    ];
 
                     totalTx += totalTransaction;
                     if (totalTransaction > maxTx) {
                         maxTx = totalTransaction;
                     }
-                    //count all different contract types
+                    // count all different contract types
                     body.txResults.forEach((transaction, i) => {
-                        var txInstruction = transaction.clientTransaction.instructions[0];
-                        if( transaction.accepted){
+                        const txInstruction =
+                            transaction.clientTransaction.instructions[0];
+                        if (transaction.accepted) {
                             validatedTx += 1;
                         }
                         if (txInstruction.type == Instruction.typeInvoke) {
-
-                            var contractID = txInstruction.invoke.contractID;
+                            const contractID = txInstruction.invoke.contractID;
                             if (contractData.has(contractID)) {
-                                contractData.set(contractID,contractData.get(contractID) + 1)
-                            } else { contractData.set(contractID, 1) }
-
-                        } else if (txInstruction.type === Instruction.typeSpawn) {
-
-                            var contractID = txInstruction.invoke.contractID;
+                                contractData.set(
+                                    contractID,
+                                    contractData.get(contractID) + 1
+                                );
+                            } else {
+                                contractData.set(contractID, 1);
+                            }
+                        } else if (
+                            txInstruction.type === Instruction.typeSpawn
+                        ) {
+                            const contractID = txInstruction.invoke.contractID;
                             if (contractData.has(contractID)) {
-                                contractData.set(contractID,contractData.get(contractID) + 1)
-                            } else { contractData.set(contractID, 1) }
-
-                        } else if (txInstruction.type === Instruction.typeDelete) {
-
-                            var contractID = txInstruction.delete.contractID;
+                                contractData.set(
+                                    contractID,
+                                    contractData.get(contractID) + 1
+                                );
+                            } else {
+                                contractData.set(contractID, 1);
+                            }
+                        } else if (
+                            txInstruction.type === Instruction.typeDelete
+                        ) {
+                            const contractID = txInstruction.delete.contractID;
                             if (contractData.has(contractID)) {
-                                contractData.set(contractID,contractData.get(contractID) + 1)
-                            } else { contractData.set(contractID, 1) }
+                                contractData.set(
+                                    contractID,
+                                    contractData.get(contractID) + 1
+                                );
+                            } else {
+                                contractData.set(contractID, 1);
+                            }
                         }
                     });
-
                 }
-                console.log(contractData);
-                
-                const meanTx = Math.round(totalTx / 1000);
-
+               
                 // create chart
                 const statisticDiv = mainDiv.append("div");
 
-                const header = statisticDiv.append("div")
+                const header = statisticDiv
+                    .append("div")
                     .attr("class", "uk-card-header")
                     .attr("style", "padding: 0px 0px")
                     .text("Transaction history of the 1000 last blocks");
@@ -282,34 +315,41 @@ export class Status {
                     height = 250 - margin.top - margin.bottom;
 
                 // append the svg object to the body of the page
-                var graphSVG = statisticDiv
+                const graphSVG = statisticDiv
                     .append("svg")
-                    .attr("width", width + margin.left + 2*margin.right)
+                    .attr("width", width + margin.left + 2 * margin.right)
                     .attr("height", height + margin.top + margin.bottom)
                     .attr("margin", "15px 0px")
                     .append("g")
-                    .attr("transform",
-                        "translate(" + margin.left + "," + margin.top + ")");
+                    .attr(
+                        "transform",
+                        "translate(" + margin.left + "," + margin.top + ")"
+                    );
 
                 // Axis, domain, line
+                const x = d3
+                    .scaleLinear()
+                    .domain([chartData[0][0], chartData[nbFetchedBlocks - 1][0]])
+                    .range([0, width]);
                 
-                var x = d3.scaleLinear().domain([chartData[0][0], chartData[999][0]]).range([0, width])
-                // enough margin in domain y so that there is no interference with legend
-                var y = d3.scaleLinear().domain([0, maxTx + 20]).range([height, 0]);
+                const y = d3
+                    .scaleLinear()
+                    .domain([0, maxTx + 20]) // enough margin in domain y so that there is no interference with legend
+                    .range([height, 0]);
 
-                var xAxis = d3.axisBottom(x);
-                var yAxis = d3.axisLeft(y);
+                const xAxis = d3.axisBottom(x);
+                const yAxis = d3.axisLeft(y);
 
-                //add the axis
-                graphSVG.append("g")
+                // add the axis
+                graphSVG
+                    .append("g")
                     .attr("transform", "translate(0," + height + ")")
                     .call(xAxis);
 
-                graphSVG.append("g")
-                    .call(yAxis);
-                    
+                graphSVG.append("g").call(yAxis);
 
-                var line = d3.line()
+                const line = d3
+                    .line()
                     .x(function (d, i) {
                         return x(chartData[i][0]);
                     })
@@ -317,120 +357,144 @@ export class Status {
                         return y(chartData[i][1]);
                     });
 
-
-                graphSVG.append("path")
+                graphSVG
+                    .append("path")
                     .attr("stroke", "#d4ebf2") //the contrast of white is too strong
                     .attr("stroke-width", 1.5)
                     .attr("fill", "none")
                     .attr("d", line(chartData));
 
-                //show mean and max of the graph
+                // show mean and max of the graph
+                const meanTx = Math.round(totalTx / 1000);
+                const legendMean = graphSVG
+                    .append("g")
+                    .attr(
+                        "transform",
+                        "translate(" + (width - 100) + "," + margin.top + ")"
+                    );
 
-                const legendMean = graphSVG.append("g")
-                    .attr("transform", "translate(" + (width - 100) + "," + margin.top + ")");
-
-                legendMean.append("circle")
+                legendMean
+                    .append("circle")
                     .attr("r", 6)
                     .attr("cx", "-10px")
                     .attr("cy", "-4px")
                     .style("fill", "#94c0ff");
 
-                legendMean.append("text")
+                legendMean
+                    .append("text")
                     .text("Mean : " + meanTx)
                     .style("font-size", "12px")
                     .attr("fill", "white");
 
-                const legendMax = graphSVG.append("g")
-                    .attr("transform", "translate(" + (width - 100) + "," + 3 * margin.top + ")");
+                const legendMax = graphSVG
+                    .append("g")
+                    .attr(
+                        "transform",
+                        "translate(" +
+                            (width - 100) +
+                            "," +
+                            3 * margin.top +
+                            ")"
+                    );
 
-                legendMax.append("circle")
+                legendMax
+                    .append("circle")
                     .attr("r", 6)
                     .attr("cx", "-10px")
                     .attr("cy", "-5px")
                     .style("fill", "#404080");
 
-                legendMax.append("text")
+                legendMax
+                    .append("text")
                     .text("Max : " + maxTx)
                     .style("font-size", "12px")
                     .attr("fill", "white");
 
-                const statisticSummary =statisticDiv.append("div");
-                statisticSummary.append("span")
-                    .attr("style","position:relative; left: 2em; color:lightblue;")
-                    .text("Accepted: ")
-                statisticSummary.append("span")
-                    .attr("class","chart-badge")
-                    .attr("style","position: relative; left: 2em; background: lightgreen; color: #006fff; ")
-                    .text(validatedTx)
-                statisticSummary.append("span")
-                    .attr("style","position:relative; left: 5em; color:lightblue;")
-                    .text("Rejected: ")
-                statisticSummary.append("span")
-                    .attr("class","chart-badge")
-                    .attr("style","position: relative; left: 5em; background: #ff4d4d; color: lightblue;")
-                    .text(totalTx-validatedTx)
+                const statisticSummary = statisticDiv.append("div");
+                statisticSummary
+                    .append("span")
+                    .attr(
+                        "style",
+                        "position:relative; left: 2em; color:lightblue;"
+                    )
+                    .text("Accepted: ");
+                statisticSummary
+                    .append("span")
+                    .attr("class", "chart-badge")
+                    .attr(
+                        "style",
+                        "position: relative; left: 2em; background: lightgreen; color: #006fff; "
+                    )
+                    .text(validatedTx);
+                statisticSummary
+                    .append("span")
+                    .attr(
+                        "style",
+                        "position:relative; left: 5em; color:lightblue;"
+                    )
+                    .text("Rejected: ");
+                statisticSummary
+                    .append("span")
+                    .attr("class", "chart-badge")
+                    .attr(
+                        "style",
+                        "position: relative; left: 5em; background: #ff4d4d; color: lightblue;"
+                    )
+                    .text(totalTx - validatedTx);
 
-                const contractStatistic = statisticSummary.append("div")
-                    .attr("style","margin: 15px 0px;width:"+ width +"px;overflow: auto;");
-                //title
-                contractStatistic.append("span")
-                    .attr("style","position: relative; left: 2em; color: lightblue;")
+                const contractStatistic = statisticSummary
+                    .append("div")
+                    .attr(
+                        "style",
+                        "margin: 15px 0px;width:" + width + "px;overflow: auto;"
+                    );
+                
+                contractStatistic
+                    .append("span")
+                    .attr(
+                        "style",
+                        "position: relative; left: 2em; color: lightblue;"
+                    )
                     .text("Contracts: ");
-                var left = 1.75;
-                //var myColor = 
-                                        
-                //contracts of the 1000 last blocks
-                contractData.forEach((val,contract)=>{
-                    contractStatistic.append("span")
-                    .attr("class","chart-badge")
-                    .attr("style","left: "+left+"em;")
-                    .attr("uk-tooltip",val + " transaction(s)")
-                    .text(contract)
-
-                    left+=1;
-                });
-
+                let left = 1.75;
                
+                // contracts of the 1000 last blocks
+                contractData.forEach((val, contract) => {
+                    contractStatistic
+                        .append("span")
+                        .attr("class", "chart-badge")
+                        .attr("style", "left: " + left + "em;")
+                        .attr("uk-tooltip", val + " transaction(s)")
+                        .text(contract);
 
-
-
-
+                    left += 1;
+                });
             },
         });
 
-
-
-
-
-
-
-
-
         // function that converts xxxhxxmxxxs to number of days,hours or minutes
         function parseTime(uptime: string) {
-            const hours = parseInt(uptime.match(/([0-9]+)*(?=h)/)[0]);
-            const minutes = parseInt(uptime.match(/([0-9]+)*(?=m)/)[0]);
+            const hours = parseInt(uptime.match(/([0-9]+)*(?=h)/)[0],10);
+            const minutes = parseInt(uptime.match(/([0-9]+)*(?=m)/)[0],10);
 
-            var resultingText = "";
+            let resultingText = "";
             if (hours > 24) {
-                var days = Math.floor(hours / 24);
-                if (days > 1) resultingText = days + " days";
-                else resultingText = days + " day";
-
+                const days = Math.floor(hours / 24);
+                if (days > 1) {resultingText = days + " days";}
+                else {resultingText = days + " day";}
             } else if (hours >= 1) {
                 resultingText = hours + " hours";
             } else {
-                var totalMinutes = hours * 60 + minutes;
+                const totalMinutes = hours * 60 + minutes;
                 resultingText = totalMinutes + " minutes";
             }
-            const totalSeconds = (hours * 60 * 60 + minutes * 60 + parseInt(uptime.match(/([0-9.]+)*(?=s)/)[0])).toString();
+            const totalSeconds = (
+                hours * 60 * 60 +
+                minutes * 60 +
+                parseInt(uptime.match(/([0-9.]+)*(?=s)/)[0],10)
+            ).toString();
 
             return [resultingText, totalSeconds];
-
         }
     }
-
 }
-
-
-

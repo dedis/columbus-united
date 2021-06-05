@@ -175,8 +175,7 @@ export class Chain {
         let last = Chain.svgWidth / 2;
 
         var dragHandler = d3.drag().on("drag", function () {
-
-           // console.log("event x:"+d3.event.x);
+            // console.log("event x:"+d3.event.x);
             //var newX=self.lastTransform.x + (last - d3.event.x);
             //console.log("translation x:"+newX);
 
@@ -191,7 +190,7 @@ export class Chain {
                     .translate(self.lastTransform.x + (last - d3.event.x), 0)
                     .scale(1);
             }
-            
+
             last = d3.event.x;
 
             d3.select("#svg-container").call(
@@ -268,42 +267,35 @@ export class Chain {
 
                 //TODO find the perfect threshhold
                 //TODO modify width of mover according to transform.k 1370 before
-                var svgWidth = parseInt(d3.select("#svg-container").style("width"));
+                var svgWidth = parseInt(
+                    d3.select("#svg-container").style("width")
+                );
                 var moverWidth = parseInt(d3.select(".mover").style("width"));
-                
-                if (last >  svgWidth - moverWidth/2) {
+
+                if (last > svgWidth - moverWidth / 2) {
                     // Chain size
                     // - 100 pour que le mover soit apparent en chargeant la chaine, à ràgler si besoin
-                    
+
                     d3.select(".mover").attr(
                         "x",
                         -100 +
                             parseInt(d3.select("#svg-container").style("width"))
-                    ); 
-                    
-                    
-                } else if (last < moverWidth/2){
-                    d3.select(".mover").attr(
-                       "x",
-                       moverWidth/2
-                     );
-                }
-                else {
+                    );
+                } else if (last < moverWidth / 2) {
+                    d3.select(".mover").attr("x", moverWidth / 2);
+                } else {
                     d3.select(".mover").attr(
                         "x",
                         last + this.lastTransform.x - transform.x
                     );
-                    
                 }
-               
-                var newWidth = parseInt(d3.select(".mover").style("width"))*transform.k;
-               
-                if(newWidth >= 50 && newWidth <= svgWidth/2){ 
-                    
-                   //d3.select(".mover").attr("width",newWidth);
-                   
+
+                var newWidth =
+                    parseInt(d3.select(".mover").style("width")) * transform.k;
+
+                if (newWidth >= 50 && newWidth <= svgWidth / 2) {
+                    //d3.select(".mover").attr("width",newWidth);
                 }
-                               
 
                 this.lastTransform = transform;
 

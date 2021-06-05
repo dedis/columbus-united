@@ -212,9 +212,9 @@ export function startColumbus(
     // Create the browsing instance, which is used by the detailBlock class when a
     // user wants to get the lifecycle of an instance.
     const lifecycle = new Lifecycle(roster, flash, totalBlock, hashBlock0);
-    
+
     //Display status of nodes and statistics of the blockchain
-    const SkipchainStatus = new Status(roster,initialBlock, flash);
+    const SkipchainStatus = new Status(roster, initialBlock, flash);
 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.

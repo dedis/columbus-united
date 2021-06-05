@@ -49,7 +49,10 @@
                 is there to browse the whole blockchain in order to display the
                 evolution of an instance throughout the blockchain.
             </div-->
-            <div id="status-info" style="text-align: center;position: relative;">
+            <div
+                id="status-info"
+                style="text-align: center; position: relative;"
+            >
                 <!--<div class="info">
             <div class="loader-wrapper">
                 <svg class="spinner" viewBox="0 0 50 50">
@@ -59,39 +62,62 @@
             <div class="info-message">This is a message</div>
             </div>
             // TODO: id="stepX" add to tutorial -->
-                
+
                 <button
                     class="uk-button uk-button-primary uk-button-small"
                     uk-toggle="target: #select-roster"
                     type="button"
-                    style="transform: translate(0,85%);"
-                >   
+                    style="transform: translate(0, 85%);"
+                >
                     Roster
                 </button>
-                    
-                    <!-- This is the modal -->
+
+                <!-- This is the modal -->
                 <div id="select-roster" uk-modal>
                     <div class="uk-modal-dialog">
-                        <button class="uk-modal-close-default" type="button" uk-close></button>
+                        <button
+                            class="uk-modal-close-default"
+                            type="button"
+                            uk-close
+                        ></button>
                         <div class="uk-modal-header">
-                            <p class="uk-modal-title">Enter your Cothority Roster:</p>
+                            <p class="uk-modal-title">
+                                Enter your Cothority Roster:
+                            </p>
                         </div>
                         <div class="uk-modal-body">
-                            <textarea id="text-roster" rows="20" cols="50" placeholder="roster.toml"></textarea>
+                            <textarea
+                                id="text-roster"
+                                rows="20"
+                                cols="50"
+                                placeholder="roster.toml"
+                            ></textarea>
                         </div>
                         <div class="uk-modal-footer uk-text-right">
-                            <button class="uk-button uk-button-default uk-modal-close" type="button">Cancel</button>
-                            <button class="uk-button uk-button-primary uk-modal-close" type="button" id="save-roster">Save</button>
+                            <button
+                                class="uk-button uk-button-default uk-modal-close"
+                                type="button"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                class="uk-button uk-button-primary uk-modal-close"
+                                type="button"
+                                id="save-roster"
+                            >
+                                Save
+                            </button>
                         </div>
                     </div>
                 </div>
                 <div class="info">
-
-                    <div class="info-message" style="transform: translate(0,10%);">
-                            blocks loaded: <span id="loaded-blocks"></span>
+                    <div
+                        class="info-message"
+                        style="transform: translate(0, 10%);"
+                    >
+                        blocks loaded: <span id="loaded-blocks"></span>
                     </div>
                 </div>
-            
             </div>
         </div>
         <div class="searchbar-container">
@@ -116,17 +142,12 @@
             <svg id="last-container"></svg>
         </div>
 
-        
-
         <div id="block_infos" class="block-infos">
             <div class="block-detail-container" id="step5"></div>
             <div class="browse-container" id="step6"></div>
         </div>
 
-        <ul id="status" uk-accordion>
-        </ul>
-
-        
+        <ul id="status" uk-accordion></ul>
 
         <div class="query-answer"></div>
 
