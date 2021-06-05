@@ -92,7 +92,7 @@ export class Chain {
 
     // The first block displayed by the chain.
     initialBlock: SkipBlock;
-
+    
     lastAddedBlock: SkipBlock;
 
     // Coordinates and scale factor of the view of the chain

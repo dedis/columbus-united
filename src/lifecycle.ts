@@ -263,6 +263,7 @@ export class Lifecycle {
                             (skipBlock.forwardLinks[0].to.length !== 0 || skipBlock.backlinks[0].length !=0) &&
                             !this.abort
                         ) {
+                            
                             if(direction){
                                     this.nextIDB = Utils.bytes2String(
                                         skipBlock.backlinks[0]);
