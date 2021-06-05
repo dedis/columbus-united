@@ -1,13 +1,13 @@
 import { Roster } from "@dedis/cothority/network";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
 import { SkipBlock } from "@dedis/cothority/skipchain/skipblock";
-import "uikit";
 import { Block } from "./block";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { Lifecycle } from "./lifecycle";
 import { getRosterStr } from "./roster";
 import { searchBar } from "./search";
+import { Status } from "./status";
 import "./stylesheets/style.scss";
 import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
@@ -24,7 +24,7 @@ _|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|_|"""""|
  */
 
 // This is the genesis block, which is also the Skipchain identifier
-const hashBlock0 =
+var hashBlock0 =
     "9cc36071ccb902a1de7e0d21a2c176d73894b1cf88ae4cc2ba4c95cd76f474f3";
 // The roster configuration, parsed as a string
 const rosterStr = getRosterStr();
@@ -45,6 +45,28 @@ const rosterStr = getRosterStr();
 export function sayHi() {
     initIntro();
 
+    //Roster selection
+    //1. default roster
+    startSkipchain(rosterStr, true);
+
+    //2. selected roster by user
+    document
+        .getElementById("save-roster")
+        .addEventListener("click", function (e) {
+            const newRosterStr = (document.getElementById(
+                "text-roster"
+            ) as HTMLTextAreaElement).value;
+            startSkipchain(newRosterStr, false);
+        });
+}
+
+/**
+ * Connect to the roster
+ * @param roster
+ * @param skipchainIndex
+ *
+ */
+export function startSkipchain(rosterStr: string, defaultSkipchain: boolean) {
     // Create the roster
     const roster = Roster.fromTOML(rosterStr);
 
@@ -58,6 +80,19 @@ export function sayHi() {
     let initialBlockIndex: number;
 
     const scRPC = new SkipchainRPC(roster);
+
+    //take the first skipchainID of the selected roster
+    if (!defaultSkipchain) {
+        scRPC.getAllSkipChainIDs().then((resp) => {
+            //hashBlock 0 of new roster
+
+            hashBlock0 = Utils.bytes2String(resp[0]);
+
+            //var re = /[0-9A-Fa-f]{6}/g; //for testing that hashBlock0 is valid hex string
+            //console.log(re.test(hashBlock0));
+        });
+    }
+
     new SkipchainRPC(roster)
         .getLatestBlock(Utils.hex2Bytes(hashBlock0), false, true)
         .then((last) => {
@@ -126,7 +161,8 @@ export function sayHi() {
                                 genesis.skipblock,
                                 initialBlock.skipblock,
                                 roster,
-                                flash
+                                flash,
+                                defaultSkipchain
                             );
                         });
                 });
@@ -151,8 +187,17 @@ export function startColumbus(
     genesisBlock: SkipBlock,
     initialBlock: SkipBlock,
     roster: Roster,
-    flash: Flash
+    flash: Flash,
+    defaultSkipchain: Boolean
 ) {
+    // Reset the svg containers
+    if (!defaultSkipchain) {
+        d3.select("#svg-container").selectAll("*").remove();
+        d3.select(".dropdown").remove();
+        d3.select("#last-container").selectAll("*").remove();
+        d3.select("#status").selectAll("*").remove();
+    }
+
     // The chain is loaded at block 0 and then moved to the desired place
     const chain = new Chain(roster, flash, genesisBlock);
 
@@ -167,6 +212,9 @@ export function startColumbus(
     // Create the browsing instance, which is used by the detailBlock class when a
     // user wants to get the lifecycle of an instance.
     const lifecycle = new Lifecycle(roster, flash, totalBlock, hashBlock0);
+
+    //Display status of nodes and statistics of the blockchain
+    const SkipchainStatus = new Status(roster, initialBlock, flash);
 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
@@ -212,7 +260,7 @@ function initIntro() {
                 {
                     element: document.getElementById("svg-container"),
                     intro:
-                        'Click on a block and you\'ll be able to check the block details + all the transactions contained in it further down on the page. The arrows remind us that this is not just a simple blockchain, but a <a href="https://github.com/dedis/cothority/tree/master/skipchain" target="_blank">SkipChain</a> ! They allow to traverse short or long distances in a more efficient way.',
+                        'Click on a block ! You\'ll be able to check the block details + all the transactions contained in it further down on the page. The arrows remind us that this is not just a simple blockchain, but a <a href="https://github.com/dedis/cothority/tree/master/skipchain" target="_blank">SkipChain</a> ! They allow to traverse short or long distances in a more efficient way. Click on the arrows to move forward, double click to move backwards in the chain.',
                     position: "bottom-right-aligned",
                 },
                 {
@@ -242,6 +290,12 @@ function initIntro() {
                     element: document.getElementById("step6"),
                     intro:
                         "In the transaction details, you can witness which instances have been used and browse there past history with the search bar. Instances can be seen as contracts and can be <i>Spawned</i> (created), <i>Invoked</i> (modified), or <i>Deleted</i>, checking it's history shows you how the contract has evolved.",
+                    position: "top",
+                },
+                {
+                    element: document.getElementById("status-info"),
+                    intro:
+                        "By clicking on the Roster button, you can select a new roster by copy pasting the roster.toml infos and load a new Skipchain on the explorer!",
                     position: "top",
                 },
                 {

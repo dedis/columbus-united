@@ -92,8 +92,13 @@ export class Chain {
 
     // The first block displayed by the chain.
     initialBlock: SkipBlock;
+<<<<<<< HEAD
+    
+    lastAddedBlock: SkipBlock;
+=======
 
     lastAddedBlock: LastAddedBlock;
+>>>>>>> Pilar
 
     // Coordinates and scale factor of the view of the chain
     lastTransform = { x: 0, y: 0, k: 1 };
@@ -451,7 +456,7 @@ export class Chain {
                         rightNei,
                         bounds,
                         initialBlock,
-                        lastAddedBlock,
+                        this.lastAddedBlock,
                         subject,
                         this.getNewBlocksSubject,
                         this.blockClickedSubject

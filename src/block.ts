@@ -7,6 +7,7 @@ import * as d3 from "d3";
 import { Observable, Subject } from "rxjs";
 import { connectableObservableDescriptor } from "rxjs/internal/observable/ConnectableObservable";
 import { throttleTime } from "rxjs/operators";
+import UIkit from "uikit";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { InstructionChain } from "./instructionChain";
@@ -486,8 +487,10 @@ export class Block {
                 (instruction, j) => {
                     // This variable helps us keep tracks whether or not we should display
                     //the instruction is a coin transaction between two users.
+
                     var coin_invoked = false;
                     let args = null;
+                    let commandName = null;
                     const liInstruction = ulInstruction.append("li");
                     liInstruction.attr("style", "padding-left:15px");
                     const aInstruction = liInstruction.append("a");
@@ -518,6 +521,7 @@ export class Block {
                             .text(`Spawned : ${contractName}`);
                         args = instruction.spawn.args;
                     } else if (instruction.type === Instruction.typeInvoke) {
+                        commandName = instruction.invoke.command;
                         const contractName =
                             instruction.invoke.contractID
                                 .charAt(0)
@@ -625,6 +629,12 @@ export class Block {
                                 self.flash
                             );
                         }
+                        // only added in case of invoke
+                        if(commandName != null){
+                            divInstruction.append("p")
+                                .text(`Command: ${commandName}`);
+                        }
+                        
                         divInstruction.append("p").text("Arguments:");
                         // Args of the instruction
                         const ulArgs = divInstruction.append("ul");

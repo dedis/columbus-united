@@ -26,33 +26,37 @@ export class LastAddedBlock {
     // The last added block of the chain
     lastBlock: SkipBlock;
 
-    constructor(
-        roster: Roster,
-        flash: Flash,
-        initialBlock: SkipBlock,
-        blockClickedSubject: Subject<SkipBlock>
-    ) {
+    svgLast: any;
+
+    constructor(flash: Flash) {
         this.flash = flash;
 
         // Main SVG canvas that contains the last added block of the chain
-        const svgLast = d3
+        this.svgLast = d3
             .select("#last-container")
             .attr("height", this.svgHeight);
 
         // Fetch the last block from the Cothority client
-        new SkipchainRPC(roster)
+    }
+
+    async init(
+        roster: Roster,
+        initialBlock: SkipBlock,
+        blockClickedSubject: Subject<SkipBlock>
+    ) {
+        await new SkipchainRPC(roster)
             .getLatestBlock(initialBlock.hash, false, true)
             .then((resp) => {
                 this.lastBlock = resp;
                 this.displayLastAddedBlock(
                     resp,
-                    svgLast,
+                    this.svgLast,
                     resp.hash,
                     blockClickedSubject
                 );
             })
             .catch((e) =>
-                flash.display(
+                this.flash.display(
                     Flash.flashType.ERROR,
                     `Cannot fetch latest block: ${e}`
                 )
