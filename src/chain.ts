@@ -451,7 +451,7 @@ export class Chain {
                         rightNei,
                         bounds,
                         initialBlock,
-                        lastAddedBlock,
+                        this.lastAddedBlock,
                         subject,
                         this.getNewBlocksSubject,
                         this.blockClickedSubject
