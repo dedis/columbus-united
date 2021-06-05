@@ -629,11 +629,6 @@ export class Block {
                                 self.flash
                             );
                         }
-                        // only added in case of invoke
-                        if(commandName != null){
-                            divInstruction.append("p")
-                                .text(`Command: ${commandName}`);
-                        }
                         
                         divInstruction.append("p").text("Arguments:");
                         // Args of the instruction
@@ -683,6 +678,13 @@ export class Block {
                                 .text(`Challenge : ${beautifiedArgs[2].value}`);
                         }
                     }
+                    
+                    // only added in case of invoke
+                    if(commandName != null){
+                        divInstruction.append("p")
+                            .text(`Command: ${commandName}`);
+                    }
+                    
                     // Search button
 
                     //ANCHOR Browse button
