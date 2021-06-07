@@ -213,7 +213,7 @@ export class Chain {
                     transform.k +
                     ")";
 
-                if (transform.k < 1.3) {
+                if (transform.k <= 0.99) {
                     transformCircle =
                         "translate(" +
                         transform.x +

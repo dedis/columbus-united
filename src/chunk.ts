@@ -1004,7 +1004,7 @@ export class Chunk {
                         "left",
                         d3.event.x - parseInt(tooltip.style("width")) / 2 + "px"
                     )
-                    .style("top", d3.event.y - 20 + "px");
+                    .style("top", d3.event.y - 15 + "px");
             });
 
         gcircle
@@ -1013,7 +1013,6 @@ export class Chunk {
             .attr("r", 4)
             .attr("stroke", "#EF5959")
             .attr("fill-opacity", 0)
-
             .attr("uk-tooltip", `${txRefused} rejected transactions`)
             .on("mouseover", function () {
                 d3.select(this).style("stroke", "#d11515");
