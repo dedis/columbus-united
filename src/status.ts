@@ -28,6 +28,9 @@ export class Status {
 
     flash: Flash;
 
+    static statusInterval : NodeJS.Timer;
+    
+
     constructor(roster: Roster, initialBlock: SkipBlock, flash: Flash) {
         this.roster = roster;
         this.initialBlock = initialBlock;
@@ -79,10 +82,10 @@ export class Status {
             .attr("class", "node-table-body");
 
         const nodeLastIndex = Object.keys(statusRPC["conn"]).length;
-        console.log(statusRPC);
-        console.log(nodeLastIndex);
+        
         // populate initial table
         for (let i = 0; i < nodeLastIndex; i++) {
+
             statusRPC
                 .getStatus(i)
                 .then((status) => {
@@ -143,9 +146,9 @@ export class Status {
                     tableElement.append("td").text("");
                 });
         }
-
+        
         // update node tooltip infos
-        setInterval(function () {
+        Status.statusInterval = setInterval(function () {
             for (let i = 0; i < nodeLastIndex; i++) {
                 statusRPC
                     .getStatus(i)
