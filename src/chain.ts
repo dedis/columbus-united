@@ -263,11 +263,12 @@ export class Chain {
         // zoomed in-out by the user.
         subject.subscribe({
             next: (transform: any) => {
+                /*
                 var last = parseInt(d3.select(".mover").attr("x"));
 
                 //TODO find the perfect threshhold
                 //TODO modify width of mover according to transform.k 1370 before
-                /*
+                
                 var svgWidth = parseInt(
                     d3.select("#svg-container").style("width")
                 );
