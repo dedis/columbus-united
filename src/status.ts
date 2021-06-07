@@ -78,10 +78,11 @@ export class Status {
             .append("tbody")
             .attr("class", "node-table-body");
 
-        const nodeLastIndex = Object.keys(statusRPC["conn"]).length - 1;
-
+        const nodeLastIndex = Object.keys(statusRPC["conn"]).length;
+        console.log(statusRPC);
+        console.log(nodeLastIndex);
         // populate initial table
-        for (let i = 0; i < nodeLastIndex; i++) {
+        for (let i = 0; i <= nodeLastIndex-1; i++) {
             statusRPC
                 .getStatus(i)
                 .then((status) => {
