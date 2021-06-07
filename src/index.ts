@@ -206,7 +206,7 @@ export function startColumbus(
         d3.select(".browse-container").selectAll("*").remove();
         d3.select("#last-container").selectAll("*").remove();
         d3.select("#status").selectAll("*").remove();
-
+        
         clearInterval(Status.statusInterval);
     }
 
