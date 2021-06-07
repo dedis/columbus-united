@@ -574,47 +574,22 @@ export class InstructionChain {
                 d3.select(this).style("cursor", "default");
             });*/
         let contractID = "";
-        let iType = "";
+        let action = "";
         if (instruction.type === Instruction.typeSpawn) {
             contractID = instruction.spawn.contractID;
-            iType = "Spawned";
+            action = "Spawned:coin";
         } else if (instruction.type === Instruction.typeInvoke) {
-            iType = "Invoked";
+            action = "Invoked:coin";
             contractID = instruction.invoke.contractID;
         } else if (instruction.type === Instruction.typeDelete) {
-            iType = "Deleted";
+            action = "Deleted";
             contractID = instruction.delete.contractID;
         }
-        /*gInstr.append("text")
-            .text(`instruction ${this.totalLoaded+1}`)
-            .attr("x", xTranslate + (InstructionChain.blockWidth-90)/2) //width/2 -du text/2
-            .attr("y", InstructionChain.blockStarty-10)
-            .style("fill", "#666")
-            .style("font-weight", "bold")
-            //.delay(400) //ajouté
-            .on("click", function () {
-                Utils.copyToClipBoard(
-                    `${instruction.hash().toString("hex")}}`,
-                    self.flash
-                );
-            })
-            .attr("uk-tooltip", `${instruction.hash().toString("hex")}`);*/
-        gInstr/*append("text")
-            .text(`${contractID}`)
-            .attr("x", xTranslate + 40)
-            .attr("y", InstructionChain.blockStarty+20)
-            .style("fill", "#666")
-            .style("font-weight", "bold")
-            .append("tspan")
-            //.delay(500) //
-            .attr("y", InstructionChain.blockStarty+20)
-            .attr("dx", "0.2em")
-            .text(`contract in`)
-            .style("fill", "#666")*/
-            .append("text")
+        
+        gInstr.append("text")
             .attr("x", xTranslate + (InstructionChain.blockWidth-90)*transform.k/2)
             .attr("y", InstructionChain.blockStarty+20*transform.k)
-            .attr("dx", "0.2em")
+            //.attr("dx", "0.2em")
             .text(`Block ${block.index}`)
             .style("font-weight", "bold")
             .style("font-size", 16*transform.k)
@@ -625,11 +600,31 @@ export class InstructionChain {
                     self.flash
                 );
             })
+            .on("mouseover", function () {
+                d3.select(this).style("cursor", "pointer");
+            })
+            .on("mouseout", function () {
+                d3.select(this).style("cursor", "default");
+            })
             .attr("uk-tooltip", `${block.hash.toString("hex")}`);
+        gInstr.append("text")
+            .text("action :")
+            .attr("x", xTranslate+(5*transform.k))
+            .attr("y", InstructionChain.blockStarty+50*transform.k)
+            .style("font-weight", "bold")
+            .style("font-size", 16*transform.k)
+            .style("fill", "#666")
+            .append("tspan")
+                .attr("y", InstructionChain.blockStarty+50*transform.k) //pas sur transform.k
+                .attr("dx", "0.2em")
+                .text(`${action}`)
+                .style("font-weight", "bold")
+                .style("font-size", 16*transform.k)
+                .style("fill", color);
         gInstr.append("text")
             .text("arguments :")
             .attr("x", xTranslate + (InstructionChain.blockWidth-90)*transform.k/2)
-            .attr("y", InstructionChain.blockStarty+60*transform.k)
+            .attr("y", InstructionChain.blockStarty+80*transform.k)
             .style("font-weight", "bold")
             .style("font-size", 16*transform.k)
             .style("text-decoration","underline")
@@ -637,12 +632,9 @@ export class InstructionChain {
         
         const beautifiedArgs = instruction.beautify();
         //const interlign = 10;
-        let dy = InstructionChain.blockStarty+90*transform.k;
+        let dy = InstructionChain.blockStarty+110*transform.k;
             beautifiedArgs.args.forEach((arg, i) => {
 
-                if(arg.value == "destination"){
-
-                }
             const argNameBox = gInstr.append("text")
                 .attr("x", xTranslate+(5*transform.k))
                 .attr("y", dy) // peut-être enlever transform.k
@@ -797,20 +789,14 @@ export class InstructionChain {
             .attr("fill", "white")
             .attr("stroke", color)
             .attr("stroke-width","2px");
-        gInfo.append("text")
+            const title =  gInfo.append("text")
             .attr("x", 500 + 50)
             .attr("y", 100 +40)
             //.attr("dx", "0.2em")
             .text(`Block ${block.index}`)
             .style("font-weight", "bold")
             .style("font-size", 16)
-            .style("fill", color)
-            .on("click", function () {
-                Utils.copyToClipBoard(
-                    `${block.hash.toString("hex")}`,
-                    self.flash
-                );
-            })
+            .style("fill", color);
         
         if (instruction.type === Instruction.typeInvoke){
             const contractName =
@@ -825,6 +811,7 @@ export class InstructionChain {
                 const contract = beautifiedArgs[0].value;
                 const destination = beautifiedArgs[1].value;
 
+                
                 gInfo.append("text")
                     .attr("x", 500 + 80)
                     .attr("y", 100 +80)
