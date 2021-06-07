@@ -190,12 +190,15 @@ export function startColumbus(
     flash: Flash,
     defaultSkipchain: Boolean
 ) {
+    
     // Reset the svg containers
     if (!defaultSkipchain) {
         d3.select("#svg-container").selectAll("*").remove();
         d3.select(".dropdown").remove();
         d3.select("#last-container").selectAll("*").remove();
         d3.select("#status").selectAll("*").remove();
+        console.log(Status.statusInterval);
+        clearInterval(Status.statusInterval);
     }
 
     // The chain is loaded at block 0 and then moved to the desired place
@@ -214,7 +217,7 @@ export function startColumbus(
     const lifecycle = new Lifecycle(roster, flash, totalBlock, hashBlock0);
 
     //Display status of nodes and statistics of the blockchain
-    const SkipchainStatus = new Status(roster, initialBlock, flash);
+    const skipchainStatus = new Status(roster, initialBlock, flash);
 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
