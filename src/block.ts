@@ -680,7 +680,7 @@ export class Block {
                     }
                     
                     // only added in case of invoke
-                    if(commandName != null){
+                    if(commandName != null && commandName != "transfer"){
                         divInstruction.append("p")
                             .text(`Command: ${commandName}`);
                     }
