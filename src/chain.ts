@@ -160,7 +160,7 @@ export class Chain {
         Chain.zoom = zoom;
 
         //Implementation of a scrollbar underneath the chain
-
+        /*
         const scrollbar = svg.append("g").attr("transform", "translate(0,90)"); //move the bar to the bottom of the chain
 
         scrollbar
@@ -200,7 +200,7 @@ export class Chain {
         });
 
         dragHandler(d3.selectAll(".mover"));
-
+        */
         //Drop down-menu for clickable zoom in & out
         const divZoomDropdown = d3
             .selectAll(".topnav")
@@ -267,6 +267,7 @@ export class Chain {
 
                 //TODO find the perfect threshhold
                 //TODO modify width of mover according to transform.k 1370 before
+                /*
                 var svgWidth = parseInt(
                     d3.select("#svg-container").style("width")
                 );
@@ -298,6 +299,7 @@ export class Chain {
                 }
 
                 this.lastTransform = transform;
+                */
 
                 // This line disables translate to the left. (for reference)
                 // transform.x = Math.min(0, transform.x);
