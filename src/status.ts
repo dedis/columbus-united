@@ -82,7 +82,7 @@ export class Status {
         console.log(statusRPC);
         console.log(nodeLastIndex);
         // populate initial table
-        for (let i = 0; i <= nodeLastIndex-1; i++) {
+        for (let i = 0; i < nodeLastIndex; i++) {
             statusRPC
                 .getStatus(i)
                 .then((status) => {
