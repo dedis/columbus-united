@@ -14,7 +14,7 @@ import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
 import { debounceTime } from "rxjs/operators";
 import { AddTxRequest } from "@dedis/cothority/byzcoin/proto/requests";
-import { thresholdFreedmanDiaconis } from "d3";
+import { thresholdFreedmanDiaconis, timeThursdays } from "d3";
 import * as blockies from "blockies-ts";
 
 export class InstructionChain {
@@ -34,6 +34,7 @@ export class InstructionChain {
     selectedInstrIndex:number;
     gInstr : any;
     gloader: any;
+    gInfo: any;
 
      // Last added instruction of the chain
      lastAddedInstr: Instruction;
@@ -52,8 +53,8 @@ export class InstructionChain {
 
     static readonly instructionContainerHeight = 242;
     static readonly instrucionContainerWidth = 350;
-    static readonly baseWidth = window.innerWidth; // à contrôler 1684
-    static readonly baseHeight = 260;
+    static readonly baseWidth = 1300; // à contrôler 1684
+    static readonly baseHeight = 240;
     static readonly marginlength = 20;
 
     static readonly blockHeight = 180;
@@ -62,8 +63,8 @@ export class InstructionChain {
     static readonly blockStarty = InstructionChain.baseHeight-200;
 
     static readonly invokedColor = "#1749b3";
-    static readonly spawnedColor = 'green'
-    static readonly deletedColor = 'red'
+    static readonly spawnedColor = 'lightgreen'
+    static readonly deletedColor = "#ff4d4d"
     clickedInvokedColor = "#006fff";
     clickedSpawnedColor = "#2f984f";
     clickedDeletedColor = "#bb151a";
@@ -94,12 +95,21 @@ export class InstructionChain {
 
     chainSubject = new Subject<any>();
 
+    hoverSubject = new Subject<number>();
+
+    hoverBlockIndex = 0;
+
     // This subject is called when new blocks are loaded
     subjectBrowse = new Subject<[number, SkipBlock[], boolean]>()
 
 
     // The coordinates of the view.
     lastTransform = { x: 0, y: 0, k: 1 };
+
+    // keep track of scaled values
+    lastBlockPosx = 0;
+    lastBlockWidth = InstructionChain.blockWidth;
+    lastBlockPadding = InstructionChain.blockPadding;
 
 
 
@@ -157,10 +167,17 @@ export class InstructionChain {
             .style("font-size", "15px")
             .style("fill","#666")
             .attr("alignment-baseline","middle");
+        svg.append("text")
+            .attr("class", "total-instr")
+            .attr("x", "1160")
+            .attr("y", "22")
+            .text(`total loaded : ${this.totalLoaded}`)
+            .attr("fill", "#666");
         
-        //const parentGroup = svg.append("g").attr("class", "ginstr-parent")
-         this.gInstr = svg.append("g").attr("class", "ginstr");
-         const gloader = svg.append("g").attr("id", "loaderInstr");
+        ///const parentGroup = svg.append("g").attr("class", "ginstr-parent")
+        this.gInstr = svg.append("g").attr("class", "ginstr");
+        const gloader = svg.append("g").attr("id", "loaderInstr");
+        this.gInfo = svg.append("g").attr("id", "gIntr_info");
          
          //this.displayChain(this.instructionBlock[1].length);
          //this.displayChain(InstructionChain.numInstruction);
@@ -202,17 +219,24 @@ export class InstructionChain {
             //transform.y = 0;
             //const xtransform = transform.x > 0 ? transform.x : 0;
             const transformString =
-                "translate(" +
-                transform.x +
-                "," +
-                "0) scale(" +
-                transform.k +
-                ",0 )";
+             "translate(" +transform.x +
+                ",0)";
             
+            this.gInstr.remove()
+            this.gInstr = svg.append("g").attr("class", "ginstr");
+            console.log("tranformmm :", transform.k);
+            let total = 0;
+            for(let i = 0; i < this.totalLoaded; ++i){
+                const xTranslate = i * (InstructionChain.blockWidth+ InstructionChain.blockPadding)*transform.k;
+                this.addInstructionBlock(xTranslate,this.instructionBlock, i, this.gInstr,transform)
+                total++;
+                this.lastBlockPosx = xTranslate;
+                this.lastBlockWidth = this.lastBlockWidth*transform.k;
+                this.lastBlockPadding = this.lastBlockPadding*transform.k;
+                svg.select(".total-instr").text(`total loaded : ${total}`);
+            }
             this.gInstr.attr("transform", transformString);
-            //parentGroup.attr("transform", function() { return "translate(" + transform.x+ "," + transform.y + ")"; });
-
-            //this.checkAndAddBlocks(transform,this.totalLoaded,gloader,this.gInstr);
+            //this.gloader.attr("transform", "scale("+transform.k+")");
 
             }
 
@@ -221,8 +245,8 @@ export class InstructionChain {
         const zoom = d3
         .zoom()
         .extent([
-            [0, 0],
-            [InstructionChain.baseWidth, InstructionChain.baseHeight],
+            [0, InstructionChain.blockStarty],
+            [InstructionChain.baseWidth, InstructionChain.blockHeight],
         ])
         .scaleExtent([0.0001, 1])
         .on("zoom", () => {
@@ -247,8 +271,11 @@ export class InstructionChain {
         console.log("initial blocks", InstructionChain.numBlock);
         for (this.totalLoaded = 0; (this.totalLoaded < InstructionChain.numBlock && this.totalLoaded< this.instructionBlock[1].length); this.totalLoaded++){
             const xTranslate = this.totalLoaded * (InstructionChain.blockWidth + InstructionChain.blockPadding);
-            this.addInstructionBlock(xTranslate,this.instructionBlock,this.totalLoaded,this.gInstr);
+            this.addInstructionBlock(xTranslate,this.instructionBlock,this.totalLoaded,this.gInstr,this.lastTransform);
             console.log(`${this.totalLoaded}`)
+
+            this.lastBlockPosx = xTranslate;
+            svg.select(".total-instr").text(`total loaded : ${this.totalLoaded+1}`);
         }
         console.log("initial loaded", this.totalLoaded);
         //first block is automatically selected
@@ -256,21 +283,22 @@ export class InstructionChain {
         //this.clickedInstrSubject.next(this.selectedInstrIndex);
         //this.createInstructionCard(this.instructionBlock[1][0],this.instructionBlock[0][0],0);
 
-        this.chainSubject.pipe(debounceTime(50)).subscribe({
+        this.chainSubject.pipe(debounceTime(80)).subscribe({
             next: (transform: any) => {
-                //if (!this.isLoading) {
-                    //this.isLoading = true;
                     const isLoadingInstr = this.checkAndAddBlocks(
                         transform,
                         this.totalLoaded,
                         gloader,
-                        this.gInstr
+                        this.gInstr,
                     );
-                    if (!isLoadingInstr) {
-                        this.isLoading = false;
-                    }
-                //}
             }
+        });
+
+        this.hoverSubject.pipe(debounceTime(80)).subscribe({
+            next : (instri:number) => {
+                this.createHoverInfo(instri, this.instructionBlock,this.gInfo);
+            }
+
         });
 
         //var maxScrollLeft = instructionChain.baseWidth - d3.event.clientX //pas sure
@@ -444,13 +472,14 @@ export class InstructionChain {
 
 
     addLoader(backwards: boolean, gloader: any, xPos: number, k: number) {
-        let className = "left-loader";
+        let className = "right-loader";
         //const xPos = this
 
         // Some loaders: https://codepen.io/aurer/pen/jEGbA
         gloader
             .append("svg")
             .attr("class", `${className}`)
+            .attr("id", "loaderInstr")
             .attr("viewBox", "0, 0, 24, 30")
             .attr("x", xPos)
             .attr("y", InstructionChain.baseHeight / 2)
@@ -492,7 +521,7 @@ export class InstructionChain {
 
     }
 
-    private addInstructionBlock(xTranslate: number, tuple:[SkipBlock[], Instruction[]] ,instrIndex:number, gInstr: any){
+    private addInstructionBlock(xTranslate: number, tuple:[SkipBlock[], Instruction[]] ,instrIndex:number, gInstr: any, transform:any){
         const self = this;
         const block = tuple[0][instrIndex];
         const instruction = tuple[1][instrIndex];
@@ -501,14 +530,33 @@ export class InstructionChain {
             .append("rect")
             //.transition()
             //.delay(300)
+            .attr("class", "instructionBox")
             .attr("id", `${instrIndex}`)
-            .attr("width", InstructionChain.blockWidth)
-            .attr("height", InstructionChain.blockHeight )
+            .attr("width", InstructionChain.blockWidth*(transform.k))
+            .attr("height", InstructionChain.blockHeight*(transform.k))
             .attr("x", xTranslate) // The blocks are appended following the transform of the chain
             .attr("y", InstructionChain.blockStarty) // Blocks are appended below the axis
             .attr("fill", "white")
             .attr("stroke", color)
-            .attr("stroke-width","4px")
+            .attr("stroke-width","4px");
+            if(transform.k <= 0.35){
+                box.on("mouseover",() => {
+                        //this.hoverBlockIndex = instrIndex;
+                        this.gInfo.remove();
+                        this.gInfo = d3.selectAll("#svg-instr").append("g").attr("id", "gIntr_info");
+                        this.hoverSubject.next(instrIndex);
+                    
+                })
+                
+                .on("mouseout", () => {
+                    this.gInfo.remove();
+                    this.gInfo = d3.selectAll("#svg-instr").append("g").attr("id", "gIntr_info");
+                })
+                    
+            } else {
+                this.gInfo.remove();
+                this.gInfo = d3.selectAll("#svg-instr").append("g").attr("id", "gIntr_info");
+            }
             //.delay(300);//
             /*
             .on("click", () => {
@@ -564,11 +612,12 @@ export class InstructionChain {
             .text(`contract in`)
             .style("fill", "#666")*/
             .append("text")
-            .attr("x", xTranslate + (InstructionChain.blockWidth-90)/2)
-            .attr("y", InstructionChain.blockStarty+20)
+            .attr("x", xTranslate + (InstructionChain.blockWidth-90)*transform.k/2)
+            .attr("y", InstructionChain.blockStarty+20*transform.k)
             .attr("dx", "0.2em")
             .text(`Block ${block.index}`)
             .style("font-weight", "bold")
+            .style("font-size", 16*transform.k)
             .style("fill", color)
             .on("click", function () {
                 Utils.copyToClipBoard(
@@ -579,33 +628,36 @@ export class InstructionChain {
             .attr("uk-tooltip", `${block.hash.toString("hex")}`);
         gInstr.append("text")
             .text("arguments :")
-            .attr("x", xTranslate + (InstructionChain.blockWidth-90)/2)
-            .attr("y", InstructionChain.blockStarty+60)
+            .attr("x", xTranslate + (InstructionChain.blockWidth-90)*transform.k/2)
+            .attr("y", InstructionChain.blockStarty+60*transform.k)
             .style("font-weight", "bold")
+            .style("font-size", 16*transform.k)
+            .style("text-decoration","underline")
             .style("fill", "#666");
         
         const beautifiedArgs = instruction.beautify();
         //const interlign = 10;
-        let dy = InstructionChain.blockStarty+90;
+        let dy = InstructionChain.blockStarty+90*transform.k;
             beautifiedArgs.args.forEach((arg, i) => {
 
                 if(arg.value == "destination"){
 
                 }
             const argNameBox = gInstr.append("text")
-                .attr("x", xTranslate+5)
-                .attr("y", dy)
+                .attr("x", xTranslate+(5*transform.k))
+                .attr("y", dy) // peut-être enlever transform.k
                 .style("font-weight", "bold")
+                .style("font-size", 16*transform.k)
                 .style("fill", "#666")
                 .text(`${arg.name} : `);
                 if(arg.name == "destination" || arg.name == "roster"){
                     const blocky = blockies.create({ seed: arg.value });
                     const imBlockies = gInstr
                         .append("svg:image")
-                        .attr("x", xTranslate + 107)
-                        .attr("y", dy-15)
-                        .attr("width", 20)
-                        .attr("height", 20)
+                        .attr("x", xTranslate + 107*transform.k)
+                        .attr("y", dy-15*transform.k)
+                        .attr("width", 20*transform.k)
+                        .attr("height", 20*transform.k)
                         .attr("xlink:href", blocky.toDataURL())
                         .attr("uk-tooltip", block.hash.toString("hex"))
                         .on("click", function () {
@@ -619,13 +671,14 @@ export class InstructionChain {
                         });
                 }else {
                 argNameBox.append("tspan")
-                .attr("y", dy)
+                .attr("y", dy) //pas sur transform.k
                 .attr("dx", "0.2em")
                 .text(`${arg.value}`)
+                .style("font-size", 16*transform.k)
                 .style("fill", "#666");
 
                 }
-                dy += 30;
+                dy += 30*transform.k;
             });
 
 
@@ -684,22 +737,43 @@ export class InstructionChain {
     checkAndAddBlocks(transform:any, nextBlockIndex:number, gloader:any,gInstr:any):boolean{
         console.log("totalLoaded",this.totalLoaded);
         console.log("query number",this.instructionBlock[1].length);
+
+        
         if(this.totalLoaded >= this.instructionBlock[1].length){
             //this.flash.display(Flash.flashType.INFO, "End of the instructions chain");
             return false;
         }
 
+        const bounds = Utils.transformToIndexes(
+            transform,
+            InstructionChain.blockWidth + InstructionChain.blockPadding,
+            InstructionChain.baseWidth
+        );
+
+        const loadingCond = (this.totalLoaded-1) < bounds.right && (this.totalLoaded + 1) >= bounds.left;
+        if(loadingCond) {
+            const xTranslate = (this.totalLoaded) * (InstructionChain.blockWidth + InstructionChain.blockPadding)*transform.k;
+            
+            setTimeout(() => {
+                this.addInstructionBlock(xTranslate,this.instructionBlock,this.totalLoaded,gInstr,transform);
+                this.totalLoaded += 1;
+                d3.select(".total-instr").text(`total loaded : ${this.totalLoaded}`);
+            },800);
+            
+        }
+
         //if(transform.x > 0){
-            const xTranslate = (this.totalLoaded) * (InstructionChain.blockWidth + InstructionChain.blockPadding);
+            //const xTranslate = (this.totalLoaded) * (InstructionChain.blockWidth + InstructionChain.blockPadding)*transform.k;
             //const xLoad = xTranslate + InstructionChain.blockPadding + InstructionChain.blockWidth/2;
             
-            //the this.addLoader(true,gloader,xTranslate,transform.k);
+            //this.addLoader(false,gloader,xTranslate,transform.k);
             //setTimeout(() => {
-                this.addInstructionBlock(xTranslate,this.instructionBlock,this.totalLoaded,gInstr);
-                this.totalLoaded += 1;
+                //this.gloader.select("#loaderInstr").remove();
+                //this.addInstructionBlock(xTranslate,this.instructionBlock,this.totalLoaded,gInstr,transform);
+                //this.totalLoaded += 1;
                 //this.chainSubject.next(d3.event.transform);
                 //d3.select(".loaderInstr").remove()
-            //}, 400);
+            //}, 40);
             
         //}
     
@@ -707,6 +781,73 @@ export class InstructionChain {
 
 
     }
+
+    createHoverInfo(instri:number, tuple:[SkipBlock[], Instruction[]], gInfo:any){
+        const self = this;
+        const block = tuple[0][instri];
+        const instruction = tuple[1][instri];
+        const color = this.getColor(instruction);
+
+        gInfo
+            .append("rect")
+            .attr("x", 300)
+            .attr("y", 120)
+            .attr("width", 610)
+            .attr("height", 100)
+            .attr("fill", "white")
+            .attr("stroke", color)
+            .attr("stroke-width","2px");
+        gInfo.append("text")
+            .attr("x", 500 + 50)
+            .attr("y", 100 +40)
+            //.attr("dx", "0.2em")
+            .text(`Block ${block.index}`)
+            .style("font-weight", "bold")
+            .style("font-size", 16)
+            .style("fill", color)
+            .on("click", function () {
+                Utils.copyToClipBoard(
+                    `${block.hash.toString("hex")}`,
+                    self.flash
+                );
+            })
+        
+        if (instruction.type === Instruction.typeInvoke){
+            const contractName =
+                            instruction.invoke.contractID
+                                .charAt(0)
+                                .toUpperCase() +
+                            instruction.invoke.contractID.slice(1);
+            const args = instruction.invoke.args;
+            const coin_invoked = contractName == "Coin" && args.length > 1;
+            if(coin_invoked){
+                const beautifiedArgs = instruction.beautify().args;
+                const contract = beautifiedArgs[0].value;
+                const destination = beautifiedArgs[1].value;
+
+                gInfo.append("text")
+                    .attr("x", 500 + 80)
+                    .attr("y", 100 +80)
+                    //.attr("dx", "0.2em")
+                    .text(`${contract} to`)
+                    .style("font-weight", "bold")
+                    .style("font-size", 16)
+                    .style("fill", "#666");
+                 gInfo.append("text")
+                    .attr("x", 305)
+                    .attr("y", 100 +100)
+                    //.attr("dx", "0.2em")
+                    .text(`${destination}`)
+                    .style("font-weight", "bold")
+                    .style("font-size", 16)
+                    .style("fill", "#666");
+
+            }
+
+        }
+
+    }
+
 
     
 

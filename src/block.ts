@@ -819,6 +819,8 @@ export class Block {
                                     startWithFirstBlock
                                 );
                             }
+                            //scroll to the bottom of the page
+                            window.scrollTo(0,document.body.scrollHeight);
                         });
                 }
             ); //!SECTION
