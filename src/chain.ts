@@ -467,6 +467,7 @@ export class Chain {
 
                     // Keep the chunks sorted.
                     this.chunks.splice(leftNeiIndex + 1, 0, c);
+                    
                 }
             },
         });

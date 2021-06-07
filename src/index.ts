@@ -13,6 +13,7 @@ import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
 import * as d3 from "d3";
 import * as introJS from "intro.js";
+import { select, selectAll } from "d3";
 
 /*
    ___              _                     _
@@ -90,7 +91,13 @@ export function startSkipchain(rosterStr: string, defaultSkipchain: boolean) {
 
             //var re = /[0-9A-Fa-f]{6}/g; //for testing that hashBlock0 is valid hex string
             //console.log(re.test(hashBlock0));
-        });
+        }) 
+        .catch((e) =>
+        flash.display(
+            Flash.flashType.ERROR,
+            `Unable to connect to the selected roster: ${e}`
+        )
+    );
     }
 
     new SkipchainRPC(roster)
@@ -195,9 +202,11 @@ export function startColumbus(
     if (!defaultSkipchain) {
         d3.select("#svg-container").selectAll("*").remove();
         d3.select(".dropdown").remove();
+        d3.select(".block-detail-container").selectAll("*").remove();
+        d3.select(".browse-container").selectAll("*").remove();
         d3.select("#last-container").selectAll("*").remove();
         d3.select("#status").selectAll("*").remove();
-        console.log(Status.statusInterval);
+
         clearInterval(Status.statusInterval);
     }
 
