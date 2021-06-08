@@ -293,15 +293,21 @@ function initIntro() {
                     position: "left",
                 },
                 {
-                    element: document.getElementById("step5"),
+                    element: document.querySelector(".block-detail-container"),
                     intro:
                         'Here you find the additional details about the selected block. We use <i>round</i> blockies for user IDs (again click on it to copy the ID) <img src="assets/user_Id_blockie.png"/>. The Forward and Back links are the arrows you cans see on the skipchain, and point to different blocks. By clicking on <i>"Block xxxx"</i> you\'ll be redirected to its details. ',
+                    position: "left",
+                },
+                {
+                    element: document.querySelector(".browse-container"),
+                    intro:
+                        "In the transaction details, you can witness which instances have been used in the transactions and browse their past history with the search tool. Instances can be seen as contracts and can be <i>Spawned</i> (created), <i>Invoked</i> (modified), or <i>Deleted</i>, checking it's history shows you how the contract has evolved. Open the first transaction to continue!",
                     position: "top",
                 },
                 {
-                    element: document.getElementById("step6"),
+                    element: document.querySelector(".browse-container"),
                     intro:
-                        "In the transaction details, you can witness which instances have been used and browse there past history with the search bar. Instances can be seen as contracts and can be <i>Spawned</i> (created), <i>Invoked</i> (modified), or <i>Deleted</i>, checking it's history shows you how the contract has evolved.",
+                        "Here you can browse for the previous/next/first instructions related to this Contract, to have an overwiev it's evolution. The result of the search is shown down on the page!",
                     position: "top",
                 },
                 {
