@@ -13,6 +13,7 @@ import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
 import * as d3 from "d3";
 import * as introJS from "intro.js";
+import { select, selectAll } from "d3";
 
 /*
    ___              _                     _
@@ -90,7 +91,13 @@ export function startSkipchain(rosterStr: string, defaultSkipchain: boolean) {
 
             //var re = /[0-9A-Fa-f]{6}/g; //for testing that hashBlock0 is valid hex string
             //console.log(re.test(hashBlock0));
-        });
+        }) 
+        .catch((e) =>
+        flash.display(
+            Flash.flashType.ERROR,
+            `Unable to connect to the selected roster: ${e}`
+        )
+    );
     }
 
     new SkipchainRPC(roster)
@@ -195,9 +202,11 @@ export function startColumbus(
     if (!defaultSkipchain) {
         d3.select("#svg-container").selectAll("*").remove();
         d3.select(".dropdown").remove();
+        d3.select(".block-detail-container").selectAll("*").remove();
+        d3.select(".browse-container").selectAll("*").remove();
         d3.select("#last-container").selectAll("*").remove();
         d3.select("#status").selectAll("*").remove();
-        console.log(Status.statusInterval);
+        
         clearInterval(Status.statusInterval);
     }
 
@@ -284,15 +293,21 @@ function initIntro() {
                     position: "left",
                 },
                 {
-                    element: document.getElementById("step5"),
+                    element: document.querySelector(".block-detail-container"),
                     intro:
                         'Here you find the additional details about the selected block. We use <i>round</i> blockies for user IDs (again click on it to copy the ID) <img src="assets/user_Id_blockie.png"/>. The Forward and Back links are the arrows you cans see on the skipchain, and point to different blocks. By clicking on <i>"Block xxxx"</i> you\'ll be redirected to its details. ',
+                    position: "left",
+                },
+                {
+                    element: document.querySelector(".browse-container"),
+                    intro:
+                        "In the transaction details, you can witness which instances have been used in the transactions and browse their past history with the search tool. Instances can be seen as contracts and can be <i>Spawned</i> (created), <i>Invoked</i> (modified), or <i>Deleted</i>, checking it's history shows you how the contract has evolved. Open the first transaction to continue!",
                     position: "top",
                 },
                 {
-                    element: document.getElementById("step6"),
+                    element: document.querySelector(".browse-container"),
                     intro:
-                        "In the transaction details, you can witness which instances have been used and browse there past history with the search bar. Instances can be seen as contracts and can be <i>Spawned</i> (created), <i>Invoked</i> (modified), or <i>Deleted</i>, checking it's history shows you how the contract has evolved.",
+                        "Here you can browse for the previous/next/first instructions related to this Contract, to have an overwiev it's evolution. The result of the search is shown down on the page!",
                     position: "top",
                 },
                 {
