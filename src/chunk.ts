@@ -1,4 +1,6 @@
 import { ByzCoinRPC } from "@dedis/cothority/byzcoin";
+import * as blockies from "blockies-ts";
+
 import {
     PaginateRequest,
     PaginateResponse,
@@ -521,7 +523,6 @@ export class Chunk {
         backwards: boolean,
         gblocks: any,
         garrow: any,
-        // gcircle: any,
         numblocks: number
     ) {
         // Iterate over the blocks to append them
@@ -544,7 +545,11 @@ export class Chunk {
             // Append arrows between blocks
             this.getToAndFromIndexes(xTranslateBlock, block, garrow);
 
-            // this.appendCircleInBlock(xTranslateBlock, gcircle);
+            this.appendCircleInBlock(
+                xTranslateBlock,
+                d3.selectAll(".gcircle"),
+                block
+            );
         }
 
         // Notify the subject that new blocks have been added
@@ -750,6 +755,7 @@ export class Chunk {
                 .attr("stroke-width", 2)
                 .attr("stroke", "#808080");
         } else {
+            var tooltip = d3.select(".tooltip");
             // Blocks that are minimum two indexes away
             const line = svgBlocks.append("line");
             // Starting point of the arrow: Right edge of the block
@@ -782,7 +788,7 @@ export class Chunk {
                         height.toString() +
                         ")"
                 )
-                .attr("stroke-width", 2.5)
+                .attr("stroke-width", 2.8)
                 .attr("stroke", "#A0A0A0");
             // Enables translation to the block the arrow is pointing to
             const self = this;
@@ -839,7 +845,19 @@ export class Chunk {
                 d3.select(this).style("stroke", "var(--selected-colour");
                 triangle.style("fill", "var(--selected-colour");
                 d3.select(this).style("cursor", "pointer");
+
+                tooltip.transition().duration(200).style("opacity", 1);
+                tooltip
+                    .html(
+                        `From block ${skipBlockFrom.index} to ${skipBlockToIndex}`
+                    )
+                    .style(
+                        "left",
+                        d3.event.x - parseInt(tooltip.style("width")) / 2 + "px"
+                    )
+                    .style("top", d3.event.y - 30 + "px");
             });
+
             triangle.on("mouseout", () => {
                 line.style("stroke", "#A0A0A0");
                 triangle.style("fill", "#A0A0A0");
@@ -849,6 +867,22 @@ export class Chunk {
                 line.style("stroke", "#A0A0A0");
                 triangle.style("fill", "#A0A0A0");
                 line.style("cursor", "default");
+                tooltip
+                    .transition()
+                    .duration(100)
+                    .style("opacity", 0)
+                    .style("pointer-events", "none");
+            });
+            line.on("mousemove", () => {
+                tooltip
+                    .html(
+                        `From block ${skipBlockFrom.index} to ${skipBlockToIndex}`
+                    )
+                    .style(
+                        "left",
+                        d3.event.x - parseInt(tooltip.style("width")) / 2 + "px"
+                    )
+                    .style("top", d3.event.y - 30 + "px");
             });
         }
     }
@@ -896,19 +930,95 @@ export class Chunk {
      * @param gcircle the svg container for the circles
      * @author Sophia Artioli <sophia.artioli@epfl.ch>
      */
-    private appendCircleInBlock(xTranslate: number, gcircle: any) {
+    private appendCircleInBlock(
+        xTranslate: number,
+        gcircle: any,
+        block: SkipBlock
+    ) {
+        const self = this;
+        var txAccepted = Utils.getTransactionRatio(block)[0];
+        var txRefused = Utils.getTransactionRatio(block)[1];
+        var xAccepted = xTranslate + 15;
+        var xRefused = xTranslate + Chain.blockWidth - 15;
+        var tooltip = d3.select(".tooltip");
         gcircle
             .append("circle")
-            .attr("cx", xTranslate + 35)
-            .attr("cy", 40)
-            .attr("r", 6)
-            .attr("fill", "#b3ffb3");
+            .attr("cx", xAccepted)
+            .attr("r", 4)
+            .attr("stroke", "#b3ffb3")
+            .attr("fill-opacity", 0)
+            .attr("uk-tooltip", `${txAccepted} accepted transactions`)
+            .on("mouseover", function () {
+                d3.select(this).style("stroke", "#00cc00");
+            })
+            .on("mouseout", function () {
+                d3.select(this).style("stroke", "#b3ffb3");
+            });
+
+        const blocky = blockies.create({
+            seed: Utils.bytes2String(block.hash),
+        });
+        d3.select(".blockies")
+            .append("svg:image")
+            .attr("xlink:href", blocky.toDataURL())
+            .attr("src", blocky.toDataURL())
+            .attr("uk-tooltip", `hash:${Utils.bytes2String(block.hash)}`)
+            .attr("x", xTranslate + 30)
+            .attr("y", -4)
+            .attr("width", 9)
+            .attr("height", 9)
+            .attr("opacity", 0.6)
+            .attr("text", Utils.getTransactionRatio(block)[1])
+            .attr("dx", 40)
+            .on("click", function () {
+                Utils.copyToClipBoard(
+                    Utils.bytes2String(block.hash),
+                    self.flash
+                );
+            })
+            .on("mouseover", function () {
+                d3.select(this).style("cursor", "pointer");
+                tooltip.transition().duration(200).style("opacity", 1);
+                tooltip
+                    .html(`Block hash: ${Utils.bytes2String(block.hash)}`)
+                    .style(
+                        "left",
+                        d3.event.x - parseInt(tooltip.style("width")) / 2 + "px"
+                    )
+                    .style("top", d3.event.y - 30 + "px");
+            })
+            .on("mouseout", function () {
+                d3.select(this).style("cursor", "default");
+                tooltip
+                    .transition()
+                    .duration(100)
+                    .style("opacity", 0)
+                    .style("pointer-events", "none");
+            })
+            .on("mousemove", () => {
+                tooltip
+
+                    .html(`Block hash: ${Utils.bytes2String(block.hash)}`)
+
+                    .style(
+                        "left",
+                        d3.event.x - parseInt(tooltip.style("width")) / 2 + "px"
+                    )
+                    .style("top", d3.event.y - 30 + "px");
+            });
 
         gcircle
             .append("circle")
-            .attr("cx", xTranslate + Chain.blockWidth - 35)
-            .attr("cy", 40)
-            .attr("r", 6)
-            .attr("fill", "#EF5959");
+            .attr("cx", xRefused)
+            .attr("r", 4)
+            .attr("stroke", "#EF5959")
+            .attr("fill-opacity", 0)
+            .attr("uk-tooltip", `${txRefused} rejected transactions`)
+            .on("mouseover", function () {
+                d3.select(this).style("stroke", "#d11515");
+            })
+            .on("mouseout", function () {
+                d3.select(this).style("stroke", "#EF5959");
+            });
     }
 }
