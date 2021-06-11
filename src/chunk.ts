@@ -1004,7 +1004,7 @@ export class Chunk {
                         "left",
                         d3.event.x - parseInt(tooltip.style("width")) / 2 + "px"
                     )
-                    .style("top", d3.event.y - 15 + "px");
+                    .style("top", d3.event.y - 30 + "px");
             });
 
         gcircle
