@@ -154,12 +154,12 @@ export class Chain {
             .on("zoom", () => {
                 subject.next(d3.event.transform);
             });
+            
         //Disable zooming the view on double tap to enable double clocking on backward links
         svg.call(zoom).on("dblclick.zoom", null);
         Chain.zoom = zoom;
 
         //Implementation of a scrollbar underneath the chain
-
         const scrollbar = svg.append("g").attr("transform", "translate(0,90)"); //move the bar to the bottom of the chain
 
         scrollbar

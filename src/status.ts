@@ -14,7 +14,7 @@ import DataBody from "@dedis/cothority/byzcoin/proto/data-body";
 import { curveLinear } from "d3";
 
 /**
- * The class that displays the status of the nodes of the Roster and the statistics
+ * The class displays the status of the nodes of the Roster and the statistics
  * of the Chain underneath the chain (inside an Accordion)
  *
  * @author Pilar Marxer (pilar.marxer@epfl.ch)
@@ -183,7 +183,6 @@ export class Status {
                         ];
 
                         // update tooltip
-
                         d3.select("#status-name-" + i)
                             .attr(
                                 "style",
@@ -204,8 +203,8 @@ export class Status {
             }
         }, 10 * 1000); // update every 10 second
 
-        // SECOND PART Statistics of the 1000 last blocks
 
+        // SECOND PART Statistics of the 1000 last blocks
         // fetch 1000 last block infos
         try {
             
@@ -476,7 +475,7 @@ export class Status {
             },
         });
 
-        // function that converts xxxhxxmxxxs to number of days,hours or minutes
+        // helper function that converts xxxhxxmxxxs to number of days,hours or minutes
         function parseTime(uptime: string) {
             const hours = parseInt(uptime.match(/([0-9]+)*(?=h)/)[0],10);
             const minutes = parseInt(uptime.match(/([0-9]+)*(?=m)/)[0],10);
