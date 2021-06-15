@@ -220,6 +220,7 @@ export class Block {
         blockCardHeaderDetails
             .append("p")
             .text(`Validated on the ${Utils.getTimeString(block)}`);
+     
 
         const heightParagraph = blockCardHeaderDetails.append("p");
         heightParagraph
@@ -397,6 +398,61 @@ export class Block {
                 .html(lockContent)
                 .style("color", "var(--selected-colour)");
         });
+
+        //ANCHOR Roster
+        const ulRoster = divDetails.append("ul"); // accordion containing all the verifiers of a block
+        ulRoster.attr("uk-accordion", "");
+        const liRoster = ulRoster.append("li");
+        const aRoster = liRoster.append("a");
+
+        aRoster
+            .attr("class", "uk-accordion-title")
+            .append("svg")
+            .attr("width", "20")
+            .attr("height", "20")
+            .append("image")
+            .attr("x", "10%")
+            .attr("y", "17%")
+            .attr("width", "12")
+            .attr("height", "12")
+            .attr("href", "assets/information-button-gray.svg")
+            .attr(
+                "uk-tooltip",
+                `The roster is a set of server nodes that validate the transactions of a block.`
+            );
+
+        aRoster.append("text").text(`Roster nodes: ${block.roster.list.length}`);
+        const divRoster = liRoster.append("div").attr("class", "uk-accordion-content");
+            
+        const pRoster = divRoster
+            .append("p");
+
+        // List of participating conodes in the roster
+        const descList: string[] = [];
+        const addressList: string[] = [];
+        for (let i = 0; i < block.roster.list.length; i++) {
+            descList[i] = block.roster.list[i].description;
+            addressList[i]=block.roster.list[i].address;
+        }
+
+        // Roster group
+               
+        // List the roster's node
+        
+        let left = 1;
+        descList.forEach((node,i) => {
+            pRoster
+                .append("span")
+                .attr("class", "uk-badge")
+                .attr("style", "margin: 5px 4px;font-size : 0.875rem;")
+                .attr("uk-tooltip","Address: "+addressList[i])
+                .text(node);
+
+            left += 1;
+        });
+
+                    
+
         //!SECTION
         //SECTION Transaction details
         const ulTransaction = transaction_detail_container.append("ul");
