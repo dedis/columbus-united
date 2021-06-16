@@ -1,62 +1,37 @@
-import { CONFIG_INSTANCE_ID, Instruction } from "@dedis/cothority/byzcoin";
-import { Spawn } from "@dedis/cothority/byzcoin/client-transaction";
-import { DataBody, DataHeader, TxResult } from "@dedis/cothority/byzcoin/proto";
+import {Instruction } from "@dedis/cothority/byzcoin";
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
-import { Observable, Subject } from "rxjs";
-import { connectableObservableDescriptor } from "rxjs/internal/observable/ConnectableObservable";
-import { throttleTime } from "rxjs/operators";
-import { Chain } from "./chain";
+import {Subject } from "rxjs";
 import { Flash } from "./flash";
-import { Lifecycle } from "./lifecycle";
-import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
 import { debounceTime } from "rxjs/operators";
-import { AddTxRequest } from "@dedis/cothority/byzcoin/proto/requests";
-import { thresholdFreedmanDiaconis, timeThursdays } from "d3";
 import * as blockies from "blockies-ts";
 
+/**
+ * This class fully discribes the instance tracker interface
+ * - instructions blocks are manually zoomed
+ * - blocks infos are not shown when the blocks are too small
+ * - hover over a small block to display info about it
+ * - there is a color code for block according the contract type
+ *
+ * @author Rosa José Sara <rosa.josesara@epfl.ch>
+ *
+ */
 export class InstructionChain {
-
-    //static readonly instrBlockPadding;
-    //static readonly instrBlockHeight;
-    //static readonly instrBlockWidth;
-
     static loadedInstructions = 0;
 
     roster: Roster;
     flash : Flash;
     instructionBlock: [SkipBlock[], Instruction[]];
-    principalContainer : d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
-    loadingContainer: any;
-    clickedBlock: SkipBlock;
-    selectedInstrIndex:number;
+
+
     gInstr : any;
-    gloader: any;
     gInfo: any;
 
-     // Last added instruction of the chain
-     lastAddedInstr: Instruction;
-
-     // Left-most instruction of the chain
-     leftBlock: Instruction;
-     // Right-most instruction of the chain
-     rightBlock: Instruction;
-
-     // This subject is called when the user zoom/drag the chain
-    //chainSubject: Subject<any>;
-
-    //List of all loaded instruction block
-    instructionsCard: Array<any>;
-
-
-    static readonly instructionContainerHeight = 242;
-    static readonly instrucionContainerWidth = 350;
-    static readonly baseWidth = 1300; // à contrôler 1684
+    //main svg and block dimension
+    static readonly baseWidth = window.innerWidth; // à contrôler 1684
     static readonly baseHeight = 240;
-    static readonly marginlength = 20;
-
     static readonly blockHeight = 180;
     static readonly blockWidth = 300;
     static readonly blockPadding = 20;
@@ -65,39 +40,19 @@ export class InstructionChain {
     static readonly invokedColor = "#1749b3";
     static readonly spawnedColor = 'lightgreen'
     static readonly deletedColor = "#ff4d4d"
-    clickedInvokedColor = "#006fff";
-    clickedSpawnedColor = "#2f984f";
-    clickedDeletedColor = "#bb151a";
 
-
+    // The number of blocks the window can display at normal scale.
     static numBlock = Math.floor(InstructionChain.baseWidth/(InstructionChain.blockWidth + InstructionChain.blockPadding));
 
-    // The number of blocks the window can display at normal scale. Used to
-    // define the domain for the xScale
-    //static numBlocks = Chain.svgWidth / (Chain.blockWidth + Chain.blockPadding);
-
-    // Indicators to know if blocks should be loaded
-    // The first load will then set them to false
-    isLoading = false;
-
-    // The coordinate transformation of the chain.
-    static zoom: any;
-
     // The number of total loaded instructions on the chains
-    // Initialized to 0
     totalLoaded = 0;
 
-    // This subject is notified when a new series of block has been added to the
-    // view.
-    newInstructionSubject = new Subject<Instruction>();
-
-    clickedInstrSubject = new Subject<number>();
 
     chainSubject = new Subject<any>();
+    hoverClickedSubject = new Subject<number>();
 
-    hoverSubject = new Subject<number>();
-
-    hoverBlockIndex = 0;
+    hoverClickedBlockIndex = 0;
+    smallBlockCliked = false;
 
     // This subject is called when new blocks are loaded
     subjectBrowse = new Subject<[number, SkipBlock[], boolean]>()
@@ -112,19 +67,19 @@ export class InstructionChain {
     lastBlockPadding = InstructionChain.blockPadding;
 
 
-
-    constructor(roster: Roster, flash: Flash,tuple: [SkipBlock[], Instruction[]], clickedBlock: SkipBlock){ //pas besoin de basecontainer
+/**
+ * Create an instance of InstructionChain
+ * @param roster 
+ * @param flash 
+ * @param tuple 
+ */
+    constructor(roster: Roster, flash: Flash,tuple: [SkipBlock[], Instruction[]]){
         this.roster = roster;
         this.flash = flash;
         this.instructionBlock = tuple;
-        this.principalContainer = d3.select("#query-card-container");
-        this.clickedBlock = clickedBlock;
-
-         // This subject will be notified when the main div is moved by the user
-         const subject = new Subject();
          
          //add legend
-         const svg = this.principalContainer
+         const svg = d3.select("#query-card-container")
                 .append("svg")
                 .attr("id", "svg-instr")
                 .attr("height", InstructionChain.baseHeight)
@@ -173,70 +128,33 @@ export class InstructionChain {
             .attr("y", "22")
             .text(`total loaded : ${this.totalLoaded}`)
             .attr("fill", "#666");
-        
-        ///const parentGroup = svg.append("g").attr("class", "ginstr-parent")
+
         this.gInstr = svg.append("g").attr("class", "ginstr");
         const gloader = svg.append("g").attr("id", "loaderInstr");
         this.gInfo = svg.append("g").attr("id", "gIntr_info");
-         
-         //this.displayChain(this.instructionBlock[1].length);
-         //this.displayChain(InstructionChain.numInstruction);
-         //InstructionChain.totalLoaded = InstructionChain.numInstruction;
-         
 
-         const xScale = d3
-            .scaleLinear()
-            //.domain([0, this.totalLoaded])
-            .range([1, this.totalLoaded]);
-
-        const xAxis = d3
-            .axisBottom(xScale)
-            .ticks(this.totalLoaded)
-            .tickFormat(d3.format("d"));
-        /*
-        const xAxisDraw = svg
-            .insert("g", ":first-child")
-            .attr("class", "x-axis")
-            .attr("fill", "#8C764A")
-            .call(xAxis);*/
-
-         // Update the subject when the view is dragged and zoomed in-out
+         //Set the subject when the view is dragged or zoomed
         this.chainSubject.subscribe({
             next: (transform: any) => {
                 this.lastTransform = transform;
-            // Update the scale
-            const xScaleNew = transform.rescaleX(xScale);
-            xAxis.scale(xScaleNew);
-            //xAxisDraw.call(xAxis);
+            this.gInstr.remove()
+            this.gInstr = svg.append("g").attr("class", "ginstr");
 
-            gloader.attr("transform", transform);
-                // resize the loaders to always have a relative scale of 1
-                gloader
-                    .selectAll("svg")
-                    .attr("transform", `scale(${1 / transform.k})`); 
-            
-            // Horizontal transformation on the blocks only (sets Y scale to 1)
-            //transform.y = 0;
-            //const xtransform = transform.x > 0 ? transform.x : 0;
+
+            // Horizontal translation  on  the chain
             const transformString =
              "translate(" +transform.x +
                 ",0)";
-            
-            this.gInstr.remove()
-            this.gInstr = svg.append("g").attr("class", "ginstr");
-            console.log("tranformmm :", transform.k);
+
+            //add remaining blocks
             let total = 0;
             for(let i = 0; i < this.totalLoaded; ++i){
                 const xTranslate = i * (InstructionChain.blockWidth+ InstructionChain.blockPadding)*transform.k;
                 this.addInstructionBlock(xTranslate,this.instructionBlock, i, this.gInstr,transform)
                 total++;
-                this.lastBlockPosx = xTranslate;
-                this.lastBlockWidth = this.lastBlockWidth*transform.k;
-                this.lastBlockPadding = this.lastBlockPadding*transform.k;
                 svg.select(".total-instr").text(`total loaded : ${total}`);
             }
             this.gInstr.attr("transform", transformString);
-            //this.gloader.attr("transform", "scale("+transform.k+")");
 
             }
 
@@ -254,273 +172,40 @@ export class InstructionChain {
         });
         svg.call(zoom).on("dblclick.zoom", null)
 
-        /*
-        this.clickedInstrSubject.subscribe({
-            next: this.updateClickedBlock.bind(this),
-            
-        });*/
-
-
-        //instructionChain.zoom = zoom;
-
-        // This group will contain the left and right loaders that display a
-        // spinner when new blocks are being added
-        //this.gloader = this.principalContainer.append("g").attr("id", "loader");
-
-        
-        console.log("initial blocks", InstructionChain.numBlock);
+        // display first blocks
         for (this.totalLoaded = 0; (this.totalLoaded < InstructionChain.numBlock && this.totalLoaded< this.instructionBlock[1].length); this.totalLoaded++){
             const xTranslate = this.totalLoaded * (InstructionChain.blockWidth + InstructionChain.blockPadding);
             this.addInstructionBlock(xTranslate,this.instructionBlock,this.totalLoaded,this.gInstr,this.lastTransform);
-            console.log(`${this.totalLoaded}`)
-
-            this.lastBlockPosx = xTranslate;
             svg.select(".total-instr").text(`total loaded : ${this.totalLoaded+1}`);
         }
-        console.log("initial loaded", this.totalLoaded);
-        //first block is automatically selected
-        //this.selectedInstrIndex = 0;
-        //this.clickedInstrSubject.next(this.selectedInstrIndex);
-        //this.createInstructionCard(this.instructionBlock[1][0],this.instructionBlock[0][0],0);
 
+        //call the zoom and scroll event handler subject to add and resize block as necessary
         this.chainSubject.pipe(debounceTime(80)).subscribe({
             next: (transform: any) => {
                     const isLoadingInstr = this.checkAndAddBlocks(
                         transform,
-                        this.totalLoaded,
-                        gloader,
                         this.gInstr,
                     );
             }
         });
 
-        this.hoverSubject.pipe(debounceTime(80)).subscribe({
+        this.hoverClickedSubject.subscribe({
             next : (instri:number) => {
                 this.createHoverInfo(instri, this.instructionBlock,this.gInfo);
             }
 
         });
-
-        //var maxScrollLeft = instructionChain.baseWidth - d3.event.clientX //pas sure
       
     }
-    
-    
 
-    displayChain(numB : number){
-        const self = this;
-        for (let i = 0; i < numB; i++) {
-            const blocki = this.instructionBlock[0][i];
-            const instruction = this.instructionBlock[1][i];
-
-            //this.addLoader();
-            setTimeout(() => {
-                this.createInstructionCard(instruction,blocki,i);
-            }, 6000);
-        }
-        // Highlights the blocks in the blockchain
-        this.highlightBlocks(this.instructionBlock[0]);
-    }
-
-    createInstructionCard(instruction: Instruction, blocki: SkipBlock, i:number){
-        const self = this;
-        const instructionCard = this.principalContainer.append("div");
-            instructionCard
-                .attr("class", "uk-card uk-card-default")
-                .style("min-width", "320px")
-                .style("min-height", "240px");
-
-            const instructionCardHeader = instructionCard.append("div");
-            instructionCardHeader.attr(
-                "class",
-                "uk-card-header uk-padding-small"
-            );
-
-            const instructionCardBody = instructionCard.append("div");
-            instructionCardBody;
-
-            let contractID = "";
-            instructionCard.attr("id", "buttonInstance"); // was buttonInstance${i}
-            let verb = "";
-            if (instruction.type === Instruction.typeSpawn) {
-                contractID = instruction.spawn.contractID;
-                verb = "Spawned";
-            } else if (instruction.type === Instruction.typeInvoke) {
-                verb = "Invoked";
-                contractID = instruction.invoke.contractID;
-            } else if (instruction.type === Instruction.typeDelete) {
-                verb = "Deleted";
-                contractID = instruction.delete.contractID;
-            }
-
-            instructionCardHeader
-                .append("span")
-                .attr("class", "uk-badge")
-                .text(`${verb}`)
-                .on("click", function () {
-                    Utils.copyToClipBoard(
-                        `${instruction.hash().toString("hex")}}`,
-                        self.flash
-                    );
-                })
-                .attr("uk-tooltip", `${instruction.hash().toString("hex")}`);
-
-            instructionCardHeader
-                .append("span")
-                .text(` ${contractID} contract in `);
-
-            //Creates a clickable badge to copy a hash to the clipboard
-            const instructionCardHeaderBadge = instructionCardHeader.append(
-                "span"
-            );
-
-            instructionCardHeaderBadge
-                .attr("class", "uk-badge")
-                .text(`Block ${blocki.index}`)
-                .on("click", function () {
-                    Utils.copyToClipBoard(
-                        `${blocki.hash.toString("hex")}`,
-                        self.flash
-                    );
-                })
-                .attr("uk-tooltip", `${blocki.hash.toString("hex")}`);
-            Utils.clickable(instructionCardHeaderBadge);
-
-
-            
-            // Add an highlight of the instance which was browsed
-            if (
-                blocki.hash.toString("hex") ===
-                this.clickedBlock.hash.toString("hex")
-            ) {
-                instructionCard.style("outline", "1px red");
-            }
-            // Detail of each instruction
-            const divInstructionB = instructionCardBody.append("div");
-            divInstructionB.attr(
-                "class",
-                "uk-accordion-content uk-padding-small"
-            );
-
-            divInstructionB.append("p").text("Arguments: ");
-            const ulArgsB = divInstructionB.append("ul");
-            ulArgsB.attr("uk-accordion", "");
-            // tslint:disable-next-line
-            const beautifiedArgs = instruction.beautify();
-
-            beautifiedArgs.args.forEach((arg, i) => {
-                const liArgsB = ulArgsB.append("li");
-                const aArgsB = liArgsB.append("a");
-                aArgsB
-                    .attr("class", "uk-accordion-title")
-                    .attr("href", "#")
-                    .text(`${i}: ${arg.name}`);
-
-                const divArgsB = liArgsB.append("div");
-                divArgsB.attr(
-                    "class",
-                    "uk-accordion-content uk-padding-small uk-padding-remove-top uk-padding-remove-right uk-padding-remove-bottom"
-                );
-
-                divArgsB.append("p").text(`${arg.value}`);
-            });
-
-        //this.instructionsCard.push(instructionCard)
-    }
-
-
-    /**
-     * Highlights the blocks in the blockchain
-     *
-     * @private
-     * @param {string[]} blocks : the blocks to be highlighted
-     * @memberof DetailBlock
-     */
-     private highlightBlocks(blocks: SkipBlock[]) {
-        for (let i = 0; i < blocks.length; i++) {
-            const blockSVG = d3.select(
-                `[id = "${blocks[i].hash.toString("hex")}"]`
-            );
-            const button = d3.select(`#buttonInstance${i}`);
-            if (!blockSVG.empty()) {
-                blockSVG.attr("stroke", "red").attr("stroke-width", 5);
-            } // tslint:disable-next-line
-            button.on("mouseover", function () {
-                blockSVG.attr("stroke", "red").attr("stroke-width", 10);
-            }); // tslint:disable-next-line
-            button.on("mouseout", function () {
-                blockSVG.attr("stroke", "red").attr("stroke-width", 5);
-            });
-        }
-    }
-
-    loadNextInstruction(xPos:number, k:number){
-        // In case we are reaching the end of the chain, we should not
-        // load more blocks than available.
-        //this.addLoader(true,this.principalContainer,xPos,1);
-        setTimeout(() => {
-            //display new block
-            console.log("in");
-            if(this.totalLoaded < this.instructionBlock[1].length){
-                console.log("inside");
-                this.createInstructionCard(this.instructionBlock[1][this.totalLoaded],this.instructionBlock[0][this.totalLoaded], InstructionChain.numBlock);
-                this.totalLoaded += 1;
-            }
-        }, 800);
-
-    }
-
-
-    addLoader(backwards: boolean, gloader: any, xPos: number, k: number) {
-        let className = "right-loader";
-        //const xPos = this
-
-        // Some loaders: https://codepen.io/aurer/pen/jEGbA
-        gloader
-            .append("svg")
-            .attr("class", `${className}`)
-            .attr("id", "loaderInstr")
-            .attr("viewBox", "0, 0, 24, 30")
-            .attr("x", xPos)
-            .attr("y", InstructionChain.baseHeight / 2)
-            .attr("width", "48px")
-            .attr("height", "60px")
-            .attr("transform-origin", `${xPos}px 0px`)
-            .attr("enable-background", "new 0 0 50 50")
-            .attr("transform", `scale(${1 / k})`).html(`
-         <rect x="0" y="13" width="4" height="5" fill="#333">
-           <animate attributeName="height" attributeType="XML"
-             values="5;21;5"
-             begin="0s" dur="0.6s" repeatCount="indefinite" />
-           <animate attributeName="y" attributeType="XML"
-             values="13; 5; 13"
-             begin="0s" dur="0.6s" repeatCount="indefinite" />
-         </rect>
-         <rect x="10" y="13" width="4" height="5" fill="#333">
-           <animate attributeName="height" attributeType="XML"
-             values="5;21;5"
-             begin="0.15s" dur="0.6s" repeatCount="indefinite" />
-           <animate attributeName="y" attributeType="XML"
-             values="13; 5; 13"
-             begin="0.15s" dur="0.6s" repeatCount="indefinite" />
-         </rect>
-         <rect x="20" y="13" width="4" height="5" fill="#333">
-           <animate attributeName="height" attributeType="XML"
-             values="5;21;5"
-             begin="0.3s" dur="0.6s" repeatCount="indefinite" />
-           <animate attributeName="y" attributeType="XML"
-             values="13; 5; 13"
-             begin="0.3s" dur="0.6s" repeatCount="indefinite" />
-         </rect>
-      `);
-    }
-
-
-    getBlocks(){
-        return this.instructionBlock[0];
-
-    }
-
+/**
+ * 
+ * @param xTranslate 
+ * @param tuple 
+ * @param instrIndex 
+ * @param gInstr 
+ * @param transform 
+ */
     private addInstructionBlock(xTranslate: number, tuple:[SkipBlock[], Instruction[]] ,instrIndex:number, gInstr: any, transform:any){
         const self = this;
         const block = tuple[0][instrIndex];
@@ -528,8 +213,6 @@ export class InstructionChain {
         const color = this.getColor(instruction);
         const box = gInstr
             .append("rect")
-            //.transition()
-            //.delay(300)
             .attr("class", "instructionBox")
             .attr("id", `${instrIndex}`)
             .attr("width", InstructionChain.blockWidth*(transform.k))
@@ -541,55 +224,59 @@ export class InstructionChain {
             .attr("stroke-width","4px");
             if(transform.k <= 0.35){
                 box.on("mouseover",() => {
-                        //this.hoverBlockIndex = instrIndex;
-                        this.gInfo.remove();
-                        this.gInfo = d3.selectAll("#svg-instr").append("g").attr("id", "gIntr_info");
-                        this.hoverSubject.next(instrIndex);
+                    if(!this.smallBlockCliked){
+                        this.resetInfoGroup();
+                        this.hoverClickedSubject.next(instrIndex);
+                    }
                     
                 })
                 
                 .on("mouseout", () => {
-                    this.gInfo.remove();
-                    this.gInfo = d3.selectAll("#svg-instr").append("g").attr("id", "gIntr_info");
+                    if(!this.smallBlockCliked){
+                        this.resetInfoGroup();
+                    }
                 })
+                .on("click", () => {
+                    if(this.hoverClickedBlockIndex != instrIndex){
+                        this.resetInfoGroup();
+                    }
+                    if(!this.smallBlockCliked ){
+                        this.smallBlockCliked = true
+                        this.hoverClickedBlockIndex = instrIndex;
+                        this.hoverClickedSubject.next(instrIndex);
+                    } else {
+                        this.smallBlockCliked = false;
+                        this.resetInfoGroup();
+                    }
+                    
+                });
                     
             } else {
-                this.gInfo.remove();
-                this.gInfo = d3.selectAll("#svg-instr").append("g").attr("id", "gIntr_info");
+                this.resetInfoGroup();
+                if(this.smallBlockCliked){
+                    this.smallBlockCliked = false;
+                }
             }
-            //.delay(300);//
-            /*
-            .on("click", () => {
-                //console.log("instruction", Utils.bytes2String())
-                //d3.select("#buttonInstance").remove();
-                //this.createInstructionCard(instruction,block,instrIndex);
-                
-                this.clickedInstrSubject.next(instrIndex);
-                //window.location.hash = `index:${block.index}`;
-            })
-            .on("mouseover", function () {
-                d3.select(this).style("cursor", "pointer");
-            })
-            .on("mouseout", function () {
-                d3.select(this).style("cursor", "default");
-            });*/
-        let contractID = "";
-        let action = "";
-        if (instruction.type === Instruction.typeSpawn) {
-            contractID = instruction.spawn.contractID;
-            action = "Spawned:coin";
-        } else if (instruction.type === Instruction.typeInvoke) {
-            action = "Invoked:coin";
-            contractID = instruction.invoke.contractID;
-        } else if (instruction.type === Instruction.typeDelete) {
-            action = "Deleted";
-            contractID = instruction.delete.contractID;
-        }
-        
+
+            if(transform.k > 0.35){
+            let contractName = ""
+            let action = "";
+                if (instruction.type === Instruction.typeSpawn) {
+                    contractName = instruction.spawn.contractID
+                instruction.spawn.contractID.slice(1);
+                    action = `Spawned ${contractName}`;
+                } else if (instruction.type === Instruction.typeInvoke) {
+                    contractName = instruction.invoke.contractID
+                instruction.invoke.contractID.slice(1);
+                    action = `Invoked ${contractName}`;
+                } else if (instruction.type === Instruction.typeDelete) {
+                    action = "Deleted";
+                    contractName = instruction.delete.contractID
+                }
+
         gInstr.append("text")
             .attr("x", xTranslate + (InstructionChain.blockWidth-90)*transform.k/2)
             .attr("y", InstructionChain.blockStarty+20*transform.k)
-            //.attr("dx", "0.2em")
             .text(`Block ${block.index}`)
             .style("font-weight", "bold")
             .style("font-size", 16*transform.k)
@@ -651,7 +338,7 @@ export class InstructionChain {
                         .attr("width", 20*transform.k)
                         .attr("height", 20*transform.k)
                         .attr("xlink:href", blocky.toDataURL())
-                        .attr("uk-tooltip", block.hash.toString("hex"))
+                        .attr("uk-tooltip", arg.value)
                         .on("click", function () {
                             Utils.copyToClipBoard(arg.value, self.flash);
                         })
@@ -662,36 +349,46 @@ export class InstructionChain {
                             d3.select(this).style("cursor", "default");
                         });
                 }else {
-                argNameBox.append("tspan")
-                .attr("y", dy) //pas sur transform.k
+                let argValue = `${arg.value}`
+                const argText = argNameBox.append("tspan");
+                argText.attr("y", dy) //pas sur transform.k
                 .attr("dx", "0.2em")
-                .text(`${arg.value}`)
+                .text(function () { //truncate the text so it doesn't get out of the box
+                    if(contractName == "deferred"){
+                        if(argValue.length > 6){
+                            argText.attr("uk-tooltip", argValue)
+                            return argValue.substring(0,6)+'...';
+                        }else{
+                            return argValue; }
+                        
+                    }else{
+                        if(argValue.length >= 20){
+                            argText.attr("uk-tooltip", argValue)
+                            return argValue.substring(0,20)+'...';
+                        }else{
+                            return argValue; }
+                    }
+                                          
+                })
+                .style("width",100)
                 .style("font-size", 16*transform.k)
                 .style("fill", "#666");
 
                 }
                 dy += 30*transform.k;
             });
-
+        }
 
         
 
     }
 
-    getClickedColor(instruction: Instruction):string{
-        let color:string;
-        if(instruction.type == Instruction.typeInvoke){
-            color = this.clickedInvokedColor;
-        } else if(instruction.type == Instruction.typeSpawn){
-            color = this.clickedSpawnedColor;
-        } else {
-            color = this.clickedDeletedColor;
-        }
-
-        return color;
-    }
-
-    getColor(instruction: Instruction): string {
+    /**
+     * Helper to the get the color that represent the instruction
+     * @param instruction 
+     * @returns the color of the instruction according to its contract type
+     */
+    private getColor(instruction: Instruction): string {
         let color: string;
         if(instruction.type == Instruction.typeSpawn){
             color = InstructionChain.spawnedColor;
@@ -704,35 +401,16 @@ export class InstructionChain {
         return color;
     }
 
-    updateClickedBlock(instrIndex:number){
-        if(this.selectedInstrIndex != instrIndex){
-            d3.select(`[id = "${this.selectedInstrIndex}"]`).style(
-                "fill",
-                this.getColor(this.instructionBlock[1][this.selectedInstrIndex])
-            );
-            this.selectedInstrIndex = instrIndex;
-        }
-        d3.select(`[id = "${instrIndex}"]`).style(
-            "fill",
-            this.getClickedColor(this.instructionBlock[1][instrIndex])
-        );
-    }
-
-    addBlock(tranform:any, nextBlockIndex:number, gloader:any){
-
-
-    }
-    
-
-    //condition pour ajouter des blocks:
-    // - tous les blocks d'instructions n'ont pas encore été affichés
-    checkAndAddBlocks(transform:any, nextBlockIndex:number, gloader:any,gInstr:any):boolean{
-        console.log("totalLoaded",this.totalLoaded);
-        console.log("query number",this.instructionBlock[1].length);
-
-        
-        if(this.totalLoaded >= this.instructionBlock[1].length){
-            //this.flash.display(Flash.flashType.INFO, "End of the instructions chain");
+    /**
+     * Helper : check that a block can be added to the chain and add when required
+     * @param transform the tranform object
+     * @param gInstr the svg group in which the info should be drawn
+     * @returns true if block have been added false otherwise
+     */
+    private checkAndAddBlocks(transform:any,gInstr:any):boolean{
+        //new blocks are added if there remains instruction to be displayed
+        const allAreLoaded = this.totalLoaded >= this.instructionBlock[1].length;
+        if(allAreLoaded ){
             return false;
         }
 
@@ -742,97 +420,143 @@ export class InstructionChain {
             InstructionChain.baseWidth
         );
 
+        //check if whe need to load blocks to right
         const loadingCond = (this.totalLoaded-1) < bounds.right && (this.totalLoaded + 1) >= bounds.left;
         if(loadingCond) {
             const xTranslate = (this.totalLoaded) * (InstructionChain.blockWidth + InstructionChain.blockPadding)*transform.k;
             
-            setTimeout(() => {
-                this.addInstructionBlock(xTranslate,this.instructionBlock,this.totalLoaded,gInstr,transform);
-                this.totalLoaded += 1;
-                d3.select(".total-instr").text(`total loaded : ${this.totalLoaded}`);
-            },800);
+            for(let i = 0; (i<bounds.right) && !allAreLoaded;++i){
+                setTimeout(() => {
+                    this.addInstructionBlock(xTranslate,this.instructionBlock,this.totalLoaded,gInstr,transform);
+                    this.totalLoaded += 1;
+                    d3.select(".total-instr").text(`total loaded : ${this.totalLoaded}`);
+                },1000);
+            }
             
         }
-
-        //if(transform.x > 0){
-            //const xTranslate = (this.totalLoaded) * (InstructionChain.blockWidth + InstructionChain.blockPadding)*transform.k;
-            //const xLoad = xTranslate + InstructionChain.blockPadding + InstructionChain.blockWidth/2;
-            
-            //this.addLoader(false,gloader,xTranslate,transform.k);
-            //setTimeout(() => {
-                //this.gloader.select("#loaderInstr").remove();
-                //this.addInstructionBlock(xTranslate,this.instructionBlock,this.totalLoaded,gInstr,transform);
-                //this.totalLoaded += 1;
-                //this.chainSubject.next(d3.event.transform);
-                //d3.select(".loaderInstr").remove()
-            //}, 40);
-            
-        //}
     
         return true;
 
 
     }
+/**
+ * Helper to display the rectangle block info when the main blocks are too small
+ * @param instri index of the instruction
+ * @param tuple value of the observable (obtain from the query)
+ * @param gInfo  group in which to draw the instruction info
+ */
+private createHoverInfo(instri:number, tuple:[SkipBlock[], Instruction[]], gInfo:any){  
 
-    createHoverInfo(instri:number, tuple:[SkipBlock[], Instruction[]], gInfo:any){
+
         const self = this;
         const block = tuple[0][instri];
         const instruction = tuple[1][instri];
         const color = this.getColor(instruction);
 
+        let contractName = ""
+        let action = "";
+        let args :any;
+            if (instruction.type === Instruction.typeSpawn) {
+                contractName = instruction.spawn.contractID;
+                action = `Spawned ${contractName}`;
+            } else if (instruction.type === Instruction.typeInvoke) {
+                contractName = instruction.invoke.contractID
+                args = instruction.invoke.args;
+                action = `Invoked ${contractName}`;
+            } else if (instruction.type === Instruction.typeDelete) {
+                action = "Deleted";
+                contractName = instruction.delete.contractID;
+            }
+
         gInfo
             .append("rect")
-            .attr("x", 300)
+            .attr("x", 500)
             .attr("y", 120)
-            .attr("width", 610)
+            .attr("width", 300)
             .attr("height", 100)
             .attr("fill", "white")
             .attr("stroke", color)
             .attr("stroke-width","2px");
-            const title =  gInfo.append("text")
+       gInfo.append("text")
             .attr("x", 500 + 50)
             .attr("y", 100 +40)
-            //.attr("dx", "0.2em")
             .text(`Block ${block.index}`)
             .style("font-weight", "bold")
             .style("font-size", 16)
-            .style("fill", color);
-        
-        if (instruction.type === Instruction.typeInvoke){
-            const contractName =
-                            instruction.invoke.contractID
-                                .charAt(0)
-                                .toUpperCase() +
-                            instruction.invoke.contractID.slice(1);
-            const args = instruction.invoke.args;
-            const coin_invoked = contractName == "Coin" && args.length > 1;
-            if(coin_invoked){
+            .style("fill", color)
+            .append("tspan")
+            .text(`- ${action}`);;
+
+        const coin_invoked = contractName == "coin" && args.length > 1;
+        if (coin_invoked){
                 const beautifiedArgs = instruction.beautify().args;
                 const contract = beautifiedArgs[0].value;
                 const destination = beautifiedArgs[1].value;
 
-                
-                gInfo.append("text")
-                    .attr("x", 500 + 80)
+                gInfo.
+                append("text")
+                    .attr("x", 600 )
                     .attr("y", 100 +80)
-                    //.attr("dx", "0.2em")
-                    .text(`${contract} to`)
+                    .text(`gave ${contract} to`)
                     .style("font-weight", "bold")
                     .style("font-size", 16)
-                    .style("fill", "#666");
-                 gInfo.append("text")
-                    .attr("x", 305)
-                    .attr("y", 100 +100)
-                    //.attr("dx", "0.2em")
-                    .text(`${destination}`)
-                    .style("font-weight", "bold")
-                    .style("font-size", 16)
-                    .style("fill", "#666");
+                    .style("fill", "#666")
+                const blocky = blockies.create({ seed: destination });
+                gInfo
+                        .append("svg:image")
+                        .attr("x", 500 + 190)
+                        .attr("y", 100 +65)
+                        .attr("width", 20)
+                        .attr("height", 20)
+                        .attr("xlink:href", blocky.toDataURL())
+                        .attr("uk-tooltip", destination)
+                        .on("click", function () {
+                            Utils.copyToClipBoard(destination, self.flash);
+                        })
+                        .on("mouseover", function () {
+                            d3.select(this).style("cursor", "pointer");
+                        })
+                        .on("mouseout", function () {
+                            d3.select(this).style("cursor", "default");
+                        });
+            
 
-            }
+        } else {
+            const beautifiedArgs = instruction.beautify().args;
+            const argName = beautifiedArgs[0].name;
+            const argVal = beautifiedArgs[0].value;
+            const info = `${argName} : ${argVal}`;
+            const argText =gInfo.
+            append("text");
+               argText.attr("x", 520 )
+                .attr("y", 100 +80)
+                .text(() => {
+                    if(info.length >= 25 && argName == "value"){
+                        argText.attr("uk-tooltip", argVal)
+                        return info.substring(0,25)+'...';
+                    }else if(info.length >= 35){
+                        argText.attr("uk-tooltip", argVal)
+                        return info.substring(0,35)+'...';
+                    }
+                    else{
+                        return info;
+                    }
+                })
+                .style("font-weight", "bold")
+                .style("font-size", 16)
+                .style("fill", "#666")
 
+        
         }
 
+    }
+
+    /**
+     * reset the information group (when block are too small)
+     */
+    private resetInfoGroup(){
+        this.gInfo.remove();
+        this.gInfo = d3.selectAll("#svg-instr").append("g").attr("id", "gIntr_info");
     }
 
 

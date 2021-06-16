@@ -238,7 +238,7 @@ div.query-answer {
     overflow-y: scroll;
     padding: 8px;
     flex: 1;
-    max-height: 500px;
+    max-height: 550px;
 }
 
 .browse-container {
@@ -686,12 +686,12 @@ List of classes for the new transaction container
 }
 
 .block-detail-container p {
-    font-size: 16px;
+    font-size: 0.875rem;
     overflow: auto;
 }
 
 .browse-container p {
-    font-size: 16px;
+    font-size: 0.875rem;
     overflow: auto;
 }
 

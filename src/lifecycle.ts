@@ -16,7 +16,7 @@ import { Utils } from "./utils";
 
 /**
  * Create browsing which will browse the blockchain from the
- * first block to the last and gets the instructions that
+ * first or a selected block and gets the instructions that
  * contains the contractID given. It will notify through
  * Subjects:
  * 1) the hashes of the blocks and the instructions with
@@ -26,6 +26,7 @@ import { Utils } from "./utils";
  *
  * @author Julien von Felten <julien.vonfelten@epfl.ch>
  * @author Lucas Trognon <lucas.trognon@epfl.ch>
+ * @author Rosa José Sara <rosa.josesara@epfl.ch>
  * @export
  * @class Lifecycle
  */
@@ -46,8 +47,6 @@ export class Lifecycle {
 
     abort: boolean;
     flash: Flash;
-
-    //searchDir:boolean
 
     /**
      * Creates an instance of Browsing.
@@ -80,8 +79,11 @@ export class Lifecycle {
         this.abort = false;
     }
     /**
-     * This method is the start of the browsing from the first block. It
-     * will (re)sets all the parameters needed to start a new browsing.
+     * This method is the start of the browsing from the first or the selected block.
+     * - browse from the first block if fromFirstBlock is true and direction is false,
+     * - browse previous block from firstBlockIDStart if direction is true and fromFirstBlock is false
+     * - browse next block from firstBlockIDStart if direction is false and fromFirstBlock is false
+     * It will (re)sets all the parameters needed to start a new browsing.
      * It will return a tuple with two Subjects:
      * 1) Subject of tuple with the blocks and instructions of the
      * instruction given as parameter.
@@ -97,9 +99,9 @@ export class Lifecycle {
      */
     getInstructionSubject(
         instanceID: string,
-        maxNumberOfBlocks: number = -1, //changed was -1
-        initHash: string, //Added
-        direction: boolean, //added
+        maxNumberOfBlocks: number = -1, 
+        initHash: string, 
+        direction: boolean,
         fromFirstBlock: boolean
     ): [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>] {
         const self = this;
@@ -122,26 +124,26 @@ export class Lifecycle {
         this.contractID = instanceID;
 
         this.abort = false;
-        //this.searchDir = (direction != -1 ? false : true)
 
-        //modified -> recherche all ! recherche nombre
-        if (fromFirstBlock == true ) {
+        if (fromFirstBlock == true && direction == false) {
+            //browse from the first block
             this.browse(
                 this.pageSize,
                 this.numPages,
-                this.firstBlockIDStart, //modified
+                this.firstBlockIDStart,
                 subjectInstruction,
                 subjectProgress,
                 [],
                 [],
                 maxNumberOfBlocks,
-                direction //direction of the search, backward= true -> forward = false
+                direction
             );
         } else {
+            //browse the previous or next instructions from the selected inital block
         this.browse(
                 this.pageSize,
                 this.numPages,
-                initHash, //modified
+                initHash,
                 subjectInstruction,
                 subjectProgress,
                 [],
@@ -225,14 +227,12 @@ export class Lifecycle {
                         (instruction, _) => {
                             if (
                                 Utils.bytes2String(instruction.instanceID) ===
-                                this.contractID //modified
+                                this.contractID
                             ) {
-                                // get the hashes and instruction corresponding to the input instruction
                                 this.nbInstanceFound++;
-                                //transactionFound.next(this.nbInstanceFound);
 
                                 if (
-                                    this.nbInstanceFound <= maxNumberOfBlocks && //modified
+                                    this.nbInstanceFound <= maxNumberOfBlocks &&
                                     !this.abort
                                 ) {
                                     skipBlocksSubject.push(skipBlock);
@@ -259,28 +259,20 @@ export class Lifecycle {
                     pageDone++;
                     if (pageDone >= numPagesB) {
                         // condition to end the browsing
-                        if ( // added skipBlock.backlinks.length !=0
+                        if (
                             (skipBlock.forwardLinks[0].to.length !== 0 || skipBlock.backlinks[0].length !=0) &&
                             !this.abort
                         ) {
                             
-                            if(direction){
-                                    this.nextIDB = Utils.bytes2String(
-                                        skipBlock.backlinks[0]);
-                     
-                            } else{
-                                    this.nextIDB =  Utils.bytes2String(
-                                        skipBlock.forwardLinks[0].to);
-                            }
-                            /*
-                            this.nextIDB = //modified
+                            
+                            this.nextIDB =
                                 direction != false
                                     ? Utils.bytes2String(
-                                          skipBlock.backlinks[0] //modified was .to
+                                          skipBlock.backlinks[0]
                                       )
                                     : Utils.bytes2String(
                                           skipBlock.forwardLinks[0].to
-                                      ); //was modified*/
+                                      );
 
                             pageDone = 0;
                             this.getNextBlocks(
@@ -330,6 +322,7 @@ export class Lifecycle {
      * @param {number} numPagesNB
      * @param {Subject<[number, SkipBlock]>} subjectBrowse
      * @param {Subject<number[]>} subjectProgress
+     * @param {boolean} direction
      * @returns : only if an error occur
      * @memberof Browsing
      */
@@ -339,7 +332,7 @@ export class Lifecycle {
         numPagesNB: number,
         subjectBrowse: Subject<[number, SkipBlock]>,
         subjectProgress: Subject<number[]>,
-        direction: boolean //direction search
+        direction: boolean
     ) {
         let bid: Buffer;
         try {
@@ -358,6 +351,7 @@ export class Lifecycle {
                 ByzCoinRPC.serviceName
             );
         } catch (error) {
+            this.abort = true;
             this.flash.display(
                 Flash.flashType.ERROR,
                 `error creating conn: ${error}`
@@ -372,7 +366,7 @@ export class Lifecycle {
 
                 pagesize: pageSizeNB, // tslint:disable-next-line
                 numpages: numPagesNB,
-                backward: direction, // modifed was false
+                backward: direction, 
             })
 
             const messageByte = Buffer.from(
@@ -387,7 +381,7 @@ export class Lifecycle {
 
                     pagesize: pageSizeNB, // tslint:disable-next-line
                     numpages: numPagesNB,
-                    backward: direction, //modified was false  , direction
+                    backward: direction,
                 }),
                 PaginateResponse
             ).subscribe({
@@ -398,8 +392,6 @@ export class Lifecycle {
                 error: (err: Error) => {
                     this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
                     this.ws = undefined;
-                    //added
-                    this.abort = true
                 },
                 // ws callback "onMessage":
                 next: ([data, ws]) => {
