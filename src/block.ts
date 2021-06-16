@@ -25,6 +25,7 @@ import * as blockies from "blockies-ts";
  *
  * @author Lucas Trognon <lucas.trognon@epfl.ch>
  * @author Julien von Felten <julien.vonfelten@epfl.ch>
+ * @author Rosa José Sara <rosa.josesara@epfl.ch>
  * @export
  * @class Block
  */
@@ -54,9 +55,8 @@ export class Block {
     loadContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
     progressBarItem: HTMLElement;
 
-    //code added
-    totalBlock: TotalBlock;
-    //
+    //subject  that willl be call when a queery is launched
+    querySubject: [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>]
 
     /**
      * Creates an instance of DetailBlock.
@@ -416,7 +416,7 @@ export class Block {
         //
         const downloadButton = transactionCardHeader
         .append("h3") // pas mis div pck
-        .html(downloadIconScript())
+        .html(Utils.downloadIconScript())
         .attr("class", "download-icon-1")
         .on("click", function () {
             // Auto click on a element, trigger the file download
@@ -691,11 +691,6 @@ export class Block {
                     const searchInstance = divInstruction.append("li");
                     searchInstance.append("span").attr("class", "search-text").text(" Search for ");
 
-                    /*const formTag = searchInstance
-                        .append("span")
-                        .append("form")
-                    */
-                    // code added 
                     const numberTag = searchInstance
                         .append("span")
                         .append("form")
@@ -705,20 +700,18 @@ export class Block {
                         .append("input")
                         .attr("type", "number")
                         .attr("min", "1")
-                        .attr("max", "50000") //random max
-                        //.attr("width", "20%")
+                        .attr("max", "50000")
                         .attr("id", "queryNumber")
                         .attr("class", "search-value uk-input");
 
                     const directionTag  = numberTag
                         .append("span")
                         .append("form")
-                        //.attr("width", "20%")
                         .style("display", "inline");
                     
                     const directionSelect = directionTag
                         .append("select")
-                        .attr("value", "0") // added cherche lex X previous par défaut
+                        .attr("value", "0")
                         .attr("height", "20px")
                         .attr("class", "search-value uk-select");
                     
@@ -739,72 +732,37 @@ export class Block {
                     
                     
                     directionTag.append("span").text(" instructions related to this instance ").style("display", "block");
-                    //
+                    
                     const searchButton = searchInstance.append("div").attr("class", "search-button").append("button");
                     searchButton
                         .attr("class", "uk-button uk-button-default")
                         .text(` Search `);
-                    // 
 
+                    // extract user selection information
                     var chosenQueryNumber = 0;
                     numberTag.on("change", function() {
                         chosenQueryNumber = parseInt((<HTMLInputElement>document.getElementById("queryNumber")).value);
-                        console.log(`new query number:${chosenQueryNumber}`); //à enlever pour debug
                     });
 
-                    var directionQuery = true; //initialement previous
+
+                    var directionQuery = true;
                     var startWithFirstBlock = false;
                     directionSelect.on("change", function () {
                         var query = parseInt(this.options[this.selectedIndex].value);
                         if(query == 0){
-                            directionQuery = true; //previous => backward = true, -1
+                            directionQuery = true; 
                         } else {
                             directionQuery = false;
                         }
                         if(query == -1){
                             startWithFirstBlock = true;
                         }
-                        //console.log(`new query direction:${directionQuery}`);
+                
                     });
-                    //Dropdown menu to select the number of reults the tracker should return.
-                    /*const formSelect = formTag
-                        .append("select")
-                        .attr("value", "10")
-                        .attr("class", "uk-select");
-                    */
 
-                    /*formSelect
-                        .append("option")
-                        .attr("value", "-1")
-                        .text("All instructions related to this instance");
-                    */
-                    /* formSelect.append("option").attr("value", "100").text(
-                        "The 100 previous instructions related to this instance" //modified
-                    );
-
-                    //formSelect.append("option").attr("value", "50").text(
-                        "The 50 previous instructions related to this instance" //modified
-                    );
-
-                    formSelect
-                        .append("option")
-                        .attr("value", "10")
-                        .text(
-                            "The 10 previous instructions related to this instance"
-                        );
-
-                    var chosenQuery = -1;
-
-                    formSelect.on("change", function () {
-                        chosenQuery = parseInt(
-                            this.options[this.selectedIndex].value
-                        );
-                    });*/
-                    //var chosenQuery = -1;
-
+                    //if the search button is clicked without any query number selected
+                    // a search for the 10 previous instruction will be launched
                     searchButton
-                        // Confirmation and start browsing on click
-                        // tslint:disable-next-line
                         .on("click", function () {
                             if(chosenQueryNumber != 0){
                                 self.launchQuery(
@@ -813,7 +771,7 @@ export class Block {
                                     directionQuery,
                                     startWithFirstBlock
                                 );
-                            } else { //Added 
+                            } else {
                                 self.launchQuery(
                                     10,
                                     instruction.instanceID.toString("hex"),
@@ -842,26 +800,23 @@ export class Block {
 
     public launchQuery(chosenQuery: number, instanceID: string, direction : boolean, fromFirstBlock: boolean) { //added direction argument
         const self = this;
-        self.createLoadingScreen();
-        //code added !! si query = all alors on n'aura pas vraiment cherché dans tous les blocks
-        this.flash.display(Flash.flashType.INFO, 'Query launched : browsed informations are at the bottom of the page')
+
         const clickedBlockHash = this.clickedBlock.hash
             .toString("hex")
             .valueOf();
-        //this.lifecycle = new Lifecycle(this.roster,this.flash,this.totalBlock,initHash);
-        //
-        const subjects = self.lifecycle.getInstructionSubject(
+        this.querySubject = self.lifecycle.getInstructionSubject(
             instanceID,
             chosenQuery,
-            clickedBlockHash, //modified:added an argument -> the hash of the clicked block
-            direction, //code added
-            fromFirstBlock //code added
+            clickedBlockHash, 
+            direction, 
+            fromFirstBlock
         );
-        subjects[0].subscribe({
+        self.createLoadingScreen();
+        this.querySubject[0].subscribe({
             next: self.printDataBrowsing.bind(self),
         });
         // throttleTime: ignores the values for the 100 first ms
-        subjects[1].pipe(throttleTime(100)).subscribe({
+        this.querySubject[1].pipe(throttleTime(100)).subscribe({
             complete: self.doneLoading,
             next: ([percentage, seenBlock, totalBlock, nbInstanceFound]) => {
                 const rate = Math.round((nbInstanceFound/chosenQuery)*100);
@@ -876,7 +831,7 @@ export class Block {
         });
     }
 
-    //
+    
     /**
      * ANCHOR Query results rendering
      * Displays the result of the browsing, highlights the
@@ -902,21 +857,15 @@ export class Block {
             .attr("id", "query-header")
             .append("div")
             .text(
-                `Evolution of contract Coin, instance:`/*${tuple[1][0].instanceID.toString( "hex")}*/
+                `Evolution of contract Coin, instance:`
             )
-            .style("padding-left","450"); //added
+            .style("padding-left","450"); 
          const blocky = blockies.create({ seed:tuple[1][0].instanceID.toString( "hex") });
          summaryText.append("object")
                     .attr("type", "image/svg+xml")
                     .attr("width", 20)
                     .attr("height", 20)
-                    //.style("padding-right",80)
                     .attr("data", blocky.toDataURL())
-                        //.attr("x", "10%")
-                        //.attr("y", dy-15)
-                        //.attr("width", 20)
-                        //.attr("height", 20)
-                        //.attr("xlink:href", blocky.toDataURL())
                         .attr("uk-tooltip", tuple[0][0].hash.toString("hex"))
                         .on("click", function () {
                             Utils.copyToClipBoard(tuple[1][0].instanceID.toString( "hex"), self.flash);
@@ -927,35 +876,13 @@ export class Block {
                         .on("mouseout", function () {
                             d3.select(this).style("cursor", "default");
                         });;
-           /* .text("Summary of the evolution of the instance: ").style("text-anchor", "middle")
-            Utils.addHashBlocky(
-                queryHeader,
-                tuple[1][0].instanceID.toString("hex"),
-                this.flash);*/
 
-        //code added for second downloadButton
+        //display the download icon
         const downloadButton = queryHeader
             .append("div")
-            /*.attr("type", "image/svg+xml")
-        .attr("width", 25)
-        .attr("height", 25)
-        .style("padding-right",80)
-        .attr("data", "assets/download-data-icon.png")*/
-            .html(downloadIconScript())
+            .html(Utils.downloadIconScript())
             .attr("class", "download-icon-2")
-            //.style("position", "relative")
-            //.style("left", `${window.innerWidth-400}`)
-            /*
-        .on("mouseover", function(){
-            d3.select(this)
-            .attr("data", "assets/download-data-icon-hover.png")
-            .style("cursor", "pointer");
-        })
-        .on("mouseout", function(){
-            d3.select(this)
-            .attr("data", "assets/download-data-icon.png")
-            .style("cursor", "default");
-        })*/
+            
             .on("click", function () {
                 // Auto click on a element, trigger the file download
                 const blobConfig = ISexportDataBlob(tuple);
@@ -971,7 +898,7 @@ export class Block {
 
                 URL.revokeObjectURL(blobUrl);
             });
-        //
+        
 
         // Clears the results of a previous query
         const closeButtonWrap = queryHeader.append("div");
@@ -992,59 +919,19 @@ export class Block {
             });
 
         // Creates a container in which we'll put the cards
-        const queryCardContainer = queryContainer.append("div"); // modified was ul
+        const queryCardContainer = queryContainer.append("div");
         queryCardContainer
             .attr("id", "query-card-container")
             .attr("multiple", "true")
             .attr("class", "uk-flex");
-        
-
-        // Creates a card for each instruction, the header contains a title with references
-        // to both the transaction hash and the block hash.
-        // The body contains the arguments of the instruction
-        const instructions = new InstructionChain(this.roster,this.flash,tuple,this.clickedBlock);
-        //instructions.displayChain();
+    
+        // Creates the instance tracker interface(instruction chain)
+        const instructions = new InstructionChain(this.roster,this.flash,tuple);
 
         // Highlights the blocks in the blockchain
         this.highlightBlocks(tuple[0]);
         this.hashHighligh = tuple[0];
 
-        //ANCHOR Mouse events handling for clicking and dragging
-        //Stores the current scroll position
-        var pos = { left: 0, x: 0 };
-
-
-        /*
-        //Fires when the mouse is down and moved, refreshes the scroll position
-        const mouseMoveHandler = function () {
-            const dx = d3.event.clientX - pos.x;
-            queryCardContainer.node().scrollLeft = pos.left - dx;
-        };
-
-        //Fires when the mouse is released.
-        //Removes the move and up event handler and resets cursor properties.
-        const mouseUpHandler = function () {
-            queryCardContainer.style("cursor", "grab");
-            queryCardContainer.node().style.removeProperty("user-select");
-            queryCardContainer.on("mousemove", function (e) {});
-            queryCardContainer.on("mouseup", null);
-        };
-
-        //When mousedown fires in query card container, we instantiate the other event listener
-        queryCardContainer.on("mousedown", function (e) {
-            queryCardContainer.style("cursor", "grabbing");
-            queryCardContainer.style("user-select", "none");
-
-            pos = {
-                left: queryCardContainer.node().scrollLeft,
-                x: d3.event.clientX,
-            };
-            queryCardContainer.on("mousemove", mouseMoveHandler);
-            queryCardContainer.on("mouseup", mouseUpHandler);
-        });
-
-        document.addEventListener("mousemove", mouseMoveHandler);
-        */
     }
 
     // enveler cette fonction, déjà dans instructionChain
@@ -1113,18 +1000,11 @@ export class Block {
             .select(".query-answer")
             .append("div")
             .attr("class", "load-container");
-        /*this.loadContainer
-            .append("div")
-            .append("div")
-            .attr("class", "logo") // tslint:disable-next-line
-            .on("click", function () {
-                window.open("https://www.epfl.ch/labs/dedis/");
-            });*/
         const divLoad = this.loadContainer
             .append("div")
             .attr("class", "div-load");
         divLoad
-            .append("h3")  //modified was div
+            .append("h3")
             .html(`<svg id="svg-spinner" xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 48 48">
                   <circle cx="24" cy="4" r="4" fill="#1749b3"/>
                   <circle cx="12.19" cy="7.86" r="3.7" fill="#2552b3"/>
@@ -1136,11 +1016,7 @@ export class Block {
                   <circle cx="42.98" cy="30.32" r="1.9" fill="#8593b3"/>
                   <circle cx="42.98" cy="17.68" r="1.6" fill="#a7b7da"/>
                   <circle cx="35.81" cy="7.86" r="1.3" fill="#c8ddf0"/>
-                </svg>`)
-            //.attr("class", "spinner")
-            //.attr("uk-spinner", "ratio : 2")
-            //.style("color", "blue");
-
+                </svg>`);
         this.progressBarContainer = this.loadContainer
             .append("div")
             .attr("id", "progress-bar-container");
@@ -1152,7 +1028,7 @@ export class Block {
         this.textBar = this.progressBarContainer
             .append("div")
             .attr("id", "text-bar")
-            .text(`instructions found: ???`); // ???% --- block parsed: ??? / ??? and instances found: ???`
+            .text(`instructions found: -`);
 
         this.progressBarContainer
             .append("button")
@@ -1166,6 +1042,7 @@ export class Block {
                 );
                 if (conf) {
                     self.lifecycle.abort = true;
+                    self.querySubject[1].complete();
                 }
             });
         this.progressBarItem = document.getElementById("progress-bar");
@@ -1191,13 +1068,13 @@ export class Block {
     ) {
         if (nbInstanceFound > 0) {
             this.textBar.text(
-                `${percentage}% of instances found: ${nbInstanceFound}/${queryNumber}`
+                `${percentage}% of instruction found: ${nbInstanceFound}/${queryNumber}`
             );
             this.progressBarItem.style.width = percentage + "%";
         } else {
             this.textBar.text(
-               `instances found: ${nbInstanceFound}`
-            ); //`???%  --  Seen blocks: ${seenBlocks}/ Total blocks: ???. Number of instances found: ${nbInstanceFound}`
+               `instructions found: ${nbInstanceFound}`
+            ); 
         }
     }
 
@@ -1214,7 +1091,14 @@ export class Block {
     }
 }
 
-//code added for data exportation: create the blob to be transfomed to a JSON f
+/**
+ * @author Rosa José Sara
+ * Create the Blob that will be used to create the JSON file
+ * for the block data exportation
+ * @param tuple value of the observable obtain from the query
+ * @returns a Blob object
+ *
+ */
 function BTexportDataBlob(block: SkipBlock) {
     var transactionData = new Array();
     const body = DataBody.decode(block.payload);
@@ -1229,18 +1113,26 @@ function BTexportDataBlob(block: SkipBlock) {
                 };
                 argsData.push(argsEntries);
             });
-            let action: string;
-            let contract: string;
-            if (instruction.type == Instruction.typeSpawn) {
-                action = "Spawned:coin";
-                contract = instruction.spawn.contractID;
-            } else if (instruction.type == Instruction.typeInvoke) {
-                action = "Invoked:coin";
-                contract = instruction.invoke.contractID;
-            } else {
+
+            let contract = ""
+            let action = "";
+            if (instruction.type === Instruction.typeSpawn) {
+                contract = instruction.spawn.contractID.charAt(0)
+                .toUpperCase() +
+            instruction.spawn.contractID.slice(1);
+                action = `Spawned:${contract}`;
+            } else if (instruction.type === Instruction.typeInvoke) {
+                contract = instruction.invoke.contractID.charAt(0)
+                .toUpperCase() +
+            instruction.invoke.contractID.slice(1);
+                action = `Invoked:${contract}`;
+            } else if (instruction.type === Instruction.typeDelete) {
                 action = "Deleted";
-                contract = instruction.delete.contractID;
+                contract = instruction.delete.contractID.charAt(0)
+                .toUpperCase() +
+            instruction.delete.contractID.slice(1);
             }
+
             const instructionEntries = {
                 instanceID: instruction.instanceID.toString("hex"),
                 contract: contract,
@@ -1273,7 +1165,14 @@ function BTexportDataBlob(block: SkipBlock) {
     return blobConfig;
 }
 
-
+/**
+ * @author Rosa José Sara
+ * Create the Blob that will be used to create the JSON file
+ * for the instance instruction data exportation
+ * @param tuple value of the observable obtain from the query
+ * @returns a Blob object
+ * 
+ */
 function ISexportDataBlob(tuple: [SkipBlock[], Instruction[]]) {
     var instructionData = new Array();
     var blocksData = new Array();
@@ -1299,20 +1198,27 @@ function ISexportDataBlob(tuple: [SkipBlock[], Instruction[]]) {
             argsData.push(argEntries);
         });
 
-        let action: string;
-        let contract: string;
-        if (instruction.type == Instruction.typeSpawn) {
-            action = "Spawned:coin";
-            contract = instruction.spawn.contractID;
-        } else if (instruction.type == Instruction.typeInvoke) {
-            action = "Invoked:coin";
-            contract = instruction.invoke.contractID;
-        } else {
-            action = "Deleted";
-            contract = instruction.delete.contractID;
-        }
+        let contractID = ""
+            let action = "";
+            if (instruction.type === Instruction.typeSpawn) {
+                contractID = instruction.spawn.contractID.charAt(0)
+                .toUpperCase() +
+            instruction.spawn.contractID.slice(1);
+                action = `Spawned:${contractID}`;
+            } else if (instruction.type === Instruction.typeInvoke) {
+                contractID = instruction.invoke.contractID.charAt(0)
+                .toUpperCase() +
+            instruction.invoke.contractID.slice(1);
+                action = `Invoked:${contractID}`;
+            } else if (instruction.type === Instruction.typeDelete) {
+                action = "Deleted";
+                contractID = instruction.delete.contractID.charAt(0)
+                .toUpperCase() +
+            instruction.delete.contractID.slice(1);
+            }
+
         const instructionEntries = {
-            contract: "coin",
+            contract: contractID,
             action: action,
             args: argsData,
         };
@@ -1337,26 +1243,3 @@ function ISexportDataBlob(tuple: [SkipBlock[], Instruction[]]) {
     return blobConfig;
 }
 
-function downloadIconScript() {
-    //put it in Utils.ts
-    return `<svg viewBox="0 0 983 962" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
-    <g transform="matrix(-0.957787,0.406581,-0.590533,-0.752044,3103.91,1811.35)">
-        <path d="M1155.03,2714.41C1170.1,2886.92 991.944,2915.2 912.412,2865.58C832.879,2815.96 777.954,2711.51 866.2,2621.87C772.313,2628.14 725.686,2554.84 741.327,2472.55C759.019,2379.46 827.77,2317.71 927.981,2322.22C853.973,2282.21 890.359,2067.84 1059.26,2077.12C1111.96,2080.02 1189.08,2121.62 1252.17,2155.73C1285.9,2173.96 1302.58,2183.73 1302.58,2183.73" style="fill:none;stroke-width:48.29px;"/>
-    </g>
-    <g transform="matrix(-0.957787,0.406581,-0.590533,-0.752044,3085.54,1811.35)">
-        <path d="M1436.26,2289.36C1436.26,2289.36 1492.51,2319.71 1534.2,2342.25C1568.65,2360.88 1597.86,2388.63 1612.87,2427.29C1667.9,2569.03 1521.93,2739.32 1361.07,2659.61C1440.51,2746.17 1415.7,2825.59 1378.53,2871.73C1341.35,2917.87 1242.68,2973.01 1142.98,2907.35" style="fill:none;stroke-width:48.29px;"/>
-    </g>
-    <g transform="matrix(1,0,0,1,-3916.53,-1953.26)">
-        <g transform="matrix(0.428312,-0.428312,0.428312,0.428312,1930.88,2695.11)">
-            <path d="M2635.61,2829.81L2635.61,3085.72L2891.52,3085.72" style="fill:none;stroke-width:89.42px;"/>
-        </g>
-        <g transform="matrix(1,0,0,1,1544.84,-129.382)">
-            <path d="M2836.56,2986.15L2836.56,2558.74" style="fill:none;stroke-width:54.17px;"/>
-        </g>
-    </g>
-</svg>`;
-}
-
-
-
-//
