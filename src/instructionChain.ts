@@ -12,11 +12,11 @@ import * as blockies from "blockies-ts";
  * This class fully discribes the instance tracker interface
  * - instructions blocks are manually zoomed
  * - blocks infos are not shown when the blocks are too small
- * - hover over a small block to display info about it
+ * - on hover over a small block to display info about it
  * - there is a color code for block according the contract type
  *
  * @author Rosa José Sara <rosa.josesara@epfl.ch>
- *
+ ** @author Noémien Kocher <noémien.kocher@epfl.ch>
  */
 export class InstructionChain {
     static loadedInstructions = 0;
@@ -37,6 +37,7 @@ export class InstructionChain {
     static readonly blockPadding = 20;
     static readonly blockStarty = InstructionChain.baseHeight-200;
 
+    //block color
     static readonly invokedColor = "#1749b3";
     static readonly spawnedColor = 'lightgreen'
     static readonly deletedColor = "#ff4d4d"
@@ -44,27 +45,17 @@ export class InstructionChain {
     // The number of blocks the window can display at normal scale.
     static numBlock = Math.floor(InstructionChain.baseWidth/(InstructionChain.blockWidth + InstructionChain.blockPadding));
 
-    // The number of total loaded instructions on the chains
+    // The number of total loaded instructions on the chain
     totalLoaded = 0;
 
-
+    //useful subjects and variable
     chainSubject = new Subject<any>();
     hoverClickedSubject = new Subject<number>();
-
     hoverClickedBlockIndex = 0;
     smallBlockCliked = false;
 
-    // This subject is called when new blocks are loaded
-    subjectBrowse = new Subject<[number, SkipBlock[], boolean]>()
-
-
     // The coordinates of the view.
     lastTransform = { x: 0, y: 0, k: 1 };
-
-    // keep track of scaled values
-    lastBlockPosx = 0;
-    lastBlockWidth = InstructionChain.blockWidth;
-    lastBlockPadding = InstructionChain.blockPadding;
 
 
 /**
@@ -129,8 +120,8 @@ export class InstructionChain {
             .text(`total loaded : ${this.totalLoaded}`)
             .attr("fill", "#666");
 
+        //set the group that will contain the instructions block and the one that will contain informations when the blocks are too small
         this.gInstr = svg.append("g").attr("class", "ginstr");
-        const gloader = svg.append("g").attr("id", "loaderInstr");
         this.gInfo = svg.append("g").attr("id", "gIntr_info");
 
          //Set the subject when the view is dragged or zoomed
@@ -179,7 +170,7 @@ export class InstructionChain {
             svg.select(".total-instr").text(`total loaded : ${this.totalLoaded+1}`);
         }
 
-        //call the zoom and scroll event handler subject to add and resize block as necessary
+        //set the zoom and scroll event handler subject to add and resize block as necessary
         this.chainSubject.pipe(debounceTime(80)).subscribe({
             next: (transform: any) => {
                     const isLoadingInstr = this.checkAndAddBlocks(
@@ -189,6 +180,7 @@ export class InstructionChain {
             }
         });
 
+        //set the subject that is notified when a block si too small and hovered
         this.hoverClickedSubject.subscribe({
             next : (instri:number) => {
                 this.createHoverInfo(instri, this.instructionBlock,this.gInfo);
@@ -199,31 +191,40 @@ export class InstructionChain {
     }
 
 /**
- * 
- * @param xTranslate 
- * @param tuple 
- * @param instrIndex 
- * @param gInstr 
- * @param transform 
+ * Display the instruction blocks and the informations it should contain
+ *
+ * @param xTranslate the x position of the block
+ * @param tuple value of the observable (obtain from the query)
+ * @param instrIndex index of the instruction
+ * @param gInstr the svg group in which we will draw the instruction block
+ * @param transform the transform state of the chain
  */
     private addInstructionBlock(xTranslate: number, tuple:[SkipBlock[], Instruction[]] ,instrIndex:number, gInstr: any, transform:any){
         const self = this;
         const block = tuple[0][instrIndex];
         const instruction = tuple[1][instrIndex];
         const color = this.getColor(instruction);
+        const k = transform.k;
+        
+        //the of k for which we consider blocks are too small
+        const tooSmallValue = 0.35;
+
         const box = gInstr
             .append("rect")
             .attr("class", "instructionBox")
             .attr("id", `${instrIndex}`)
-            .attr("width", InstructionChain.blockWidth*(transform.k))
-            .attr("height", InstructionChain.blockHeight*(transform.k))
-            .attr("x", xTranslate) // The blocks are appended following the transform of the chain
-            .attr("y", InstructionChain.blockStarty) // Blocks are appended below the axis
+            .attr("width", InstructionChain.blockWidth*k) //block are manually scaled
+            .attr("height", InstructionChain.blockHeight*k)
+            .attr("x", xTranslate) 
+            .attr("y", InstructionChain.blockStarty)
             .attr("fill", "white")
             .attr("stroke", color)
             .attr("stroke-width","4px");
-            if(transform.k <= 0.35){
+
+            // instruction information are shown on if block aren't too small
+            if(k <= tooSmallValue){
                 box.on("mouseover",() => {
+                    // show info if no small blocks have been clicked yet
                     if(!this.smallBlockCliked){
                         this.resetInfoGroup();
                         this.hoverClickedSubject.next(instrIndex);
@@ -237,6 +238,7 @@ export class InstructionChain {
                     }
                 })
                 .on("click", () => {
+                    // reset if we clicked on a small block previously
                     if(this.hoverClickedBlockIndex != instrIndex){
                         this.resetInfoGroup();
                     }
@@ -245,6 +247,7 @@ export class InstructionChain {
                         this.hoverClickedBlockIndex = instrIndex;
                         this.hoverClickedSubject.next(instrIndex);
                     } else {
+                        // small block info will disappear if we clik a second time
                         this.smallBlockCliked = false;
                         this.resetInfoGroup();
                     }
@@ -258,7 +261,8 @@ export class InstructionChain {
                 }
             }
 
-            if(transform.k > 0.35){
+            if(k> tooSmallValue){
+                // extract instruction info
             let contractName = ""
             let action = "";
                 if (instruction.type === Instruction.typeSpawn) {
@@ -273,13 +277,13 @@ export class InstructionChain {
                     action = "Deleted";
                     contractName = instruction.delete.contractID
                 }
-
+        // display instruction info
         gInstr.append("text")
-            .attr("x", xTranslate + (InstructionChain.blockWidth-90)*transform.k/2)
-            .attr("y", InstructionChain.blockStarty+20*transform.k)
+            .attr("x", xTranslate + (InstructionChain.blockWidth-90)*k/2) // center the text in the block
+            .attr("y", InstructionChain.blockStarty+20*k)
             .text(`Block ${block.index}`)
             .style("font-weight", "bold")
-            .style("font-size", 16*transform.k)
+            .style("font-size", 16*k)
             .style("fill", color)
             .on("click", function () {
                 Utils.copyToClipBoard(
@@ -296,47 +300,47 @@ export class InstructionChain {
             .attr("uk-tooltip", `${block.hash.toString("hex")}`);
         gInstr.append("text")
             .text("action :")
-            .attr("x", xTranslate+(5*transform.k))
-            .attr("y", InstructionChain.blockStarty+50*transform.k)
+            .attr("x", xTranslate+(5*k))
+            .attr("y", InstructionChain.blockStarty+50*k)
             .style("font-weight", "bold")
-            .style("font-size", 16*transform.k)
+            .style("font-size", 16*k)
             .style("fill", "#666")
             .append("tspan")
-                .attr("y", InstructionChain.blockStarty+50*transform.k) //pas sur transform.k
+                .attr("y", InstructionChain.blockStarty+50*k) //pas sur transform.k
                 .attr("dx", "0.2em")
                 .text(`${action}`)
                 .style("font-weight", "bold")
-                .style("font-size", 16*transform.k)
+                .style("font-size", 16*k)
                 .style("fill", color);
         gInstr.append("text")
             .text("arguments :")
-            .attr("x", xTranslate + (InstructionChain.blockWidth-90)*transform.k/2)
-            .attr("y", InstructionChain.blockStarty+80*transform.k)
+            .attr("x", xTranslate + (InstructionChain.blockWidth-90)*k/2)
+            .attr("y", InstructionChain.blockStarty+80*k)
             .style("font-weight", "bold")
-            .style("font-size", 16*transform.k)
+            .style("font-size", 16*k)
             .style("text-decoration","underline")
             .style("fill", "#666");
         
-        const beautifiedArgs = instruction.beautify();
-        //const interlign = 10;
-        let dy = InstructionChain.blockStarty+110*transform.k;
+        const beautifiedArgs = instruction.beautify();;
+        let dy = InstructionChain.blockStarty+110*k;
             beautifiedArgs.args.forEach((arg, i) => {
 
             const argNameBox = gInstr.append("text")
-                .attr("x", xTranslate+(5*transform.k))
-                .attr("y", dy) // peut-être enlever transform.k
+                .attr("x", xTranslate+(5*k))
+                .attr("y", dy)
                 .style("font-weight", "bold")
-                .style("font-size", 16*transform.k)
+                .style("font-size", 16*k)
                 .style("fill", "#666")
                 .text(`${arg.name} : `);
+                // add a blocky in case of invoked coin
                 if(arg.name == "destination" || arg.name == "roster"){
                     const blocky = blockies.create({ seed: arg.value });
                     const imBlockies = gInstr
                         .append("svg:image")
-                        .attr("x", xTranslate + 107*transform.k)
-                        .attr("y", dy-15*transform.k)
-                        .attr("width", 20*transform.k)
-                        .attr("height", 20*transform.k)
+                        .attr("x", xTranslate + 107*k)
+                        .attr("y", dy-15*k)
+                        .attr("width", 20*k)
+                        .attr("height", 20*k)
                         .attr("xlink:href", blocky.toDataURL())
                         .attr("uk-tooltip", arg.value)
                         .on("click", function () {
@@ -351,9 +355,9 @@ export class InstructionChain {
                 }else {
                 let argValue = `${arg.value}`
                 const argText = argNameBox.append("tspan");
-                argText.attr("y", dy) //pas sur transform.k
+                argText.attr("y", dy)
                 .attr("dx", "0.2em")
-                .text(function () { //truncate the text so it doesn't get out of the box
+                .text(function () { //truncate the text so it doesn't get out of the box (depending the argument)
                     if(contractName == "deferred"){
                         if(argValue.length > 6){
                             argText.attr("uk-tooltip", argValue)
@@ -371,11 +375,11 @@ export class InstructionChain {
                                           
                 })
                 .style("width",100)
-                .style("font-size", 16*transform.k)
+                .style("font-size", 16*k)
                 .style("fill", "#666");
 
                 }
-                dy += 30*transform.k;
+                dy += 30*k;
             });
         }
 
@@ -446,12 +450,14 @@ export class InstructionChain {
  * @param gInfo  group in which to draw the instruction info
  */
 private createHoverInfo(instri:number, tuple:[SkipBlock[], Instruction[]], gInfo:any){  
-
-
         const self = this;
         const block = tuple[0][instri];
         const instruction = tuple[1][instri];
         const color = this.getColor(instruction);
+
+        // block position variables
+        const xPos = 500;
+        const yPos = 120;
 
         let contractName = ""
         let action = "";
@@ -470,16 +476,16 @@ private createHoverInfo(instri:number, tuple:[SkipBlock[], Instruction[]], gInfo
 
         gInfo
             .append("rect")
-            .attr("x", 500)
-            .attr("y", 120)
+            .attr("x", xPos)
+            .attr("y", yPos)
             .attr("width", 300)
             .attr("height", 100)
             .attr("fill", "white")
             .attr("stroke", color)
             .attr("stroke-width","2px");
        gInfo.append("text")
-            .attr("x", 500 + 50)
-            .attr("y", 100 +40)
+            .attr("x", xPos + 50)
+            .attr("y", yPos +20)
             .text(`Block ${block.index}`)
             .style("font-weight", "bold")
             .style("font-size", 16)
@@ -495,17 +501,17 @@ private createHoverInfo(instri:number, tuple:[SkipBlock[], Instruction[]], gInfo
 
                 gInfo.
                 append("text")
-                    .attr("x", 600 )
-                    .attr("y", 100 +80)
-                    .text(`gave ${contract} to`)
+                    .attr("x", xPos + 75)
+                    .attr("y", yPos + 60)
+                    .text(`${contract} given to`)
                     .style("font-weight", "bold")
                     .style("font-size", 16)
-                    .style("fill", "#666")
+                    .style("fill", "#666");
                 const blocky = blockies.create({ seed: destination });
                 gInfo
                         .append("svg:image")
-                        .attr("x", 500 + 190)
-                        .attr("y", 100 +65)
+                        .attr("x", xPos + 190)
+                        .attr("y", yPos + 45)
                         .attr("width", 20)
                         .attr("height", 20)
                         .attr("xlink:href", blocky.toDataURL())
@@ -530,13 +536,13 @@ private createHoverInfo(instri:number, tuple:[SkipBlock[], Instruction[]], gInfo
             append("text");
                argText.attr("x", 520 )
                 .attr("y", 100 +80)
-                .text(() => {
+                .text(() => {  // truncate the text so it doesn't get out of the block
                     if(info.length >= 25 && argName == "value"){
                         argText.attr("uk-tooltip", argVal)
                         return info.substring(0,25)+'...';
-                    }else if(info.length >= 35){
+                    }else if(info.length >= 30){
                         argText.attr("uk-tooltip", argVal)
-                        return info.substring(0,35)+'...';
+                        return info.substring(0,30)+'...';
                     }
                     else{
                         return info;
@@ -559,9 +565,5 @@ private createHoverInfo(instri:number, tuple:[SkipBlock[], Instruction[]], gInfo
         this.gInfo = d3.selectAll("#svg-instr").append("g").attr("id", "gIntr_info");
     }
 
-
-    
-
-    
 
 }

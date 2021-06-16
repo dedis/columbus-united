@@ -26,7 +26,6 @@ import { Utils } from "./utils";
  *
  * @author Julien von Felten <julien.vonfelten@epfl.ch>
  * @author Lucas Trognon <lucas.trognon@epfl.ch>
- * @author Rosa José Sara <rosa.josesara@epfl.ch>
  * @export
  * @class Lifecycle
  */
@@ -170,6 +169,7 @@ export class Lifecycle {
      * @param {SkipBlock[]} skipBlocksSubject : Accumulator for the subjectInstruction
      * @param {Instruction[]} instructionB : Accumulator for the subjectInstruction
      * @param {number} maxNumberOfBlocks : Max number of blocks requested
+     * @param {boolen} direction : the direction of the query
      * @memberof Browsing
      */
     private browse(
@@ -181,7 +181,7 @@ export class Lifecycle {
         skipBlocksSubject: SkipBlock[],
         instructionB: Instruction[],
         maxNumberOfBlocks: number,
-        direction: boolean //added search direction
+        direction: boolean
     ) {
         const subjectBrowse = new Subject<[number, SkipBlock]>();
         const transactionFound = new Subject<number>();

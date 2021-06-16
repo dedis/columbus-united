@@ -77,7 +77,6 @@ export class Block {
         flash: Flash,
         loadedSkipBObs: Observable<SkipBlock[]>,
         roster: Roster
-        //totalBlock: TotalBlock //modified
     ) {
         const self = this;
 
@@ -471,7 +470,7 @@ export class Block {
 
         //
         const downloadButton = transactionCardHeader
-        .append("h3") // pas mis div pck
+        .append("h3")
         .html(Utils.downloadIconScript())
         .attr("class", "download-icon-1")
         .on("click", function () {
@@ -493,8 +492,6 @@ export class Block {
         transactionCardHeaderTitle
             .attr("class", "transaction-card-header-title")
             .text(`Transaction details`);
-        
-        ///
 
         const body = DataBody.decode(block.payload);
 
@@ -740,8 +737,7 @@ export class Block {
                         divInstruction.append("p")
                             .text(`Command: ${commandName}`);
                     }
-                    
-                    // Search button
+                
 
                     //ANCHOR Browse button
                     const searchInstance = divInstruction.append("li");
@@ -789,6 +785,7 @@ export class Block {
                     
                     directionTag.append("span").text(" instructions related to this instance ").style("display", "block");
                     
+                    // Search button
                     const searchButton = searchInstance.append("div").attr("class", "search-button").append("button");
                     searchButton
                         .attr("class", "uk-button uk-button-default")
@@ -800,16 +797,19 @@ export class Block {
                         chosenQueryNumber = parseInt((<HTMLInputElement>document.getElementById("queryNumber")).value);
                     });
 
-
+                    // directionQuery -> backward search
                     var directionQuery = true;
                     var startWithFirstBlock = false;
                     directionSelect.on("change", function () {
                         var query = parseInt(this.options[this.selectedIndex].value);
+                        // searched for previous instructions
                         if(query == 0){
                             directionQuery = true; 
                         } else {
+                            // searched for first or next
                             directionQuery = false;
                         }
+                        //if first we need to start from the first block and not the current clicked block
                         if(query == -1){
                             startWithFirstBlock = true;
                         }
@@ -1124,7 +1124,7 @@ export class Block {
     ) {
         if (nbInstanceFound > 0) {
             this.textBar.text(
-                `${percentage}% of instruction found: ${nbInstanceFound}/${queryNumber}`
+                `${percentage}% of instructions found: ${nbInstanceFound}/${queryNumber}`
             );
             this.progressBarItem.style.width = percentage + "%";
         } else {
