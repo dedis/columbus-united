@@ -98,8 +98,8 @@ export class Lifecycle {
      */
     getInstructionSubject(
         instanceID: string,
-        maxNumberOfBlocks: number = -1, 
-        initHash: string, 
+        maxNumberOfBlocks: number = -1,
+        initHash: string,
         direction: boolean,
         fromFirstBlock: boolean
     ): [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>] {
@@ -139,7 +139,7 @@ export class Lifecycle {
             );
         } else {
             //browse the previous or next instructions from the selected inital block
-        this.browse(
+            this.browse(
                 this.pageSize,
                 this.numPages,
                 initHash,
@@ -260,16 +260,13 @@ export class Lifecycle {
                     if (pageDone >= numPagesB) {
                         // condition to end the browsing
                         if (
-                            (skipBlock.forwardLinks[0].to.length !== 0 || skipBlock.backlinks[0].length !=0) &&
+                            (skipBlock.forwardLinks[0].to.length !== 0 ||
+                                skipBlock.backlinks[0].length != 0) &&
                             !this.abort
                         ) {
-                            
-                            
                             this.nextIDB =
                                 direction != false
-                                    ? Utils.bytes2String(
-                                          skipBlock.backlinks[0]
-                                      )
+                                    ? Utils.bytes2String(skipBlock.backlinks[0])
                                     : Utils.bytes2String(
                                           skipBlock.forwardLinks[0].to
                                       );
@@ -360,14 +357,13 @@ export class Lifecycle {
         }
 
         if (this.ws !== undefined) {
-
             const message = new PaginateRequest({
                 startid: bid,
 
                 pagesize: pageSizeNB, // tslint:disable-next-line
                 numpages: numPagesNB,
-                backward: direction, 
-            })
+                backward: direction,
+            });
 
             const messageByte = Buffer.from(
                 message.$type.encode(message).finish()
@@ -387,7 +383,6 @@ export class Lifecycle {
             ).subscribe({
                 complete: () => {
                     this.flash.display(Flash.flashType.INFO, "closed");
-
                 },
                 error: (err: Error) => {
                     this.flash.display(Flash.flashType.ERROR, `error: ${err}`);

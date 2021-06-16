@@ -84,20 +84,22 @@ export function startSkipchain(rosterStr: string, defaultSkipchain: boolean) {
 
     //take the first skipchainID of the selected roster
     if (!defaultSkipchain) {
-        scRPC.getAllSkipChainIDs().then((resp) => {
-            //hashBlock 0 of new roster
+        scRPC
+            .getAllSkipChainIDs()
+            .then((resp) => {
+                //hashBlock 0 of new roster
 
-            hashBlock0 = Utils.bytes2String(resp[0]);
+                hashBlock0 = Utils.bytes2String(resp[0]);
 
-            //var re = /[0-9A-Fa-f]{6}/g; //for testing that hashBlock0 is valid hex string
-            //console.log(re.test(hashBlock0));
-        }) 
-        .catch((e) =>
-        flash.display(
-            Flash.flashType.ERROR,
-            `Unable to connect to the selected roster: ${e}`
-        )
-    );
+                //var re = /[0-9A-Fa-f]{6}/g; //for testing that hashBlock0 is valid hex string
+                //console.log(re.test(hashBlock0));
+            })
+            .catch((e) =>
+                flash.display(
+                    Flash.flashType.ERROR,
+                    `Unable to connect to the selected roster: ${e}`
+                )
+            );
     }
 
     new SkipchainRPC(roster)
@@ -197,7 +199,6 @@ export function startColumbus(
     flash: Flash,
     defaultSkipchain: Boolean
 ) {
-    
     // Reset the svg containers
     if (!defaultSkipchain) {
         d3.select("#svg-container").selectAll("*").remove();
@@ -206,7 +207,7 @@ export function startColumbus(
         d3.select(".browse-container").selectAll("*").remove();
         d3.select("#last-container").selectAll("*").remove();
         d3.select("#status").selectAll("*").remove();
-        
+
         clearInterval(Status.statusInterval);
     }
 

@@ -56,7 +56,7 @@ export class Block {
     progressBarItem: HTMLElement;
 
     //subject  that willl be call when a queery is launched
-    querySubject: [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>]
+    querySubject: [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>];
 
     /**
      * Creates an instance of DetailBlock.
@@ -219,7 +219,6 @@ export class Block {
         blockCardHeaderDetails
             .append("p")
             .text(`Validated on the ${Utils.getTimeString(block)}`);
-     
 
         const heightParagraph = blockCardHeaderDetails.append("p");
         heightParagraph
@@ -420,37 +419,38 @@ export class Block {
                 `The roster is a set of server nodes that validate the transactions of a block.`
             );
 
-        aRoster.append("text").text(`Roster nodes: ${block.roster.list.length}`);
-        const divRoster = liRoster.append("div").attr("class", "uk-accordion-content");
-            
-        const pRoster = divRoster
-            .append("p");
+        aRoster
+            .append("text")
+            .text(`Roster nodes: ${block.roster.list.length}`);
+        const divRoster = liRoster
+            .append("div")
+            .attr("class", "uk-accordion-content");
+
+        const pRoster = divRoster.append("p");
 
         // List of participating conodes in the roster
         const descList: string[] = [];
         const addressList: string[] = [];
         for (let i = 0; i < block.roster.list.length; i++) {
             descList[i] = block.roster.list[i].description;
-            addressList[i]=block.roster.list[i].address;
+            addressList[i] = block.roster.list[i].address;
         }
 
         // Roster group
-               
+
         // List the roster's node
-        
+
         let left = 1;
-        descList.forEach((node,i) => {
+        descList.forEach((node, i) => {
             pRoster
                 .append("span")
                 .attr("class", "uk-badge")
                 .attr("style", "margin: 5px 4px;font-size : 0.875rem;")
-                .attr("uk-tooltip","Address: "+addressList[i])
+                .attr("uk-tooltip", "Address: " + addressList[i])
                 .text(node);
 
             left += 1;
         });
-
-                    
 
         //!SECTION
         //SECTION Transaction details
@@ -470,24 +470,24 @@ export class Block {
 
         //
         const downloadButton = transactionCardHeader
-        .append("h3")
-        .html(Utils.downloadIconScript())
-        .attr("class", "download-icon-1")
-        .on("click", function () {
-            // Auto click on a element, trigger the file download
-            const blobConfig = BTexportDataBlob(block);
-            // Convert Blob to URL
-            const blobUrl = URL.createObjectURL(blobConfig);
+            .append("h3")
+            .html(Utils.downloadIconScript())
+            .attr("class", "download-icon-1")
+            .on("click", function () {
+                // Auto click on a element, trigger the file download
+                const blobConfig = BTexportDataBlob(block);
+                // Convert Blob to URL
+                const blobUrl = URL.createObjectURL(blobConfig);
 
-            // Create an a element with blob URL
-            const anchor = document.createElement("a");
-            anchor.href = blobUrl;
-            anchor.target = "_blank";
-            anchor.download = `block_${block.index}_data.json`;
-            anchor.click();
-            URL.revokeObjectURL(blobUrl);
-        });
-        
+                // Create an a element with blob URL
+                const anchor = document.createElement("a");
+                anchor.href = blobUrl;
+                anchor.target = "_blank";
+                anchor.download = `block_${block.index}_data.json`;
+                anchor.click();
+                URL.revokeObjectURL(blobUrl);
+            });
+
         const transactionCardHeaderTitle = transactionCardHeader.append("h3");
         transactionCardHeaderTitle
             .attr("class", "transaction-card-header-title")
@@ -682,7 +682,7 @@ export class Block {
                                 self.flash
                             );
                         }
-                        
+
                         divInstruction.append("p").text("Arguments:");
                         // Args of the instruction
                         const ulArgs = divInstruction.append("ul");
@@ -731,23 +731,26 @@ export class Block {
                                 .text(`Challenge : ${beautifiedArgs[2].value}`);
                         }
                     }
-                    
+
                     // only added in case of invoke
-                    if(commandName != null && commandName != "transfer"){
-                        divInstruction.append("p")
+                    if (commandName != null && commandName != "transfer") {
+                        divInstruction
+                            .append("p")
                             .text(`Command: ${commandName}`);
                     }
-                
 
                     //ANCHOR Browse button
                     const searchInstance = divInstruction.append("li");
-                    searchInstance.append("span").attr("class", "search-text").text(" Search for ");
+                    searchInstance
+                        .append("span")
+                        .attr("class", "search-text")
+                        .text(" Search for ");
 
                     const numberTag = searchInstance
                         .append("span")
                         .append("form")
                         .style("display", "inline");
-                    
+
                     numberTag
                         .append("input")
                         .attr("type", "number")
@@ -756,88 +759,97 @@ export class Block {
                         .attr("id", "queryNumber")
                         .attr("class", "search-value uk-input");
 
-                    const directionTag  = numberTag
+                    const directionTag = numberTag
                         .append("span")
                         .append("form")
                         .style("display", "inline");
-                    
+
                     const directionSelect = directionTag
                         .append("select")
                         .attr("value", "0")
                         .attr("height", "20px")
                         .attr("class", "search-value uk-select");
-                    
+
                     directionSelect
                         .append("option")
                         .attr("value", "0")
                         .text("previous");
-                    
+
                     directionSelect
                         .append("option")
                         .attr("value", "1")
-                        .text("next")
+                        .text("next");
 
                     directionSelect
                         .append("option")
                         .attr("value", "-1")
                         .text("first");
-                    
-                    
-                    directionTag.append("span").text(" instructions related to this instance ").style("display", "block");
-                    
+
+                    directionTag
+                        .append("span")
+                        .text(" instructions related to this instance ")
+                        .style("display", "block");
+
                     // Search button
-                    const searchButton = searchInstance.append("div").attr("class", "search-button").append("button");
+                    const searchButton = searchInstance
+                        .append("div")
+                        .attr("class", "search-button")
+                        .append("button");
                     searchButton
                         .attr("class", "uk-button uk-button-default")
                         .text(` Search `);
 
                     // extract user selection information
                     var chosenQueryNumber = 0;
-                    numberTag.on("change", function() {
-                        chosenQueryNumber = parseInt((<HTMLInputElement>document.getElementById("queryNumber")).value);
+                    numberTag.on("change", function () {
+                        chosenQueryNumber = parseInt(
+                            (<HTMLInputElement>(
+                                document.getElementById("queryNumber")
+                            )).value
+                        );
                     });
 
                     // directionQuery -> backward search
                     var directionQuery = true;
                     var startWithFirstBlock = false;
                     directionSelect.on("change", function () {
-                        var query = parseInt(this.options[this.selectedIndex].value);
+                        var query = parseInt(
+                            this.options[this.selectedIndex].value
+                        );
                         // searched for previous instructions
-                        if(query == 0){
-                            directionQuery = true; 
+                        if (query == 0) {
+                            directionQuery = true;
                         } else {
                             // searched for first or next
                             directionQuery = false;
                         }
                         //if first we need to start from the first block and not the current clicked block
-                        if(query == -1){
+                        if (query == -1) {
                             startWithFirstBlock = true;
                         }
-                
                     });
 
                     //if the search button is clicked without any query number selected
                     // a search for the 10 previous instruction will be launched
-                    searchButton
-                        .on("click", function () {
-                            if(chosenQueryNumber != 0){
-                                self.launchQuery(
-                                    chosenQueryNumber,
-                                    instruction.instanceID.toString("hex"),
-                                    directionQuery,
-                                    startWithFirstBlock
-                                );
-                            } else {
-                                self.launchQuery(
-                                    10,
-                                    instruction.instanceID.toString("hex"),
-                                    directionQuery,
-                                    startWithFirstBlock
-                                );
-                            }
-                            //scroll to the bottom of the page
-                            window.scrollTo(0,document.body.scrollHeight);
-                        });
+                    searchButton.on("click", function () {
+                        if (chosenQueryNumber != 0) {
+                            self.launchQuery(
+                                chosenQueryNumber,
+                                instruction.instanceID.toString("hex"),
+                                directionQuery,
+                                startWithFirstBlock
+                            );
+                        } else {
+                            self.launchQuery(
+                                10,
+                                instruction.instanceID.toString("hex"),
+                                directionQuery,
+                                startWithFirstBlock
+                            );
+                        }
+                        //scroll to the bottom of the page
+                        window.scrollTo(0, document.body.scrollHeight);
+                    });
                 }
             ); //!SECTION
         });
@@ -854,7 +866,13 @@ export class Block {
      * @memberof DetailBlock
      */
 
-    public launchQuery(chosenQuery: number, instanceID: string, direction : boolean, fromFirstBlock: boolean) { //added direction argument
+    public launchQuery(
+        chosenQuery: number,
+        instanceID: string,
+        direction: boolean,
+        fromFirstBlock: boolean
+    ) {
+        //added direction argument
         const self = this;
 
         const clickedBlockHash = this.clickedBlock.hash
@@ -863,8 +881,8 @@ export class Block {
         this.querySubject = self.lifecycle.getInstructionSubject(
             instanceID,
             chosenQuery,
-            clickedBlockHash, 
-            direction, 
+            clickedBlockHash,
+            direction,
             fromFirstBlock
         );
         self.createLoadingScreen();
@@ -875,7 +893,7 @@ export class Block {
         this.querySubject[1].pipe(throttleTime(100)).subscribe({
             complete: self.doneLoading,
             next: ([percentage, seenBlock, totalBlock, nbInstanceFound]) => {
-                const rate = Math.round((nbInstanceFound/chosenQuery)*100);
+                const rate = Math.round((nbInstanceFound / chosenQuery) * 100);
                 self.updateLoadingScreen(
                     rate,
                     seenBlock,
@@ -887,7 +905,6 @@ export class Block {
         });
     }
 
-    
     /**
      * ANCHOR Query results rendering
      * Displays the result of the browsing, highlights the
@@ -912,33 +929,37 @@ export class Block {
         const summaryText = queryHeader
             .attr("id", "query-header")
             .append("div")
-            .text(
-                `Evolution of contract Coin, instance:`
-            )
-            .style("padding-left","450"); 
-         const blocky = blockies.create({ seed:tuple[1][0].instanceID.toString( "hex") });
-         summaryText.append("object")
-                    .attr("type", "image/svg+xml")
-                    .attr("width", 20)
-                    .attr("height", 20)
-                    .attr("data", blocky.toDataURL())
-                        .attr("uk-tooltip", tuple[0][0].hash.toString("hex"))
-                        .on("click", function () {
-                            Utils.copyToClipBoard(tuple[1][0].instanceID.toString( "hex"), self.flash);
-                        })
-                        .on("mouseover", function () {
-                            d3.select(this).style("cursor", "pointer");
-                        })
-                        .on("mouseout", function () {
-                            d3.select(this).style("cursor", "default");
-                        });;
+            .text(`Evolution of contract Coin, instance:`)
+            .style("padding-left", "450");
+        const blocky = blockies.create({
+            seed: tuple[1][0].instanceID.toString("hex"),
+        });
+        summaryText
+            .append("object")
+            .attr("type", "image/svg+xml")
+            .attr("width", 20)
+            .attr("height", 20)
+            .attr("data", blocky.toDataURL())
+            .attr("uk-tooltip", tuple[0][0].hash.toString("hex"))
+            .on("click", function () {
+                Utils.copyToClipBoard(
+                    tuple[1][0].instanceID.toString("hex"),
+                    self.flash
+                );
+            })
+            .on("mouseover", function () {
+                d3.select(this).style("cursor", "pointer");
+            })
+            .on("mouseout", function () {
+                d3.select(this).style("cursor", "default");
+            });
 
         //display the download icon
         const downloadButton = queryHeader
             .append("div")
             .html(Utils.downloadIconScript())
             .attr("class", "download-icon-2")
-            
+
             .on("click", function () {
                 // Auto click on a element, trigger the file download
                 const blobConfig = ISexportDataBlob(tuple);
@@ -954,7 +975,6 @@ export class Block {
 
                 URL.revokeObjectURL(blobUrl);
             });
-        
 
         // Clears the results of a previous query
         const closeButtonWrap = queryHeader.append("div");
@@ -980,14 +1000,17 @@ export class Block {
             .attr("id", "query-card-container")
             .attr("multiple", "true")
             .attr("class", "uk-flex");
-    
+
         // Creates the instance tracker interface(instruction chain)
-        const instructions = new InstructionChain(this.roster,this.flash,tuple);
+        const instructions = new InstructionChain(
+            this.roster,
+            this.flash,
+            tuple
+        );
 
         // Highlights the blocks in the blockchain
         this.highlightBlocks(tuple[0]);
         this.hashHighligh = tuple[0];
-
     }
 
     // enveler cette fonction, déjà dans instructionChain
@@ -1015,8 +1038,7 @@ export class Block {
             });
         }
     }
-    // 
-
+    //
 
     /**
      * Removes the highlights of the blocks in the blockchain
@@ -1059,8 +1081,7 @@ export class Block {
         const divLoad = this.loadContainer
             .append("div")
             .attr("class", "div-load");
-        divLoad
-            .append("h3")
+        divLoad.append("h3")
             .html(`<svg id="svg-spinner" xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 48 48">
                   <circle cx="24" cy="4" r="4" fill="#1749b3"/>
                   <circle cx="12.19" cy="7.86" r="3.7" fill="#2552b3"/>
@@ -1128,9 +1149,7 @@ export class Block {
             );
             this.progressBarItem.style.width = percentage + "%";
         } else {
-            this.textBar.text(
-               `instructions found: ${nbInstanceFound}`
-            ); 
+            this.textBar.text(`instructions found: ${nbInstanceFound}`);
         }
     }
 
@@ -1170,23 +1189,23 @@ function BTexportDataBlob(block: SkipBlock) {
                 argsData.push(argsEntries);
             });
 
-            let contract = ""
+            let contract = "";
             let action = "";
             if (instruction.type === Instruction.typeSpawn) {
-                contract = instruction.spawn.contractID.charAt(0)
-                .toUpperCase() +
-            instruction.spawn.contractID.slice(1);
+                contract =
+                    instruction.spawn.contractID.charAt(0).toUpperCase() +
+                    instruction.spawn.contractID.slice(1);
                 action = `Spawned:${contract}`;
             } else if (instruction.type === Instruction.typeInvoke) {
-                contract = instruction.invoke.contractID.charAt(0)
-                .toUpperCase() +
-            instruction.invoke.contractID.slice(1);
+                contract =
+                    instruction.invoke.contractID.charAt(0).toUpperCase() +
+                    instruction.invoke.contractID.slice(1);
                 action = `Invoked:${contract}`;
             } else if (instruction.type === Instruction.typeDelete) {
                 action = "Deleted";
-                contract = instruction.delete.contractID.charAt(0)
-                .toUpperCase() +
-            instruction.delete.contractID.slice(1);
+                contract =
+                    instruction.delete.contractID.charAt(0).toUpperCase() +
+                    instruction.delete.contractID.slice(1);
             }
 
             const instructionEntries = {
@@ -1227,7 +1246,7 @@ function BTexportDataBlob(block: SkipBlock) {
  * for the instance instruction data exportation
  * @param tuple value of the observable obtain from the query
  * @returns a Blob object
- * 
+ *
  */
 function ISexportDataBlob(tuple: [SkipBlock[], Instruction[]]) {
     var instructionData = new Array();
@@ -1249,29 +1268,30 @@ function ISexportDataBlob(tuple: [SkipBlock[], Instruction[]]) {
         var argsData = new Array();
         instruction.beautify().args.forEach((arg, i) => {
             const argEntries = {
-                "name" : arg.name,
-                "value" :  arg.value };
+                name: arg.name,
+                value: arg.value,
+            };
             argsData.push(argEntries);
         });
 
-        let contractID = ""
-            let action = "";
-            if (instruction.type === Instruction.typeSpawn) {
-                contractID = instruction.spawn.contractID.charAt(0)
-                .toUpperCase() +
-            instruction.spawn.contractID.slice(1);
-                action = `Spawned:${contractID}`;
-            } else if (instruction.type === Instruction.typeInvoke) {
-                contractID = instruction.invoke.contractID.charAt(0)
-                .toUpperCase() +
-            instruction.invoke.contractID.slice(1);
-                action = `Invoked:${contractID}`;
-            } else if (instruction.type === Instruction.typeDelete) {
-                action = "Deleted";
-                contractID = instruction.delete.contractID.charAt(0)
-                .toUpperCase() +
-            instruction.delete.contractID.slice(1);
-            }
+        let contractID = "";
+        let action = "";
+        if (instruction.type === Instruction.typeSpawn) {
+            contractID =
+                instruction.spawn.contractID.charAt(0).toUpperCase() +
+                instruction.spawn.contractID.slice(1);
+            action = `Spawned:${contractID}`;
+        } else if (instruction.type === Instruction.typeInvoke) {
+            contractID =
+                instruction.invoke.contractID.charAt(0).toUpperCase() +
+                instruction.invoke.contractID.slice(1);
+            action = `Invoked:${contractID}`;
+        } else if (instruction.type === Instruction.typeDelete) {
+            action = "Deleted";
+            contractID =
+                instruction.delete.contractID.charAt(0).toUpperCase() +
+                instruction.delete.contractID.slice(1);
+        }
 
         const instructionEntries = {
             contract: contractID,
@@ -1298,4 +1318,3 @@ function ISexportDataBlob(tuple: [SkipBlock[], Instruction[]]) {
     });
     return blobConfig;
 }
-

@@ -28,8 +28,7 @@ export class Status {
 
     flash: Flash;
 
-    static statusInterval : NodeJS.Timer;
-    
+    static statusInterval: NodeJS.Timer;
 
     constructor(roster: Roster, initialBlock: SkipBlock, flash: Flash) {
         this.roster = roster;
@@ -82,10 +81,9 @@ export class Status {
             .attr("class", "node-table-body");
 
         const nodeLastIndex = Object.keys(statusRPC["conn"]).length;
-        
+
         // populate initial table
         for (let i = 0; i < nodeLastIndex; i++) {
-
             statusRPC
                 .getStatus(i)
                 .then((status) => {
@@ -97,13 +95,15 @@ export class Status {
 
                     const tx_bps = (
                         parseInt(
-                            status.getStatus("Generic").getValue("TX_bytes"),10
-                        ) / parseInt(uptimeSeconds,10)
+                            status.getStatus("Generic").getValue("TX_bytes"),
+                            10
+                        ) / parseInt(uptimeSeconds, 10)
                     ).toFixed(3);
                     const rx_bps = (
                         parseInt(
-                            status.getStatus("Generic").getValue("RX_bytes"),10
-                        ) / parseInt(uptimeSeconds,10)
+                            status.getStatus("Generic").getValue("RX_bytes"),
+                            10
+                        ) / parseInt(uptimeSeconds, 10)
                     ).toFixed(3);
                     const infoList = [
                         "ConnType " +
@@ -146,7 +146,7 @@ export class Status {
                     tableElement.append("td").text("");
                 });
         }
-        
+
         // update node tooltip infos
         Status.statusInterval = setInterval(function () {
             for (let i = 0; i < nodeLastIndex; i++) {
@@ -161,13 +161,19 @@ export class Status {
 
                         const Tx_bps = (
                             parseInt(
-                                status.getStatus("Generic").getValue("TX_bytes"),10
-                            ) / parseInt(uptimeSeconds,10)
+                                status
+                                    .getStatus("Generic")
+                                    .getValue("TX_bytes"),
+                                10
+                            ) / parseInt(uptimeSeconds, 10)
                         ).toFixed(3);
                         const Rx_bps = (
                             parseInt(
-                                status.getStatus("Generic").getValue("RX_bytes"),10
-                            ) / parseInt(uptimeSeconds,10)
+                                status
+                                    .getStatus("Generic")
+                                    .getValue("RX_bytes"),
+                                10
+                            ) / parseInt(uptimeSeconds, 10)
                         ).toFixed(3);
 
                         const infoList = [
@@ -203,11 +209,9 @@ export class Status {
             }
         }, 10 * 1000); // update every 10 second
 
-
         // SECOND PART Statistics of the 1000 last blocks
         // fetch 1000 last block infos
         try {
-            
             var conn = new WebSocketConnection(
                 this.roster.list[0].getWebSocketAddress(),
                 ByzCoinRPC.serviceName
@@ -234,7 +238,8 @@ export class Status {
         let totalTx = 0;
         let validatedTx = 0;
         let nbFetchedBlocks;
-        conn.sendStream<PaginateResponse>(message, PaginateResponse).subscribe({ // fetch next block
+        conn.sendStream<PaginateResponse>(message, PaginateResponse).subscribe({
+            // fetch next block
             complete: () => {
                 // ...
             },
@@ -302,7 +307,7 @@ export class Status {
                         }
                     });
                 }
-               
+
                 // create chart
                 const statisticDiv = mainDiv.append("div");
 
@@ -332,9 +337,12 @@ export class Status {
                 // Axis, domain, line
                 const x = d3
                     .scaleLinear()
-                    .domain([chartData[0][0], chartData[nbFetchedBlocks - 1][0]])
+                    .domain([
+                        chartData[0][0],
+                        chartData[nbFetchedBlocks - 1][0],
+                    ])
                     .range([0, width]);
-                
+
                 const y = d3
                     .scaleLinear()
                     .domain([0, maxTx + 20]) // enough margin in domain y so that there is no interference with legend
@@ -451,7 +459,7 @@ export class Status {
                         "style",
                         "margin: 15px 0px;width:" + width + "px;overflow: auto;"
                     );
-                
+
                 contractStatistic
                     .append("span")
                     .attr(
@@ -460,7 +468,7 @@ export class Status {
                     )
                     .text("Contracts: ");
                 let left = 1.75;
-               
+
                 // contracts of the 1000 last blocks
                 contractData.forEach((val, contract) => {
                     contractStatistic
@@ -477,14 +485,17 @@ export class Status {
 
         // helper function that converts xxxhxxmxxxs to number of days,hours or minutes
         function parseTime(uptime: string) {
-            const hours = parseInt(uptime.match(/([0-9]+)*(?=h)/)[0],10);
-            const minutes = parseInt(uptime.match(/([0-9]+)*(?=m)/)[0],10);
+            const hours = parseInt(uptime.match(/([0-9]+)*(?=h)/)[0], 10);
+            const minutes = parseInt(uptime.match(/([0-9]+)*(?=m)/)[0], 10);
 
             let resultingText = "";
             if (hours > 24) {
                 const days = Math.floor(hours / 24);
-                if (days > 1) {resultingText = days + " days";}
-                else {resultingText = days + " day";}
+                if (days > 1) {
+                    resultingText = days + " days";
+                } else {
+                    resultingText = days + " day";
+                }
             } else if (hours >= 1) {
                 resultingText = hours + " hours";
             } else {
@@ -494,7 +505,7 @@ export class Status {
             const totalSeconds = (
                 hours * 60 * 60 +
                 minutes * 60 +
-                parseInt(uptime.match(/([0-9.]+)*(?=s)/)[0],10)
+                parseInt(uptime.match(/([0-9.]+)*(?=s)/)[0], 10)
             ).toString();
 
             return [resultingText, totalSeconds];

@@ -271,7 +271,7 @@ export class Utils {
      * @author Rosa José Sara
      * @returns the svg script for the download icon
      */
-    static downloadIconScript() : string {
+    static downloadIconScript(): string {
         return `<svg viewBox="0 0 983 962" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
         <g transform="matrix(-0.957787,0.406581,-0.590533,-0.752044,3103.91,1811.35)">
             <path d="M1155.03,2714.41C1170.1,2886.92 991.944,2915.2 912.412,2865.58C832.879,2815.96 777.954,2711.51 866.2,2621.87C772.313,2628.14 725.686,2554.84 741.327,2472.55C759.019,2379.46 827.77,2317.71 927.981,2322.22C853.973,2282.21 890.359,2067.84 1059.26,2077.12C1111.96,2080.02 1189.08,2121.62 1252.17,2155.73C1285.9,2173.96 1302.58,2183.73 1302.58,2183.73" style="fill:none;stroke-width:48.29px;"/>
@@ -289,5 +289,4 @@ export class Utils {
         </g>
     </svg>`;
     }
-    
 }

@@ -62,8 +62,9 @@ export class Chain {
         const body = DataBody.decode(block.payload);
         const nbTransactions = body.txResults.length;
         const factor = 1 - nbTransactions * 0.004;
-        return `rgb(${Chain.blockColor.r * factor}, ${Chain.blockColor.v * factor
-            }, ${Chain.blockColor.b * factor})`;
+        return `rgb(${Chain.blockColor.r * factor}, ${
+            Chain.blockColor.v * factor
+        }, ${Chain.blockColor.b * factor})`;
     }
 
     // The group that contains the blocks on the chain.
@@ -154,7 +155,7 @@ export class Chain {
             .on("zoom", () => {
                 subject.next(d3.event.transform);
             });
-            
+
         //Disable zooming the view on double tap to enable double clocking on backward links
         svg.call(zoom).on("dblclick.zoom", null);
         Chain.zoom = zoom;
@@ -175,7 +176,6 @@ export class Chain {
         let last = Chain.svgWidth / 2;
 
         var dragHandler = d3.drag().on("drag", function () {
-            
             d3.select(this).attr("x", d3.event.x);
 
             if (self.lastTransform.k == 1) {
@@ -184,7 +184,11 @@ export class Chain {
                     .scale(1);
             } else {
                 newTransform = d3.zoomIdentity
-                    .translate((self.lastTransform.x / self.lastTransform.k) + (last - d3.event.x), 0)
+                    .translate(
+                        self.lastTransform.x / self.lastTransform.k +
+                            (last - d3.event.x),
+                        0
+                    )
                     .scale(1);
             }
 
@@ -260,7 +264,6 @@ export class Chain {
         // zoomed in-out by the user.
         subject.subscribe({
             next: (transform: any) => {
-
                 var last = parseInt(d3.select(".mover").attr("x"));
 
                 //TODO find the perfect threshhold
@@ -270,31 +273,22 @@ export class Chain {
                 );
                 var moverWidth = parseInt(d3.select(".mover").style("width"));
 
-                
                 if (last > svgWidth - moverWidth) {
-
-                    d3.select(".mover").attr(
-                        "x", svgWidth - moverWidth
-                    );
-
+                    d3.select(".mover").attr("x", svgWidth - moverWidth);
                 } else if (last < moverWidth / 3) {
                     d3.select(".mover").attr("x", moverWidth / 3);
                 } else {
                     var newX = last + this.lastTransform.x - transform.x;
                     if (newX > svgWidth - moverWidth) {
-                        d3.select(".mover").attr(
-                            "x", svgWidth - moverWidth
-                        );
+                        d3.select(".mover").attr("x", svgWidth - moverWidth);
                     } else if (newX < moverWidth / 3) {
                         d3.select(".mover").attr("x", moverWidth / 3);
                     } else {
                         d3.select(".mover").attr(
-                            "x", last + this.lastTransform.x - transform.x
-
+                            "x",
+                            last + this.lastTransform.x - transform.x
                         );
                     }
-
-
                 }
 
                 var newWidth =
@@ -305,7 +299,6 @@ export class Chain {
                 }
 
                 this.lastTransform = transform;
-
 
                 // This line disables translate to the left. (for reference)
                 // transform.x = Math.min(0, transform.x);
@@ -475,7 +468,6 @@ export class Chain {
 
                     // Keep the chunks sorted.
                     this.chunks.splice(leftNeiIndex + 1, 0, c);
-                    
                 }
             },
         });
