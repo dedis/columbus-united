@@ -25,6 +25,7 @@ import * as blockies from "blockies-ts";
  *
  * @author Lucas Trognon <lucas.trognon@epfl.ch>
  * @author Julien von Felten <julien.vonfelten@epfl.ch>
+ * @author Pilar Marxer <pilar.marxer@epfl.ch>
  * @export
  * @class Block
  */
@@ -435,20 +436,16 @@ export class Block {
             addressList[i]=block.roster.list[i].address;
         }
 
-        // Roster group
-               
+                       
         // List the roster's node
-        
-        let left = 1;
         descList.forEach((node,i) => {
             pRoster
                 .append("span")
                 .attr("class", "uk-badge")
                 .attr("style", "margin: 5px 4px;font-size : 0.875rem;")
-                .attr("uk-tooltip","Address: "+addressList[i])
-                .text(node);
-
-            left += 1;
+                .text(node)
+                .attr("uk-tooltip",`Address: ${addressList[i]}`);
+            
         });
 
                     
