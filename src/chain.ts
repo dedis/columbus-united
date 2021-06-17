@@ -62,9 +62,8 @@ export class Chain {
         const body = DataBody.decode(block.payload);
         const nbTransactions = body.txResults.length;
         const factor = 1 - nbTransactions * 0.004;
-        return `rgb(${Chain.blockColor.r * factor}, ${
-            Chain.blockColor.v * factor
-        }, ${Chain.blockColor.b * factor})`;
+        return `rgb(${Chain.blockColor.r * factor}, ${Chain.blockColor.v * factor
+            }, ${Chain.blockColor.b * factor})`;
     }
 
     // The group that contains the blocks on the chain.
@@ -109,6 +108,9 @@ export class Chain {
         // This subject will be notified when the main SVG canvas in moved by the user
         const subject = new Subject();
 
+        //When a new chain is created the number of loaded blocks is reset
+        Chain.totalLoaded = 0;
+
         // Main SVG canvas that contains the chain
         const svg = d3.select("#svg-container").attr("height", Chain.svgHeight);
 
@@ -152,9 +154,102 @@ export class Chain {
             .on("zoom", () => {
                 subject.next(d3.event.transform);
             });
+            
         //Disable zooming the view on double tap to enable double clocking on backward links
         svg.call(zoom).on("dblclick.zoom", null);
         Chain.zoom = zoom;
+
+        //Implementation of a scrollbar underneath the chain
+        const scrollbar = svg.append("g").attr("transform", "translate(0,90)"); //move the bar to the bottom of the chain
+
+        scrollbar
+            .append("rect")
+            .attr("class", "mover")
+            .attr("x", Chain.svgWidth / 2)
+            .attr("y", Chain.svgHeight / 2)
+            .attr("rx", "3px")
+            .attr("width", Math.round(Chain.svgWidth / Chain.numBlocks)); //TODO fix size of mover according to total number of blocks on the chain.numblock is the numbber of blocks loaded
+
+        const self = this;
+        let last = Chain.svgWidth / 2;
+
+        var dragHandler = d3.drag().on("drag", function () {
+            
+            d3.select(this).attr("x", d3.event.x);
+
+            if (self.lastTransform.k == 1) {
+                var newTransform = d3.zoomIdentity
+                    .translate(self.lastTransform.x + (last - d3.event.x), 0)
+                    .scale(1);
+            } else {
+                newTransform = d3.zoomIdentity
+                    .translate((self.lastTransform.x / self.lastTransform.k) + (last - d3.event.x), 0)
+                    .scale(1);
+            }
+
+            last = d3.event.x;
+
+            d3.select("#svg-container").call(
+                Chain.zoom.transform,
+                newTransform
+            );
+        });
+
+        dragHandler(d3.selectAll(".mover"));
+
+        //Drop down-menu for clickable zoom in & out
+        const divZoomDropdown = d3
+            .selectAll(".topnav")
+            .append("div")
+            .attr("class", "dropdown");
+
+        //contains zoom-in and zoom-out buttons
+        const zoomButton = divZoomDropdown
+            .append("button")
+            .attr("class", "zoombtn");
+        zoomButton
+            .append("svg")
+            .attr("id", "svg-zoombtn")
+            .attr("transform", "translate(-5,0)")
+            .append("image")
+            .attr("x", "5%")
+            .attr("y", "15%")
+            .attr("width", "15px")
+            .attr("height", "15px")
+            .attr("href", "assets/zoom-icon.svg");
+
+        const divZoomDropdownContent = divZoomDropdown
+            .append("div")
+            .attr("id", "dropdown-zoom")
+            .attr("class", "dropdown-zoom-content");
+
+        divZoomDropdownContent
+            .append("p")
+            .attr("id", "zoom-in")
+            .text("Zoom In");
+
+        divZoomDropdownContent
+            .append("p")
+            .attr("id", "zoom-out")
+            .text("Zoom Out");
+
+        //function to hide and show dropdown menu of zoom
+        zoomButton.on("click", function () {
+            document.getElementById("dropdown-zoom").classList.toggle("show");
+        });
+
+        const zoomFromButtons = d3.zoom().on("zoom", () => {
+            subject.next(d3.event.transform);
+        });
+
+        //Zoom transformation when clicking on zoom buttons
+        d3.select("#zoom-in").on("click", function () {
+            zoomFromButtons.scaleBy(d3.select("#svg-container"), 1.2);
+        });
+        d3.select("#zoom-out").on("click", function () {
+            zoomFromButtons.scaleBy(d3.select("#svg-container"), 0.8);
+        });
+
         // This group will contain the left and right loaders that display a
         // spinner when new blocks are being added
         const gloader = svg.append("g").attr("id", "loader");
@@ -164,7 +259,50 @@ export class Chain {
         // zoomed in-out by the user.
         subject.subscribe({
             next: (transform: any) => {
+
+                var last = parseInt(d3.select(".mover").attr("x"));
+
+                var svgWidth = parseInt(
+                    d3.select("#svg-container").style("width")
+                );
+                var moverWidth = parseInt(d3.select(".mover").style("width"));
+
+                console.log("last : " + last);
+                if (last > svgWidth - moverWidth) {
+
+                    d3.select(".mover").attr(
+                        "x", svgWidth - moverWidth
+                    );
+
+                } else if (last < moverWidth / 3) {
+                    d3.select(".mover").attr("x", moverWidth / 3);
+                } else {
+                    var newX = last + this.lastTransform.x - transform.x;
+                    if (newX > svgWidth - moverWidth) {
+                        d3.select(".mover").attr(
+                            "x", svgWidth - moverWidth
+                        );
+                    } else if (newX < moverWidth / 3) {
+                        d3.select(".mover").attr("x", moverWidth / 3);
+                    } else {
+                        d3.select(".mover").attr(
+                            "x", last + this.lastTransform.x - transform.x
+
+                        );
+                    }
+
+
+                }
+
+                var newWidth =
+                    parseInt(d3.select(".mover").style("width")) * transform.k;
+
+                if (newWidth >= 50 && newWidth <= svgWidth / 2) {
+                    //d3.select(".mover").attr("width",newWidth);
+                }
+
                 this.lastTransform = transform;
+
 
                 // This line disables translate to the left. (for reference)
                 // transform.x = Math.min(0, transform.x);
@@ -334,6 +472,7 @@ export class Chain {
 
                     // Keep the chunks sorted.
                     this.chunks.splice(leftNeiIndex + 1, 0, c);
+
                 }
             },
         });

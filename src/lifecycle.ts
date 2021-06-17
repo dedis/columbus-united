@@ -47,6 +47,8 @@ export class Lifecycle {
     abort: boolean;
     flash: Flash;
 
+    //searchDir:boolean
+
     /**
      * Creates an instance of Browsing.
      * @param {Roster} roster
@@ -95,7 +97,10 @@ export class Lifecycle {
      */
     getInstructionSubject(
         instanceID: string,
-        maxNumberOfBlocks: number = -1
+        maxNumberOfBlocks: number = -1, //changed was -1
+        initHash: string, //Added
+        direction: boolean, //added
+        fromFirstBlock: boolean
     ): [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>] {
         const self = this;
 
@@ -117,17 +122,34 @@ export class Lifecycle {
         this.contractID = instanceID;
 
         this.abort = false;
+        //this.searchDir = (direction != -1 ? false : true)
 
+        //modified -> recherche all ! recherche nombre
+        if (fromFirstBlock == true ) {
+            this.browse(
+                this.pageSize,
+                this.numPages,
+                this.firstBlockIDStart, //modified
+                subjectInstruction,
+                subjectProgress,
+                [],
+                [],
+                maxNumberOfBlocks,
+                direction //direction of the search, backward= true -> forward = false
+            );
+        } else {
         this.browse(
-            this.pageSize,
-            this.numPages,
-            this.firstBlockIDStart,
-            subjectInstruction,
-            subjectProgress,
-            [],
-            [],
-            maxNumberOfBlocks
-        );
+                this.pageSize,
+                this.numPages,
+                initHash, //modified
+                subjectInstruction,
+                subjectProgress,
+                [],
+                [],
+                maxNumberOfBlocks,
+                direction
+            );
+        }
         return [subjectInstruction, subjectProgress];
     }
 
@@ -156,7 +178,8 @@ export class Lifecycle {
         subjectProgress: Subject<number[]>,
         skipBlocksSubject: SkipBlock[],
         instructionB: Instruction[],
-        maxNumberOfBlocks: number
+        maxNumberOfBlocks: number,
+        direction: boolean //added search direction
     ) {
         const subjectBrowse = new Subject<[number, SkipBlock]>();
         const transactionFound = new Subject<number>();
@@ -183,7 +206,8 @@ export class Lifecycle {
                         subjectProgress,
                         skipBlocksSubject,
                         instructionB,
-                        maxNumberOfBlocks
+                        maxNumberOfBlocks,
+                        direction
                     );
                 } else {
                     this.flash.display(
@@ -201,30 +225,32 @@ export class Lifecycle {
                         (instruction, _) => {
                             if (
                                 Utils.bytes2String(instruction.instanceID) ===
-                                this.contractID
+                                this.contractID //modified
                             ) {
                                 // get the hashes and instruction corresponding to the input instruction
                                 this.nbInstanceFound++;
-                                transactionFound.next(this.nbInstanceFound);
+                                //transactionFound.next(this.nbInstanceFound);
 
                                 if (
-                                    this.nbInstanceFound < maxNumberOfBlocks &&
+                                    this.nbInstanceFound <= maxNumberOfBlocks && //modified
                                     !this.abort
                                 ) {
                                     skipBlocksSubject.push(skipBlock);
                                     instructionB.push(instruction);
+
+                                    console.log(
+                                        "Instance found : ",
+                                        this.nbInstanceFound,
+                                        " out of ",
+                                        maxNumberOfBlocks
+                                    );
                                 }
                                 // else{
                                 //     subjectBrowse.complete();
                                 //     subjectProgress.complete();
                                 //     subjectInstruction.complete();
                                 // }
-                                console.log(
-                                    "Instance found : ",
-                                    this.nbInstanceFound,
-                                    " out of ",
-                                    maxNumberOfBlocks
-                                );
+                                transactionFound.next(this.nbInstanceFound);
                             }
                         }
                     );
@@ -233,20 +259,37 @@ export class Lifecycle {
                     pageDone++;
                     if (pageDone >= numPagesB) {
                         // condition to end the browsing
-                        if (
-                            skipBlock.forwardLinks.length !== 0 &&
+                        if ( // added skipBlock.backlinks.length !=0
+                            (skipBlock.forwardLinks[0].to.length !== 0 || skipBlock.backlinks[0].length !=0) &&
                             !this.abort
                         ) {
-                            this.nextIDB = Utils.bytes2String(
-                                skipBlock.forwardLinks[0].to
-                            );
+                            
+                            if(direction){
+                                    this.nextIDB = Utils.bytes2String(
+                                        skipBlock.backlinks[0]);
+                     
+                            } else{
+                                    this.nextIDB =  Utils.bytes2String(
+                                        skipBlock.forwardLinks[0].to);
+                            }
+                            /*
+                            this.nextIDB = //modified
+                                direction != false
+                                    ? Utils.bytes2String(
+                                          skipBlock.backlinks[0] //modified was .to
+                                      )
+                                    : Utils.bytes2String(
+                                          skipBlock.forwardLinks[0].to
+                                      ); //was modified*/
+
                             pageDone = 0;
                             this.getNextBlocks(
                                 this.nextIDB,
                                 pageSizeB,
                                 numPagesB,
                                 subjectBrowse,
-                                subjectProgress
+                                subjectProgress,
+                                direction
                             );
                         } else {
                             // complete all subjects at the end of the browsing
@@ -273,7 +316,8 @@ export class Lifecycle {
             pageSizeB,
             numPagesB,
             subjectBrowse,
-            subjectProgress
+            subjectProgress,
+            direction
         );
     }
     /**
@@ -294,7 +338,8 @@ export class Lifecycle {
         pageSizeNB: number,
         numPagesNB: number,
         subjectBrowse: Subject<[number, SkipBlock]>,
-        subjectProgress: Subject<number[]>
+        subjectProgress: Subject<number[]>,
+        direction: boolean //direction search
     ) {
         let bid: Buffer;
         try {
@@ -321,13 +366,14 @@ export class Lifecycle {
         }
 
         if (this.ws !== undefined) {
+
             const message = new PaginateRequest({
                 startid: bid,
 
                 pagesize: pageSizeNB, // tslint:disable-next-line
                 numpages: numPagesNB,
-                backward: false,
-            });
+                backward: direction, // modifed was false
+            })
 
             const messageByte = Buffer.from(
                 message.$type.encode(message).finish()
@@ -341,16 +387,19 @@ export class Lifecycle {
 
                     pagesize: pageSizeNB, // tslint:disable-next-line
                     numpages: numPagesNB,
-                    backward: false,
+                    backward: direction, //modified was false  , direction
                 }),
                 PaginateResponse
             ).subscribe({
                 complete: () => {
                     this.flash.display(Flash.flashType.INFO, "closed");
+
                 },
                 error: (err: Error) => {
                     this.flash.display(Flash.flashType.ERROR, `error: ${err}`);
                     this.ws = undefined;
+                    //added
+                    this.abort = true
                 },
                 // ws callback "onMessage":
                 next: ([data, ws]) => {
