@@ -929,7 +929,7 @@ export class Block {
         const summaryText = queryHeader
             .attr("id", "query-header")
             .append("div")
-            .text(`Evolution of contract Coin, instance:`)
+            .text(`Evolution of the instance:`)
             .style("padding-left", "450");
         const blocky = blockies.create({
             seed: tuple[1][0].instanceID.toString("hex"),

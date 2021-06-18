@@ -539,6 +539,19 @@ export class InstructionChain {
             .style("font-weight", "bold")
             .style("font-size", 16)
             .style("fill", color)
+            .on("click", function () {
+                Utils.copyToClipBoard(
+                    `${block.hash.toString("hex")}`,
+                    self.flash
+                );
+            })
+            .on("mouseover", function () {
+                d3.select(this).style("cursor", "pointer");
+            })
+            .on("mouseout", function () {
+                d3.select(this).style("cursor", "default");
+            })
+            .attr("uk-tooltip", `${block.hash.toString("hex")}`)
             .append("tspan")
             .text(`- ${action}`);
 

@@ -95,7 +95,7 @@ div.query-answer {
     color: #666;
     font-size: 1.0em;
 }
-//code added: change the download icon color on hover
+
 .download-icon-1 {
     display: inline-block;
     padding-left: 2px;
@@ -584,7 +584,6 @@ div.query-answer {
     width: 60%;
 }
 
-//code added
 .search-value {
     width: 30%;  
 }
@@ -599,7 +598,7 @@ div.query-answer {
     margin-left: auto;
     margin-right: auto;
     display: block;
-    width: 100%;        //modified was 60%
+    width: 100%;       
     border-width: 2px;
 }
 
