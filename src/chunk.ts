@@ -794,6 +794,7 @@ export class Chunk {
                         skipBlockToIndex,
                         self.initialBlock.index
                     );
+
                     let block = await Utils.getBlockByIndex(
                         self.initialBlock.hash,
                         skipBlockToIndex,
@@ -803,11 +804,11 @@ export class Chunk {
                 }, 300);
             }).on("dblclick", function () {
                 clearTimeout(timeout);
+
                 Utils.translateOnChain(
                     skipBlockFrom.index,
                     self.initialBlock.index
                 );
-
                 self.blockClickedSubject.next(skipBlockFrom);
             });
 

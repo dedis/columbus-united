@@ -14,6 +14,7 @@ export function getRosterStr() {
     [servers.Services.Skipchain]
       Public = "32ba0cccec06ac4259b39102dcba13677eb385e0fdce99c93406542c5cbed3ec6ac71a81b01207451346402542923449ecf71fc0d69b1d019df34407b532fb2a09005c801e359afb377cc3255e918a096912bf6f7b7e4040532404996e05f78c408760b57fcf9e04c50eb7bc413438aca9d653dd0b6a8353d128370ebd4bdb10"
       Suite = "bn256.adapter"
+
 [[servers]]
   Address = "tls://dedis.nella.org:7770"
   Suite = "Ed25519"
@@ -27,6 +28,7 @@ export function getRosterStr() {
     [servers.Services.Skipchain]
       Public = "78dd1cfd6e70ad9cf5afb8263811fabe95aedee835567cc5ca7773a6787a03736ee24accb8e00370768aab14dab949584054e255c626d0141182454f8c77794a4e8c69a4dc6082f30f1cf33de45daea63fc52c4a91ed79ca88e4f6d363a46d87017b038da5ca4656f610d77fd91e1aae320d7d399ca7fdf41f5348b63712310f"
       Suite = "bn256.adapter"
+
 [[servers]]
   Address = "tls://fairywren.ch:7770"
   Suite = "Ed25519"
@@ -40,6 +42,7 @@ export function getRosterStr() {
     [servers.Services.Skipchain]
       Public = "69088f9df0396cfd296eeeb060bc84d807f3f2cf3b02b8eafd953f30e9e979a203fd11035e9f1fca2662383841c3c630ee3554150ec2b5fdb50819a22a2682dd341f0424fec4eafb8a17041b939ef18eabdd8c38e2f057619a541c506bbae5755265ae6b9156690b7a2907ca0ec6394d79363d5492aa2c9512e3fba882aad358"
       Suite = "bn256.adapter"
+
 [[servers]]
   Address = "tls://conode.c4dt.org:7770"
   Suite = "Ed25519"
@@ -53,6 +56,7 @@ export function getRosterStr() {
     [servers.Services.Skipchain]
       Public = "70a1f68fee1a78e621e023ea9ab0eaa042c1fa72e5bc2abd8ed9c039ce9dbdce122306f8b9e3d423757084fc9b4043adcf7b91f04c6fb66577a98f24bcddc248636fe63a69f661cd7e668fc4fa63fc2b55316c9d108d864e6f5461e31b77e03b0bcd6fcfb60b60c8a19ff07e068c43e7b3abad35ffb297710680fb693f5eee72"
       Suite = "bn256.adapter"
+
 [[servers]]
   Address = "tls://gasser.blue:7770"
   Suite = "Ed25519"
@@ -66,6 +70,7 @@ export function getRosterStr() {
     [servers.Services.Skipchain]
       Public = "5878c63855bf0ad9a2575865b18a8e5856ed6c6b1cbfe1bacc0f4e889b9cd79f78b024fdcef448be2ffb292622927595047227f45a361e9094d5bb3ebcfd9bdb60bf179d5c6c3319d4c8bf2e1e149b78c1056814ac581b7c97decd9c58a570d6018712143844e5fd0a31ddb61e2d81bc1f35bfc47e8a884683d9692529119240"
       Suite = "bn256.adapter"
+
 [[servers]]
   Address = "tls://188.166.35.173:7770"
   Suite = "Ed25519"
@@ -79,6 +84,7 @@ export function getRosterStr() {
     [servers.Services.Skipchain]
       Public = "63e2ed93333bd0888ed2b5e51b5e2544831b4d79dead571cf67604cdd96bc0212f68e582468267697403d7ed418e70ed9fcb01940e4c603373994ef00c04542c24091939bddca515381e0285ab805826cec457346be482e687475a973a20fca48f16c76e352076ccc0c866d7abb3ac50d02f9874d065f85404a0127efc1acf49"
       Suite = "bn256.adapter"
+
 [[servers]]
   Address = "tls://conode.c4dt.org:7780"
   Suite = "Ed25519"
