@@ -19,6 +19,7 @@ import { Utils } from "./utils";
  * @author Sophia Artioli (sophia.artioli@epfl.ch)
  * @author Lucas Trognon <lucas.trognon@epfl.ch>
  */
+
 export function searchBar(
     roster: Roster,
     flash: Flash,
@@ -137,7 +138,7 @@ async function searchRequest(
                         Flash.flashType.INFO,
                         `Browsing the chain for instance ID : ${input}`
                     );
-                    block.launchQuery(50, input.toString());
+                    block.launchQuery(50, input.toString(), false, true); //modified
                 }
             }
             break;
@@ -175,7 +176,7 @@ async function searchRequest(
                 Flash.flashType.INFO,
                 `Browsing the chain for instance ID : ${input}`
             );
-            block.launchQuery(50, input.toString());
+            block.launchQuery(50, input.toString(), true, false); //modifed
             break;
     }
 

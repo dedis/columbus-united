@@ -1,8 +1,10 @@
 @import "~uikit/dist/css/uikit.min.css";
+@import "~intro.js/minified/introjs.min.css";
+@import "~intro.js/themes/introjs-modern.css";
 
 /* */
 :root {
-    --selected-colour: #006fff; //Main colour for displaying the propertiesù
+    --selected-colour: #006fff; //Main colour for displaying the properties
     --base-colour: #1749b3;
 }
 
@@ -31,7 +33,7 @@ div.block-infos {
     flex-grow: 0;
     flex-direction: row;
     flex: 1;
-    min-height: 200px;
+    //min-height: 200px;
     margin-bottom: 36px;
     margin-left: 10;
     margin-right: 10;
@@ -52,7 +54,8 @@ div.query-answer {
 #query-card-container {
     overflow: auto;
     outline: 1px solid var(--selected-colour);
-    cursor: grab;
+    //cursor: grab;
+    padding: 0 10px;
 }
 
 #query-card-container > .uk-card {
@@ -79,7 +82,6 @@ div.query-answer {
 }
 
 #query-header > div {
-    padding-left: 2%;
     font-weight: 700;
     color: #666;
     font-size: 1.3em;
@@ -102,8 +104,54 @@ div.query-answer {
 .transaction-title {
     font-family: monospace;
     color: #666;
-    font-size: 1.3em;
+    font-size: 1em;
 }
+
+.download-icon-1 {
+    display: inline-block;
+    padding-left: 2px;
+    float: right;
+    svg {
+        width: 30px;
+        height: 30px;
+        cursor: default;
+        path {
+            stroke: #666;
+        }
+
+        &:hover path {
+            stroke: #006fff;
+            cursor: pointer;
+        }
+    }
+}
+
+.download-icon-2 {
+    display: inline-block;
+    padding-left: 400;
+    svg {
+        width: 25px;
+        height: 25px;
+        cursor: default;
+        path {
+            stroke: #666;
+        }
+
+        &:hover path {
+            stroke: #006fff;
+            cursor: pointer;
+        }
+    }
+}
+
+.search-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-right: 50px;
+}
+
+//
 
 /* Used to transform black SVGs to white SVGs, as well as displaying them inline*/
 .white-icon {
@@ -201,12 +249,14 @@ div.query-answer {
     overflow-y: scroll;
     padding: 8px;
     flex: 1;
+    max-height: 550px;
 }
 
 .browse-container {
     overflow-y: scroll;
     padding: 8px;
     flex: 1;
+    max-height: 500px;
 }
 
 .uk-tooltip {
@@ -280,6 +330,13 @@ div.query-answer {
     height: 200px;
 }
 
+.mover {
+    fill: grey;
+    height: 6px;
+    pointer-events: all;
+    cursor: pointer;
+}
+
 #last-container {
     display: flex;
     margin-left: 35px;
@@ -309,6 +366,105 @@ div.query-answer {
 
 .last-added {
     left: 0;
+}
+
+#status {
+    outline: groove rgba(204, 204, 204, 0.3);
+    margin: 40px;
+}
+
+#status-div {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+#node-table {
+    width: 400px;
+}
+
+.chart-badge {
+    position: relative;
+    box-sizing: border-box;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    border-radius: 500px;
+    vertical-align: middle;
+    background: #1749b3;
+    color: #fff;
+    font-size: 0.875rem;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.uk-table caption {
+    color: #fff;
+}
+
+.uk-table th {
+    color: #fff;
+}
+
+.uk-table td {
+    font-size: small;
+}
+
+//zoom-in & out button
+.dropdown {
+    position: relative;
+    right: 81%;
+    top: 20px;
+    width: 25px;
+    height: 25px;
+    border: 1px solid gray;
+}
+.dropdown:hover {
+    border-color: #006fff;
+}
+
+.zoombtn {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#svg-zoombtn {
+    width: 30px;
+    height: 30px;
+    max-width: none;
+}
+
+.dropdown-zoom {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-zoom-content {
+    display: none;
+    position: absolute;
+    top: 30px;
+    left: 10px;
+    background-color: #ffffff;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    cursor: pointer;
+}
+.dropdown-zoom-content p {
+    display: block;
+    font-size: small;
+    width: max-content;
+}
+.dropdown-zoom-content p:hover {
+    color: #006fff;
+}
+
+.show {
+    display: block;
 }
 
 #svg-container {
@@ -406,7 +562,7 @@ div.query-answer {
     text-shadow: 0 0.04em 0.04em rgba(0, 0, 0, 0.35);
     text-align: center;
     transition: all 0.2s;
-    background-color: #0004e2;
+    background-color: #1749b3; //"#1749b3"
     right: 10%;
 }
 
@@ -436,12 +592,20 @@ div.query-answer {
     width: 60%;
 }
 
+.search-value {
+    width: 30%;
+}
+
+.search-text {
+    font-weight: 900;
+}
+
 #button-browse {
     padding: 8px;
     margin-left: auto;
     margin-right: auto;
     display: block;
-    width: 60%;
+    width: 100%;
     border-width: 2px;
 }
 
@@ -500,6 +664,10 @@ List of classes for the new transaction container
 
 .uk-accordion * {
     color: #ffffff;
+    //added
+    .search-value {
+        color: black;
+    }
 }
 
 .uk-accordion-content {
@@ -524,12 +692,13 @@ List of classes for the new transaction container
 }
 
 .block-detail-container p {
-    font-size: 16px;
+    font-size: 0.875rem;
     overflow: auto;
 }
 
 .browse-container p {
-    font-size: 16px;
+    font-size: 0.875rem;
+    overflow: auto;
 }
 
 .spinner {
@@ -605,9 +774,23 @@ List of classes for the new transaction container
 
             .info-message {
                 padding: 20px;
+                font-size: small;
             }
         }
     }
+}
+
+#select-roster {
+    background: rgba(
+        0,
+        0,
+        0,
+        0.5
+    ); //darken background to overwrite .uk-open background-color
+}
+
+.uk-button-small {
+    width: 110px;
 }
 
 .x-axis {
@@ -623,5 +806,34 @@ List of classes for the new transaction container
 
     text {
         fill: #8c764a;
+    }
+}
+
+#svg-spinner {
+    -webkit-transition-property: -webkit-transform;
+    -webkit-transition-duration: 1.2s;
+    -webkit-animation-name: rotate;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+
+    -moz-transition-property: -moz-transform;
+    -moz-animation-name: rotate;
+    -moz-animation-duration: 1.2s;
+    -moz-animation-iteration-count: infinite;
+    -moz-animation-timing-function: linear;
+
+    transition-property: transform;
+    animation-name: rotate;
+    animation-duration: 1.2s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
     }
 }

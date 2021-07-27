@@ -16,7 +16,7 @@ import { Utils } from "./utils";
 
 /**
  * Create browsing which will browse the blockchain from the
- * first block to the last and gets the instructions that
+ * first or a selected block and gets the instructions that
  * contains the contractID given. It will notify through
  * Subjects:
  * 1) the hashes of the blocks and the instructions with
@@ -78,8 +78,11 @@ export class Lifecycle {
         this.abort = false;
     }
     /**
-     * This method is the start of the browsing from the first block. It
-     * will (re)sets all the parameters needed to start a new browsing.
+     * This method is the start of the browsing from the first or the selected block.
+     * - browse from the first block if fromFirstBlock is true and direction is false,
+     * - browse previous block from firstBlockIDStart if direction is true and fromFirstBlock is false
+     * - browse next block from firstBlockIDStart if direction is false and fromFirstBlock is false
+     * It will (re)sets all the parameters needed to start a new browsing.
      * It will return a tuple with two Subjects:
      * 1) Subject of tuple with the blocks and instructions of the
      * instruction given as parameter.
@@ -95,7 +98,10 @@ export class Lifecycle {
      */
     getInstructionSubject(
         instanceID: string,
-        maxNumberOfBlocks: number = -1
+        maxNumberOfBlocks: number = -1,
+        initHash: string,
+        direction: boolean,
+        fromFirstBlock: boolean
     ): [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>] {
         const self = this;
 
@@ -118,16 +124,33 @@ export class Lifecycle {
 
         this.abort = false;
 
-        this.browse(
-            this.pageSize,
-            this.numPages,
-            this.firstBlockIDStart,
-            subjectInstruction,
-            subjectProgress,
-            [],
-            [],
-            maxNumberOfBlocks
-        );
+        if (fromFirstBlock == true && direction == false) {
+            //browse from the first block
+            this.browse(
+                this.pageSize,
+                this.numPages,
+                this.firstBlockIDStart,
+                subjectInstruction,
+                subjectProgress,
+                [],
+                [],
+                maxNumberOfBlocks,
+                direction
+            );
+        } else {
+            //browse the previous or next instructions from the selected inital block
+            this.browse(
+                this.pageSize,
+                this.numPages,
+                initHash,
+                subjectInstruction,
+                subjectProgress,
+                [],
+                [],
+                maxNumberOfBlocks,
+                direction
+            );
+        }
         return [subjectInstruction, subjectProgress];
     }
 
@@ -146,6 +169,7 @@ export class Lifecycle {
      * @param {SkipBlock[]} skipBlocksSubject : Accumulator for the subjectInstruction
      * @param {Instruction[]} instructionB : Accumulator for the subjectInstruction
      * @param {number} maxNumberOfBlocks : Max number of blocks requested
+     * @param {boolen} direction : the direction of the query
      * @memberof Browsing
      */
     private browse(
@@ -156,7 +180,8 @@ export class Lifecycle {
         subjectProgress: Subject<number[]>,
         skipBlocksSubject: SkipBlock[],
         instructionB: Instruction[],
-        maxNumberOfBlocks: number
+        maxNumberOfBlocks: number,
+        direction: boolean
     ) {
         const subjectBrowse = new Subject<[number, SkipBlock]>();
         const transactionFound = new Subject<number>();
@@ -183,7 +208,8 @@ export class Lifecycle {
                         subjectProgress,
                         skipBlocksSubject,
                         instructionB,
-                        maxNumberOfBlocks
+                        maxNumberOfBlocks,
+                        direction
                     );
                 } else {
                     this.flash.display(
@@ -203,28 +229,28 @@ export class Lifecycle {
                                 Utils.bytes2String(instruction.instanceID) ===
                                 this.contractID
                             ) {
-                                // get the hashes and instruction corresponding to the input instruction
                                 this.nbInstanceFound++;
-                                transactionFound.next(this.nbInstanceFound);
 
                                 if (
-                                    this.nbInstanceFound < maxNumberOfBlocks &&
+                                    this.nbInstanceFound <= maxNumberOfBlocks &&
                                     !this.abort
                                 ) {
                                     skipBlocksSubject.push(skipBlock);
                                     instructionB.push(instruction);
+
+                                    console.log(
+                                        "Instance found : ",
+                                        this.nbInstanceFound,
+                                        " out of ",
+                                        maxNumberOfBlocks
+                                    );
                                 }
                                 // else{
                                 //     subjectBrowse.complete();
                                 //     subjectProgress.complete();
                                 //     subjectInstruction.complete();
                                 // }
-                                console.log(
-                                    "Instance found : ",
-                                    this.nbInstanceFound,
-                                    " out of ",
-                                    maxNumberOfBlocks
-                                );
+                                transactionFound.next(this.nbInstanceFound);
                             }
                         }
                     );
@@ -234,19 +260,25 @@ export class Lifecycle {
                     if (pageDone >= numPagesB) {
                         // condition to end the browsing
                         if (
-                            skipBlock.forwardLinks.length !== 0 &&
+                            (skipBlock.forwardLinks[0].to.length !== 0 ||
+                                skipBlock.backlinks[0].length != 0) &&
                             !this.abort
                         ) {
-                            this.nextIDB = Utils.bytes2String(
-                                skipBlock.forwardLinks[0].to
-                            );
+                            this.nextIDB =
+                                direction != false
+                                    ? Utils.bytes2String(skipBlock.backlinks[0])
+                                    : Utils.bytes2String(
+                                          skipBlock.forwardLinks[0].to
+                                      );
+
                             pageDone = 0;
                             this.getNextBlocks(
                                 this.nextIDB,
                                 pageSizeB,
                                 numPagesB,
                                 subjectBrowse,
-                                subjectProgress
+                                subjectProgress,
+                                direction
                             );
                         } else {
                             // complete all subjects at the end of the browsing
@@ -273,7 +305,8 @@ export class Lifecycle {
             pageSizeB,
             numPagesB,
             subjectBrowse,
-            subjectProgress
+            subjectProgress,
+            direction
         );
     }
     /**
@@ -286,6 +319,7 @@ export class Lifecycle {
      * @param {number} numPagesNB
      * @param {Subject<[number, SkipBlock]>} subjectBrowse
      * @param {Subject<number[]>} subjectProgress
+     * @param {boolean} direction
      * @returns : only if an error occur
      * @memberof Browsing
      */
@@ -294,7 +328,8 @@ export class Lifecycle {
         pageSizeNB: number,
         numPagesNB: number,
         subjectBrowse: Subject<[number, SkipBlock]>,
-        subjectProgress: Subject<number[]>
+        subjectProgress: Subject<number[]>,
+        direction: boolean
     ) {
         let bid: Buffer;
         try {
@@ -313,6 +348,7 @@ export class Lifecycle {
                 ByzCoinRPC.serviceName
             );
         } catch (error) {
+            this.abort = true;
             this.flash.display(
                 Flash.flashType.ERROR,
                 `error creating conn: ${error}`
@@ -326,7 +362,7 @@ export class Lifecycle {
 
                 pagesize: pageSizeNB, // tslint:disable-next-line
                 numpages: numPagesNB,
-                backward: false,
+                backward: direction,
             });
 
             const messageByte = Buffer.from(
@@ -341,7 +377,7 @@ export class Lifecycle {
 
                     pagesize: pageSizeNB, // tslint:disable-next-line
                     numpages: numPagesNB,
-                    backward: false,
+                    backward: direction,
                 }),
                 PaginateResponse
             ).subscribe({

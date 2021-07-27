@@ -155,9 +155,8 @@ export class Utils {
         // translate the chain to wanted coordinates
         const newZoom = d3.zoomIdentity
             .translate(
-                (initialBlock - goalBlock) * Chain.unitBlockAndPaddingWidth +
-                    0.2 -
-                    initialBlock * Chain.unitBlockAndPaddingWidth,
+                //-5 because we want to land in the middle of the chain
+                -(goalBlock - 5) * Chain.unitBlockAndPaddingWidth + 0.2,
                 0
             )
             .scale(1);
@@ -282,5 +281,27 @@ export class Utils {
             }
         });
         return [accepted, rejected];
+    }
+    /**
+     * @author Rosa José Sara
+     * @returns the svg script for the download icon
+     */
+    static downloadIconScript(): string {
+        return `<svg viewBox="0 0 983 962" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+        <g transform="matrix(-0.957787,0.406581,-0.590533,-0.752044,3103.91,1811.35)">
+            <path d="M1155.03,2714.41C1170.1,2886.92 991.944,2915.2 912.412,2865.58C832.879,2815.96 777.954,2711.51 866.2,2621.87C772.313,2628.14 725.686,2554.84 741.327,2472.55C759.019,2379.46 827.77,2317.71 927.981,2322.22C853.973,2282.21 890.359,2067.84 1059.26,2077.12C1111.96,2080.02 1189.08,2121.62 1252.17,2155.73C1285.9,2173.96 1302.58,2183.73 1302.58,2183.73" style="fill:none;stroke-width:48.29px;"/>
+        </g>
+        <g transform="matrix(-0.957787,0.406581,-0.590533,-0.752044,3085.54,1811.35)">
+            <path d="M1436.26,2289.36C1436.26,2289.36 1492.51,2319.71 1534.2,2342.25C1568.65,2360.88 1597.86,2388.63 1612.87,2427.29C1667.9,2569.03 1521.93,2739.32 1361.07,2659.61C1440.51,2746.17 1415.7,2825.59 1378.53,2871.73C1341.35,2917.87 1242.68,2973.01 1142.98,2907.35" style="fill:none;stroke-width:48.29px;"/>
+        </g>
+        <g transform="matrix(1,0,0,1,-3916.53,-1953.26)">
+            <g transform="matrix(0.428312,-0.428312,0.428312,0.428312,1930.88,2695.11)">
+                <path d="M2635.61,2829.81L2635.61,3085.72L2891.52,3085.72" style="fill:none;stroke-width:89.42px;"/>
+            </g>
+            <g transform="matrix(1,0,0,1,1544.84,-129.382)">
+                <path d="M2836.56,2986.15L2836.56,2558.74" style="fill:none;stroke-width:54.17px;"/>
+            </g>
+        </g>
+    </svg>`;
     }
 }
