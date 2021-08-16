@@ -61,5 +61,18 @@ module.exports = {
     },
     resolve: {
         extensions: [".js", ".ts"],
+        modules: ['node_modules'],
+        fallback: {
+          path: require.resolve('path-browserify'),
+          stream: require.resolve('stream-browserify'),
+          'crypto-browserify': require.resolve('crypto-browserify'),
+          fs: false,
+          tls: false,
+          net: false,
+          zlib: false,
+          http: false,
+          https: false,
+          crypto: false
+        }
     },
 };
