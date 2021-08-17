@@ -33,7 +33,7 @@ jobs:
     
     - name: Sync
       env:
-        dest: 'status@${{secrets.DEPLOY_ADDR}}:/home/status/www'
+        dest: 'status@${{secrets.DEPLOY_ADDR}}:www'
       run: |
         mv ./assets/favicon.ico ./
         mv ./assets/icon.png ./
