@@ -1,4 +1,4 @@
-name: Wookiee deployment
+name: Production deployment
 
 on:
   push:
@@ -33,7 +33,7 @@ jobs:
     
     - name: Sync
       env:
-        dest: 'jstech@${{secrets.DEPLOY_ADDR}}:/var/www/wookiee.ch/public_html/columbus'
+        dest: 'status@${{secrets.DEPLOY_ADDR}}:/home/status/www'
       run: |
         mv ./assets/favicon.ico ./
         mv ./assets/icon.png ./
