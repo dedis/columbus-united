@@ -186,7 +186,7 @@ Use:
 ## Production deployment
 
 A change on the `production` branch automatically triggers a deployment on
-[https://wookiee.ch/columbus](https://wookiee.ch/columbus).
+[https://status.dedis.ch](https://status.dedis.ch).
 
 The production branch must only be used that way:
 
