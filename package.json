@@ -47,6 +47,7 @@
         "jasmine": "^3.8.0",
         "jasmine-console-reporter": "^3.1.0",
         "mini-css-extract-plugin": "^2.2.0",
+        "node-polyfill-webpack-plugin": "^1.1.4",
         "nyc": "^15.1.0",
         "path-browserify": "^1.0.1",
         "prettier": "^2.3.2",
