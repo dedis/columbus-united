@@ -2,7 +2,6 @@ import { DataBody } from "@dedis/cothority/byzcoin/proto";
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
-import { scaleLinear } from "d3";
 import { Subject } from "rxjs";
 import { debounceTime } from "rxjs/operators";
 import { Chunk } from "./chunk";
@@ -123,8 +122,7 @@ export class Chain {
         // This group will contain the arrows between blocks
         this.garrow = svg.append("g").attr("class", "garrow");
 
-        var tooltip = d3
-            .select("body")
+        d3.select("body")
             .append("div")
             .attr("class", "tooltip")
             .style("opacity", 0);

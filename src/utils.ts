@@ -149,7 +149,6 @@ export class Utils {
      * Translates the chain to the given block.
      * @param goalBlock
      * @param initialBlock
-     * @param blockClickedSubject
      */
     static async translateOnChain(goalBlock: number, initialBlock: number) {
         // translate the chain to wanted coordinates

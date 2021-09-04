@@ -732,8 +732,8 @@ export class Chunk {
     /**
      * Helper function to append arrows between two blocks
      * @param xTrans horizontal position where the block should be appended
-     * @param skipBlockFrom starting skipBlock point of the arrow
-     * @param skipBlockTo the skipBlock the arrow points to
+     * @param skipBlockToIndex ending point of the arrow
+     * @param skipBlockFrom starting point of the arrow
      * @param svgBlocks the svg where the block are appended
      * @param height the y coordinate where the arrow is appended on the blocks
      * @author Sophia Artioli <sophia.artioli@epfl.ch>
@@ -929,6 +929,7 @@ export class Chunk {
      * Helper for displayBlocks: appends a text element in a block.
      * @param xTranslate horizontal position where the text should be displayed
      * @param gcircle the svg container for the circles
+     * @param block: skipBlock
      * @author Sophia Artioli <sophia.artioli@epfl.ch>
      */
     private appendCircleInBlock(

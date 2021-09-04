@@ -1,18 +1,14 @@
-import { CONFIG_INSTANCE_ID, Instruction } from "@dedis/cothority/byzcoin";
-import { Spawn } from "@dedis/cothority/byzcoin/client-transaction";
-import { DataBody, DataHeader, TxResult } from "@dedis/cothority/byzcoin/proto";
+import { Instruction } from "@dedis/cothority/byzcoin";
+import { DataBody } from "@dedis/cothority/byzcoin/proto";
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import * as d3 from "d3";
 import { Observable, Subject } from "rxjs";
-import { connectableObservableDescriptor } from "rxjs/internal/observable/ConnectableObservable";
 import { throttleTime } from "rxjs/operators";
-import UIkit from "uikit";
 import { Chain } from "./chain";
 import { Flash } from "./flash";
 import { InstructionChain } from "./instructionChain";
 import { Lifecycle } from "./lifecycle";
-import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
 import * as blockies from "blockies-ts";
 
@@ -55,31 +51,30 @@ export class Block {
     loadContainer: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
     progressBarItem: HTMLElement;
 
-    //subject  that willl be call when a queery is launched
+    // Subject that will be called when a query is launched
     querySubject: [Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>];
 
     /**
      * Creates an instance of DetailBlock.
-     * @param {Observable<SkipBlock>} skipBclickedSubject : Observable for the clicked
+     * @param {Subject<SkipBlock>} skipBclickedSubject : Observable for the clicked
      * block. We need this observable to know when a user has clicked on a block,
      * and then display the details of that block.
-     * @param {Browsing} browsing
+     * @param {Lifecycle} lifecycle
      * @param {Flash} flash
      * @param {Observable<SkipBlock[]>} loadedSkipBObs : Observable that is
      * notified when new blocks are loaded. This is necessary when we highlights
      * the blocks of an instance lifecycle, because if new blocks are added, some
      * may need to be highlighted.
+     * @param {Roster} roster : The associated roster
      * @memberof DetailBlock
      */
     constructor(
         skipBclickedSubject: Subject<SkipBlock>,
-        lifecycle: Lifecycle, //modfied
+        lifecycle: Lifecycle,
         flash: Flash,
         loadedSkipBObs: Observable<SkipBlock[]>,
         roster: Roster
     ) {
-        const self = this;
-
         this.skipBclickedSubject = skipBclickedSubject;
         this.skipBclickedSubject.subscribe({
             next: this.listTransaction.bind(this),
@@ -111,12 +106,12 @@ export class Block {
         const self = this;
 
         this.loadedSkipBObs.subscribe({
-            next: (value) => {
+            next: () => {
                 self.highlightBlocks(this.hashHighligh);
             },
         });
     }
-    setSearch(search: void) {
+    setSearch() {
         throw new Error("Method not implemented.");
     }
 
@@ -166,9 +161,7 @@ export class Block {
             .attr("id", "block_detail_container")
             .text("")
             .append("p");
-        //!SECTION
 
-        //SECTION Block details
         //Big wrapper for all of the Block details
         const ulBlockDetail = block_detail_container.append("ul");
         ulBlockDetail.attr("multiple", "true");
@@ -182,7 +175,7 @@ export class Block {
             .attr("class", "uk-card uk-card-default")
             .attr("id", "detail-window");
 
-        //ANCHOR Header of the card used to display the block index and it's hash
+        // Header of the card used to display the block index and it's hash
         const blockCardHeader = blockCard.append("div");
         blockCardHeader.attr("class", "uk-card-header  uk-padding-small");
 
@@ -251,7 +244,7 @@ export class Block {
         divDetails.attr("class", "uk-accordion-content");
 
         //ANCHOR Verifier details
-        const ulVerifier = divDetails.append("ul"); // accordion containing all the verifiers of a block
+        const ulVerifier = divDetails.append("ul"); // Accordion containing all the verifiers of a block
         ulVerifier.attr("uk-accordion", "");
         const liVerifier = ulVerifier.append("li");
         const aVerifier = liVerifier.append("a");
@@ -274,7 +267,7 @@ export class Block {
 
         aVerifier.append("text").text(`Verifiers : ${block.verifiers.length}`);
         const divVerifier = liVerifier.append("div");
-        divVerifier.attr("class", "uk-accordion-content"); // content on the accordion
+        divVerifier.attr("class", "uk-accordion-content"); // Content on the accordion
         block.verifiers.forEach((uid, j) => {
             const verifierLine = divVerifier.append("p");
             verifierLine.text(` Verifier ${j} , ID:  `);
@@ -327,7 +320,7 @@ export class Block {
             Utils.clickable(divBackLinkBadge);
         });
 
-        //ANCHOR ForwardLink
+        // ForwardLink
         const ulForwardLink = divDetails.append("ul");
         ulForwardLink.attr("uk-accordion", "");
         const liForwardLink = ulForwardLink.append("li");
@@ -368,7 +361,9 @@ export class Block {
                 .text(`Block ${blockIndex}`)
                 .on("click", async function () {
                     Utils.translateOnChain(
-                        await (await Utils.getBlock(fl.to, self.roster)).index,
+                        await (
+                            await Utils.getBlock(fl.to, self.roster)
+                        ).index,
                         block.index
                     );
                 })
@@ -376,7 +371,7 @@ export class Block {
             Utils.clickable(divForwardLinkBadge);
 
             // Because forward links need to be verified, signatures are rendered as well
-            // Here a tooltip is created to sisplay all the data needed
+            // Here a tooltip is created to display all the data needed
             const lockIcon = divForwardLink.append("object");
             const lockContent = `<p>Hash : ${fl.hash().toString("hex")}</p>
             <p>signature: ${fl.signature.sig.toString("hex")}</p>`;
@@ -397,7 +392,6 @@ export class Block {
                 .style("color", "var(--selected-colour)");
         });
 
-        //ANCHOR Roster
         const ulRoster = divDetails.append("ul"); // accordion containing all the verifiers of a block
         ulRoster.attr("uk-accordion", "");
         const liRoster = ulRoster.append("li");
@@ -452,8 +446,7 @@ export class Block {
             left += 1;
         });
 
-        //!SECTION
-        //SECTION Transaction details
+        // Transaction details
         const ulTransaction = transaction_detail_container.append("ul");
 
         // This card simply hold the title of the section in its header, and lists all transactions
@@ -467,9 +460,7 @@ export class Block {
 
         const transactionCardHeader = transactionCard.append("div");
         transactionCardHeader.attr("class", "uk-card-header uk-padding-small");
-
-        //
-        const downloadButton = transactionCardHeader
+        transactionCardHeader
             .append("h3")
             .html(Utils.downloadIconScript())
             .attr("class", "download-icon-1")
@@ -535,9 +526,9 @@ export class Block {
 
             const ulInstruction = divTransaction.append("ul");
             ulInstruction.attr("uk-accordion", "");
-            // ANCHOR Transaction displaying
+            // Transaction displaying
             transaction.clientTransaction.instructions.forEach(
-                (instruction, j) => {
+                (instruction) => {
                     // This variable helps us keep tracks whether or not we should display
                     //the instruction is a coin transaction between two users.
 
@@ -572,7 +563,6 @@ export class Block {
                         aInstruction
                             .append("text")
                             .text(`Spawned : ${contractName}`);
-                        args = instruction.spawn.args;
                     } else if (instruction.type === Instruction.typeInvoke) {
                         commandName = instruction.invoke.command;
                         const contractName =
@@ -664,9 +654,6 @@ export class Block {
                         self.flash
                     );
 
-                    //TODO Create a beautifier for Columbus which formats each instruction
-                    //in a customized way
-
                     if (!coin_invoked) {
                         if (instruction.signerCounter.length != 0) {
                             const userSignature = instruction.signerIdentities
@@ -739,7 +726,7 @@ export class Block {
                             .text(`Command: ${commandName}`);
                     }
 
-                    //ANCHOR Browse button
+                    // Browse button
                     const searchInstance = divInstruction.append("li");
                     searchInstance
                         .append("span")
@@ -817,12 +804,7 @@ export class Block {
                             this.options[this.selectedIndex].value
                         );
                         // searched for previous instructions
-                        if (query == 0) {
-                            directionQuery = true;
-                        } else {
-                            // searched for first or next
-                            directionQuery = false;
-                        }
+                        directionQuery = query == 0;
                         //if first we need to start from the first block and not the current clicked block
                         if (query == -1) {
                             startWithFirstBlock = true;
@@ -851,18 +833,17 @@ export class Block {
                         window.scrollTo(0, document.body.scrollHeight);
                     });
                 }
-            ); //!SECTION
+            );
         });
     }
 
     /**
-     * SECTION Instance tracking
-     * ANCHOR Query Launching
      * Launches a query for all instructions that are related to an instance ID
-     * This method is called in search.ts at the moment, it could be refactored into something nicer
      * @public
      * @param {number} chosenQuery : The number of results we want to display
-     * @param {string} instruction : The id of the instance we're interested in
+     * @param instanceID : InstanceID of the searched instructions
+     * @param direction : Searching for the last or previous blocks
+     * @param fromFirstBlock: True if the query is requested from the first block of the chain
      * @memberof DetailBlock
      */
 
@@ -872,7 +853,6 @@ export class Block {
         direction: boolean,
         fromFirstBlock: boolean
     ) {
-        //added direction argument
         const self = this;
 
         const clickedBlockHash = this.clickedBlock.hash
@@ -889,10 +869,9 @@ export class Block {
         this.querySubject[0].subscribe({
             next: self.printDataBrowsing.bind(self),
         });
-        // throttleTime: ignores the values for the 100 first ms
         this.querySubject[1].pipe(throttleTime(100)).subscribe({
             complete: self.doneLoading,
-            next: ([percentage, seenBlock, totalBlock, nbInstanceFound]) => {
+            next: ([, seenBlock, totalBlock, nbInstanceFound]) => {
                 const rate = Math.round((nbInstanceFound / chosenQuery) * 100);
                 self.updateLoadingScreen(
                     rate,
@@ -906,7 +885,6 @@ export class Block {
     }
 
     /**
-     * ANCHOR Query results rendering
      * Displays the result of the browsing, highlights the
      * blocks found.
      *
@@ -916,7 +894,6 @@ export class Block {
      * @memberof DetailBlock
      */
     private printDataBrowsing(tuple: [SkipBlock[], Instruction[]]) {
-        //ANCHOR Display and styling
         // Removes previous highlighted blocks
         this.removeHighlighBlocks(this.hashHighligh);
         const self = this;
@@ -954,8 +931,8 @@ export class Block {
                 d3.select(this).style("cursor", "default");
             });
 
-        //display the download icon
-        const downloadButton = queryHeader
+        // Display the download icon
+        queryHeader
             .append("div")
             .html(Utils.downloadIconScript())
             .attr("class", "download-icon-2")
@@ -1002,18 +979,13 @@ export class Block {
             .attr("class", "uk-flex");
 
         // Creates the instance tracker interface(instruction chain)
-        const instructions = new InstructionChain(
-            this.roster,
-            this.flash,
-            tuple
-        );
+        new InstructionChain(this.roster, this.flash, tuple);
 
         // Highlights the blocks in the blockchain
         this.highlightBlocks(tuple[0]);
         this.hashHighligh = tuple[0];
     }
 
-    // enveler cette fonction, déjà dans instructionChain
     /**
      * Highlights the blocks in the blockchain
      *
@@ -1066,7 +1038,7 @@ export class Block {
     }
 
     /**
-     * ANCHOR Loading screen
+     * Loading screen
      * Creates the loading screen
      *
      * @private
@@ -1134,6 +1106,7 @@ export class Block {
      * @param {number} seenBlocks
      * @param {number} totalBlocks
      * @param {number} nbInstanceFound
+     * @param {number} queryNumber
      * @memberof DetailBlock
      */
     private updateLoadingScreen(
@@ -1153,8 +1126,6 @@ export class Block {
         }
     }
 
-    //!SECTION
-
     /**
      * Removes the loading screen
      *
@@ -1170,18 +1141,18 @@ export class Block {
  * @author Rosa José Sara
  * Create the Blob that will be used to create the JSON file
  * for the block data exportation
- * @param tuple value of the observable obtain from the query
  * @returns a Blob object
  *
+ * @param block
  */
 function BTexportDataBlob(block: SkipBlock) {
     var transactionData = new Array();
     const body = DataBody.decode(block.payload);
-    body.txResults.forEach((transaction, i) => {
+    body.txResults.forEach((transaction) => {
         var instructionData = new Array();
-        transaction.clientTransaction.instructions.forEach((instruction, j) => {
+        transaction.clientTransaction.instructions.forEach((instruction) => {
             var argsData = new Array();
-            instruction.beautify().args.forEach((arg, i) => {
+            instruction.beautify().args.forEach((arg) => {
                 const argsEntries = {
                     name: arg.name,
                     value: arg.value,
@@ -1234,10 +1205,9 @@ function BTexportDataBlob(block: SkipBlock) {
     };
     const json = { Block: blockData };
     // Convert object to Blob
-    const blobConfig = new Blob([JSON.stringify(json)], {
+    return new Blob([JSON.stringify(json)], {
         type: "text/json;charset=utf-8",
     });
-    return blobConfig;
 }
 
 /**
@@ -1266,7 +1236,7 @@ function ISexportDataBlob(tuple: [SkipBlock[], Instruction[]]) {
         }
 
         var argsData = new Array();
-        instruction.beautify().args.forEach((arg, i) => {
+        instruction.beautify().args.forEach((arg) => {
             const argEntries = {
                 name: arg.name,
                 value: arg.value,
@@ -1313,8 +1283,7 @@ function ISexportDataBlob(tuple: [SkipBlock[], Instruction[]]) {
         "instructions found by block": blocksData,
     };
     // Convert object to Blob
-    const blobConfig = new Blob([JSON.stringify(json)], {
+    return new Blob([JSON.stringify(json)], {
         type: "text/json;charset=utf-8",
     });
-    return blobConfig;
 }

@@ -13,7 +13,6 @@ import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
 import * as d3 from "d3";
 import * as introJS from "intro.js";
-import { select, selectAll } from "d3";
 
 /*
    ___              _                     _
@@ -54,18 +53,18 @@ export function sayHi() {
     document
         .getElementById("save-roster")
         .addEventListener("click", function (e) {
-            const newRosterStr = (document.getElementById(
-                "text-roster"
-            ) as HTMLTextAreaElement).value;
+            const newRosterStr = (
+                document.getElementById("text-roster") as HTMLTextAreaElement
+            ).value;
             startSkipchain(newRosterStr, false);
         });
 }
 
 /**
  * Connect to the roster
- * @param roster
- * @param skipchainIndex
  *
+ * @param rosterStr
+ * @param defaultSkipchain
  */
 export function startSkipchain(rosterStr: string, defaultSkipchain: boolean) {
     // Create the roster
@@ -87,12 +86,7 @@ export function startSkipchain(rosterStr: string, defaultSkipchain: boolean) {
         scRPC
             .getAllSkipChainIDs()
             .then((resp) => {
-                //hashBlock 0 of new roster
-
                 hashBlock0 = Utils.bytes2String(resp[0]);
-
-                //var re = /[0-9A-Fa-f]{6}/g; //for testing that hashBlock0 is valid hex string
-                //console.log(re.test(hashBlock0));
             })
             .catch((e) =>
                 flash.display(
@@ -191,6 +185,7 @@ export function startSkipchain(rosterStr: string, defaultSkipchain: boolean) {
  * @param initialBlock the first block that will be displayed
  * @param roster the roster
  * @param flash the flash class that handles the flash messages
+ * @param defaultSkipchain
  */
 export function startColumbus(
     genesisBlock: SkipBlock,
@@ -226,9 +221,6 @@ export function startColumbus(
     // user wants to get the lifecycle of an instance.
     const lifecycle = new Lifecycle(roster, flash, totalBlock, hashBlock0);
 
-    //Display status of nodes and statistics of the blockchain
-    const skipchainStatus = new Status(roster, initialBlock, flash);
-
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.
     const block = new Block(
@@ -260,61 +252,51 @@ function initIntro() {
             steps: [
                 {
                     element: document.getElementById("step1"),
-                    intro:
-                        "Welcome to our guided tour through the Columbus Blockchain Explorer! \n You can use the keyboard to naviguate <-> and quit the tour by clicking anywhere on the page. Let's start !",
+                    intro: "Welcome to our guided tour through the Columbus Blockchain Explorer! \n You can use the keyboard to naviguate <-> and quit the tour by clicking anywhere on the page. Let's start !",
                     position: "bottom",
                 },
                 {
                     element: document.getElementById("svg-container"),
-                    intro:
-                        'Here we have a visualization of the <a href="https://github.com/dedis/cothority/tree/master/byzcoin" target="_blank">Byzcoin</a> Blockchain. You can browse through it, by click and dragging. You also can zoom in and out by scrolling up and down.',
+                    intro: 'Here we have a visualization of the <a href="https://github.com/dedis/cothority/tree/master/byzcoin" target="_blank">Byzcoin</a> Blockchain. You can browse through it, by click and dragging. You also can zoom in and out by scrolling up and down.',
                     position: "bottom-middle-aligned",
                 },
                 {
                     element: document.getElementById("svg-container"),
-                    intro:
-                        'Click on a block ! You\'ll be able to check the block details + all the transactions contained in it further down on the page. The arrows remind us that this is not just a simple blockchain, but a <a href="https://github.com/dedis/cothority/tree/master/skipchain" target="_blank">SkipChain</a> ! They allow to traverse short or long distances in a more efficient way. Click on the arrows to move forward, double click to move backwards in the chain.',
+                    intro: 'Click on a block ! You\'ll be able to check the block details + all the transactions contained in it further down on the page. The arrows remind us that this is not just a simple blockchain, but a <a href="https://github.com/dedis/cothority/tree/master/skipchain" target="_blank">SkipChain</a> ! They allow to traverse short or long distances in a more efficient way. Click on the arrows to move forward, double click to move backwards in the chain.',
                     position: "bottom-right-aligned",
                 },
                 {
                     element: document.getElementById("search-input"),
-                    intro:
-                        "The search bar can be used to browse for a particular block using its block id or hash. You can also search for an instance by using its ID, the summary of its evolution is loaded when scrolling down on the page.",
+                    intro: "The search bar can be used to browse for a particular block using its block id or hash. You can also search for an instance by using its ID, the summary of its evolution is loaded when scrolling down on the page.",
                     position: "bottom",
                 },
                 {
                     element: document.getElementById("search-mode"),
-                    intro:
-                        'You can select different search modes : <i>"Search by xxx"</i> for a block index/hash or instance specific search, <i>"Automatic search"</i> combines all the methods. ',
+                    intro: 'You can select different search modes : <i>"Search by xxx"</i> for a block index/hash or instance specific search, <i>"Automatic search"</i> combines all the methods. ',
                 },
                 {
                     element: document.getElementById("last-container"),
-                    intro:
-                        'This part displays the details of the last added blocks, more items will soon be visible here too. The square blockies <img src ="assets/blockie_example.png"/> represent block hashes, click on it to copy it to your clipboard!',
+                    intro: 'This part displays the details of the last added blocks, more items will soon be visible here too. The square blockies <img src ="assets/blockie_example.png"/> represent block hashes, click on it to copy it to your clipboard!',
                     position: "left",
                 },
                 {
                     element: document.querySelector(".block-detail-container"),
-                    intro:
-                        'Here you find the additional details about the selected block. We use <i>round</i> blockies for user IDs (again click on it to copy the ID) <img src="assets/user_Id_blockie.png"/>. The Forward and Back links are the arrows you cans see on the skipchain, and point to different blocks. By clicking on <i>"Block xxxx"</i> you\'ll be redirected to its details. ',
+                    intro: 'Here you find the additional details about the selected block. We use <i>round</i> blockies for user IDs (again click on it to copy the ID) <img src="assets/user_Id_blockie.png"/>. The Forward and Back links are the arrows you cans see on the skipchain, and point to different blocks. By clicking on <i>"Block xxxx"</i> you\'ll be redirected to its details. ',
                     position: "left",
                 },
                 {
                     element: document.querySelector(".browse-container"),
-                    intro:
-                        "In the transaction details, you can witness which instances have been used in the transactions and browse their past history with the search tool. Instances can be seen as contracts and can be <i>Spawned</i> (created), <i>Invoked</i> (modified), or <i>Deleted</i>, checking it's history shows you how the contract has evolved. Open the first transaction to continue!",
+                    intro: "In the transaction details, you can witness which instances have been used in the transactions and browse their past history with the search tool. Instances can be seen as contracts and can be <i>Spawned</i> (created), <i>Invoked</i> (modified), or <i>Deleted</i>, checking it's history shows you how the contract has evolved. Open the first transaction to continue!",
                     position: "top",
                 },
                 {
                     element: document.querySelector(".browse-container"),
-                    intro:
-                        "Here you can browse for the previous/next/first instructions related to this Contract, to have an overwiev it's evolution. The result of the search is shown down on the page!",
+                    intro: "Here you can browse for the previous/next/first instructions related to this Contract, to have an overwiev it's evolution. The result of the search is shown down on the page!",
                     position: "top",
                 },
                 {
                     element: document.getElementById("status-info"),
-                    intro:
-                        "By clicking on the Roster button, you can select a new roster by copy pasting the roster.toml infos and load a new Skipchain on the explorer!",
+                    intro: "By clicking on the Roster button, you can select a new roster by copy pasting the roster.toml infos and load a new Skipchain on the explorer!",
                     position: "top",
                 },
                 {

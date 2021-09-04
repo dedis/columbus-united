@@ -1,4 +1,5 @@
 const path = require("path");
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin')
 
 module.exports = {
     entry: ["@babel/polyfill", "./src/index.ts"],
@@ -11,7 +12,9 @@ module.exports = {
         libraryTarget: "umd",
         globalObject: "this",
     },
-    plugins: [],
+    plugins: [
+        new NodePolyfillPlugin()
+    ],
     module: {
         rules: [
             {
@@ -33,7 +36,6 @@ module.exports = {
             {
                 test: /\.ts$/,
                 include: [
-                    /node_modules\/@dedis\/cothority/,
                     /.\/src/
                 ],
                 use: [
@@ -49,30 +51,30 @@ module.exports = {
             {
                 test: /\.s[ac]ss$/i,
                 use: [
-                  // Creates `style` nodes from JS strings
-                  'style-loader',
-                  // Translates CSS into CommonJS
-                  'css-loader',
-                  // Compiles Sass to CSS
-                  'sass-loader',
+                    // Creates `style` nodes from JS strings
+                    'style-loader',
+                    // Translates CSS into CommonJS
+                    'css-loader',
+                    // Compiles Sass to CSS
+                    'sass-loader',
                 ],
-              },
+            },
         ],
     },
     resolve: {
         extensions: [".js", ".ts"],
         modules: ['node_modules'],
         fallback: {
-          path: require.resolve('path-browserify'),
-          stream: require.resolve('stream-browserify'),
-          'crypto-browserify': require.resolve('crypto-browserify'),
-          fs: false,
-          tls: false,
-          net: false,
-          zlib: false,
-          http: false,
-          https: false,
-          crypto: false
+            path: require.resolve('path-browserify'),
+            stream: require.resolve('stream-browserify'),
+            'crypto-browserify': require.resolve('crypto-browserify'),
+            fs: false,
+            tls: false,
+            net: false,
+            zlib: false,
+            http: false,
+            https: false,
+            crypto: false
         }
     },
 };

@@ -1,4 +1,3 @@
-import { DataBody } from "@dedis/cothority/byzcoin/proto";
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
