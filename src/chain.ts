@@ -369,6 +369,7 @@ export class Chain {
         // It is initialized here as it takes longer to load.
         // We need to use it when creating new chunks
         this.lastAddedBlock = new LastAddedBlock(flash);
+        console.log("sdjadn");
         this.lastAddedBlock.init(
             this.roster,
             this.initialBlock,

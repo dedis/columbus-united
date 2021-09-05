@@ -198,7 +198,6 @@ async function searchRequest(
         blockClickedSubject: Subject<SkipBlock>
     ) {
         try {
-            console.log(input);
             const block = await Utils.getBlockByIndex(
                 Utils.hex2Bytes(hashBlock0),
                 parseInt(input, 10),

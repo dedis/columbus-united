@@ -247,11 +247,7 @@ export class Lifecycle {
                                         maxNumberOfBlocks
                                     );
                                 }
-                                // else{
-                                //     subjectBrowse.complete();
-                                //     subjectProgress.complete();
-                                //     subjectInstruction.complete();
-                                // }
+
                                 transactionFound.next(this.nbInstanceFound);
                             }
                         }
@@ -260,7 +256,7 @@ export class Lifecycle {
                 if (i === pageSizeB) {
                     pageDone++;
                     if (pageDone >= numPagesB) {
-                        // condition to end the browsing
+                        // Csondition to end the browsing
                         if (
                             (skipBlock.forwardLinks[0].to.length !== 0 ||
                                 skipBlock.backlinks[0].length != 0) &&

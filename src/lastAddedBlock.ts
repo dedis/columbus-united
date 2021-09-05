@@ -34,8 +34,6 @@ export class LastAddedBlock {
         this.svgLast = d3
             .select("#last-container")
             .attr("height", this.svgHeight);
-
-        // Fetch the last block from the Cothority client
     }
 
     async init(
