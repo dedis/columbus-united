@@ -13,7 +13,6 @@ body {
     flex-direction: column;
     height: 100vh;
     overflow-y: auto;
-    //overflow-y: hidden;
     -webkit-appearance: none;
 }
 div.tooltip {
@@ -54,7 +53,6 @@ div.query-answer {
 #query-card-container {
     overflow: auto;
     outline: 1px solid var(--selected-colour);
-    //cursor: grab;
     padding: 0 10px;
 }
 
@@ -151,8 +149,6 @@ div.query-answer {
     padding-right: 50px;
 }
 
-//
-
 /* Used to transform black SVGs to white SVGs, as well as displaying them inline*/
 .white-icon {
     width: 32px;
@@ -195,7 +191,6 @@ div.query-answer {
 .topnav a[type="submit"] {
     padding-top: 10px;
     background: white;
-    //margin-right: 35%;
     margin-top: 8px;
     margin-bottom: 8px;
     color: grey;
@@ -640,10 +635,6 @@ List of classes for the new transaction container
     outline: 2px solid var(--selected-colour);
 }
 
-// #block-detail-field {
-//     font-family: "Space Mono", monospace;
-//     color: #ffffff;
-// }
 .uk-accordion > .uk-open {
     background-color: var(--selected-colour);
 }
@@ -664,7 +655,7 @@ List of classes for the new transaction container
 
 .uk-accordion * {
     color: #ffffff;
-    //added
+
     .search-value {
         color: black;
     }
@@ -781,12 +772,7 @@ List of classes for the new transaction container
 }
 
 #select-roster {
-    background: rgba(
-        0,
-        0,
-        0,
-        0.5
-    ); //darken background to overwrite .uk-open background-color
+    background: rgba(0, 0, 0, 0.5);
 }
 
 .uk-button-small {
