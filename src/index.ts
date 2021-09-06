@@ -100,7 +100,6 @@ export function startSkipchain(rosterStr: string, defaultSkipchain: boolean) {
         .getLatestBlock(Utils.hex2Bytes(hashBlock0), false, true)
         .then((last) => {
             // skipBlock of the last added block of the chain
-
             // Url input from the user
             const indexString = window.location.hash.split(":")[1];
 

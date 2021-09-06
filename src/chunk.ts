@@ -545,11 +545,11 @@ export class Chunk {
             // Append arrows between blocks
             this.getToAndFromIndexes(xTranslateBlock, block, garrow);
 
-            this.appendCircleInBlock(
-                xTranslateBlock,
-                d3.selectAll(".gcircle"),
-                block
-            );
+            // this.appendCircleInBlock(
+            //     xTranslateBlock,
+            //     d3.selectAll(".gcircle"),
+            //     block
+            // );
         }
 
         // Notify the subject that new blocks have been added
@@ -727,6 +727,9 @@ export class Chunk {
             .on("mouseout", function () {
                 d3.select(this).style("cursor", "default");
             });
+        console.log(
+            d3.select("#" + Utils.bytes2String(block.hash)).attr("width")
+        );
     }
 
     /**
