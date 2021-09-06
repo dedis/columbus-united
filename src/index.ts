@@ -13,6 +13,7 @@ import { TotalBlock } from "./totalBlock";
 import { Utils } from "./utils";
 import * as d3 from "d3";
 import * as introJS from "intro.js";
+import { select, selectAll } from "d3";
 
 /*
    ___              _                     _
@@ -62,9 +63,9 @@ export function sayHi() {
 
 /**
  * Connect to the roster
+ * @param roster
+ * @param skipchainIndex
  *
- * @param rosterStr
- * @param defaultSkipchain
  */
 export function startSkipchain(rosterStr: string, defaultSkipchain: boolean) {
     // Create the roster
@@ -86,7 +87,12 @@ export function startSkipchain(rosterStr: string, defaultSkipchain: boolean) {
         scRPC
             .getAllSkipChainIDs()
             .then((resp) => {
+                //hashBlock 0 of new roster
+
                 hashBlock0 = Utils.bytes2String(resp[0]);
+
+                //var re = /[0-9A-Fa-f]{6}/g; //for testing that hashBlock0 is valid hex string
+                //console.log(re.test(hashBlock0));
             })
             .catch((e) =>
                 flash.display(
@@ -100,6 +106,7 @@ export function startSkipchain(rosterStr: string, defaultSkipchain: boolean) {
         .getLatestBlock(Utils.hex2Bytes(hashBlock0), false, true)
         .then((last) => {
             // skipBlock of the last added block of the chain
+
             // Url input from the user
             const indexString = window.location.hash.split(":")[1];
 
@@ -184,7 +191,6 @@ export function startSkipchain(rosterStr: string, defaultSkipchain: boolean) {
  * @param initialBlock the first block that will be displayed
  * @param roster the roster
  * @param flash the flash class that handles the flash messages
- * @param defaultSkipchain
  */
 export function startColumbus(
     genesisBlock: SkipBlock,
@@ -219,6 +225,9 @@ export function startColumbus(
     // Create the browsing instance, which is used by the detailBlock class when a
     // user wants to get the lifecycle of an instance.
     const lifecycle = new Lifecycle(roster, flash, totalBlock, hashBlock0);
+
+    //Display status of nodes and statistics of the blockchain
+    const skipchainStatus = new Status(roster, initialBlock, flash);
 
     // Set up the class that listens on blocks clicks and display their details
     // accordingly.

@@ -11,13 +11,15 @@ import { Flash } from "./flash";
 import * as d3 from "d3";
 import { Utils } from "./utils";
 import DataBody from "@dedis/cothority/byzcoin/proto/data-body";
+import { curveLinear } from "d3";
 
 /**
  * The class displays the status of the nodes of the Roster and the statistics
  * of the Chain underneath the chain (inside an Accordion)
  *
- * @author Pilar Marxer (pilar.marxer@epfl.ch)
- * @author Noémien Kocher (noémien.kocher@epfl.ch)
+ * @author Pilar Marxer <pilar.marxer@epfl.ch>
+ * @export
+ * @class Status
  */
 
 export class Status {
