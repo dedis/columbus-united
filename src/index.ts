@@ -78,6 +78,13 @@ export function startSkipchain(rosterStr: string, defaultSkipchain: boolean) {
         return;
     }
 
+    if (navigator.userAgent.indexOf("Firefox") != -1) {
+        flash.display(
+            Flash.flashType.WARNING,
+            "Firefox does not support all features of Columbus. Use any other web browser for an optimal experience."
+        );
+    }
+
     let initialBlockIndex: number;
 
     const scRPC = new SkipchainRPC(roster);
@@ -90,9 +97,6 @@ export function startSkipchain(rosterStr: string, defaultSkipchain: boolean) {
                 //hashBlock 0 of new roster
 
                 hashBlock0 = Utils.bytes2String(resp[0]);
-
-                //var re = /[0-9A-Fa-f]{6}/g; //for testing that hashBlock0 is valid hex string
-                //console.log(re.test(hashBlock0));
             })
             .catch((e) =>
                 flash.display(
