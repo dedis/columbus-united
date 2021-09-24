@@ -6,8 +6,8 @@ import {
 } from "@dedis/cothority/byzcoin/proto/stream";
 import { Roster, WebSocketAdapter } from "@dedis/cothority/network";
 import { WebSocketConnection } from "@dedis/cothority/network";
-import { ForwardLink, SkipBlock } from "@dedis/cothority/skipchain";
-import { Observable, Subject } from "rxjs";
+import { SkipBlock } from "@dedis/cothority/skipchain";
+import { Subject } from "rxjs";
 import { finalize, take } from "rxjs/operators";
 
 import { Flash } from "./flash";
@@ -90,11 +90,13 @@ export class Lifecycle {
      * the progress,the number of blocks seen, the totat number of blocks,
      * the number of instance found: used to update the loading screen.
      *
-     * @param {Instruction} instance : the instruction that we wish to search
-     *                                in the blockchain
-     *
      * @returns {[Subject<[SkipBlock[], Instruction[]]>, Subject<number[]>]}:
      * @memberof Browsing
+     * @param instanceID
+     * @param maxNumberOfBlocks
+     * @param initHash
+     * @param direction
+     * @param fromFirstBlock
      */
     getInstructionSubject(
         instanceID: string,
@@ -169,7 +171,7 @@ export class Lifecycle {
      * @param {SkipBlock[]} skipBlocksSubject : Accumulator for the subjectInstruction
      * @param {Instruction[]} instructionB : Accumulator for the subjectInstruction
      * @param {number} maxNumberOfBlocks : Max number of blocks requested
-     * @param {boolen} direction : the direction of the query
+     * @param {boolean} direction : the direction of the query
      * @memberof Browsing
      */
     private browse(
@@ -245,11 +247,7 @@ export class Lifecycle {
                                         maxNumberOfBlocks
                                     );
                                 }
-                                // else{
-                                //     subjectBrowse.complete();
-                                //     subjectProgress.complete();
-                                //     subjectInstruction.complete();
-                                // }
+
                                 transactionFound.next(this.nbInstanceFound);
                             }
                         }
@@ -258,7 +256,7 @@ export class Lifecycle {
                 if (i === pageSizeB) {
                     pageDone++;
                     if (pageDone >= numPagesB) {
-                        // condition to end the browsing
+                        // Csondition to end the browsing
                         if (
                             (skipBlock.forwardLinks[0].to.length !== 0 ||
                                 skipBlock.backlinks[0].length != 0) &&

@@ -72,7 +72,8 @@ export class Chain {
     // The group that contains the arrows between blocks.
     readonly garrow: any;
     // The groups that contains the circles on the blocks of the chain
-    // readonly gcircle: any;
+    readonly gcircle: any;
+    readonly blockies: any;
 
     // The array that contains all autonomous parts on the chain.
     readonly chunks = new Array<Chunk>();
@@ -121,10 +122,16 @@ export class Chain {
         // This group will contain the arrows between blocks
         this.garrow = svg.append("g").attr("class", "garrow");
 
+        d3.select("body")
+            .append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
         // This group will contain the circles. We need two separate groups because the
         // transform on the text group should not change the scale to keep the text
         // readable
-        // this.gcircle = svg.append("g").attr("class", "gcircle");
+        this.gcircle = svg.append("g").attr("class", "gcircle");
+        this.blockies = svg.append("g").attr("class", "blockies");
 
         // The xScale displays the block index and allows the user to quickly see
         // where he is in the chain
@@ -328,13 +335,33 @@ export class Chain {
                     "1" +
                     ")";
 
-                // The blocks and arrows follow the transformations of the chain.
+                var transformCircle =
+                    "translate(" +
+                    transform.x +
+                    "," +
+                    "32) scale(" +
+                    transform.k +
+                    "," +
+                    transform.k +
+                    ")";
+
+                if (transform.k <= 0.99) {
+                    transformCircle =
+                        "translate(" +
+                        transform.x +
+                        "," +
+                        "0) scale(" +
+                        "0" +
+                        "," +
+                        "0" +
+                        ")";
+                }
+
+                // The blocks, arrows, circles follow the transformations of the chain.
                 this.gblocks.attr("transform", transformString);
                 this.garrow.attr("transform", transformString);
-
-                // Standard transformation on the text since we need to keep the
-                // original scale
-                // this.gcircle.attr("transform", transformString);
+                this.gcircle.attr("transform", transformCircle);
+                this.blockies.attr("transform", transformCircle);
             },
         });
 

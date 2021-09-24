@@ -1,4 +1,3 @@
-import { DataBody } from "@dedis/cothority/byzcoin/proto";
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
@@ -35,8 +34,6 @@ export class LastAddedBlock {
         this.svgLast = d3
             .select("#last-container")
             .attr("height", this.svgHeight);
-
-        // Fetch the last block from the Cothority client
     }
 
     async init(
@@ -221,7 +218,7 @@ export class LastAddedBlock {
             .append("text")
             .attr("x", "25%")
             .attr("y", "45%")
-            .text(this.getTransactionRatio(lastBlock)[0].toString()) // Number of validated transactions
+            .text(Utils.getTransactionRatio(lastBlock)[0].toString()) // Number of validated transactions
             .attr("font-family", "Arial")
             .attr("font-size", "18px")
             .attr("font-weight", "bold")
@@ -254,7 +251,7 @@ export class LastAddedBlock {
             .append("text")
             .attr("x", "25%")
             .attr("y", "60%")
-            .text(this.getTransactionRatio(lastBlock)[1].toString()) // Number of rejected transactions
+            .text(Utils.getTransactionRatio(lastBlock)[1].toString()) // Number of rejected transactions
             .attr("font-family", "Arial")
             .attr("font-size", "18px")
             .attr("font-weight", "bold")
@@ -317,23 +314,5 @@ export class LastAddedBlock {
         imBlockies.on("click", () =>
             Utils.copyToClipBoard(block.hash.toString("hex"), self.flash)
         );
-    }
-
-    /**
-     * Helper function to count the number of validated and rejected transactions
-     * @param block the block from which we want the transactions
-     */
-    private getTransactionRatio(block: SkipBlock): [number, number] {
-        let accepted = 0;
-        let rejected = 0;
-        const body = DataBody.decode(block.payload);
-        body.txResults.forEach((transaction) => {
-            if (transaction.accepted) {
-                accepted++;
-            } else {
-                rejected++;
-            }
-        });
-        return [accepted, rejected];
     }
 }

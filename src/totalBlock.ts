@@ -28,6 +28,7 @@ export class TotalBlock {
      * blockchain
      *
      * @param {Roster} roster
+     * @param initialBlock
      * @memberof TotalBlock
      */
     constructor(roster: Roster, initialBlock: SkipBlock) {
@@ -86,14 +87,12 @@ export class TotalBlock {
                     sub.error("unexpected paginate complete");
                 },
                 error: (err: Error) => {
-                    console.log("here");
                     sub.error(err);
                 },
                 // ws callback "onMessage":
                 next: ([data, ws]) => {
                     // tslint:disable-next-line
                     if (data.errorcode != 0) {
-                        console.log("2");
                         sub.error(data.errortext);
                     }
 

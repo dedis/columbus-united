@@ -1,4 +1,6 @@
 import { DataHeader } from "@dedis/cothority/byzcoin/proto";
+import { DataBody } from "@dedis/cothority/byzcoin/proto";
+
 import { Roster } from "@dedis/cothority/network";
 import { SkipBlock } from "@dedis/cothority/skipchain";
 import { SkipchainRPC } from "@dedis/cothority/skipchain";
@@ -147,7 +149,6 @@ export class Utils {
      * Translates the chain to the given block.
      * @param goalBlock
      * @param initialBlock
-     * @param blockClickedSubject
      */
     static async translateOnChain(goalBlock: number, initialBlock: number) {
         // translate the chain to wanted coordinates
@@ -267,6 +268,19 @@ export class Utils {
         });
     }
 
+    static getTransactionRatio(block: SkipBlock): [number, number] {
+        let accepted = 0;
+        let rejected = 0;
+        const body = DataBody.decode(block.payload);
+        body.txResults.forEach((transaction) => {
+            if (transaction.accepted) {
+                accepted++;
+            } else {
+                rejected++;
+            }
+        });
+        return [accepted, rejected];
+    }
     /**
      * @author Rosa José Sara
      * @returns the svg script for the download icon

@@ -198,10 +198,7 @@ export class InstructionChain {
         //set the zoom and scroll event handler subject to add and resize block as necessary
         this.chainSubject.pipe(debounceTime(80)).subscribe({
             next: (transform: any) => {
-                const isLoadingInstr = this.checkAndAddBlocks(
-                    transform,
-                    this.gInstr
-                );
+                this.checkAndAddBlocks(transform, this.gInstr);
             },
         });
 
@@ -370,7 +367,7 @@ export class InstructionChain {
                 // add a blocky in case of invoked coin
                 if (arg.name == "destination" || arg.name == "roster") {
                     const blocky = blockies.create({ seed: arg.value });
-                    const imBlockies = gInstr
+                    gInstr
                         .append("svg:image")
                         .attr("x", xTranslate + 107 * k)
                         .attr("y", dy - 15 * k)
