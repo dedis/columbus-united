@@ -99,6 +99,8 @@ export class Chain {
     // Coordinates and scale factor of the view of the chain
     lastTransform = { x: 0, y: 0, k: 1 };
 
+    private transformSubject: Subject<unknown>;
+
     constructor(roster: Roster, flash: Flash, initialBlock: SkipBlock) {
         // Blockchain properties
         this.roster = roster;
@@ -109,6 +111,8 @@ export class Chain {
 
         // This subject will be notified when the main SVG canvas in moved by the user
         const subject = new Subject();
+
+        this.transformSubject = subject;
 
         //When a new chain is created the number of loaded blocks is reset
         Chain.totalLoaded = 0;
@@ -364,139 +368,131 @@ export class Chain {
                 this.blockies.attr("transform", transformCircle);
             },
         });
+    }
 
+    async init() {
         // Initialize the last added block of the chain in its dedicated space
         // It is initialized here as it takes longer to load.
         // We need to use it when creating new chunks
-        this.lastAddedBlock = new LastAddedBlock(flash);
-        this.lastAddedBlock.init(
+
+        this.lastAddedBlock = new LastAddedBlock(this.flash);
+
+        await this.lastAddedBlock.init(
             this.roster,
             this.initialBlock,
             this.blockClickedSubject
         );
 
         // Subject that is notified about the transformation on the chain
-        subject.pipe(debounceTime(50)).subscribe({
+        this.transformSubject.pipe(debounceTime(50)).subscribe({
             next: (transform: any) => {
-                const bounds = Utils.transformToIndexes(
-                    transform,
-                    Chain.blockWidth + Chain.blockPadding,
-                    Chain.svgWidth
-                );
-
-                let alreadyHandled = false;
-
-                // The adjacent neighbours to the current Chunk
-                let leftNei: Chunk;
-                let rightNei: Chunk;
-
-                // The adjacent neighbours indexes to the current Chunk
-                let leftNeiIndex = 0;
-                let rightNeiIndex = 0;
-
-                for (let i = 0; i < this.chunks.length; i++) {
-                    const chunk = this.chunks[i];
-
-                    // the chunk is "fully inside"
-                    // ---[--***--]---
-                    if (
-                        chunk.left >= bounds.left &&
-                        chunk.right <= bounds.right
-                    ) {
-                        alreadyHandled = true;
-                        break;
-                    }
-
-                    // the chunk is "partially inside, from the left"
-                    // --*[**----]---
-                    if (chunk.left < bounds.left && chunk.right > bounds.left) {
-                        alreadyHandled = true;
-                        break;
-                    }
-
-                    // the chunk is "partially inside, from the right"
-                    // ---[----**]*--
-                    if (
-                        chunk.left < bounds.right &&
-                        chunk.right > bounds.right
-                    ) {
-                        alreadyHandled = true;
-                        break;
-                    }
-
-                    // the chuck is "overly inside"
-                    // ---*[***]*---
-                    if (
-                        chunk.left < bounds.left &&
-                        chunk.right > bounds.right
-                    ) {
-                        alreadyHandled = true;
-                        break;
-                    }
-
-                    // --**-[---]-----
-                    if (chunk.right < bounds.left) {
-                        if (
-                            leftNei === undefined ||
-                            chunk.right > leftNei.right
-                        ) {
-                            leftNei = chunk;
-                            leftNeiIndex = i;
-                        }
-                    }
-
-                    // -----[---]-**--
-                    if (chunk.left > bounds.right) {
-                        if (
-                            rightNei === undefined ||
-                            chunk.left < rightNei.left
-                        ) {
-                            rightNei = chunk;
-                            rightNeiIndex = i;
-                        }
-                    }
-                }
-
-                if (!alreadyHandled) {
-                    // A new Chunk is created,
-
-                    if (
-                        bounds.left + (bounds.right - bounds.left) / 2 >
-                        this.lastAddedBlock.lastBlock.index
-                    ) {
-                        bounds.right = this.lastAddedBlock.lastBlock.index;
-                    } else {
-                        bounds.left =
-                            bounds.left + (bounds.right - bounds.left) / 2;
-                        bounds.right =
-                            bounds.left + (bounds.right - bounds.left) / 2 + 20;
-                    }
-
-                    const c = new Chunk(
-                        this.roster,
-                        this.flash,
-                        leftNei,
-                        rightNei,
-                        bounds,
-                        initialBlock,
-                        this.lastAddedBlock,
-                        subject,
-                        this.getNewBlocksSubject,
-                        this.blockClickedSubject
-                    );
-
-                    if (leftNei !== undefined) {
-                        leftNei.rightNeighbor = c;
-                    }
-
-                    if (rightNei !== undefined) {
-                        rightNei.leftNeighbor = c;
-                    }
-
-                    // Keep the chunks sorted.
-                    this.chunks.splice(leftNeiIndex + 1, 0, c);
-                }
+                this.transformHandler(transform);
             },
         });
+    }
+
+    transformHandler(transform: any) {
+        const bounds = Utils.transformToIndexes(
+            transform,
+            Chain.blockWidth + Chain.blockPadding,
+            Chain.svgWidth
+        );
+
+        let alreadyHandled = false;
+
+        // The adjacent neighbors to the current Chunk
+        let leftNei: Chunk;
+        let rightNei: Chunk;
+
+        // The adjacent neighbors indexes to the current Chunk
+        let leftNeiIndex = 0;
+        let rightNeiIndex = 0;
+
+        for (let i = 0; i < this.chunks.length; i++) {
+            const chunk = this.chunks[i];
+
+            // the chunk is "fully inside"
+            // ---[--***--]---
+            if (chunk.left >= bounds.left && chunk.right <= bounds.right) {
+                alreadyHandled = true;
+                break;
+            }
+
+            // the chunk is "partially inside, from the left"
+            // --*[**----]---
+            if (chunk.left < bounds.left && chunk.right > bounds.left) {
+                alreadyHandled = true;
+                break;
+            }
+
+            // the chunk is "partially inside, from the right"
+            // ---[----**]*--
+            if (chunk.left < bounds.right && chunk.right > bounds.right) {
+                alreadyHandled = true;
+                break;
+            }
+
+            // the chuck is "overly inside"
+            // ---*[***]*---
+            if (chunk.left < bounds.left && chunk.right > bounds.right) {
+                alreadyHandled = true;
+                break;
+            }
+
+            // --**-[---]-----
+            if (chunk.right < bounds.left) {
+                if (leftNei === undefined || chunk.right > leftNei.right) {
+                    leftNei = chunk;
+                    leftNeiIndex = i;
+                }
+            }
+
+            // -----[---]-**--
+            if (chunk.left > bounds.right) {
+                if (rightNei === undefined || chunk.left < rightNei.left) {
+                    rightNei = chunk;
+                    rightNeiIndex = i;
+                }
+            }
+        }
+
+        if (!alreadyHandled) {
+            // A new Chunk is created,
+
+            if (
+                bounds.left + (bounds.right - bounds.left) / 2 >
+                this.lastAddedBlock.lastBlock.index
+            ) {
+                bounds.right = this.lastAddedBlock.lastBlock.index;
+            } else {
+                bounds.left = bounds.left + (bounds.right - bounds.left) / 2;
+                bounds.right =
+                    bounds.left + (bounds.right - bounds.left) / 2 + 20;
+            }
+
+            const c = new Chunk(
+                this.roster,
+                this.flash,
+                leftNei,
+                rightNei,
+                bounds,
+                this.initialBlock,
+                this.lastAddedBlock,
+                this.transformSubject,
+                this.getNewBlocksSubject,
+                this.blockClickedSubject
+            );
+
+            if (leftNei !== undefined) {
+                leftNei.rightNeighbor = c;
+            }
+
+            if (rightNei !== undefined) {
+                rightNei.leftNeighbor = c;
+            }
+
+            // Keep the chunks sorted.
+            this.chunks.splice(leftNeiIndex + 1, 0, c);
+        }
     }
 }

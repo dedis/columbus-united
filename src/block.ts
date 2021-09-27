@@ -171,9 +171,7 @@ export class Block {
         const blockCard = ulBlockDetail
             .append("div")
             .attr("style", "outline: groove rgba(204, 204, 204, 0.3);");
-        blockCard
-            .attr("class", "uk-card uk-card-default")
-            .attr("id", "detail-window");
+        blockCard.attr("class", "uk-card uk-card-default");
 
         // Header of the card used to display the block index and it's hash
         const blockCardHeader = blockCard.append("div");
@@ -446,17 +444,12 @@ export class Block {
             left += 1;
         });
 
-        // Transaction details
-        const ulTransaction = transaction_detail_container.append("ul");
-
         // This card simply hold the title of the section in its header, and lists all transactions
         // in its body
-        const transactionCard = ulTransaction
+        const transactionCard = transaction_detail_container
             .append("div")
             .attr("style", "outline: groove rgba(204, 204, 204, 0.3);");
-        transactionCard
-            .attr("class", "uk-card uk-card-default")
-            .attr("id", "detail-window");
+        transactionCard.attr("class", "uk-card uk-card-default");
 
         const transactionCardHeader = transactionCard.append("div");
         transactionCardHeader.attr("class", "uk-card-header uk-padding-small");
@@ -504,8 +497,7 @@ export class Block {
                 ? "Accepted"
                 : `<span id ="rejected">Rejected</span>`;
 
-            const liTransaction = transactionCardBody.append("ul");
-            liTransaction.attr("id", "detail-window").attr("class", "uk-open");
+            const liTransaction = transactionCardBody.append("div");
             const transactionTitle = liTransaction.append("h3");
             let totalInstruction = 0;
 
@@ -521,11 +513,6 @@ export class Block {
                         `:`
                 );
 
-            const divTransaction = liTransaction.append("div");
-            divTransaction.attr("class", "uk-accordion-content");
-
-            const ulInstruction = divTransaction.append("ul");
-            ulInstruction.attr("uk-accordion", "");
             // Transaction displaying
             transaction.clientTransaction.instructions.forEach(
                 (instruction) => {
@@ -535,8 +522,13 @@ export class Block {
                     var coin_invoked = false;
                     let args = null;
                     let commandName = null;
+
+                    const ulInstruction = liTransaction.append("ul");
+                    ulInstruction.attr("uk-accordion", "");
+
                     const liInstruction = ulInstruction.append("li");
                     liInstruction.attr("style", "padding-left:15px");
+
                     const aInstruction = liInstruction.append("a");
                     aInstruction.attr("class", "uk-accordion-title");
 
@@ -727,14 +719,13 @@ export class Block {
                     }
 
                     // Browse button
-                    const searchInstance = divInstruction.append("li");
+                    const searchInstance = divInstruction.append("div");
                     searchInstance
-                        .append("span")
+                        .append("p")
                         .attr("class", "search-text")
                         .text(" Search for ");
 
                     const numberTag = searchInstance
-                        .append("span")
                         .append("form")
                         .style("display", "inline");
 
@@ -747,7 +738,6 @@ export class Block {
                         .attr("class", "search-value uk-input");
 
                     const directionTag = numberTag
-                        .append("span")
                         .append("form")
                         .style("display", "inline");
 
@@ -773,7 +763,7 @@ export class Block {
                         .text("first");
 
                     directionTag
-                        .append("span")
+                        .append("p")
                         .text(" instructions related to this instance ")
                         .style("display", "block");
 

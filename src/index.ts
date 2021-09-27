@@ -81,7 +81,8 @@ export function startSkipchain(rosterStr: string, defaultSkipchain: boolean) {
     if (navigator.userAgent.indexOf("Firefox") != -1) {
         flash.display(
             Flash.flashType.WARNING,
-            "Firefox does not support all features of Columbus. Use any other web browser for an optimal experience."
+            "⚠️⚠️ There is limited compatibility with FIREFOX, especially on a long chain. Use an alternative browser for the best experience.",
+            999999
         );
     }
 
@@ -220,6 +221,13 @@ export function startColumbus(
 
     // The translation is done to the initialBlock
     Utils.translateOnChain(initialBlock.index, genesisBlock.index);
+
+    setTimeout(async () => {
+        await chain.init();
+
+        // Fire a transform handler to load initial blocks
+        chain.transformHandler(chain.lastTransform);
+    }, 3000);
 
     // The totalBlock utility class allows the browsing class to get the total
     // number of block in the chain. This class is stateful, it will keep each

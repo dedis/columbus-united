@@ -36,7 +36,7 @@ export class Flash {
      * @param {string} text The text to display
      * @memberof Flash
      */
-    display(errorCode: Flash.flashType, text: string) {
+    display(errorCode: Flash.flashType, text: string, expiry = 3000) {
         let divAlert;
 
         switch (errorCode) {
@@ -49,6 +49,7 @@ export class Flash {
                     .attr("class", "close-btn")
                     .text(`\u2715`);
                 divAlert.append("text").text(`Error: ${text}`);
+                console.error(text);
                 break;
 
             case Flash.flashType.WARNING:
@@ -60,6 +61,7 @@ export class Flash {
                     .attr("class", "close-btn")
                     .text(`\u2715`);
                 divAlert.append("text").text(`Warning: ${text}`);
+                console.warn(text);
                 break;
 
             case Flash.flashType.INFO:
@@ -71,6 +73,7 @@ export class Flash {
                     .attr("class", "close-btn")
                     .text(`\u2715`);
                 divAlert.append("text").text(`Info: ${text}`);
+                console.info(text);
                 break;
 
             case Flash.flashType.OTHER:
@@ -85,10 +88,11 @@ export class Flash {
                 divAlert
                     .append("text")
                     .text(`Other error not handled: ${text}`);
+                console.log(text);
                 break;
         }
         //Removes the flash after 2s
-        const timer = rx.timer(2000);
+        const timer = rx.timer(expiry);
         let bookmark = this.span.node().parentElement;
         timer.subscribe(() => {
             Flash.closeAlert(bookmark);
