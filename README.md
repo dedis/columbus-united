@@ -231,3 +231,10 @@ Student project Fall 2020:
 - Lucas Trognon
 
 [Common report](https://www.epfl.ch/labs/dedis/wp-content/uploads/2021/01/report-2020-3-Columbus-Sophia-Artiolis-Lucas-Trognon-Columbus-III.pdf)
+
+Student project Spring 2021:
+
+- Rosa Jose Sara
+- Pilar Marxer
+
+[Common report](https://www.epfl.ch/labs/dedis/wp-content/uploads/2021/07/report-2021-1-Pilar-Rosa_Columbus_IV.pdf)

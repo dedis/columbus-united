@@ -35,7 +35,8 @@ jobs:
       env:
         dest: 'jstech@${{secrets.DEPLOY_ADDR}}:/var/www/wookiee.ch/public_html/columbus'
       run: |
-        mv ./assets/* ./
+        cp ./assets/favicon.ico ./
+        cp ./assets/icon.png ./
         echo "${{secrets.DEPLOY_KEY}}" > deploy_key
         chmod 600 ./deploy_key
         rsync -chav --delete \
@@ -43,8 +44,8 @@ jobs:
           --exclude='.DS_Store' \
           --include=index.html \
           --include=favicon.ico \
-          --include=*.png \
-          --include=*.svg \
+          --include=icon.png \
           --include='dist/***' \
+          --include='assets/***' \
           --exclude='*' \
           ./ ${{env.dest}}
