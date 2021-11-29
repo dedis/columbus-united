@@ -1,8 +1,7 @@
 .vscode/
 node_modules/
 dist/
-docs/
-doc/
+jsdocs/
 src/roster.ts
 .DS_Store
 

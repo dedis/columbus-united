@@ -37,19 +37,66 @@ webpack, and using the d3 and rxjs librairies.
 
 [Play with it](https://wookiee.ch/columbus/)
 
+# Features
+
+## "Browsable" chain
+
+Browse the chain with your mouse with drag and zoom. Blocks will naturally load.
+Actions are also accessible through buttons.
+
 <div align="center">
-    <img src="assets/home.png">
+    <img src="docs/assets/feature1.gif">
 </div>
 
-### Some useful commands
+## Explore block
 
-Bundle the project (from the root): `npm run bundle`  
-Watch for source code changes and automatically bundle: `npm run watch`  
-Check TypeScript code formatting: `npm run lint`  
-Check if the code is well formatted: `npm run isPretty`  
-Format the code: `npm run makePretty`  
+Click on blocks to check their content. Many element display additional hints.
 
-## Setup (ubuntu)
+<div align="center">
+    <img src="docs/assets/feature2.gif">
+</div>
+
+## Follow evolution of an instance
+
+Check the evolution of a smart contract instance. You can get blocks and
+instruction related to a particular instance.
+
+<div align="center">
+    <img src="docs/assets/feature3.gif">
+</div>
+
+## Perform search
+
+Use the top search bar to retrieve a particular block. You can select among many
+different search attribute.
+
+<div align="center">
+    <img src="docs/assets/feature4.gif">
+</div>
+
+## ... and many more
+
+Additional features include:
+
+- Block export to json
+- Tutorial to introduce functionalities to new users
+- Upload of a custom roster
+- Statistics and status about the chain
+- Ability to follow block links
+
+# Stack
+
+- Typescript, as the frontend language
+- NPM, as the package manager
+- Webpack, as the bundler
+- d3, as the visualization library
+- RxJS, as the reactive programming library
+- UIkit, as the CSS framework
+
+# Setup (ubuntu)
+
+<details>
+  <summary>See details</summary>
 
 Install nodejs and npm:
 
@@ -58,26 +105,8 @@ sudo apt-get install nodejs
 sudo apt-get install npm
 ```
 
-Rename `src/roster.ts.template` to `src/roster.ts` and replace the return
-section with your roster configuration. You can connect to an existing conode
-runing the DEDIS production blockchain, for example by connecting to the
-following node (which is already configured by default in the template file):
-
-```toml
-[[servers]]
-  Address = "tls://188.166.35.173:7770"
-  Url = "https://wookiee.ch/conode"
-  Suite = "Ed25519"
-  Public = "a59fc58c0a445b70dcd57e01603a714a2ee99c1cc14ca71780383abada5d7143"
-  Description = "Wookiee's Cothority"
-  [servers.Services]
-    [servers.Services.ByzCoin]
-      Public = "70c192537778a53abb9315979f48e170da9182b324c7974462cbdde90fc0c51d440e2de266a81fe7a3d9d2b6665ef07ba3bbe8df027af9b8a3b4ea6569d7f72a41f0dfe4dc222aa8fd4c99ced2212d7d1711267f66293732c88e8d43a2cf6b3e2e1cd0c57b8f222a73a393e70cf81e53a0ce8ed2a426e3b0fa6b0da30ff27b1a"
-      Suite = "bn256.adapter"
-    [servers.Services.Skipchain]
-      Public = "63e2ed93333bd0888ed2b5e51b5e2544831b4d79dead571cf67604cdd96bc0212f68e582468267697403d7ed418e70ed9fcb01940e4c603373994ef00c04542c24091939bddca515381e0285ab805826cec457346be482e687475a973a20fca48f16c76e352076ccc0c866d7abb3ac50d02f9874d065f85404a0127efc1acf49"
-      Suite = "bn256.adapter"
-```
+Rename `src/roster.ts.template` to `src/roster.ts`. By default it uses the DEDIS
+roster.
 
 Otherwise, follow instructions in the next section to run a local conode and get
 a local roster configuration.
@@ -120,15 +149,28 @@ You can then use the following roster in your `roster.ts`:
   Public = "0000000000000000000000000000000000000000000000000000000000000000"
 ```
 
-## Recommendations for Visual Studio Code
+</details>
 
-### Settings
+# Some useful commands
+
+Bundle the project (from the root): `npm run bundle`  
+Watch for source code changes and automatically bundle: `npm run watch`  
+Check TypeScript code formatting: `npm run lint`  
+Check if the code is well formatted: `npm run isPretty`  
+Format the code: `npm run makePretty`  
+
+# Recommendations for Visual Studio Code
+
+<details>
+  <summary>See details</summary>
+
+## Settings
 
 Add vertical lines at columns 80 and 100: `editor.rulers` -> `Edit in settings.json` -> `"editor.rulers": [80,100]`  
 
-### Extensions
+## Extensions
 
-#### Live Server
+### Live Server
 
 Purpose: Automatically refresh the html upon compile  
 Install: `ritwickdey.liveserver`  
@@ -137,7 +179,7 @@ Use:
 * Right click on `index.html`
 * `Open with Live Server`
 
-#### Prettier - Code formatter
+### Prettier - Code formatter
 
 Purpose: Automatically format the code  
 Install: `esbenp.prettier-vscode`  
@@ -147,7 +189,7 @@ Use:
 * Open Command Palette (`Ctrl+Shift+P`)
 * `Format Document`
 
-#### TypeScript Hero
+### TypeScript Hero
 
 Purpose: Automatically organize TypeScript imports  
 Install: `rbbit.typescript-hero`  
@@ -156,7 +198,7 @@ Use:
 * Open Command Palette (`Ctrl+Shift+P`)
 * `TS Hero: Organize imports`
 
-#### Rewrap
+### Rewrap
 
 Purpose: Automatically reformat comments to a given line length (default is 80)  
 Install: `stkb.rewrap`  
@@ -165,7 +207,7 @@ Use:
 * Open Command Palette (`Ctrl+Shift+P`)
 * `Rewrap Comment / Text`
 
-#### Comment Anchor
+### Comment Anchor
 Purpose: Place anchor tags within comments for easy file & workspace navigation.
 Install: `ext install ExodiusStudios.comment-anchors`
 Use:
@@ -174,16 +216,9 @@ Use:
 * Use \\\\TODO, \\\\FIXME to mark specific areas
 * Read the documentation for more features
 
-## Stack
+</details>
 
-- Typescript, as the frontend language
-- NPM, as the package manager
-- Webpack, as the bundler
-- d3, as the visualization library
-- RxJS, as the reactive programming library
-- UIkit, as the CSS framework
-
-## Production deployment
+# Production deployment
 
 A change on the `production` branch automatically triggers a deployment on
 [https://status.dedis.ch](https://status.dedis.ch).
@@ -195,7 +230,7 @@ The production branch must only be used that way:
 git push origin master:production
 ```
 
-## Dev deployment
+# Dev deployment
 
 A change on the `deploy-dev` branch automatically triggers a deployment on
 [https://wookiee.ch/columbus-dev](https://wookiee.ch/columbus-dev).
@@ -207,14 +242,14 @@ The `deploy-dev` branch must only be used that way:
 git push origin <source branch>:deploy-dev
 ```
 
-## Documentation
+# Documentation
 
 Generate the documentation: `npm run doc`
 
-## Design Guidelines
+# Design Guidelines
 Can be found in the most recent report  
 
-## Contributors
+# Contributors
 
 Supervision and integration
 

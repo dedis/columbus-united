@@ -10,7 +10,7 @@
         "lint": "tslint 'src/{,**/}*.ts' 'spec/{,**/}*.ts'",
         "makePretty": "prettier --config .prettierrc --write \"src/**/*{.ts,.js}\" \"*.html\"",
         "isPretty": "prettier --config .prettierrc --check \"src/**/*{.ts,.js}\" \"*.html\"",
-        "doc": "typedoc --out doc/ src/"
+        "doc": "typedoc --out jsdocs/ src/"
     },
     "author": "",
     "license": "ISC",
