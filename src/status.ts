@@ -255,9 +255,17 @@ export class Status {
                     const body = DataBody.decode(block.payload);
                     const totalTransaction = body.txResults.length;
 
+                    var totalInstructions = 0;
+
+                    for (let k = 0; k < body.txResults.length; k++) {
+                        totalInstructions +=
+                            body.txResults[k].clientTransaction.instructions
+                                .length;
+                    }
+
                     chartData[nbFetchedBlocks - 1 - i] = [
                         block.index,
-                        totalTransaction,
+                        totalInstructions,
                     ];
 
                     totalTx += totalTransaction;
@@ -316,7 +324,7 @@ export class Status {
                     .append("div")
                     .attr("class", "uk-card-header")
                     .attr("style", "padding: 0px 0px")
-                    .text("Transaction history of the 1000 last blocks");
+                    .text("Total instructions of the last 1000 blocks");
 
                 // set the dimensions and margins of the graph
                 const margin = { top: 10, right: 10, bottom: 30, left: 30 },
