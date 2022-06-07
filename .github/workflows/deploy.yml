@@ -1,51 +1,51 @@
-name: Wookiee deployment
+name: Production deployment
 
 on:
-  push:
-    branches: [ production ]
+    push:
+        branches: [production]
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+    deploy:
+        runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v2
+        steps:
+            - uses: actions/checkout@v2
 
-    - uses: actions/setup-node@v1
-      with:
-        version: 12.x
+            - uses: actions/setup-node@v1
+              with:
+                  version: 12.x
 
-    - name: Install dependencies
-      run: |
-        npm install
+            - name: Install dependencies
+              run: |
+                  npm install
 
-    - name: Update version number
-      run: |
-          timestamp() {   
-            date +"%s" 
-                      }
-          sed -i "s|dist/bundle.min.js?v=VERSIONNUMBER|dist/bundle.min.js?v=$(timestamp)|" index.html
+            - name: Update version number
+              run: |
+                  timestamp() {   
+                    date +"%s" 
+                              }
+                  sed -i "s|dist/bundle.min.js?v=VERSIONNUMBER|dist/bundle.min.js?v=$(timestamp)|" index.html
 
-    - name: Build
-      run: |
-        mv src/roster.ts.template src/roster.ts
-        npm run bundle
-    
-    - name: Sync
-      env:
-        dest: 'jstech@${{secrets.DEPLOY_ADDR}}:/var/www/wookiee.ch/public_html/columbus'
-      run: |
-        cp ./assets/favicon.ico ./
-        cp ./assets/icon.png ./
-        echo "${{secrets.DEPLOY_KEY}}" > deploy_key
-        chmod 600 ./deploy_key
-        rsync -chav --delete \
-          -e 'ssh -p ${{secrets.DEPLOY_PORT}} -i ./deploy_key -o StrictHostKeyChecking=no' \
-          --exclude='.DS_Store' \
-          --include=index.html \
-          --include=favicon.ico \
-          --include=icon.png \
-          --include='dist/***' \
-          --include='assets/***' \
-          --exclude='*' \
-          ./ ${{env.dest}}
+            - name: Build
+              run: |
+                  mv src/roster.ts.template src/roster.ts
+                  npm run bundle
+
+            - name: Sync
+              env:
+                  dest: "status@${{secrets.DEPLOY_ADDR}}:www"
+              run: |
+                  cp ./assets/favicon.ico ./
+                  cp ./assets/icon.png ./
+                  echo "${{secrets.DEPLOY_KEY}}" > deploy_key
+                  chmod 600 ./deploy_key
+                  rsync -chav --delete \
+                    -e 'ssh -p ${{secrets.DEPLOY_PORT}} -i ./deploy_key -o StrictHostKeyChecking=no' \
+                    --exclude='.DS_Store' \
+                    --include=index.html \
+                    --include=favicon.ico \
+                    --include=icon.png \
+                    --include='dist/***' \
+                    --include='assets/***' \
+                    --exclude='*' \
+                    ./ ${{env.dest}}
