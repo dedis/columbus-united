@@ -5,18 +5,18 @@
 </div>
 
 <div align="center">
-  <a href="https://github.com/dedis/columbus-united/actions?query=workflow%3A%22Wookiee+deployment%22">
-    <img src="https://github.com/dedis/columbus-united/workflows/Wookiee%20deployment/badge.svg?branch=production">
+  <a href="https://github.com/c4dt/columbus-united/actions?query=workflow%3A%22Wookiee+deployment%22">
+    <img src="https://github.com/c4dt/columbus-united/workflows/Wookiee%20deployment/badge.svg?branch=production">
   </a>
-  <a href="https://github.com/dedis/columbus-united/actions?query=workflow%3A%22Wookiee+DEV+deployment%22">
-    <img src="https://github.com/dedis/columbus-united/workflows/Wookiee%20DEV%20deployment/badge.svg">
+  <a href="https://github.com/c4dt/columbus-united/actions?query=workflow%3A%22Wookiee+DEV+deployment%22">
+    <img src="https://github.com/c4dt/columbus-united/workflows/Wookiee%20DEV%20deployment/badge.svg">
   </a>
   <br/>
-  <a href="https://github.com/dedis/columbus-united/actions?query=workflow%3APrettier">
-    <img src="https://github.com/dedis/columbus-united/workflows/Prettier/badge.svg">
+  <a href="https://github.com/c4dt/columbus-united/actions?query=workflow%3APrettier">
+    <img src="https://github.com/c4dt/columbus-united/workflows/Prettier/badge.svg">
   </a>
-  <a href="https://github.com/dedis/columbus-united/actions?query=workflow%3A%22Quality+checking">
-    <img src="https://github.com/dedis/columbus-united/workflows/Quality%20checking/badge.svg">
+  <a href="https://github.com/c4dt/columbus-united/actions?query=workflow%3A%22Quality+checking">
+    <img src="https://github.com/c4dt/columbus-united/workflows/Quality%20checking/badge.svg">
   </a>
 </div>
 
